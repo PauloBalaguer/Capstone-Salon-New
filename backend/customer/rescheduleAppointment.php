@@ -33,6 +33,13 @@ if (!isLoggedIn() || ($_SESSION['user_role'] ?? null) !== 'Customer') {
 
 $isPost = $_SERVER['REQUEST_METHOD'] === 'POST';
 $input = $isPost ? $_POST : $_GET;
+require_once __DIR__ . '/../config/BookingValidation.php';
+BookingValidation::enforce($input, [
+    'id' => ['text', true, 'a booking reference'],
+    'date' => ['date', true, 'an appointment date'],
+    'time' => ['time', $isPost, 'an appointment time'],
+    'staffId' => ['id', false, 'a staff selection'],
+]);
 $referenceCode = trim($input['id'] ?? '');
 $date = trim($input['date'] ?? '');
 $time = trim($input['time'] ?? '');

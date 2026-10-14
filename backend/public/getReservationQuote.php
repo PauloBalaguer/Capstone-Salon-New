@@ -5,6 +5,12 @@ require_once '../config/session.php';
 require_once '../config/ReservationPayment.php';
 sendCorsHeaders();
 header('Content-Type: application/json');
+require_once __DIR__ . '/../config/BookingValidation.php';
+BookingValidation::enforce($_GET, [
+    'serviceIds' => ['ids', true, 'service or staff selections'],
+]);
+
+
 header('Cache-Control: no-store');
 
 try {

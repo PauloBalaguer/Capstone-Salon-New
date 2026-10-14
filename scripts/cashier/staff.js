@@ -56,16 +56,16 @@ function renderStaff() {
         <div class="flex justify-between items-start">
           <div>
             <p class="font-bold text-slate-800 text-xs capitalize">${escapeHtml(s.name)}</p>
-            <p class="text-[10px] text-gray-400">${escapeHtml(s.role || 'Staff')}</p>
+            <p class="text-xs text-gray-400">${escapeHtml(s.role || 'Staff')}</p>
           </div>
-          <span class="text-[10px] font-bold uppercase ${availabilityBadgeClass(s)}${s.availability.startsWith('Busy') ? ' badge-live' : ''}">${escapeHtml(s.availability)}</span>
+          <span class="text-xs font-bold uppercase ${availabilityBadgeClass(s)}${s.availability.startsWith('Busy') ? ' badge-live' : ''}">${escapeHtml(s.availability)}</span>
         </div>
-        <div class="grid grid-cols-2 gap-x-2 text-[10px] text-gray-500 pt-1 border-t border-gray-100">
+        <div class="grid grid-cols-2 gap-x-2 text-xs text-gray-500 pt-1 border-t border-gray-100">
           <span>Today: ${s.todaysWorkload} booking${s.todaysWorkload === 1 ? '' : 's'}</span>
           <span class="text-right truncate" title="${escapeHtml(s.nextAppointment || '')}">${s.nextAppointment ? 'Next: ' + escapeHtml(s.nextAppointment) : 'No upcoming'}</span>
         </div>
         ${s.onShift ? `
-        <div class="flex items-center justify-between pt-1.5 border-t border-gray-100 text-[10px]">
+        <div class="flex items-center justify-between pt-1.5 border-t border-gray-100 text-xs">
           <span class="text-gray-500">${s.clockInTime ? 'Clocked in ' + escapeHtml(s.clockInTime) : 'On shift'}</span>
           <button data-clockout="${escapeHtml(s.id)}" class="text-rose-700 font-bold hover:underline"><i class="fa-solid fa-right-from-bracket mr-1"></i>Clock Out</button>
         </div>` : ''}

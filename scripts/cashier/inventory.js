@@ -80,7 +80,7 @@ function renderInventory() {
               <div class="${barColor} h-1.5 rounded-full transition-all duration-500 ease-out" style="width:${pct}%"></div>
             </div>
           </td>
-          <td class="p-3 text-center"><span class="text-[10px] font-bold px-2 py-0.5 rounded ${badgeClass}${status === 'Critical' ? ' badge-live' : ''}">${status}</span></td>
+          <td class="p-3 text-center"><span class="text-xs font-bold px-2 py-0.5 rounded ${badgeClass}${status === 'Critical' ? ' badge-live' : ''}">${status}</span></td>
         </tr>
       `;
     }).join('');
@@ -117,8 +117,8 @@ function setLowStockFilter(lowStockOnly) {
   state.lowStockOnly = lowStockOnly;
   const allBtn = document.getElementById('btnFilterAllStock');
   const lowBtn = document.getElementById('btnFilterLowStock');
-  allBtn.className = `px-2.5 py-1 rounded text-[10px] font-bold ${lowStockOnly ? 'text-slate-500' : 'bg-white text-slate-800 shadow-sm'}`;
-  lowBtn.className = `px-2.5 py-1 rounded text-[10px] font-bold ${lowStockOnly ? 'bg-white text-rose-700 shadow-sm' : 'text-slate-500'}`;
+  allBtn.className = `px-2.5 py-1 rounded text-xs font-bold ${lowStockOnly ? 'text-slate-500' : 'bg-white text-slate-800 shadow-sm'}`;
+  lowBtn.className = `px-2.5 py-1 rounded text-xs font-bold ${lowStockOnly ? 'bg-white text-rose-700 shadow-sm' : 'text-slate-500'}`;
   renderInventory();
 }
 

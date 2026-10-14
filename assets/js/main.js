@@ -45,7 +45,7 @@
      the menu is hidden by the stylesheet but the page would stay locked,
      so it is closed properly here. */
   window.addEventListener('resize', () => {
-    if (window.innerWidth >= 1024 && mobileNav && !mobileNav.classList.contains('hidden')) {
+    if (window.innerWidth >= 1536 && mobileNav && !mobileNav.classList.contains('hidden')) {
       setMobileNav(false);
     }
   });
@@ -1180,6 +1180,8 @@
   }
 
   function hsNext(from) {
+    if (from === 1 && !BookingFormValidation.fields([['#hsName', 'text'], ['#hsPhone', 'mobile'], ['#hsEmail', 'email']])) return;
+    if (from === 2 && !BookingFormValidation.fields([['#hsClients', 'quantity'], ['#hsVenue', 'address'], ['#hsDate', 'date'], ['#hsTime', 'time']])) return;
     if (from === 1) {
       const name = document.getElementById('hsName').value.trim();
       const phone = document.getElementById('hsPhone').value.trim();
@@ -1276,6 +1278,7 @@
   }
 
   function hsSubmit() {
+    if (!BookingFormValidation.fields([['#hsName', 'text'], ['#hsPhone', 'mobile'], ['#hsEmail', 'email'], ['#hsClients', 'quantity'], ['#hsVenue', 'address'], ['#hsDate', 'date'], ['#hsTime', 'time']])) return;
     if (!hsValidateSchedule()) return;
     const name = document.getElementById('hsName').value.trim();
     const phone = document.getElementById('hsPhone').value.trim();
@@ -2288,6 +2291,7 @@
   });
 
   document.getElementById('bookingModalForm')?.addEventListener('submit', e => {
+    if (!BookingFormValidation.fields([['#bookName', 'text'], ['#bookPhone', 'mobile'], ['#bookEmail', 'email', false], ['#bookDate', 'date']])) { e.preventDefault(); return; }
     e.preventDefault();
 
     const branchId = document.getElementById('bookBranchSelect').value;

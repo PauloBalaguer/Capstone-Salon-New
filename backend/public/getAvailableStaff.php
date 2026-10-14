@@ -19,6 +19,15 @@ require_once '../config/Scheduling.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
+require_once __DIR__ . '/../config/BookingValidation.php';
+BookingValidation::enforce($_GET, [
+    'branch' => ['id', true, 'a staff or branch selection'],
+    'date' => ['date', true, 'an appointment date'],
+    'time' => ['time', true, 'an appointment time'],
+    'services' => ['ids', true, 'service or staff selections'],
+]);
+
+
 
 $branchId = (int) ($_GET['branch'] ?? 0);
 $date = trim($_GET['date'] ?? '');
@@ -64,6 +73,17 @@ try {
     ");
     $stmt->execute([$branchId, ...$serviceIds, count($serviceIds)]);
     $candidates = $stmt->fetchAll();
+
+    if ($serviceIds) {
+        $marks = implode(',', array_fill(0, count($serviceIds), '?'));
+        $selected = $pdo->prepare("SELECT COUNT(*) FROM services WHERE branch_id = ? AND is_active = 1 AND id IN ($marks)");
+        $selected->execute([$branchId, ...$serviceIds]);
+        if ((int) $selected->fetchColumn() !== count($serviceIds)) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => 'Please select active services offered at this branch.', 'errors' => ['services' => 'One or more selected services are unavailable at this branch.']]);
+            exit();
+        }
+    }
 
     $durationMinutes = Scheduling::totalDurationMinutes($pdo, $serviceIds);
 

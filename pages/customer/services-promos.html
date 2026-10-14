@@ -8,15 +8,10 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-  <link rel="stylesheet" href="../../assets/css/fonts-inter-playfair.css">
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            serif: ['Playfair Display', 'serif'],
-          },
           colors: {
             luxury: {
               50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff', 500: '#a855f7',
@@ -55,6 +50,7 @@
   </style>
   <link rel="stylesheet" href="../../assets/css/customer-theme.css">
   <script src="../../scripts/customer/theme-config.js"></script>
+<script src="../../scripts/booking-validation.js"></script>
 </head>
 <body class="bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
@@ -71,7 +67,7 @@
              'border-[#FDA4AF] bg-[#FFF1F2] text-[#881337]': toast.type === 'error',
              'border-[#99D5D6] bg-[#F0FAFA] text-[#06464A]': toast.type === 'info' || toast.type === 'system'
            }"
-           class="border-2 rounded-xl px-4 py-3 shadow-2xl flex items-start gap-2 text-[13px] font-semibold">
+           class="border-2 rounded-xl px-4 py-3 shadow-2xl flex items-start gap-2 text-xs font-semibold">
         <span x-text="toast.message" class="flex-1 leading-relaxed"></span>
         <button @click="dismissToast(toast.id)" class="opacity-60 hover:opacity-100 shrink-0 leading-none text-lg" aria-label="Dismiss">&times;</button>
       </div>
@@ -93,8 +89,8 @@
               </template>
             </div>
             <div>
-              <h1 class="text-sm font-bold tracking-wider text-gold-400 font-serif" x-text="customerProfile.name"></h1>
-              <p class="text-[10px] text-slate-400 uppercase tracking-widest font-sans">Customer Portal</p>
+              <h1 class="text-base font-bold tracking-wider text-gold-400 font-serif" x-text="customerProfile.name"></h1>
+              <p class="text-xs text-slate-400 uppercase tracking-widest font-sans">Customer Portal</p>
             </div>
           </button>
 
@@ -153,7 +149,7 @@
                   <img :src="customerProfile.profilePicture" alt="Profile" class="w-full h-full object-cover">
                 </template>
                 <template x-if="!customerProfile.profilePicture">
-                  <span class="text-sm" x-text="customerProfile.name.split(' ').map(n => n[0]).join('')"></span>
+                  <span class="text-base" x-text="customerProfile.name.split(' ').map(n => n[0]).join('')"></span>
                 </template>
               </div>
             </button>
@@ -174,12 +170,12 @@
           <button @click="toggleNotificationPanel()" class="relative text-slate-400 hover:text-white transition-colors">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
             <template x-if="unreadNotificationCount > 0">
-              <span class="pulse-badge absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white" x-text="unreadNotificationCount"></span>
+              <span class="pulse-badge absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white" x-text="unreadNotificationCount"></span>
             </template>
           </button>
           <div x-show="isNotificationPanelOpen" x-transition class="absolute top-full right-0 mt-2 w-80 bg-slate-800 border border-luxury-800 rounded-lg shadow-lg z-30 flex flex-col max-h-96" style="display: none;">
             <div class="p-3 border-b border-slate-700 shrink-0">
-              <h4 class="text-sm font-bold text-white">Notifications</h4>
+              <h4 class="text-base font-bold text-white">Notifications</h4>
             </div>
             <div class="divide-y divide-slate-700 overflow-y-auto flex-1">
               <template x-if="notifications.length === 0">
@@ -192,7 +188,7 @@
                   </div>
                   <div>
                     <p class="text-xs text-slate-200" x-text="notif.message"></p>
-                    <p class="text-[10px] text-slate-500" x-text="notif.time"></p>
+                    <p class="text-xs text-slate-500" x-text="notif.time"></p>
                   </div>
                 </div>
               </template>
@@ -221,17 +217,17 @@
             <div class="flex items-center justify-center gap-1.5 sm:gap-3 mb-4 flex-wrap" x-show="showBookingForm || showBookingSuccess || selectedServicesForBooking.length > 0">
               <template x-for="(label, i) in bookingProgressLabels()" :key="label">
                 <div class="flex items-center gap-1.5 sm:gap-2">
-                  <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-full border flex items-center justify-center text-[10px] sm:text-[11px] font-bold transition-all duration-300"
+                  <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-full border flex items-center justify-center text-xs sm:text-xs font-bold transition-all duration-300"
                        :class="i === bookingProgressIndex() ? 'bg-gold-500 text-slate-950 border-gold-500 scale-110' : (i < bookingProgressIndex() ? 'bg-luxury-700 text-white border-luxury-700' : 'bg-slate-800 text-slate-500 border-slate-700')"
                        x-text="i + 1"></div>
-                  <span class="text-[10px] sm:text-[11px] hidden sm:inline transition-colors duration-300" :class="i === bookingProgressIndex() ? 'text-white font-semibold' : 'text-slate-500'" x-text="label"></span>
+                  <span class="text-xs sm:text-xs hidden sm:inline transition-colors duration-300" :class="i === bookingProgressIndex() ? 'text-white font-semibold' : 'text-slate-500'" x-text="label"></span>
                   <div x-show="i < bookingProgressLabels().length - 1" class="w-3 sm:w-8 h-px bg-slate-700"></div>
                 </div>
               </template>
             </div>
 
             <div class="bg-slate-900 border border-luxury-900 rounded-2xl p-5 space-y-4">
-              <h3 class="font-serif text-sm font-bold text-white">Explore Our Offerings</h3>
+              <h3 class="font-serif text-base font-bold text-white">Explore Our Offerings</h3>
               <div class="flex items-center space-x-3">
                 <label for="branch-select-services" class="text-xs text-slate-400">Select Branch:</label>
                 <select id="branch-select-services" x-model="selectedBranchForServices" @change="clearBookingSelection(); prefillBookingForm()" class="bg-slate-950 text-slate-200 rounded-lg p-2 border border-slate-800 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500">
@@ -244,12 +240,12 @@
               <template x-if="!showBookingForm && !showBookingSuccess">
                 <div>
                   <div class="space-y-3">
-                    <h4 class="font-serif text-sm font-bold text-gold-400 mt-6">Services at <span x-text="selectedBranchForServices.charAt(0).toUpperCase() + selectedBranchForServices.slice(1)"></span></h4>
+                    <h4 class="font-serif text-base font-bold text-gold-400 mt-6">Services at <span x-text="selectedBranchForServices.charAt(0).toUpperCase() + selectedBranchForServices.slice(1)"></span></h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <template x-for="(service, i) in getFilteredServices()" :key="service.id">
                         <div @click="toggleServiceSelection(service)" :class="isSelectedForBooking(service) ? 'border-gold-500 ring-1 ring-gold-500' : 'border-luxury-900'" class="card-lift stagger-item bg-slate-800 rounded-lg p-4 space-y-2 cursor-pointer relative" :style="'animation-delay:' + (i * 50) + 'ms'">
                           <template x-if="getPromoForService(service)">
-                            <div class="absolute top-0 right-0 bg-gold-500 text-slate-950 text-[9px] font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg">PROMO AVAILABLE</div>
+                            <div class="absolute top-0 right-0 bg-gold-500 text-slate-950 text-xs font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg">PROMO AVAILABLE</div>
                           </template>
                           <div class="flex justify-between items-start gap-3">
                             <div class="flex items-start gap-2 min-w-0">
@@ -257,11 +253,11 @@
                                 <span x-show="isSelectedForBooking(service)" class="w-1.5 h-1.5 rounded-full bg-slate-950"></span>
                               </span>
                               <div class="min-w-0">
-                                <p class="text-sm font-medium text-white" x-text="service.name"></p>
+                                <p class="text-base font-medium text-white" x-text="service.name"></p>
                                 <p class="text-xs text-slate-400" x-text="service.category"></p>
                               </div>
                             </div>
-                            <p class="text-sm font-bold text-gold-400 shrink-0" x-text="formatPeso(service.price)"></p>
+                            <p class="text-base font-bold text-gold-400 shrink-0" x-text="formatPeso(service.price)"></p>
                           </div>
                           <p class="text-xs text-slate-400" x-text="formatServiceDuration(service)"></p>
                           <p class="text-xs text-slate-300">
@@ -278,12 +274,12 @@
                   </div>
 
                   <div class="space-y-3">
-                    <h4 class="font-serif text-sm font-bold text-gold-400 mt-6">Active Promotions at <span x-text="selectedBranchForServices.charAt(0).toUpperCase() + selectedBranchForServices.slice(1)"></span></h4>
+                    <h4 class="font-serif text-base font-bold text-gold-400 mt-6">Active Promotions at <span x-text="selectedBranchForServices.charAt(0).toUpperCase() + selectedBranchForServices.slice(1)"></span></h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <template x-for="(promo, i) in getFilteredPromotions()" :key="promo.id">
                         <div class="card-lift stagger-item bg-gradient-to-br from-luxury-800 to-luxury-900 border border-gold-500 rounded-lg p-4 space-y-2 relative overflow-hidden" :style="'animation-delay:' + (i * 50) + 'ms'">
-                          <div class="absolute top-0 right-0 bg-gold-500 text-slate-950 text-[9px] font-bold px-2 py-1 rounded-bl-lg">PROMO</div>
-                          <p class="text-sm font-bold text-white" x-text="promo.title"></p>
+                          <div class="absolute top-0 right-0 bg-gold-500 text-slate-950 text-xs font-bold px-2 py-1 rounded-bl-lg">PROMO</div>
+                          <p class="text-base font-bold text-white" x-text="promo.title"></p>
                           <p class="text-xs text-slate-300" x-text="promo.description"></p>
                           <div class="flex items-baseline space-x-2">
                             <p class="text-lg font-bold text-gold-400" x-text="formatPeso(promo.price)"></p>
@@ -299,7 +295,7 @@
                   </div>
 
                   <div x-show="selectedServicesForBooking.length > 0" x-transition class="pt-6 border-t border-slate-800 mt-6 space-y-4">
-                    <h4 class="font-serif text-sm font-bold text-white">Your Selection</h4>
+                    <h4 class="font-serif text-base font-bold text-white">Your Selection</h4>
                     <ul class="space-y-2">
                       <template x-for="service in selectedServicesForBooking" :key="service.id">
                         <li class="flex justify-between items-center text-xs bg-slate-800 p-3 rounded-lg">
@@ -309,13 +305,13 @@
                           </div>
                           <div class="flex items-center space-x-2">
                             <p class="font-bold text-gold-400" x-text="formatPeso(service.price)"></p>
-                            <button @click="toggleServiceSelection(service)" class="text-rose-400 hover:text-rose-300 text-sm">&times;</button>
+                            <button @click="toggleServiceSelection(service)" class="text-rose-400 hover:text-rose-300 text-base">&times;</button>
                           </div>
                         </li>
                       </template>
                     </ul>
                     <div class="flex justify-between items-center pt-2 border-t border-slate-800">
-                      <p class="text-sm font-bold text-white" x-text="'Total: ' + formatPeso(selectedServicesForBooking.reduce((sum, s) => sum + s.price, 0))"></p>
+                      <p class="text-base font-bold text-white" x-text="'Total: ' + formatPeso(selectedServicesForBooking.reduce((sum, s) => sum + s.price, 0))"></p>
                       <button @click="openBookingSection()" class="px-5 py-2 bg-gradient-to-r from-luxury-600 to-luxury-800 text-white font-bold rounded-lg hover:shadow-lg hover:shadow-luxury-600/20 transition active:scale-95">Proceed to Booking</button>
                     </div>
                   </div>
@@ -330,7 +326,7 @@
 
               <template x-if="showBookingForm">
                 <div class="pt-6 border-t border-slate-800 mt-6 space-y-4" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
-                  <h4 class="font-serif text-sm font-bold text-white" x-text="bookingStepTitle(bookingStep)"></h4>
+                  <h4 class="font-serif text-base font-bold text-white" x-text="bookingStepTitle(bookingStep)"></h4>
                   <form @submit.prevent="" class="space-y-4 text-xs">
 
                     <!-- STEP: Choose Your Schedule -->
@@ -424,7 +420,7 @@
                         </div>
 
                         <div class="flex justify-between items-center pt-3 border-t border-slate-700">
-                          <span class="text-sm font-bold text-white">Final Total:</span>
+                          <span class="text-base font-bold text-white">Final Total:</span>
                           <span class="text-lg font-bold text-gold-400" x-text="formatPeso(finalBookingTotal())"></span>
                         </div>
 
@@ -554,7 +550,7 @@
                     <svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                   </div>
                   <h4 class="font-serif text-lg font-bold text-white">Booking Request Received</h4>
-                  <p class="text-slate-400 text-sm">Your appointment request has been sent. You will receive a confirmation message shortly.</p>
+                  <p class="text-slate-400 text-base">Your appointment request has been sent. You will receive a confirmation message shortly.</p>
 
                   <div x-show="bookingSuccessDetails" class="bg-slate-800 rounded-lg p-4 text-left text-xs my-4 space-y-2">
                     <p class="text-center font-bold text-gold-400 mb-3">Booking Reference: <span class="font-mono bg-slate-900 px-2 py-1 rounded" x-text="bookingSuccessDetails?.id"></span></p>
@@ -585,23 +581,23 @@
     <nav class="flex justify-around">
       <a href="dashboard.html" data-nav-page="dashboard.html" class="text-slate-400 flex flex-col items-center justify-center p-2 w-full hover:bg-slate-800/50 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z"></path></svg>
-        <span class="text-[9px] mt-1">Dashboard</span>
+        <span class="text-xs mt-1">Dashboard</span>
       </a>
       <a href="appointments.html" data-nav-page="appointments.html" class="text-slate-400 flex flex-col items-center justify-center p-2 w-full hover:bg-slate-800/50 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-        <span class="text-[9px] mt-1">Bookings</span>
+        <span class="text-xs mt-1">Bookings</span>
       </a>
       <a href="services-promos.html" data-nav-page="services-promos.html" class="text-gold-400 flex flex-col items-center justify-center p-2 w-full hover:bg-slate-800/50 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
-        <span class="text-[9px] mt-1">Services</span>
+        <span class="text-xs mt-1">Services</span>
       </a>
       <a href="reviews.html" data-nav-page="reviews.html" class="text-slate-400 flex flex-col items-center justify-center p-2 w-full hover:bg-slate-800/50 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
-        <span class="text-[9px] mt-1">Reviews</span>
+        <span class="text-xs mt-1">Reviews</span>
       </a>
       <a href="home-service.html" data-nav-page="home-service.html" class="text-slate-400 flex flex-col items-center justify-center p-2 w-full hover:bg-slate-800/50 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-        <span class="text-[9px] mt-1">Home</span>
+        <span class="text-xs mt-1">Home</span>
       </a>
     </nav>
   </div>

@@ -32,6 +32,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
+require_once __DIR__ . '/../config/BookingValidation.php';
+BookingValidation::enforce($_POST, [
+    'clientName' => ['text', true, 'the client full name'],
+    'clientPhone' => ['mobile', true, 'a mobile number (09XXXXXXXXX)'],
+    'stylistId' => ['id', true, 'a staff or branch selection'],
+    'serviceIds' => ['ids', true, 'service or staff selections'],
+]);
+
 $clientName = trim($_POST['clientName'] ?? '');
 $clientPhone = trim($_POST['clientPhone'] ?? '');
 $stylistId = (int) ($_POST['stylistId'] ?? 0);

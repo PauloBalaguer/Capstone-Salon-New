@@ -42,7 +42,7 @@ function renderReceipt(receipt) {
     <div class="flex justify-between py-1.5">
       <div>
         <p class="font-semibold text-slate-800">${escapeHtml(item.itemName)}${item.quantity > 1 ? ` &times;${item.quantity}` : ''}</p>
-        <p class="text-[9px] text-gray-400">${item.itemType}</p>
+        <p class="text-xs text-gray-400">${item.itemType}</p>
       </div>
       <span class="font-semibold text-slate-800">${CashierApp.formatCurrency(item.lineTotal)}</span>
     </div>

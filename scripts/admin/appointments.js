@@ -141,6 +141,7 @@ function adminBookingsApp() {
     },
 
     async confirmWithDeposit() {
+      if (!BookingFormValidation.fields([['[x-model="depositAmount"]', 'money']])) return;
       const store = Alpine.store('admin');
       if (!this.depositBooking || !this.depositAmount || !this.depositMethod) return;
 
@@ -177,6 +178,7 @@ function adminBookingsApp() {
     },
 
     async submitHomeServiceQuote() {
+      if (!BookingFormValidation.fields([['[x-model="quotePrice"]', 'money'], ['[x-model="reservationFee"]', 'money', false]])) return;
       const store = Alpine.store('admin');
       if (!this.quoteBooking || !this.quotePrice) return;
       const result = await store.post('setHomeServiceQuote.php', {
@@ -247,7 +249,7 @@ function adminBookingsApp() {
       const store = Alpine.store('admin');
       const value = prompt(`Correct the final quote for ${booking.id} (already paid: ${store.formatCurrency(booking.amountPaid)}):`, booking.quotePrice);
       if (value === null) return;
-      const result = await store.post('homeServiceBalance.php', { id: booking.id, action: 'editQuote', quotePrice: value.replace(/[^0-9.]/g, '') });
+      const result = await store.post('homeServiceBalance.php', { id: booking.id, action: 'editQuote', quotePrice: value.trim() });
       alert(result.message || (result.success ? 'Quote updated.' : 'Failed to update the quote.'));
       if (result.success) await store.refresh();
     },

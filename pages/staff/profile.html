@@ -8,16 +8,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-  <link rel="stylesheet" href="../../assets/css/fonts-jakarta-playfair.css">
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'], serif: ['Playfair Display', 'serif'] }
-        }
-      }
-    }
-  </script>
 
   <style>
     [x-cloak] { display: none !important; }
@@ -69,8 +59,8 @@
         <div class="flex items-center space-x-3 mb-8">
           <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center font-serif text-white font-bold text-lg shadow-lg shadow-emerald-500/20">LM</div>
           <div>
-            <h1 class="text-sm font-bold tracking-wider uppercase text-emerald-400 font-serif">Leo Mejillano</h1>
-            <p class="text-[10px] text-slate-400 uppercase tracking-widest font-sans" x-text="$store.staff.profile.role || 'Staff'"></p>
+            <h1 class="text-base font-bold tracking-wider uppercase text-emerald-400 font-serif">Leo Mejillano</h1>
+            <p class="text-xs text-slate-400 uppercase tracking-widest font-sans" x-text="$store.staff.profile.role || 'Staff'"></p>
           </div>
         </div>
 
@@ -105,10 +95,10 @@
             <span>Sign Out</span>
           </a>
         </div>
-        <div class="p-4 bg-slate-950 border-t border-slate-800/80 text-[10px] text-slate-400 space-y-1">
+        <div class="p-4 bg-slate-950 border-t border-slate-800/80 text-xs text-slate-400 space-y-1">
           <p class="font-bold text-slate-300">STI College Legazpi</p>
           <p>Capstone Project Proposal &copy; 2026</p>
-          <p class="text-[9px] text-emerald-400 italic">Centralized Digital Multi-Branch Solution</p>
+          <p class="text-xs text-emerald-400 italic">Centralized Digital Multi-Branch Solution</p>
         </div>
       </div>
     </aside>
@@ -120,7 +110,7 @@
           <p class="text-lg font-bold text-white">My Profile</p>
           <p class="text-xs text-slate-400">Account details &amp; security.</p>
         </div>
-        <a href="profile.html" class="relative w-11 h-11 rounded-full overflow-hidden flex items-center justify-center font-bold text-white text-sm shadow-lg"
+        <a href="profile.html" class="relative w-11 h-11 rounded-full overflow-hidden flex items-center justify-center font-bold text-white text-base shadow-lg"
                 :class="$store.staff.isClockedIn() ? 'bg-gradient-to-tr from-emerald-500 to-teal-500 shift-glow' : 'bg-gradient-to-tr from-slate-600 to-slate-700'">
           <img x-show="form.profilePicture || $store.staff.profile.profilePicture" :src="form.profilePicture || $store.staff.profile.profilePicture" class="absolute inset-0 w-full h-full object-cover" alt="">
           <span x-show="!(form.profilePicture || $store.staff.profile.profilePicture)" x-text="$store.staff.initials()" class="relative z-10"></span>
@@ -131,29 +121,29 @@
       <header class="hidden md:flex bg-slate-900 border-b border-emerald-900/40 px-6 py-4 shrink-0 items-center justify-between flex-wrap gap-4">
         <div>
           <h2 class="text-lg font-serif font-bold text-white">My Profile</h2>
-          <p class="text-[11px] text-slate-400">Manage your account details, notifications, and password.</p>
+          <p class="text-xs text-slate-400">Manage your account details, notifications, and password.</p>
         </div>
 
         <div class="flex items-center gap-4">
           <div class="text-right">
-            <p class="text-[10px] uppercase tracking-wider text-slate-500">Status</p>
-            <p class="text-sm font-bold" :class="$store.staff.isClockedIn() ? 'text-emerald-400' : 'text-slate-500'" x-text="$store.staff.isClockedIn() ? 'On Shift • ' + $store.staff.getShiftDurationLabel() : 'Off Shift'"></p>
+            <p class="text-xs uppercase tracking-wider text-slate-500">Status</p>
+            <p class="text-base font-bold" :class="$store.staff.isClockedIn() ? 'text-emerald-400' : 'text-slate-500'" x-text="$store.staff.isClockedIn() ? 'On Shift • ' + $store.staff.getShiftDurationLabel() : 'Off Shift'"></p>
           </div>
           <div class="relative" @click.outside="$store.staff.isNotificationPanelOpen = false">
             <button @click="$store.staff.toggleNotificationPanel()" class="relative text-slate-400 hover:text-white transition-colors">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
               <template x-if="$store.staff.unreadNotificationCount() > 0">
-                <span class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white" x-text="$store.staff.unreadNotificationCount()"></span>
+                <span class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white" x-text="$store.staff.unreadNotificationCount()"></span>
               </template>
             </button>
             <div x-show="$store.staff.isNotificationPanelOpen" x-transition class="absolute top-full right-0 mt-2 w-80 bg-slate-800 border border-slate-700 rounded-lg shadow-lg z-30 flex flex-col max-h-96" style="display:none">
-              <div class="p-3 border-b border-slate-700 shrink-0"><h4 class="text-sm font-bold text-white">Notifications</h4></div>
+              <div class="p-3 border-b border-slate-700 shrink-0"><h4 class="text-base font-bold text-white">Notifications</h4></div>
               <div class="divide-y divide-slate-700 overflow-y-auto flex-1">
                 <template x-if="$store.staff.notifications.length === 0"><p class="text-xs text-slate-400 text-center p-8">No notifications yet.</p></template>
                 <template x-for="notif in $store.staff.notifications" :key="notif.id">
                   <div class="p-3 hover:bg-slate-700/40">
                     <p class="text-xs text-slate-200" x-text="notif.message"></p>
-                    <p class="text-[10px] text-slate-500 mt-0.5" x-text="notif.time"></p>
+                    <p class="text-xs text-slate-500 mt-0.5" x-text="notif.time"></p>
                   </div>
                 </template>
               </div>
@@ -182,39 +172,39 @@
             <div class="min-w-0">
               <p class="text-lg font-bold text-white truncate" x-text="$store.staff.profile.name"></p>
               <p class="text-xs text-emerald-400 font-semibold" x-text="($store.staff.profile.role || 'Staff') + ' • ' + ($store.staff.profile.branchName || 'Unassigned Branch')"></p>
-              <p class="text-[11px] text-slate-400 mt-1" x-text="$store.staff.profile.email"></p>
-              <p class="text-[10px] text-slate-500 mt-0.5" x-text="$store.staff.profile.hireDate ? ('Joined ' + $store.staff.profile.hireDate) : ''"></p>
-              <p class="text-[10px] text-amber-400 font-semibold mt-1" x-show="form.profilePicture">New photo selected — click "Save Changes" below to apply.</p>
+              <p class="text-xs text-slate-400 mt-1" x-text="$store.staff.profile.email"></p>
+              <p class="text-xs text-slate-500 mt-0.5" x-text="$store.staff.profile.hireDate ? ('Joined ' + $store.staff.profile.hireDate) : ''"></p>
+              <p class="text-xs text-amber-400 font-semibold mt-1" x-show="form.profilePicture">New photo selected — click "Save Changes" below to apply.</p>
             </div>
           </div>
         </template>
 
         <form @submit.prevent="submitProfile()" class="stagger-item bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 space-y-5" style="animation-delay: 60ms">
           <div>
-            <h3 class="font-serif text-sm font-bold text-white">Profile Details</h3>
-            <p class="text-[11px] text-slate-400">Update your name, contact number, and email.</p>
+            <h3 class="font-serif text-base font-bold text-white">Profile Details</h3>
+            <p class="text-xs text-slate-400">Update your name, contact number, and email.</p>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">First Name</label>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">First Name</label>
               <input type="text" x-model="form.firstName" required
-                     class="field-input w-full px-3.5 py-2.5 rounded-lg text-sm bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                     class="field-input w-full px-3.5 py-2.5 rounded-lg text-base bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
             </div>
             <div>
-              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Last Name</label>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Last Name</label>
               <input type="text" x-model="form.lastName" required
-                     class="field-input w-full px-3.5 py-2.5 rounded-lg text-sm bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                     class="field-input w-full px-3.5 py-2.5 rounded-lg text-base bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
             </div>
             <div>
-              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Phone Number</label>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Phone Number</label>
               <input type="tel" x-model="form.phone" required
-                     class="field-input w-full px-3.5 py-2.5 rounded-lg text-sm bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                     class="field-input w-full px-3.5 py-2.5 rounded-lg text-base bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
             </div>
             <div>
-              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Email Address</label>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Email Address</label>
               <input type="email" x-model="form.email" required
-                     class="field-input w-full px-3.5 py-2.5 rounded-lg text-sm bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                     class="field-input w-full px-3.5 py-2.5 rounded-lg text-base bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
             </div>
           </div>
 
@@ -224,7 +214,7 @@
               <label class="flex items-center justify-between gap-4 py-2.5 border-b border-slate-800/70 last:border-b-0 cursor-pointer">
                 <div class="min-w-0">
                   <p class="text-xs font-semibold text-slate-200" x-text="opt.label"></p>
-                  <p class="text-[10px] text-slate-500" x-text="opt.desc"></p>
+                  <p class="text-xs text-slate-500" x-text="opt.desc"></p>
                 </div>
                 <button type="button" @click="form[opt.key] = !form[opt.key]" class="relative w-9 h-5 rounded-full transition-colors duration-200 shrink-0" :class="form[opt.key] ? 'bg-emerald-600' : 'bg-slate-700'">
                   <span class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200" :class="form[opt.key] ? 'translate-x-4' : 'translate-x-0'"></span>
@@ -241,25 +231,25 @@
 
         <form x-show="passwordChangeStep === 'form'" @submit.prevent="submitPassword()" class="stagger-item bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 space-y-4" style="animation-delay: 120ms">
           <div>
-            <h3 class="font-serif text-sm font-bold text-white">Change Password</h3>
-            <p class="text-[11px] text-slate-400">Use a password you don't use anywhere else.</p>
+            <h3 class="font-serif text-base font-bold text-white">Change Password</h3>
+            <p class="text-xs text-slate-400">Use a password you don't use anywhere else.</p>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Current Password</label>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Current Password</label>
               <input type="password" x-model="passwordForm.currentPassword" required autocomplete="current-password"
-                     class="field-input w-full px-3.5 py-2.5 rounded-lg text-sm bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                     class="field-input w-full px-3.5 py-2.5 rounded-lg text-base bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
             </div>
             <div>
-              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">New Password</label>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">New Password</label>
               <input type="password" x-model="passwordForm.newPassword" required minlength="8" autocomplete="new-password"
-                     class="field-input w-full px-3.5 py-2.5 rounded-lg text-sm bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                     class="field-input w-full px-3.5 py-2.5 rounded-lg text-base bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
             </div>
             <div>
-              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Confirm New Password</label>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Confirm New Password</label>
               <input type="password" x-model="passwordForm.confirmPassword" required minlength="8" autocomplete="new-password"
-                     class="field-input w-full px-3.5 py-2.5 rounded-lg text-sm bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                     class="field-input w-full px-3.5 py-2.5 rounded-lg text-base bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
             </div>
           </div>
 
@@ -271,12 +261,12 @@
 
         <form x-show="passwordChangeStep === 'verify'" x-cloak @submit.prevent="submitPasswordConfirmation()" class="stagger-item bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 space-y-4" style="animation-delay: 120ms">
           <div>
-            <h3 class="font-serif text-sm font-bold text-white">Confirm Password Change</h3>
-            <p class="text-[11px] text-slate-400">We emailed a 6-digit confirmation code to <span class="text-slate-200 font-semibold" x-text="form.email"></span>. Enter it below to finish changing your password.</p>
+            <h3 class="font-serif text-base font-bold text-white">Confirm Password Change</h3>
+            <p class="text-xs text-slate-400">We emailed a 6-digit confirmation code to <span class="text-slate-200 font-semibold" x-text="form.email"></span>. Enter it below to finish changing your password.</p>
           </div>
 
           <div class="max-w-xs">
-            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Confirmation Code</label>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Confirmation Code</label>
             <input type="text" x-model="passwordChangeCode" required inputmode="numeric" maxlength="6" placeholder="000000"
                    class="field-input w-full px-3.5 py-2.5 rounded-lg text-base tracking-[0.3em] text-center bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
           </div>

@@ -40,6 +40,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
+require_once __DIR__ . '/../config/BookingValidation.php';
+BookingValidation::enforce($_POST, [
+    'branch' => ['text', true, 'branch'],
+    'serviceIds' => ['ids', true, 'service or staff selections'],
+    'date' => ['date', true, 'an appointment date'],
+    'time' => ['time', true, 'an appointment time'],
+    'staffId' => ['id', false, 'a staff or branch selection'],
+    'customerName' => ['text', true, 'your full name'],
+    'customerPhone' => ['mobile', true, 'a mobile number (09XXXXXXXXX)'],
+]);
+
 $branchKey = trim($_POST['branch'] ?? '');
 $serviceIds = $_POST['serviceIds'] ?? [];
 $date = trim($_POST['date'] ?? '');
@@ -187,9 +198,10 @@ try {
     if (!$employee) {
         $pdo->rollBack();
         http_response_code(400);
-        echo json_encode(['success' => false, 'conflict' => $staffId !== '', 'message' => $staffId !== ''
+        echo json_encode(['success' => false, 'conflict' => $staffId !== '' && !empty($candidates), 'message' => $staffId !== '' && empty($candidates)
+            ? 'Selected staff member cannot perform all selected services at this branch.' : ($staffId !== ''
             ? 'That time was just booked. Please choose another available schedule.'
-            : 'No staff available at this branch offers this combination of services at that time. Please choose another time or adjust your service selection.']);
+            : 'No staff available at this branch offers this combination of services at that time. Please choose another time or adjust your service selection.')]);
         exit();
     }
     $employeeId = (int) $employee['id'];

@@ -8,7 +8,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-  <link rel="stylesheet" href="../../assets/css/fonts-inter-playfair.css">
   <link rel="stylesheet" href="../../assets/css/admin-theme.css">
   <script src="../../scripts/admin/theme-config.js"></script>
 </head>
@@ -24,8 +23,8 @@
         <div class="flex items-center space-x-3 mb-8">
           <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-luxury-600 to-gold-500 flex items-center justify-center font-serif text-white font-bold text-lg shadow-lg shadow-luxury-500/20">LM</div>
           <div>
-            <h1 class="text-sm font-bold tracking-wider uppercase text-gold-400 font-serif">Leo Mejillano</h1>
-            <p class="text-[10px] text-slate-400 uppercase tracking-widest font-sans">Multi-Branch Platform</p>
+            <h1 class="text-base font-bold tracking-wider uppercase text-gold-400 font-serif">Leo Mejillano</h1>
+            <p class="text-xs text-slate-400 uppercase tracking-widest font-sans">Multi-Branch Platform</p>
           </div>
         </div>
 
@@ -76,10 +75,10 @@
             <span>Sign Out</span>
           </a>
         </div>
-        <div class="p-4 bg-slate-950 border-t border-slate-800/80 text-[10px] text-slate-400 space-y-1">
+        <div class="p-4 bg-slate-950 border-t border-slate-800/80 text-xs text-slate-400 space-y-1">
           <p class="font-bold text-slate-300">STI College Legazpi</p>
           <p>Capstone Project Proposal &copy; 2026</p>
-          <p class="text-[9px] text-luxury-400 italic">Centralized Digital Multi-Branch Solution</p>
+          <p class="text-xs text-luxury-400 italic">Centralized Digital Multi-Branch Solution</p>
         </div>
       </div>
     </aside>
@@ -89,7 +88,7 @@
       <header class="bg-slate-900 border-b border-luxury-900 px-6 py-4 shrink-0 flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 class="text-lg font-serif font-bold text-white">Centralized Brand Dashboard</h2>
-          <p class="text-[11px] text-slate-400">Live snapshot across Daraga, Yashano, and Cabangan branches.</p>
+          <p class="text-xs text-slate-400">Live snapshot across Daraga, Yashano, and Cabangan branches.</p>
         </div>
 
         <div class="flex items-center space-x-3">
@@ -102,7 +101,7 @@
             <div x-show="open" @click.outside="open = false" x-cloak class="absolute right-0 mt-2 w-80 bg-slate-900 border border-luxury-800 rounded-xl shadow-xl z-50 p-4 space-y-3">
               <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                 <span class="text-xs font-semibold text-white">System Notification Log (SMS/E-Mail Simulation)</span>
-                <button @click="$store.admin.notifications = []" class="text-[10px] text-rose-400 hover:underline">Clear</button>
+                <button @click="$store.admin.notifications = []" class="text-xs text-rose-400 hover:underline">Clear</button>
               </div>
               <div class="max-h-60 overflow-y-auto space-y-2 text-xs">
                 <template x-if="$store.admin.notifications.length === 0">
@@ -110,7 +109,7 @@
                 </template>
                 <template x-for="item in $store.admin.notifications">
                   <div class="p-2 rounded bg-slate-950 border-l-2 border-luxury-500">
-                    <div class="flex justify-between text-[10px] text-slate-400 mb-1">
+                    <div class="flex justify-between text-xs text-slate-400 mb-1">
                       <span x-text="item.type" class="font-bold text-purple-400"></span>
                       <span x-text="item.time"></span>
                     </div>
@@ -134,7 +133,7 @@
               <div class="bg-purple-950/80 p-2.5 rounded-xl border border-luxury-800">
                 <svg class="w-5 h-5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
               </div>
-              <span class="text-[10px] tracking-wider font-bold bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full uppercase">Live Staff Status</span>
+              <span class="text-xs tracking-wider font-bold bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full uppercase">Live Staff Status</span>
             </div>
             <h3 class="font-serif text-lg font-bold text-white mb-2">Workforce Overview</h3>
 
@@ -163,19 +162,19 @@
                 <div class="bg-purple-950/80 p-2.5 rounded-xl border border-luxury-800">
                   <svg class="w-5 h-5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                 </div>
-                <span class="text-[10px] tracking-wider font-bold bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full uppercase" x-text="branch.type"></span>
+                <span class="text-xs tracking-wider font-bold bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full uppercase" x-text="branch.type"></span>
               </div>
               <h3 class="font-serif text-lg font-bold text-white mb-0.5" x-text="branch.name"></h3>
               <p class="text-xs text-slate-400 mb-4" x-text="branch.location"></p>
 
               <div class="grid grid-cols-2 gap-2 border-t border-slate-800/80 pt-3">
                 <div>
-                  <span class="text-[10px] text-slate-400 block">Total Revenue</span>
-                  <span class="text-sm font-bold text-emerald-400" x-text="$store.admin.formatCurrency(branch.revenue)"></span>
+                  <span class="text-xs text-slate-400 block">Total Revenue</span>
+                  <span class="text-base font-bold text-emerald-400" x-text="$store.admin.formatCurrency(branch.revenue)"></span>
                 </div>
                 <div>
-                  <span class="text-[10px] text-slate-400 block">Customer Rating</span>
-                  <span class="text-sm font-bold text-gold-400 flex items-center gap-1">
+                  <span class="text-xs text-slate-400 block">Customer Rating</span>
+                  <span class="text-base font-bold text-gold-400 flex items-center gap-1">
                     <span x-text="$store.admin.getBranchRatingLabel(branch)"></span>
                     <svg x-show="branch.ratingCount > 0" class="w-3.5 h-3.5 fill-current text-gold-400" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
                   </span>
@@ -190,8 +189,8 @@
           <div class="bg-slate-900 border border-luxury-900 p-5 rounded-2xl lg:col-span-2 space-y-4">
             <div class="flex items-center justify-between flex-wrap gap-2">
               <div>
-                <h3 class="font-serif text-sm font-bold text-white">Centralized Performance Metrics</h3>
-                <p class="text-[11px] text-slate-400">Comparing revenue contribution side-by-side</p>
+                <h3 class="font-serif text-base font-bold text-white">Centralized Performance Metrics</h3>
+                <p class="text-xs text-slate-400">Comparing revenue contribution side-by-side</p>
               </div>
               <span class="text-xs font-semibold text-gold-400 bg-slate-950/80 px-3 py-1.5 rounded-lg border border-slate-800">Albay Province Territory</span>
             </div>
@@ -212,19 +211,19 @@
           </div>
 
           <div class="bg-slate-900 border border-luxury-900 p-5 rounded-2xl space-y-4">
-            <h3 class="font-serif text-sm font-bold text-white">Consolidated Low Stock Triggers</h3>
-            <p class="text-[11px] text-slate-400">Live indicators requiring administrative action or reorders.</p>
+            <h3 class="font-serif text-base font-bold text-white">Consolidated Low Stock Triggers</h3>
+            <p class="text-xs text-slate-400">Live indicators requiring administrative action or reorders.</p>
 
             <div class="space-y-3 max-h-56 overflow-y-auto">
               <template x-for="item in $store.admin.getLowStockItems()" :key="item.id">
                 <div class="p-3 bg-slate-950 rounded-xl border border-rose-950/40 flex justify-between items-center">
                   <div>
                     <span class="text-xs font-semibold text-slate-100 block" x-text="item.name"></span>
-                    <span class="text-[10px] text-slate-400 uppercase" x-text="$store.admin.getBranchName(item.branchId)"></span>
+                    <span class="text-xs text-slate-400 uppercase" x-text="$store.admin.getBranchName(item.branchId)"></span>
                   </div>
                   <div class="text-right">
                     <span class="text-xs font-bold text-rose-400" x-text="item.stock + ' left'"></span>
-                    <span class="text-[9px] text-slate-400 block" x-text="'Min: ' + item.minQty"></span>
+                    <span class="text-xs text-slate-400 block" x-text="'Min: ' + item.minQty"></span>
                   </div>
                 </div>
               </template>
@@ -249,18 +248,18 @@
         <div class="bg-slate-900 border border-luxury-900 rounded-2xl p-5">
           <div class="flex items-center justify-between pb-4 border-b border-slate-800 mb-4 flex-wrap gap-2">
             <div>
-              <h3 class="font-serif text-sm font-bold text-white">Live Centralized Booking Register</h3>
-              <p class="text-[11px] text-slate-400">Updated status flows from Daraga, Yashano, and Cabangan.</p>
+              <h3 class="font-serif text-base font-bold text-white">Live Centralized Booking Register</h3>
+              <p class="text-xs text-slate-400">Updated status flows from Daraga, Yashano, and Cabangan.</p>
             </div>
             <div class="flex items-center gap-2">
               <span class="h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span>
-              <span class="text-[10px] text-slate-400 uppercase font-semibold">Real-Time Sync Ready</span>
+              <span class="text-xs text-slate-400 uppercase font-semibold">Real-Time Sync Ready</span>
             </div>
           </div>
 
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-300">
-              <thead class="bg-slate-950 text-slate-400 uppercase text-[10px]">
+              <thead class="bg-slate-950 text-slate-400 uppercase text-xs">
                 <tr>
                   <th class="p-3">Ref ID</th>
                   <th class="p-3">Branch</th>
@@ -279,19 +278,19 @@
                     <td class="p-3 font-medium text-white" x-text="booking.isHomeService ? 'Off-Site' : $store.admin.getBranchName(booking.branchId)"></td>
                     <td class="p-3">
                       <div class="font-semibold text-slate-200" x-text="booking.clientName"></div>
-                      <div class="text-[10px] text-slate-500" x-text="booking.clientPhone"></div>
+                      <div class="text-xs text-slate-500" x-text="booking.clientPhone"></div>
                     </td>
                     <td class="p-3" x-text="booking.serviceName"></td>
                     <td class="p-3 text-purple-300 font-medium" x-text="booking.staffName || 'Unassigned'"></td>
                     <td class="p-3">
                       <div x-text="booking.date"></div>
-                      <div class="text-[10px] text-slate-500" x-text="booking.time"></div>
+                      <div class="text-xs text-slate-500" x-text="booking.time"></div>
                     </td>
                     <td class="p-3">
                       <span :class="booking.isHomeService ? 'admin-badge admin-badge--info' : 'admin-badge admin-badge--neutral'" x-text="booking.isHomeService ? 'Home Service' : 'In-Salon'"></span>
                     </td>
                     <td class="p-3">
-                      <span :class="$store.admin.getStatusBadgeClass(booking.status)" class="px-2 py-0.5 rounded text-[10px] font-bold" x-text="booking.status"></span>
+                      <span :class="$store.admin.getStatusBadgeClass(booking.status)" class="px-2 py-0.5 rounded text-xs font-bold" x-text="booking.status"></span>
                     </td>
                   </tr>
                 </template>

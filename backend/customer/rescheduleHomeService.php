@@ -34,6 +34,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
+require_once __DIR__ . '/../config/BookingValidation.php';
+BookingValidation::enforce($_POST, [
+    'id' => ['text', true, 'a booking reference'],
+    'date' => ['date', true, 'an appointment date'],
+    'time' => ['time', true, 'an appointment time'],
+    'email' => ['email', false, 'an email address'],
+]);
+
 $reference = trim($_POST['id'] ?? '');
 $date = trim($_POST['date'] ?? '');
 $time = trim($_POST['time'] ?? '');

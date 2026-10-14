@@ -88,7 +88,7 @@ function renderCheckoutList() {
   if (!toCheckout.length) {
     tbody.innerHTML = `<tr><td colspan="7" class="py-14 text-center">
       <i class="fa-solid fa-cash-register text-3xl text-gray-200 mb-2 block"></i>
-      <span class="text-sm text-gray-400">No visits waiting for checkout.</span>
+      <span class="text-base text-gray-400">No visits waiting for checkout.</span>
     </td></tr>`;
     return;
   }
@@ -102,7 +102,7 @@ function renderCheckoutList() {
       <td class="px-5 py-3.5 font-semibold text-slate-800 capitalize">${escapeHtml(b.clientName)}</td>
       <td class="px-5 py-3.5">${escapeHtml(b.serviceName || '—')}</td>
       <td class="px-5 py-3.5 capitalize">${escapeHtml(b.staffName || '—')}</td>
-      <td class="px-5 py-3.5"><span class="text-[10px] font-bold px-2 py-0.5 rounded ${statusBadgeClass(b.status)}">${escapeHtml(b.status)}</span></td>
+      <td class="px-5 py-3.5"><span class="text-xs font-bold px-2 py-0.5 rounded ${statusBadgeClass(b.status)}">${escapeHtml(b.status)}</span></td>
       <td class="px-5 py-3.5 text-right font-bold text-slate-800 whitespace-nowrap">${CashierApp.formatCurrency(b.price)}</td>
       <td class="px-5 py-3.5 text-right"><a href="payment.html?ref=${encodeURIComponent(b.id)}" class="inline-block bg-amber-500 hover:bg-amber-600 text-slate-950 px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap">Checkout</a></td>
     </tr>`).join('');
@@ -124,7 +124,7 @@ function renderVerifyList() {
   if (!toVerify.length) {
     tbody.innerHTML = `<tr><td colspan="6" class="py-14 text-center">
       <i class="fa-solid fa-circle-check text-3xl text-gray-200 mb-2 block"></i>
-      <span class="text-sm text-gray-400">No payments waiting on verification.</span>
+      <span class="text-base text-gray-400">No payments waiting on verification.</span>
     </td></tr>`;
     return;
   }
@@ -136,7 +136,7 @@ function renderVerifyList() {
       <td class="px-5 py-3.5">
         <span class="font-mono text-xs font-semibold text-slate-700">${escapeHtml(b.id)}</span>
         <span class="block text-xs text-slate-400">${escapeHtml(b.paymentRequirement || '')}</span>
-        ${b.status !== 'Pending' ? `<span class="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded ${statusBadgeClass(b.status)}">${escapeHtml(b.status)}</span>` : ''}
+        ${b.status !== 'Pending' ? `<span class="inline-block mt-1 text-xs font-bold px-2 py-0.5 rounded ${statusBadgeClass(b.status)}">${escapeHtml(b.status)}</span>` : ''}
       </td>
       <td class="px-5 py-3.5 font-semibold text-slate-800 capitalize">${escapeHtml(b.clientName)}</td>
       <td class="px-5 py-3.5 text-right whitespace-nowrap">
@@ -220,8 +220,8 @@ function renderTicketSummary(branch) {
   const servicesEl = document.getElementById('ticketServices');
   const serviceNames = (t.serviceName || '').split(',').map(s => s.trim()).filter(Boolean);
   servicesEl.innerHTML = serviceNames.length
-    ? serviceNames.map(name => `<span class="bg-[#006D6F]/10 text-[#06464A] text-sm font-semibold px-3 py-1 rounded-full">${escapeHtml(name)}</span>`).join('')
-    : '<span class="text-sm text-gray-400 italic">No services listed</span>';
+    ? serviceNames.map(name => `<span class="bg-[#006D6F]/10 text-[#06464A] text-base font-semibold px-3 py-1 rounded-full">${escapeHtml(name)}</span>`).join('')
+    : '<span class="text-base text-gray-400 italic">No services listed</span>';
 
   renderStatusUI();
 }
@@ -250,7 +250,7 @@ function renderStatusUI() {
 
   document.querySelectorAll('.progress-seg-label').forEach((label, i) => {
     const textClass = i < currentIndex ? 'text-emerald-700' : i === currentIndex ? 'text-slate-900' : 'text-gray-400';
-    label.className = `progress-seg-label text-sm font-semibold transition-colors duration-300 ${textClass}`;
+    label.className = `progress-seg-label text-base font-semibold transition-colors duration-300 ${textClass}`;
   });
 
   // "Start Service" only makes sense once a deposit has confirmed the
@@ -258,7 +258,7 @@ function renderStatusUI() {
   // progress (currentIndex 1). One button reflects whichever applies.
   const isCompleted = currentIndex === 2;
   const actionBtn = document.getElementById('btnWorkflowAction');
-  const btnBase = 'w-full font-bold py-2.5 px-3 rounded-xl text-sm flex items-center justify-center gap-2 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed';
+  const btnBase = 'w-full font-bold py-2.5 px-3 rounded-xl text-base flex items-center justify-center gap-2 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed';
   if (currentIndex === 1) {
     actionBtn.className = `${btnBase} bg-emerald-600 hover:bg-emerald-700 text-white`;
     actionBtn.innerHTML = '<i class="fa-solid fa-flag-checkered"></i><span>Mark Service Completed</span>';
@@ -284,7 +284,7 @@ function showAlreadyPaid(ref, receipt) {
     <span>This visit is already paid (${escapeHtml(receipt.invoiceId)}).</span>
     <a href="receipt.html?ref=${encodeURIComponent(ref)}&pid=${encodeURIComponent(receipt.paymentId)}" class="ml-auto font-bold underline">View receipt</a>
   `;
-  notice.className = 'bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-sm text-emerald-800 flex items-center gap-2';
+  notice.className = 'bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-base text-emerald-800 flex items-center gap-2';
   document.getElementById('btnSellProduct').disabled = true;
   document.getElementById('btnProcessPayment').disabled = true;
   const completedText = document.querySelector('#serviceCompletedNotice span');
@@ -306,7 +306,7 @@ function renderCart() {
     <div class="flex justify-between items-start gap-4 px-6 py-4">
       <div class="min-w-0">
         <p class="font-semibold text-slate-800">Services</p>
-        <p class="text-sm text-slate-500">${escapeHtml(t.serviceName || 'No services listed')}</p>
+        <p class="text-base text-slate-500">${escapeHtml(t.serviceName || 'No services listed')}</p>
       </div>
       <span class="font-semibold text-slate-800 shrink-0">${CashierApp.formatCurrency(t.price)}</span>
     </div>
@@ -317,12 +317,12 @@ function renderCart() {
       <div class="stagger-item flex justify-between items-center gap-4 px-6 py-4" data-cart-product="${p.id}">
         <div class="min-w-0">
           <p class="font-semibold text-slate-800">${escapeHtml(p.name)}</p>
-          <p class="text-sm text-slate-500">${CashierApp.formatCurrency(p.price)} each</p>
+          <p class="text-base text-slate-500">${CashierApp.formatCurrency(p.price)} each</p>
         </div>
         <div class="flex items-center gap-3 shrink-0">
           <div class="flex items-center rounded-lg border border-gray-200">
             <button type="button" class="cart-qty-btn w-8 h-8 font-bold text-slate-600 hover:bg-gray-100 rounded-l-lg" data-action="dec" aria-label="Decrease quantity">&minus;</button>
-            <span class="w-8 text-center text-sm font-semibold">${p.qty}</span>
+            <span class="w-8 text-center text-base font-semibold">${p.qty}</span>
             <button type="button" class="cart-qty-btn w-8 h-8 font-bold text-slate-600 hover:bg-gray-100 rounded-r-lg" data-action="inc" aria-label="Increase quantity">+</button>
           </div>
           <span class="w-24 text-right font-semibold text-slate-800">${CashierApp.formatCurrency(p.price * p.qty)}</span>
@@ -411,7 +411,7 @@ function renderProductList(query) {
     <button type="button" class="product-pick-btn w-full flex justify-between items-center bg-white border border-gray-200 hover:border-amber-400 rounded-lg p-3 text-left transition-all ${remaining <= 0 ? 'opacity-50 cursor-not-allowed' : ''}" data-product-id="${item.id}" ${remaining <= 0 ? 'disabled' : ''}>
       <div>
         <p class="font-bold text-slate-800">${escapeHtml(item.name)}</p>
-        <p class="text-[10px] text-gray-400">${escapeHtml(item.category)} &middot; ${remaining} in stock</p>
+        <p class="text-xs text-gray-400">${escapeHtml(item.category)} &middot; ${remaining} in stock</p>
       </div>
       <span class="font-bold text-amber-700">${CashierApp.formatCurrency(item.price)}</span>
     </button>

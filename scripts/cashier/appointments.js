@@ -98,7 +98,7 @@ function renderAppointments() {
 
   tbody.innerHTML = filtered.map(b => `
     <tr class="hover:bg-amber-50/40 transition-colors duration-150">
-      <td class="p-2.5 font-mono text-[10px]">${escapeHtml(b.id)}</td>
+      <td class="p-2.5 font-mono text-xs">${escapeHtml(b.id)}</td>
       <td class="p-2.5">${cellOrDash(b.date)}</td>
       <td class="p-2.5">${cellOrDash(b.time)}</td>
       <td class="p-2.5">${cellOrDash(b.endTime)}</td>
@@ -108,10 +108,10 @@ function renderAppointments() {
       <td class="p-2.5">${b.durationMinutes ? b.durationMinutes + ' min' : '—'}</td>
       <td class="p-2.5 capitalize">${cellOrDash(b.staffName)}</td>
       <td class="p-2.5">
-        <span class="text-[10px] font-bold px-2 py-0.5 rounded ${statusBadgeClass(b.status)}${b.status === 'In Progress' ? ' badge-live' : ''}">${escapeHtml(b.status)}</span>
-        ${b.status === 'Pending' && b.hasConflict ? '<span class="ml-1 text-[9px] font-bold text-rose-600">⚠ Conflict</span>' : ''}
+        <span class="text-xs font-bold px-2 py-0.5 rounded ${statusBadgeClass(b.status)}${b.status === 'In Progress' ? ' badge-live' : ''}">${escapeHtml(b.status)}</span>
+        ${b.status === 'Pending' && b.hasConflict ? '<span class="ml-1 text-xs font-bold text-rose-600">⚠ Conflict</span>' : ''}
       </td>
-      <td class="p-2.5"><span class="text-[10px] font-bold px-2 py-0.5 rounded ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(b.paymentStatus)}</span></td>
+      <td class="p-2.5"><span class="text-xs font-bold px-2 py-0.5 rounded ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(b.paymentStatus)}</span></td>
       <td class="p-2.5 space-x-1.5 whitespace-nowrap">${actionsFor(b)}</td>
     </tr>
   `).join('');
@@ -127,7 +127,7 @@ function actionsFor(b) {
   // which reinstates it with that deposit (backend/config/Reschedule.php).
   if (hasKeptDeposit(b)) {
     return `${details}<button data-action="reschedule" data-ref="${ref}" class="text-amber-700 font-bold hover:underline">Reschedule</button>
-      <span class="block mt-1 text-[10px] leading-snug text-rose-700 font-semibold whitespace-normal max-w-[14rem]">No refund — ${CashierApp.formatCurrency(b.depositAmount || 0)} deposit is non-refundable. The customer can reschedule to use it.</span>`;
+      <span class="block mt-1 text-xs leading-snug text-rose-700 font-semibold whitespace-normal max-w-[14rem]">No refund — ${CashierApp.formatCurrency(b.depositAmount || 0)} deposit is non-refundable. The customer can reschedule to use it.</span>`;
   }
 
   if (b.status === 'Pending') {
@@ -173,20 +173,20 @@ function showDetails(ref) {
   if (!b) return;
   document.getElementById('detailsModalBody').innerHTML = `
     <div class="grid grid-cols-2 gap-y-2 gap-x-3">
-      <div><span class="text-gray-400 block text-[10px] uppercase font-bold">Reference</span>${cellOrDash(b.id)}</div>
-      <div><span class="text-gray-400 block text-[10px] uppercase font-bold">Status</span>${cellOrDash(b.status)}</div>
-      <div><span class="text-gray-400 block text-[10px] uppercase font-bold">Client</span>${cellOrDash(b.clientName)}</div>
-      <div><span class="text-gray-400 block text-[10px] uppercase font-bold">Contact</span>${cellOrDash(b.clientPhone)}</div>
-      <div><span class="text-gray-400 block text-[10px] uppercase font-bold">Date</span>${cellOrDash(b.date)}</div>
-      <div><span class="text-gray-400 block text-[10px] uppercase font-bold">Time</span>${cellOrDash(b.time)} &ndash; ${cellOrDash(b.endTime)}</div>
-      <div class="col-span-2"><span class="text-gray-400 block text-[10px] uppercase font-bold">Service(s)</span>${cellOrDash(b.serviceName)}</div>
-      <div><span class="text-gray-400 block text-[10px] uppercase font-bold">Duration</span>${b.durationMinutes ? b.durationMinutes + ' min' : '—'}</div>
-      <div><span class="text-gray-400 block text-[10px] uppercase font-bold">Staff</span>${cellOrDash(b.staffName)}</div>
-      <div><span class="text-gray-400 block text-[10px] uppercase font-bold">Payment Status</span>${cellOrDash(b.paymentStatus)}</div>
-      <div><span class="text-gray-400 block text-[10px] uppercase font-bold">Total</span>${CashierApp.formatCurrency(b.price)}</div>
+      <div><span class="text-gray-400 block text-xs uppercase font-bold">Reference</span>${cellOrDash(b.id)}</div>
+      <div><span class="text-gray-400 block text-xs uppercase font-bold">Status</span>${cellOrDash(b.status)}</div>
+      <div><span class="text-gray-400 block text-xs uppercase font-bold">Client</span>${cellOrDash(b.clientName)}</div>
+      <div><span class="text-gray-400 block text-xs uppercase font-bold">Contact</span>${cellOrDash(b.clientPhone)}</div>
+      <div><span class="text-gray-400 block text-xs uppercase font-bold">Date</span>${cellOrDash(b.date)}</div>
+      <div><span class="text-gray-400 block text-xs uppercase font-bold">Time</span>${cellOrDash(b.time)} &ndash; ${cellOrDash(b.endTime)}</div>
+      <div class="col-span-2"><span class="text-gray-400 block text-xs uppercase font-bold">Service(s)</span>${cellOrDash(b.serviceName)}</div>
+      <div><span class="text-gray-400 block text-xs uppercase font-bold">Duration</span>${b.durationMinutes ? b.durationMinutes + ' min' : '—'}</div>
+      <div><span class="text-gray-400 block text-xs uppercase font-bold">Staff</span>${cellOrDash(b.staffName)}</div>
+      <div><span class="text-gray-400 block text-xs uppercase font-bold">Payment Status</span>${cellOrDash(b.paymentStatus)}</div>
+      <div><span class="text-gray-400 block text-xs uppercase font-bold">Total</span>${CashierApp.formatCurrency(b.price)}</div>
       ${b.depositAmount || b.depositReference ? `
       <div class="col-span-2 border-t border-gray-100 pt-2 mt-1">
-        <span class="text-gray-400 block text-[10px] uppercase font-bold mb-1">${b.depositVerified ? 'Verified Payment' : 'Self-Reported Payment (unverified)'}</span>
+        <span class="text-gray-400 block text-xs uppercase font-bold mb-1">${b.depositVerified ? 'Verified Payment' : 'Self-Reported Payment (unverified)'}</span>
         <p>Amount: <strong>${b.depositAmount ? CashierApp.formatCurrency(b.depositAmount) : '—'}</strong> via <strong>${cellOrDash(b.paymentMethod)}</strong></p>
         <p>Reference: <strong>${cellOrDash(b.depositReference)}</strong></p>
       </div>` : ''}
@@ -310,17 +310,17 @@ function openRescheduleModal(ref) {
   state.pendingRescheduleTime = '';
   const info = [
     ['Reference', `<span class="font-mono">${cellOrDash(b.id)}</span>`],
-    ['Status', `<span class="text-[10px] font-bold px-2 py-0.5 rounded ${statusBadgeClass(b.status)}">${escapeHtml(b.status)}</span>`],
+    ['Status', `<span class="text-xs font-bold px-2 py-0.5 rounded ${statusBadgeClass(b.status)}">${escapeHtml(b.status)}</span>`],
     ['Client', `<span class="capitalize">${cellOrDash(b.clientName)}</span>`],
     ['Contact', cellOrDash(b.clientPhone)],
     ['Service(s)', cellOrDash(b.serviceName), true],
     ['Duration', b.durationMinutes ? b.durationMinutes + ' min' : '—'],
     ['Total', CashierApp.formatCurrency(b.price)],
-    ['Payment', `<span class="text-[10px] font-bold px-2 py-0.5 rounded ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(b.paymentStatus)}</span>`],
+    ['Payment', `<span class="text-xs font-bold px-2 py-0.5 rounded ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(b.paymentStatus)}</span>`],
     ['Deposit', b.depositAmount ? CashierApp.formatCurrency(b.depositAmount) + (b.depositVerified ? ' (verified)' : ' (unverified)') : '—'],
   ];
   document.getElementById('rescheduleInfo').innerHTML = info.map(([label, value, wide]) => `
-    <div class="${wide ? 'col-span-2' : ''}"><span class="block text-[10px] text-gray-400 font-bold uppercase">${label}</span><span class="text-slate-800">${value}</span></div>
+    <div class="${wide ? 'col-span-2' : ''}"><span class="block text-xs text-gray-400 font-bold uppercase">${label}</span><span class="text-slate-800">${value}</span></div>
   `).join('');
   document.getElementById('rescheduleCurrent').textContent = b.date + ' · ' + b.time + ' – ' + (b.endTime || '') + (b.staffName ? ' with ' + titleCase(b.staffName) : '');
   const verified = ['Down Payment Verified', 'Fully Paid'].includes(b.paymentStatus);

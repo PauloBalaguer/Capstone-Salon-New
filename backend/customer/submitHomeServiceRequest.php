@@ -35,6 +35,15 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
+require_once __DIR__ . '/../config/BookingValidation.php';
+BookingValidation::enforce($_POST, [
+    'address' => ['address', true, 'an address (5 to 500 characters)'],
+    'preferredDate' => ['date', true, 'an appointment date'],
+    'preferredTime' => ['time', true, 'an appointment time'],
+    'clients' => ['quantity', true, 'a whole number of clients'],
+    'services' => ['strings', false, 'services'],
+]);
+
 $address = trim($_POST['address'] ?? '');
 $eventType = trim($_POST['eventType'] ?? '');
 $preferredDate = trim($_POST['preferredDate'] ?? '');

@@ -37,6 +37,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
+require_once __DIR__ . '/../config/BookingValidation.php';
+BookingValidation::enforce($_POST, [
+    'tip' => ['money', false, 'an amount with at most two decimal places'],
+    'cashReceived' => ['money', false, 'an amount with at most two decimal places'],
+]);
+
 $referenceCode = trim($_POST['reference'] ?? '');
 $paymentMethod = trim($_POST['paymentMethod'] ?? '');
 $tip = (float) ($_POST['tip'] ?? 0);
@@ -67,14 +73,35 @@ if ($paymentMethod === 'Cash') {
 $products = [];
 $productsRaw = trim($_POST['products'] ?? '[]');
 $decoded = json_decode($productsRaw, true);
-if (is_array($decoded)) {
+$productErrors = [];
+if (!is_array($decoded) || array_values($decoded) !== $decoded || count($decoded) > 100) {
+    $productErrors['products'] = 'Please select valid retail products and whole-number quantities.';
+} else {
+    $seenProducts = [];
     foreach ($decoded as $entry) {
+        if (!is_array($entry) || BookingValidation::errors($entry, [
+            'id' => ['id', true, 'a product selection'],
+            'qty' => ['quantity', true, 'a whole-number product quantity'],
+        ])) {
+            $productErrors['products'] = 'Please select valid retail products and positive whole-number quantities.';
+            break;
+        }
         $productId = (int) ($entry['id'] ?? 0);
         $qty = (int) ($entry['qty'] ?? 0);
+        if (isset($seenProducts[$productId])) {
+            $productErrors['products'] = 'Please combine quantities for the same product into one line.';
+            break;
+        }
+        $seenProducts[$productId] = true;
         if ($productId > 0 && $qty > 0) {
             $products[] = ['id' => $productId, 'qty' => $qty];
         }
     }
+}
+if ($productErrors) {
+    http_response_code(422);
+    echo json_encode(['success' => false, 'message' => reset($productErrors), 'errors' => $productErrors]);
+    exit();
 }
 
 try {
@@ -218,6 +245,12 @@ try {
         $stmt = $pdo->prepare('SELECT quantity_on_hand FROM inventory WHERE id = ? FOR UPDATE');
         $stmt->execute([$product['id']]);
         $previousStock = (int) $stmt->fetchColumn();
+        if ($previousStock < $product['qty']) {
+            $pdo->rollBack();
+            http_response_code(409);
+            echo json_encode(['success' => false, 'message' => "Insufficient stock for {$product['name']}. Please reduce the quantity."]);
+            exit();
+        }
         $newStock = max(0, $previousStock - $product['qty']);
         $pdo->prepare('UPDATE inventory SET quantity_on_hand = ? WHERE id = ?')->execute([$newStock, $product['id']]);
         $adjInsert->execute([$product['id'], $product['qty'], $previousStock, $newStock, $_SESSION['user_id']]);

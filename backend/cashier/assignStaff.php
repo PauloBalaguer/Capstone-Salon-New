@@ -30,6 +30,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
+require_once __DIR__ . '/../config/BookingValidation.php';
+BookingValidation::enforce($_POST, [
+    'id' => ['text', true, 'id'],
+    'staffId' => ['id', true, 'a staff or branch selection'],
+]);
+
 $referenceCode = trim($_POST['id'] ?? '');
 $staffId = (int) ($_POST['staffId'] ?? 0);
 

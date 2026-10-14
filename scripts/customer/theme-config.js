@@ -1,10 +1,6 @@
 tailwind.config = {
   theme: {
     extend: {
-      fontFamily: {
-        sans: ['Segoe UI', 'Tahoma', 'Verdana', 'Arial', 'sans-serif'],
-        serif: ['Georgia', 'Cambria', 'Times New Roman', 'serif']
-      },
       colors: {
         white: '#FFFDF9',
         black: '#222222',

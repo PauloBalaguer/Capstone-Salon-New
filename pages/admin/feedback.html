@@ -8,7 +8,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-  <link rel="stylesheet" href="../../assets/css/fonts-inter-playfair.css">
   <link rel="stylesheet" href="../../assets/css/admin-theme.css">
   <script src="../../scripts/admin/theme-config.js"></script>
 </head>
@@ -24,8 +23,8 @@
         <div class="flex items-center space-x-3 mb-8">
           <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-luxury-600 to-gold-500 flex items-center justify-center font-serif text-white font-bold text-lg shadow-lg shadow-luxury-500/20">LM</div>
           <div>
-            <h1 class="text-sm font-bold tracking-wider uppercase text-gold-400 font-serif">Leo Mejillano</h1>
-            <p class="text-[10px] text-slate-400 uppercase tracking-widest font-sans">Multi-Branch Platform</p>
+            <h1 class="text-base font-bold tracking-wider uppercase text-gold-400 font-serif">Leo Mejillano</h1>
+            <p class="text-xs text-slate-400 uppercase tracking-widest font-sans">Multi-Branch Platform</p>
           </div>
         </div>
 
@@ -76,10 +75,10 @@
             <span>Sign Out</span>
           </a>
         </div>
-        <div class="p-4 bg-slate-950 border-t border-slate-800/80 text-[10px] text-slate-400 space-y-1">
+        <div class="p-4 bg-slate-950 border-t border-slate-800/80 text-xs text-slate-400 space-y-1">
           <p class="font-bold text-slate-300">STI College Legazpi</p>
           <p>Capstone Project Proposal &copy; 2026</p>
-          <p class="text-[9px] text-luxury-400 italic">Centralized Digital Multi-Branch Solution</p>
+          <p class="text-xs text-luxury-400 italic">Centralized Digital Multi-Branch Solution</p>
         </div>
       </div>
     </aside>
@@ -89,7 +88,7 @@
       <header class="bg-slate-900 border-b border-luxury-900 px-6 py-4 shrink-0 flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 class="text-lg font-serif font-bold text-white">Guest Feedback & Reviews</h2>
-          <p class="text-[11px] text-slate-400">Monitor guest satisfaction and flag reviews that need follow-up.</p>
+          <p class="text-xs text-slate-400">Monitor guest satisfaction and flag reviews that need follow-up.</p>
         </div>
 
         <div class="flex items-center space-x-3">
@@ -101,7 +100,7 @@
             <div x-show="open" @click.outside="open = false" x-cloak class="absolute right-0 mt-2 w-80 bg-slate-900 border border-luxury-800 rounded-xl shadow-xl z-50 p-4 space-y-3">
               <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                 <span class="text-xs font-semibold text-white">System Notification Log (SMS/E-Mail Simulation)</span>
-                <button @click="$store.admin.notifications = []" class="text-[10px] text-rose-400 hover:underline">Clear</button>
+                <button @click="$store.admin.notifications = []" class="text-xs text-rose-400 hover:underline">Clear</button>
               </div>
               <div class="max-h-60 overflow-y-auto space-y-2 text-xs">
                 <template x-if="$store.admin.notifications.length === 0">
@@ -109,7 +108,7 @@
                 </template>
                 <template x-for="item in $store.admin.notifications">
                   <div class="p-2 rounded bg-slate-950 border-l-2 border-luxury-500">
-                    <div class="flex justify-between text-[10px] text-slate-400 mb-1">
+                    <div class="flex justify-between text-xs text-slate-400 mb-1">
                       <span x-text="item.type" class="font-bold text-purple-400"></span>
                       <span x-text="item.time"></span>
                     </div>
@@ -143,15 +142,15 @@
           <div class="bg-slate-900 border border-luxury-900 rounded-2xl p-4 text-center">
             <span class="text-xs text-slate-400 uppercase">Needs Attention</span>
             <h4 class="text-2xl font-serif font-bold text-rose-400 mt-1" x-text="$store.admin.feedback.filter(f => f.rating <= 3).length"></h4>
-            <p class="text-[10px] text-slate-500 mt-1">3 stars or below</p>
+            <p class="text-xs text-slate-500 mt-1">3 stars or below</p>
           </div>
         </div>
 
         <div class="bg-slate-900 border border-luxury-900 rounded-2xl p-5 space-y-4">
           <div class="flex items-center justify-between pb-4 border-b border-slate-800 flex-wrap gap-2">
             <div>
-              <h3 class="font-serif text-sm font-bold text-white">Review Log</h3>
-              <p class="text-[11px] text-slate-400">Filtered guest reviews by branch and rating.</p>
+              <h3 class="font-serif text-base font-bold text-white">Review Log</h3>
+              <p class="text-xs text-slate-400">Filtered guest reviews by branch and rating.</p>
             </div>
             <div class="flex items-center gap-2">
               <select x-model="feedbackFilterBranch" class="bg-slate-950 text-slate-300 text-xs rounded-lg p-2 border border-slate-800 focus:ring-purple-500 focus:outline-none">
@@ -175,7 +174,7 @@
                 <div class="flex justify-between items-start">
                   <div>
                     <span class="text-xs font-semibold text-white block" x-text="review.clientName"></span>
-                    <span class="text-[10px] text-slate-400" x-text="(review.branchId ? $store.admin.getBranchName(review.branchId) : 'Off-Site') + ' · ' + review.date"></span>
+                    <span class="text-xs text-slate-400" x-text="(review.branchId ? $store.admin.getBranchName(review.branchId) : 'Off-Site') + ' · ' + review.date"></span>
                   </div>
                   <div class="flex items-center gap-0.5">
                     <template x-for="n in 5" :key="n">
@@ -183,18 +182,18 @@
                     </template>
                   </div>
                 </div>
-                <div class="text-[10px] text-slate-500 flex flex-wrap gap-x-3">
+                <div class="text-xs text-slate-500 flex flex-wrap gap-x-3">
                   <span>Ref: <span class="text-slate-300" x-text="review.bookingReference || '—'"></span></span>
                   <span>Service: <span class="text-slate-300" x-text="review.serviceName || '—'"></span></span>
                 </div>
                 <p class="text-xs text-slate-300" x-text="review.comment"></p>
                 <div class="flex items-center justify-between pt-1">
-                  <p class="text-[10px] text-purple-300">Stylist: <span x-text="getStaffName(review.staffId)"></span></p>
-                  <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase"
+                  <p class="text-xs text-purple-300">Stylist: <span x-text="getStaffName(review.staffId)"></span></p>
+                  <span class="px-2 py-0.5 rounded text-xs font-bold uppercase"
                         :class="review.adminStatus === 'Resolved' ? 'admin-badge admin-badge--success' : (review.adminStatus === 'Reviewed' ? 'admin-badge admin-badge--info' : 'admin-badge admin-badge--pending')"
                         x-text="review.adminStatus || 'New'"></span>
                 </div>
-                <div class="flex items-center gap-3 pt-1 border-t border-slate-900 text-[10px]">
+                <div class="flex items-center gap-3 pt-1 border-t border-slate-900 text-xs">
                   <button @click="setFeedbackStatus(review, 'Reviewed')" class="text-purple-400 hover:underline">Mark Reviewed</button>
                   <button @click="setFeedbackStatus(review, 'Resolved')" class="text-emerald-400 hover:underline">Mark Resolved</button>
                 </div>

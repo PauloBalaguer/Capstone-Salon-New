@@ -28,16 +28,17 @@
         button[id^="btnClose"]:hover { @apply bg-white/10; }
 
         /* Small uppercase section label used across the checkout cards. */
-        .section-label { @apply text-[11px] font-bold uppercase tracking-wider text-slate-500; }
+        .section-label { @apply text-xs font-bold uppercase tracking-wider text-slate-500; }
 
         /* Payment method, tip and quick-cash choices share one "chip" look;
            the selected one gets .is-active (set in scripts/cashier/payment.js). */
-        .pay-method-card { @apply flex items-center justify-center gap-2 rounded-xl border border-[#D9C9B4] bg-white py-2.5 text-sm font-semibold text-slate-600 cursor-pointer select-none hover:border-[#006D6F]; }
+        .pay-method-card { @apply flex items-center justify-center gap-2 rounded-xl border border-[#D9C9B4] bg-white py-2.5 text-base font-semibold text-slate-600 cursor-pointer select-none hover:border-[#006D6F]; }
         .pay-method-card.is-active { @apply border-[#006D6F] bg-[#006D6F]/10 text-[#06464A] ring-1 ring-[#006D6F]; }
-        .chip-btn { @apply rounded-lg border border-[#D9C9B4] bg-white py-2 text-sm font-semibold text-slate-700 hover:border-[#006D6F]; }
+        .chip-btn { @apply rounded-lg border border-[#D9C9B4] bg-white py-2 text-base font-semibold text-slate-700 hover:border-[#006D6F]; }
         .chip-btn.is-active { @apply border-[#006D6F] bg-[#006D6F]/10 text-[#06464A] ring-1 ring-[#006D6F]; }
     </style>
     <link rel="stylesheet" href="../../assets/css/cashier-theme.css">
+<script src="../../scripts/booking-validation.js"></script>
 </head>
 <body class="bg-gray-100 font-sans antialiased flex h-screen overflow-hidden text-slate-800">
 
@@ -48,7 +49,7 @@
             <div class="p-4 bg-slate-950 flex items-center space-x-3 border-b border-slate-800">
                 <div class="bg-amber-500 text-slate-950 font-bold rounded-full w-10 h-10 flex items-center justify-center">LM</div>
                 <div>
-                    <h1 class="font-bold text-sm tracking-wide uppercase text-amber-400">Leo Mejillano</h1>
+                    <h1 class="font-bold text-base tracking-wide uppercase text-amber-400">Leo Mejillano</h1>
                     <p id="cashierBranchSubtitle" class="text-xs text-slate-400">Loading branch...</p>
                 </div>
             </div>
@@ -58,33 +59,33 @@
                     <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                     <span id="sidebarBranchTitle">Leo Mejillano Salon &amp; Makeup Studio</span>
                 </div>
-                <p class="text-[10px] text-slate-400 mt-1 pl-4" id="sidebarTerminalId">Terminal: #DAR-01</p>
+                <p class="text-xs text-slate-400 mt-1 pl-4" id="sidebarTerminalId">Terminal: #DAR-01</p>
             </div>
 
             <nav class="px-3 space-y-1" id="sidebarNav">
                 <a href="dashboard.html" data-nav-page="dashboard.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
                     <i class="fa-solid fa-cash-register w-5 text-center"></i>
-                    <span class="text-sm">Cashier Panel</span>
+                    <span class="text-base">Cashier Panel</span>
                 </a>
                 <a href="appointments.html" data-nav-page="appointments.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
                     <i class="fa-solid fa-calendar-check w-5 text-center text-slate-400"></i>
-                    <span class="text-sm flex-1 flex justify-between items-center">Appointments <span id="appointmentCountBadge" class="bg-amber-500/20 text-amber-400 text-[10px] px-1.5 rounded-full font-bold">0</span></span>
+                    <span class="text-base flex-1 flex justify-between items-center">Appointments <span id="appointmentCountBadge" class="bg-amber-500/20 text-amber-400 text-xs px-1.5 rounded-full font-bold">0</span></span>
                 </a>
                 <a href="payment.html" data-nav-page="payment.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
                     <i class="fa-solid fa-money-check-dollar w-5 text-center text-slate-400"></i>
-                    <span class="text-sm">Checkout &amp; Payments</span>
+                    <span class="text-base">Checkout &amp; Payments</span>
                 </a>
                 <a href="inventory.html" data-nav-page="inventory.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
                     <i class="fa-solid fa-boxes-stacked w-5 text-center text-slate-400"></i>
-                    <span class="text-sm">Inventory Tracking</span>
+                    <span class="text-base">Inventory Tracking</span>
                 </a>
                 <a href="staff.html" data-nav-page="staff.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
                     <i class="fa-solid fa-users-gear w-5 text-center text-slate-400"></i>
-                    <span class="text-sm">Staff Assignments</span>
+                    <span class="text-base">Staff Assignments</span>
                 </a>
                 <a href="profile.html" data-nav-page="profile.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
                     <i class="fa-solid fa-user-shield w-5 text-center text-amber-400"></i>
-                    <span class="text-sm">Profile &amp; Security</span>
+                    <span class="text-base">Profile &amp; Security</span>
                 </a>
             </nav>
         </div>
@@ -96,7 +97,7 @@
                     <span>Sign Out</span>
                 </a>
             </div>
-            <div class="p-4 bg-slate-950 border-t border-slate-800 text-[11px] text-slate-400 space-y-0.5">
+            <div class="p-4 bg-slate-950 border-t border-slate-800 text-xs text-slate-400 space-y-0.5">
                 <div><i class="fa-solid fa-circle-nodes text-green-400 mr-1"></i> Multi-branch Sync Online</div>
                 <div class="text-slate-500">v2.0.0 (RAD Prototype)</div>
             </div>
@@ -106,15 +107,15 @@
     <main class="flex-1 flex flex-col overflow-hidden">
         <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 z-10 shrink-0">
             <div class="flex items-center gap-4 min-w-0">
-                <a href="dashboard.html" class="text-slate-500 hover:text-slate-900 text-sm font-semibold flex items-center gap-1.5 shrink-0">
+                <a href="dashboard.html" class="text-slate-500 hover:text-slate-900 text-base font-semibold flex items-center gap-1.5 shrink-0">
                     <i class="fa-solid fa-arrow-left"></i><span>Queue</span>
                 </a>
                 <div class="h-6 w-px bg-gray-200"></div>
                 <h2 class="font-bold text-xl text-gray-800 shrink-0">Checkout</h2>
-                <span id="invoiceIdDisplay" class="hidden font-mono text-sm font-semibold text-slate-600 bg-white border border-gray-200 rounded-lg px-2.5 py-1 truncate"></span>
+                <span id="invoiceIdDisplay" class="hidden font-mono text-base font-semibold text-slate-600 bg-white border border-gray-200 rounded-lg px-2.5 py-1 truncate"></span>
                 <span id="ticketStatusBadge" class="hidden text-xs font-bold px-2.5 py-1 rounded-full"></span>
             </div>
-            <p class="text-sm font-semibold text-gray-600 shrink-0" id="liveClock">--</p>
+            <p class="text-base font-semibold text-gray-600 shrink-0" id="liveClock">--</p>
         </header>
 
         <!-- No ?ref= in the URL: list of self-reported payments waiting on a cashier. -->
@@ -122,11 +123,11 @@
             <div class="stagger-item max-w-6xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-200">
                 <div class="px-5 py-4 border-b border-gray-200">
                     <h3 class="font-bold text-slate-800">Ready for Checkout</h3>
-                    <p class="text-sm text-slate-500 mt-0.5">Today's confirmed, in-progress, and completed visits that still have a balance. Open one to take payment.</p>
+                    <p class="text-base text-slate-500 mt-0.5">Today's confirmed, in-progress, and completed visits that still have a balance. Open one to take payment.</p>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm text-slate-600">
-                        <thead class="bg-slate-50 text-slate-500 text-[11px] uppercase font-bold border-b border-gray-200">
+                    <table class="w-full text-left text-base text-slate-600">
+                        <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold border-b border-gray-200">
                             <tr>
                                 <th class="px-5 py-3">Booking</th>
                                 <th class="px-5 py-3">Customer</th>
@@ -147,11 +148,11 @@
             <div class="stagger-item max-w-6xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-200">
                 <div class="px-5 py-4 border-b border-gray-200">
                     <h3 class="font-bold text-slate-800">Payments to Verify</h3>
-                    <p class="text-sm text-slate-500 mt-0.5">Reservation payments customers reported. Check each one against the cash drawer or GCash/Maya account, then verify it to confirm the booking. To take payment for a visit, open it from the queue.</p>
+                    <p class="text-base text-slate-500 mt-0.5">Reservation payments customers reported. Check each one against the cash drawer or GCash/Maya account, then verify it to confirm the booking. To take payment for a visit, open it from the queue.</p>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm text-slate-600">
-                        <thead class="bg-slate-50 text-slate-500 text-[11px] uppercase font-bold border-b border-gray-200">
+                    <table class="w-full text-left text-base text-slate-600">
+                        <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold border-b border-gray-200">
                             <tr>
                                 <th class="px-5 py-3">Booking</th>
                                 <th class="px-5 py-3">Customer</th>
@@ -176,8 +177,8 @@
                 <div id="ticketNotFound" class="hidden lg:col-span-12 bg-white p-10 rounded-2xl shadow-sm border border-gray-200 text-center">
                     <i class="fa-solid fa-ticket text-3xl text-gray-300 mb-3"></i>
                     <p class="font-bold text-slate-700">Booking not found</p>
-                    <p class="text-sm text-gray-500 mt-1">This booking reference isn't in your branch's active queue.</p>
-                    <a href="dashboard.html" class="inline-block mt-4 bg-slate-900 text-white text-sm font-bold px-4 py-2 rounded-lg">Back to Queue</a>
+                    <p class="text-base text-gray-500 mt-1">This booking reference isn't in your branch's active queue.</p>
+                    <a href="dashboard.html" class="inline-block mt-4 bg-slate-900 text-white text-base font-bold px-4 py-2 rounded-lg">Back to Queue</a>
                 </div>
 
                 <!-- LEFT: who and what -->
@@ -188,9 +189,9 @@
                             <div class="min-w-0">
                                 <p class="section-label">Customer</p>
                                 <h3 id="ticketClientName" class="font-bold text-2xl text-slate-900 capitalize truncate">-</h3>
-                                <p id="ticketClientPhone" class="text-sm text-slate-500">-</p>
+                                <p id="ticketClientPhone" class="text-base text-slate-500">-</p>
                             </div>
-                            <dl class="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
+                            <dl class="grid grid-cols-2 gap-x-6 gap-y-1 text-base">
                                 <dt class="section-label">Stylist</dt>
                                 <dt class="section-label">Branch</dt>
                                 <dd id="ticketStaffName" class="font-semibold text-slate-800 capitalize">-</dd>
@@ -220,10 +221,10 @@
                                     <span class="progress-seg-label">Completed</span>
                                 </li>
                             </ol>
-                            <button type="button" id="btnWorkflowAction" class="w-full font-bold py-2.5 px-3 rounded-xl text-sm flex items-center justify-center gap-2">
+                            <button type="button" id="btnWorkflowAction" class="w-full font-bold py-2.5 px-3 rounded-xl text-base flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-scissors"></i><span>Start Service</span>
                             </button>
-                            <div id="serviceCompletedNotice" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl py-2.5 px-3 text-sm font-semibold text-emerald-800 items-center justify-center gap-2">
+                            <div id="serviceCompletedNotice" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl py-2.5 px-3 text-base font-semibold text-emerald-800 items-center justify-center gap-2">
                                 <i class="fa-solid fa-circle-check"></i>
                                 <span>Service completed &mdash; ready for payment</span>
                             </div>
@@ -235,12 +236,12 @@
                     <section class="stagger-item bg-white rounded-2xl shadow-sm border border-gray-200">
                         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
                             <h3 class="font-bold text-slate-800">Items</h3>
-                            <button id="btnSellProduct" disabled class="text-sm font-semibold text-[#06464A] border border-[#006D6F]/40 hover:bg-[#006D6F]/10 rounded-lg px-3 py-1.5 flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed">
+                            <button id="btnSellProduct" disabled class="text-base font-semibold text-[#06464A] border border-[#006D6F]/40 hover:bg-[#006D6F]/10 rounded-lg px-3 py-1.5 flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed">
                                 <i class="fa-solid fa-plus"></i><span>Add product</span>
                             </button>
                         </div>
                         <div id="cartItemsContainer" class="divide-y divide-gray-100">
-                            <p class="text-sm text-gray-400 text-center py-8 italic">Loading&hellip;</p>
+                            <p class="text-base text-gray-400 text-center py-8 italic">Loading&hellip;</p>
                         </div>
                     </section>
                 </div>
@@ -249,7 +250,7 @@
                 <section id="paymentPanel" class="stagger-item lg:col-span-5 lg:sticky lg:top-0 bg-white rounded-2xl shadow-sm border border-gray-200 flex flex-col">
                     <div class="px-6 py-4 border-b border-gray-200">
                         <h3 class="font-bold text-slate-800">Payment</h3>
-                        <p class="text-sm text-slate-500">for <span id="customerNameDisplay" class="font-semibold text-slate-700 capitalize">&mdash;</span></p>
+                        <p class="text-base text-slate-500">for <span id="customerNameDisplay" class="font-semibold text-slate-700 capitalize">&mdash;</span></p>
                     </div>
 
                     <div id="paymentForm" class="p-6 space-y-6">
@@ -272,12 +273,12 @@
                                 <button type="button" data-tip="50" class="tip-btn chip-btn">₱50</button>
                                 <button type="button" data-tip="100" class="tip-btn chip-btn">₱100</button>
                                 <button type="button" data-tip="200" class="tip-btn chip-btn">₱200</button>
-                                <input id="customTipInput" type="number" min="0" inputmode="decimal" placeholder="Other" aria-label="Other tip amount" class="rounded-lg border text-sm font-semibold text-center py-2 focus:outline-none focus:ring-2">
+                                <input id="customTipInput" type="number" min="0" inputmode="decimal" placeholder="Other" aria-label="Other tip amount" class="rounded-lg border text-base font-semibold text-center py-2 focus:outline-none focus:ring-2">
                             </div>
                         </div>
 
                         <!-- 3. Summary -->
-                        <div class="rounded-xl bg-slate-50 border border-gray-200 p-4 space-y-2 text-sm">
+                        <div class="rounded-xl bg-slate-50 border border-gray-200 p-4 space-y-2 text-base">
                             <div class="flex justify-between text-slate-600">
                                 <span>Services</span>
                                 <span id="serviceChargesDisplay" class="font-medium">₱0.00</span>
@@ -334,8 +335,8 @@
                     <div id="paymentPaidState" class="hidden p-6 text-center space-y-3">
                         <div class="mx-auto w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-2xl"><i class="fa-solid fa-check"></i></div>
                         <p class="font-bold text-lg text-slate-800">Paid</p>
-                        <p class="text-sm text-slate-500">Nothing more to collect for this visit.</p>
-                        <a id="paymentPaidReceiptLink" href="receipt.html" class="inline-flex items-center gap-2 bg-slate-900 text-white text-sm font-bold px-4 py-2.5 rounded-xl"><i class="fa-solid fa-receipt"></i>View receipt</a>
+                        <p class="text-base text-slate-500">Nothing more to collect for this visit.</p>
+                        <a id="paymentPaidReceiptLink" href="receipt.html" class="inline-flex items-center gap-2 bg-slate-900 text-white text-base font-bold px-4 py-2.5 rounded-xl"><i class="fa-solid fa-receipt"></i>View receipt</a>
                     </div>
                 </section>
             </div>
@@ -345,13 +346,13 @@
     <div id="productSaleModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-center justify-center hidden opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-gray-100 transform scale-95 transition-transform duration-300">
             <div class="bg-slate-950 p-4 text-white flex justify-between items-center">
-                <h4 class="font-bold text-sm tracking-wide"><i class="fa-solid fa-tags text-amber-400 mr-2"></i>Add Product</h4>
+                <h4 class="font-bold text-base tracking-wide"><i class="fa-solid fa-tags text-amber-400 mr-2"></i>Add Product</h4>
                 <button id="btnCloseProductModal" class="text-gray-400 hover:text-white transition-all text-lg" aria-label="Close">&times;</button>
             </div>
-            <div class="p-5 space-y-3.5 text-sm">
+            <div class="p-5 space-y-3.5 text-base">
                 <div class="relative">
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400 text-xs"></i>
-                    <input id="productSearchInput" type="text" placeholder="Search product name..." class="w-full bg-gray-50 border border-gray-300 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <input id="productSearchInput" type="text" placeholder="Search product name..." class="w-full bg-gray-50 border border-gray-300 rounded-xl pl-9 pr-4 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-amber-500">
                 </div>
                 <div id="productListContainer" class="max-h-80 overflow-y-auto space-y-2 border border-gray-200 rounded-xl p-2 bg-gray-50">
                 </div>
@@ -362,18 +363,18 @@
     <div id="verifyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-center justify-center hidden opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-gray-100 transform scale-95 transition-transform duration-300">
             <div class="bg-slate-950 p-4 text-white flex justify-between items-center">
-                <h4 class="font-bold text-sm tracking-wide"><i class="fa-solid fa-hand-holding-dollar text-amber-400 mr-2"></i>Verify Payment</h4>
+                <h4 class="font-bold text-base tracking-wide"><i class="fa-solid fa-hand-holding-dollar text-amber-400 mr-2"></i>Verify Payment</h4>
                 <button id="btnCloseVerifyModal" class="text-gray-400 hover:text-white transition-all text-lg" aria-label="Close">&times;</button>
             </div>
-            <div class="p-5 space-y-3.5 text-sm">
+            <div class="p-5 space-y-3.5 text-base">
                 <p class="text-gray-500">Check this against your GCash/Maya account (or that the cash was actually received) before confirming. Verifying confirms the appointment.</p>
                 <div>
-                    <label for="verifyAmountInput" class="block text-[11px] text-gray-500 font-bold uppercase mb-1">Amount received</label>
-                    <input id="verifyAmountInput" type="number" step="0.01" min="0.01" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <label for="verifyAmountInput" class="block text-xs text-gray-500 font-bold uppercase mb-1">Amount received</label>
+                    <input id="verifyAmountInput" type="number" step="0.01" min="0.01" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-amber-500">
                 </div>
                 <div>
-                    <label for="verifyMethodInput" class="block text-[11px] text-gray-500 font-bold uppercase mb-1">Payment method</label>
-                    <select id="verifyMethodInput" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <label for="verifyMethodInput" class="block text-xs text-gray-500 font-bold uppercase mb-1">Payment method</label>
+                    <select id="verifyMethodInput" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-amber-500">
                         <option value="" disabled selected>-- Select --</option>
                         <option value="Cash">Cash</option>
                         <option value="GCash">GCash</option>
@@ -381,8 +382,8 @@
                         <option value="PayMongo">PayMongo (online)</option>
                     </select>
                 </div>
-                <button id="btnConfirmVerify" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm py-2.5 rounded-xl transition duration-150">Verify Payment</button>
-                <button id="btnNeedsAttention" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-sm py-2.5 rounded-xl transition duration-150">Payment Needs Attention</button>
+                <button id="btnConfirmVerify" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base py-2.5 rounded-xl transition duration-150">Verify Payment</button>
+                <button id="btnNeedsAttention" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-base py-2.5 rounded-xl transition duration-150">Payment Needs Attention</button>
             </div>
         </div>
     </div>

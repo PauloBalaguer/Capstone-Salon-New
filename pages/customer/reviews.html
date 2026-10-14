@@ -9,15 +9,10 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-  <link rel="stylesheet" href="../../assets/css/fonts-inter-playfair.css" />
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: {
-            sans: ["Inter", "sans-serif"],
-            serif: ["Playfair Display", "serif"],
-          },
           colors: {
             luxury: {
               50: "#faf5ff",
@@ -161,7 +156,7 @@
              'border-[#FDA4AF] bg-[#FFF1F2] text-[#881337]': toast.type === 'error',
              'border-[#99D5D6] bg-[#F0FAFA] text-[#06464A]': toast.type === 'info' || toast.type === 'system'
            }"
-        class="border-2 rounded-xl px-4 py-3 shadow-2xl flex items-start gap-2 text-[13px] font-semibold">
+        class="border-2 rounded-xl px-4 py-3 shadow-2xl flex items-start gap-2 text-xs font-semibold">
         <span x-text="toast.message" class="flex-1 leading-relaxed"></span>
         <button @click="dismissToast(toast.id)" class="opacity-60 hover:opacity-100 shrink-0 leading-none text-lg" aria-label="Dismiss">
           &times;
@@ -187,8 +182,8 @@
               </template>
             </div>
             <div>
-              <h1 class="text-sm font-bold tracking-wider text-gold-400 font-serif" x-text="customerProfile.name"></h1>
-              <p class="text-[10px] text-slate-400 uppercase tracking-widest font-sans">
+              <h1 class="text-base font-bold tracking-wider text-gold-400 font-serif" x-text="customerProfile.name"></h1>
+              <p class="text-xs text-slate-400 uppercase tracking-widest font-sans">
                 Customer Portal
               </p>
             </div>
@@ -290,7 +285,7 @@
                   <img :src="customerProfile.profilePicture" alt="Profile" class="w-full h-full object-cover" />
                 </template>
                 <template x-if="!customerProfile.profilePicture">
-                  <span class="text-sm" x-text="customerProfile.name.split(' ').map(n => n[0]).join('')"></span>
+                  <span class="text-base" x-text="customerProfile.name.split(' ').map(n => n[0]).join('')"></span>
                 </template>
               </div>
             </button>
@@ -329,7 +324,7 @@
             </svg>
             <template x-if="unreadNotificationCount > 0">
               <span
-                class="pulse-badge absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white"
+                class="pulse-badge absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white"
                 x-text="unreadNotificationCount"></span>
             </template>
           </button>
@@ -337,7 +332,7 @@
             class="absolute top-full right-0 mt-2 w-80 bg-slate-800 border border-luxury-800 rounded-lg shadow-lg z-30 flex flex-col max-h-96"
             style="display: none">
             <div class="p-3 border-b border-slate-700 shrink-0">
-              <h4 class="text-sm font-bold text-white">Notifications</h4>
+              <h4 class="text-base font-bold text-white">Notifications</h4>
             </div>
             <div class="divide-y divide-slate-700 overflow-y-auto flex-1">
               <template x-if="notifications.length === 0">
@@ -354,7 +349,7 @@
                   </div>
                   <div>
                     <p class="text-xs text-slate-200" x-text="notif.message"></p>
-                    <p class="text-[10px] text-slate-500" x-text="notif.time"></p>
+                    <p class="text-xs text-slate-500" x-text="notif.time"></p>
                   </div>
                 </div>
               </template>
@@ -384,7 +379,7 @@
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <template x-if="myReviews.length === 0">
               <div class="col-span-full text-center py-12 bg-slate-900/50 rounded-lg">
-                <p class="text-slate-400 text-sm">
+                <p class="text-slate-400 text-base">
                   You haven't submitted any reviews yet.
                 </p>
                 <p class="text-xs text-slate-500 mt-1">
@@ -399,8 +394,8 @@
                 <div class="flex-1">
                   <div class="flex justify-between items-start">
                     <div>
-                      <p class="font-bold text-sm text-white" x-text="review.serviceName"></p>
-                      <p class="text-[10px] text-purple-300" x-text="review.branchName"></p>
+                      <p class="font-bold text-base text-white" x-text="review.serviceName"></p>
+                      <p class="text-xs text-purple-300" x-text="review.branchName"></p>
                     </div>
                     <div class="flex items-center space-x-1 text-gold-400">
                       <span class="text-xs font-bold" x-text="review.rating"></span>
@@ -413,7 +408,7 @@
                   </div>
                 </div>
                 <div
-                  class="text-[10px] text-slate-500 border-t border-slate-800 pt-3 mt-3 flex justify-between items-end">
+                  class="text-xs text-slate-500 border-t border-slate-800 pt-3 mt-3 flex justify-between items-end">
                   <div>
                     <p>
                       <strong>Stylist:</strong>
@@ -447,7 +442,7 @@
             d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z">
           </path>
         </svg>
-        <span class="text-[9px] mt-1">Dashboard</span>
+        <span class="text-xs mt-1">Dashboard</span>
       </a>
       <a href="appointments.html" data-nav-page="appointments.html"
         class="text-slate-400 flex flex-col items-center justify-center p-2 w-full hover:bg-slate-800/50 transition-colors">
@@ -455,7 +450,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
         </svg>
-        <span class="text-[9px] mt-1">Bookings</span>
+        <span class="text-xs mt-1">Bookings</span>
       </a>
       <a href="services-promos.html" data-nav-page="services-promos.html"
         class="text-slate-400 flex flex-col items-center justify-center p-2 w-full hover:bg-slate-800/50 transition-colors">
@@ -464,7 +459,7 @@
             d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z">
           </path>
         </svg>
-        <span class="text-[9px] mt-1">Services</span>
+        <span class="text-xs mt-1">Services</span>
       </a>
       <a href="reviews.html" data-nav-page="reviews.html"
         class="text-gold-400 flex flex-col items-center justify-center p-2 w-full hover:bg-slate-800/50 transition-colors">
@@ -473,7 +468,7 @@
             d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z">
           </path>
         </svg>
-        <span class="text-[9px] mt-1">Reviews</span>
+        <span class="text-xs mt-1">Reviews</span>
       </a>
       <a href="home-service.html" data-nav-page="home-service.html"
         class="text-slate-400 flex flex-col items-center justify-center p-2 w-full hover:bg-slate-800/50 transition-colors">
@@ -482,7 +477,7 @@
             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
           </path>
         </svg>
-        <span class="text-[9px] mt-1">Home</span>
+        <span class="text-xs mt-1">Home</span>
       </a>
     </nav>
   </div>

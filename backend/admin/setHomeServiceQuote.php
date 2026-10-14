@@ -48,6 +48,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
+require_once __DIR__ . '/../config/BookingValidation.php';
+BookingValidation::enforce($_POST, [
+    'quotePrice' => ['money', false, 'an amount with at most two decimal places'],
+    'reservationFee' => ['money', false, 'an amount with at most two decimal places'],
+    'depositAmount' => ['money', false, 'an amount with at most two decimal places'],
+]);
+
 $referenceCode = trim($_POST['id'] ?? '');
 $action = trim($_POST['action'] ?? '');
 
@@ -60,7 +67,7 @@ if ($referenceCode === '' || !in_array($action, ['quote', 'recordPayment', 'requ
 try {
     $pdo = Database::getInstance();
 
-    $stmt = $pdo->prepare('SELECT h.id, h.customer_id, h.status, h.deposit_paid, c.user_id FROM home_service_requests h JOIN customers c ON c.id = h.customer_id WHERE h.reference_code = ? LIMIT 1');
+    $stmt = $pdo->prepare('SELECT h.id, h.customer_id, h.status, h.deposit_paid, h.deposit_amount AS required_deposit, h.quote_price, c.user_id FROM home_service_requests h JOIN customers c ON c.id = h.customer_id WHERE h.reference_code = ? LIMIT 1');
     $stmt->execute([$referenceCode]);
     $homeService = $stmt->fetch();
     if (!$homeService) {
@@ -159,6 +166,12 @@ try {
         if ($depositAmount === false || $depositAmount <= 0 || !in_array($depositMethod, $allowedDepositMethods, true)) {
             http_response_code(400);
             echo json_encode(['success' => false, 'message' => 'A deposit amount and payment method are required.']);
+            exit();
+        }
+
+        if ($depositAmount < (float) $homeService['required_deposit'] || $homeService['quote_price'] === null || $depositAmount > (float) $homeService['quote_price']) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => 'The payment must cover the required reservation fee and cannot exceed the quote.', 'errors' => ['depositAmount' => 'Enter an amount between the required reservation fee and the quote total.']]);
             exit();
         }
 

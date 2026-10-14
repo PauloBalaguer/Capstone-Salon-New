@@ -33,6 +33,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
+require_once __DIR__ . '/../config/BookingValidation.php';
+BookingValidation::enforce($_POST, [
+    'amount' => ['money', false, 'an amount with at most two decimal places'],
+    'quotePrice' => ['money', false, 'an amount with at most two decimal places'],
+]);
+
 $reference = trim($_POST['id'] ?? '');
 $action = trim($_POST['action'] ?? '');
 if ($reference === '' || !in_array($action, ['collect', 'sendLink', 'editQuote'], true)) {

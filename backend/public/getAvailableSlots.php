@@ -27,6 +27,14 @@ date_default_timezone_set('Asia/Manila');
 
 sendCorsHeaders();
 header('Content-Type: application/json');
+require_once __DIR__ . '/../config/BookingValidation.php';
+BookingValidation::enforce($_GET, [
+    'branch' => ['id', false, 'a staff or branch selection'],
+    'date' => ['date', true, 'an appointment date'],
+    'services' => ['ids', false, 'service or staff selections'],
+]);
+
+
 
 $branchId = (int) ($_GET['branch'] ?? 0);
 $branchKey = trim($_GET['branchKey'] ?? '');
@@ -65,6 +73,17 @@ try {
         if ($branchKey === '') {
             http_response_code(400);
             echo json_encode(['success' => false, 'message' => 'Invalid branch selected.']);
+            exit();
+        }
+    }
+
+    if ($serviceIds) {
+        $marks = implode(',', array_fill(0, count($serviceIds), '?'));
+        $selected = $pdo->prepare("SELECT COUNT(*) FROM services WHERE branch_id = ? AND is_active = 1 AND id IN ($marks)");
+        $selected->execute([$branchId, ...$serviceIds]);
+        if ((int) $selected->fetchColumn() !== count($serviceIds)) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => 'Please select active services offered at this branch.', 'errors' => ['services' => 'One or more selected services are unavailable at this branch.']]);
             exit();
         }
     }

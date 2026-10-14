@@ -34,6 +34,19 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
+require_once __DIR__ . '/../config/BookingValidation.php';
+BookingValidation::enforce($_POST, [
+    'fullname' => ['text', true, 'your full name'],
+    'contact' => ['mobile', true, 'a mobile number (09XXXXXXXXX)'],
+    'branch' => ['id', true, 'a staff or branch selection'],
+    'services' => ['ids', true, 'service or staff selections'],
+    'appointment_date' => ['date', true, 'an appointment date'],
+    'time_slot' => ['time', true, 'an appointment time'],
+    'staff_id' => ['id', false, 'a staff or branch selection'],
+    'service_staff' => ['staffMap', false, 'staff selections for each service'],
+    'email' => ['email', false, 'an email address'],
+]);
+
 $fullName = trim($_POST['fullname'] ?? '');
 $contact = trim($_POST['contact'] ?? '');
 $branchId = (int) ($_POST['branch'] ?? 0);
@@ -230,7 +243,7 @@ try {
         if (!$stylistId || $stylistName === false) {
             $pdo->rollBack();
             http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Please choose an available stylist for every selected service.']);
+            echo json_encode(['success' => false, 'message' => 'Selected staff member cannot perform this service at this branch. Please choose a qualified stylist for every service.']);
             exit();
         }
         $until = Scheduling::staffConflictUntil($pdo, $stylistId, $segmentStart->format('Y-m-d H:i:s'), $durations[$serviceId]);

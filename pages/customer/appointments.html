@@ -8,15 +8,10 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-  <link rel="stylesheet" href="../../assets/css/fonts-inter-playfair.css">
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            serif: ['Playfair Display', 'serif'],
-          },
           colors: {
             luxury: {
               50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff', 500: '#a855f7',
@@ -55,6 +50,7 @@
   </style>
   <link rel="stylesheet" href="../../assets/css/customer-theme.css">
   <script src="../../scripts/customer/theme-config.js"></script>
+<script src="../../scripts/booking-validation.js"></script>
 </head>
 <body class="bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
@@ -71,7 +67,7 @@
              'border-[#FDA4AF] bg-[#FFF1F2] text-[#881337]': toast.type === 'error',
              'border-[#99D5D6] bg-[#F0FAFA] text-[#06464A]': toast.type === 'info' || toast.type === 'system'
            }"
-           class="border-2 rounded-xl px-4 py-3 shadow-2xl flex items-start gap-2 text-[13px] font-semibold">
+           class="border-2 rounded-xl px-4 py-3 shadow-2xl flex items-start gap-2 text-xs font-semibold">
         <span x-text="toast.message" class="flex-1 leading-relaxed"></span>
         <button @click="dismissToast(toast.id)" class="opacity-60 hover:opacity-100 shrink-0 leading-none text-lg" aria-label="Dismiss">&times;</button>
       </div>
@@ -93,8 +89,8 @@
               </template>
             </div>
             <div>
-              <h1 class="text-sm font-bold tracking-wider text-gold-400 font-serif" x-text="customerProfile.name"></h1>
-              <p class="text-[10px] text-slate-400 uppercase tracking-widest font-sans">Customer Portal</p>
+              <h1 class="text-base font-bold tracking-wider text-gold-400 font-serif" x-text="customerProfile.name"></h1>
+              <p class="text-xs text-slate-400 uppercase tracking-widest font-sans">Customer Portal</p>
             </div>
           </button>
 
@@ -153,7 +149,7 @@
                   <img :src="customerProfile.profilePicture" alt="Profile" class="w-full h-full object-cover">
                 </template>
                 <template x-if="!customerProfile.profilePicture">
-                  <span class="text-sm" x-text="customerProfile.name.split(' ').map(n => n[0]).join('')"></span>
+                  <span class="text-base" x-text="customerProfile.name.split(' ').map(n => n[0]).join('')"></span>
                 </template>
               </div>
             </button>
@@ -171,7 +167,7 @@
           <h2 class="text-lg font-serif font-bold text-white">My Appointments</h2>
         </div>
         <div class="flex items-center gap-3">
-          <button @click="openTrackModal()" class="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-300 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 px-3 py-1.5 rounded-lg transition">
+          <button @click="openTrackModal()" class="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-slate-300 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 px-3 py-1.5 rounded-lg transition">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             <span>Track a Booking</span>
           </button>
@@ -179,12 +175,12 @@
             <button @click="toggleNotificationPanel()" class="relative text-slate-400 hover:text-white transition-colors">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
               <template x-if="unreadNotificationCount > 0">
-                <span class="pulse-badge absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white" x-text="unreadNotificationCount"></span>
+                <span class="pulse-badge absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white" x-text="unreadNotificationCount"></span>
               </template>
             </button>
             <div x-show="isNotificationPanelOpen" x-transition class="absolute top-full right-0 mt-2 w-80 bg-slate-800 border border-luxury-800 rounded-lg shadow-lg z-30 flex flex-col max-h-96" style="display: none;">
               <div class="p-3 border-b border-slate-700 shrink-0">
-                <h4 class="text-sm font-bold text-white">Notifications</h4>
+                <h4 class="text-base font-bold text-white">Notifications</h4>
               </div>
               <div class="divide-y divide-slate-700 overflow-y-auto flex-1">
                 <template x-if="notifications.length === 0">
@@ -197,7 +193,7 @@
                     </div>
                     <div>
                       <p class="text-xs text-slate-200" x-text="notif.message"></p>
-                      <p class="text-[10px] text-slate-500" x-text="notif.time"></p>
+                      <p class="text-xs text-slate-500" x-text="notif.time"></p>
                     </div>
                   </div>
                 </template>
@@ -211,7 +207,7 @@
       </header>
 
       <div class="sm:hidden px-6 pt-4">
-        <button @click="openTrackModal()" class="w-full flex items-center justify-center gap-1.5 text-[11px] font-semibold text-slate-300 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 px-3 py-2 rounded-lg transition">
+        <button @click="openTrackModal()" class="w-full flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-300 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 px-3 py-2 rounded-lg transition">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
           <span>Track a Booking</span>
         </button>
@@ -251,7 +247,7 @@
                   <div>
                     <div class="flex justify-between items-start">
                       <p class="font-serif font-bold text-white" x-text="appt.serviceName"></p>
-                      <span :class="getStatusBadgeClass(appt.status)" class="px-2 py-0.5 rounded text-[10px] font-bold" x-text="appt.status"></span>
+                      <span :class="getStatusBadgeClass(appt.status)" class="px-2 py-0.5 rounded text-xs font-bold" x-text="appt.status"></span>
                     </div>
                     <p class="text-xs text-slate-400" x-text="appt.branchName"></p><p class="text-xs font-mono text-purple-300 break-all">Booking reference: <span x-text="appt.id"></span></p>
                     <div class="text-xs text-slate-300 mt-3 space-y-1">
@@ -261,7 +257,7 @@
                       <p x-show="appt.depositAmount"><strong class="text-slate-500 w-16 inline-block">Deposit:</strong> <span x-text="formatPeso(appt.depositAmount) + ' via ' + appt.paymentMethod"></span> <span :class="appt.depositVerified ? 'text-emerald-400' : 'text-amber-400'" class="font-bold" x-text="appt.depositVerified ? '(Verified)' : '(Pending Verification)'"></span></p>
                     </div>
                   </div>
-                  <p x-show="appt.status === 'Reschedule Requested'" class="text-[11px] font-semibold rounded-lg p-2 bg-amber-950 text-amber-300 border border-amber-800">The salon asked to move this appointment. Tap Reschedule to pick a new time — your payment carries over.</p>
+                  <p x-show="appt.status === 'Reschedule Requested'" class="text-xs font-semibold rounded-lg p-2 bg-amber-950 text-amber-300 border border-amber-800">The salon asked to move this appointment. Tap Reschedule to pick a new time — your payment carries over.</p>
                   <div class="pt-3 border-t border-slate-800 flex gap-2">
                     <button x-show="canReschedule(appt)" @click="openRescheduleModal(appt)" class="w-full bg-luxury-700 hover:bg-luxury-600 text-white text-xs font-semibold py-1.5 rounded-lg transition active:scale-95">Reschedule</button>
                     <button @click="openCancelModal(appt.id)" class="w-full bg-rose-900/50 hover:bg-rose-900/80 text-rose-300 text-xs font-semibold py-1.5 rounded-lg transition active:scale-95">Cancel</button>
@@ -271,7 +267,7 @@
             </template>
             <template x-if="appointmentView === 'upcoming' && getUpcomingAppointments().length === 0">
               <div class="col-span-full text-center py-12 bg-slate-900/50 rounded-lg" x-transition>
-                <p class="text-slate-400 text-sm" x-text="appointmentSearchQuery ? 'No appointments match your search.' : 'You have no upcoming appointments.'"></p>
+                <p class="text-slate-400 text-base" x-text="appointmentSearchQuery ? 'No appointments match your search.' : 'You have no upcoming appointments.'"></p>
                 <p class="text-xs text-slate-500 mt-1" x-text="appointmentSearchQuery ? 'Try another reference or clear the search field.' : 'Ready for a new look? Book a service now!'"></p>
               </div>
             </template>
@@ -282,7 +278,7 @@
                   <div>
                     <div class="flex justify-between items-start">
                       <p class="font-serif font-bold text-white" x-text="appt.serviceName"></p>
-                      <span :class="getStatusBadgeClass(appt.status)" class="px-2 py-0.5 rounded text-[10px] font-bold" x-text="appt.status"></span>
+                      <span :class="getStatusBadgeClass(appt.status)" class="px-2 py-0.5 rounded text-xs font-bold" x-text="appt.status"></span>
                     </div>
                     <p class="text-xs text-slate-400" x-text="appt.branchName"></p><p class="text-xs font-mono text-purple-300 break-all">Booking reference: <span x-text="appt.id"></span></p>
                     <div class="text-xs text-slate-300 mt-3 space-y-1">
@@ -290,7 +286,7 @@
                       <p><strong class="text-slate-500 w-16 inline-block">Stylist:</strong> <span x-text="appt.staffName"></span></p>
                     </div>
                   </div>
-                  <p x-show="hasKeptDeposit(appt)" class="text-[11px] font-semibold rounded-lg p-2 bg-amber-950 text-amber-300 border border-amber-800"
+                  <p x-show="hasKeptDeposit(appt)" class="text-xs font-semibold rounded-lg p-2 bg-amber-950 text-amber-300 border border-amber-800"
                      x-text="'Your ' + formatPeso(appt.depositAmount) + ' deposit is non-refundable, but you can still use it — tap Reschedule to pick a new time.'"></p>
                   <div class="pt-3 border-t border-slate-800 flex gap-2">
                     <button x-show="hasKeptDeposit(appt)" @click="openRescheduleModal(appt)" class="w-full bg-luxury-700 hover:bg-luxury-600 text-white text-xs font-semibold py-1.5 rounded-lg transition active:scale-95">Reschedule</button>
@@ -302,7 +298,7 @@
             </template>
             <template x-if="appointmentView === 'past' && getPastAppointments().length === 0">
               <div class="col-span-full text-center py-12 bg-slate-900/50 rounded-lg" x-transition>
-                <p class="text-slate-400 text-sm" x-text="appointmentSearchQuery ? 'No appointments match your search.' : 'You have no past appointments.'"></p>
+                <p class="text-slate-400 text-base" x-text="appointmentSearchQuery ? 'No appointments match your search.' : 'You have no past appointments.'"></p>
                 <p x-show="appointmentSearchQuery" class="text-xs text-slate-500 mt-1">Try a different search term or clear the search field.</p>
               </div>
             </template>
@@ -317,23 +313,23 @@
     <nav class="flex justify-around">
       <a href="dashboard.html" data-nav-page="dashboard.html" class="text-slate-400 flex flex-col items-center justify-center p-2 w-full hover:bg-slate-800/50 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z"></path></svg>
-        <span class="text-[9px] mt-1">Dashboard</span>
+        <span class="text-xs mt-1">Dashboard</span>
       </a>
       <a href="appointments.html" data-nav-page="appointments.html" class="text-gold-400 flex flex-col items-center justify-center p-2 w-full hover:bg-slate-800/50 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-        <span class="text-[9px] mt-1">Bookings</span>
+        <span class="text-xs mt-1">Bookings</span>
       </a>
       <a href="services-promos.html" data-nav-page="services-promos.html" class="text-slate-400 flex flex-col items-center justify-center p-2 w-full hover:bg-slate-800/50 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
-        <span class="text-[9px] mt-1">Services</span>
+        <span class="text-xs mt-1">Services</span>
       </a>
       <a href="reviews.html" data-nav-page="reviews.html" class="text-slate-400 flex flex-col items-center justify-center p-2 w-full hover:bg-slate-800/50 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
-        <span class="text-[9px] mt-1">Reviews</span>
+        <span class="text-xs mt-1">Reviews</span>
       </a>
       <a href="home-service.html" data-nav-page="home-service.html" class="text-slate-400 flex flex-col items-center justify-center p-2 w-full hover:bg-slate-800/50 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-        <span class="text-[9px] mt-1">Home</span>
+        <span class="text-xs mt-1">Home</span>
       </a>
     </nav>
   </div>
@@ -352,26 +348,26 @@
       <template x-if="rescheduleAppt">
         <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4">
           <div class="rounded-xl bg-[#F7F1E6] border border-[#E4D7C0] p-3 grid grid-cols-2 gap-x-3 gap-y-2.5">
-            <div><span class="block text-[10px] text-[#6B7280] font-bold uppercase">Reference</span><span class="font-mono text-[#006D6F] break-all" x-text="rescheduleAppt.id"></span></div>
-            <div><span class="block text-[10px] text-[#6B7280] font-bold uppercase">Status</span><span :class="getStatusBadgeClass(rescheduleAppt.status)" class="px-2 py-0.5 rounded text-[10px] font-bold" x-text="rescheduleAppt.status"></span></div>
-            <div class="col-span-2"><span class="block text-[10px] text-[#6B7280] font-bold uppercase">Service(s)</span><span class="font-semibold text-[#1F2937]" x-text="rescheduleAppt.serviceName"></span></div>
-            <div><span class="block text-[10px] text-[#6B7280] font-bold uppercase">Branch</span><span x-text="rescheduleAppt.branchName"></span></div>
-            <div><span class="block text-[10px] text-[#6B7280] font-bold uppercase">Duration</span><span x-text="rescheduleAppt.durationMinutes + ' min'"></span></div>
-            <div x-show="rescheduleAppt.depositAmount"><span class="block text-[10px] text-[#6B7280] font-bold uppercase">Deposit</span><span x-text="formatPeso(rescheduleAppt.depositAmount)"></span> <span :class="rescheduleAppt.depositVerified ? 'text-[#15803D]' : 'text-[#B45309]'" class="font-bold" x-text="rescheduleAppt.depositVerified ? '(Verified)' : '(Pending)'"></span></div>
+            <div><span class="block text-xs text-[#6B7280] font-bold uppercase">Reference</span><span class="font-mono text-[#006D6F] break-all" x-text="rescheduleAppt.id"></span></div>
+            <div><span class="block text-xs text-[#6B7280] font-bold uppercase">Status</span><span :class="getStatusBadgeClass(rescheduleAppt.status)" class="px-2 py-0.5 rounded text-xs font-bold" x-text="rescheduleAppt.status"></span></div>
+            <div class="col-span-2"><span class="block text-xs text-[#6B7280] font-bold uppercase">Service(s)</span><span class="font-semibold text-[#1F2937]" x-text="rescheduleAppt.serviceName"></span></div>
+            <div><span class="block text-xs text-[#6B7280] font-bold uppercase">Branch</span><span x-text="rescheduleAppt.branchName"></span></div>
+            <div><span class="block text-xs text-[#6B7280] font-bold uppercase">Duration</span><span x-text="rescheduleAppt.durationMinutes + ' min'"></span></div>
+            <div x-show="rescheduleAppt.depositAmount"><span class="block text-xs text-[#6B7280] font-bold uppercase">Deposit</span><span x-text="formatPeso(rescheduleAppt.depositAmount)"></span> <span :class="rescheduleAppt.depositVerified ? 'text-[#15803D]' : 'text-[#B45309]'" class="font-bold" x-text="rescheduleAppt.depositVerified ? '(Verified)' : '(Pending)'"></span></div>
           </div>
 
           <div class="rounded-xl bg-[#FEF3C7] border border-[#FCD34D] p-3">
-            <span class="block text-[10px] text-[#92400E] font-bold uppercase">Current schedule</span>
+            <span class="block text-xs text-[#92400E] font-bold uppercase">Current schedule</span>
             <span class="font-semibold text-[#78350F]" x-text="rescheduleAppt.date + ' · ' + rescheduleAppt.time + (rescheduleAppt.staffName ? ' with ' + rescheduleAppt.staffName : '')"></span>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label for="rescheduleDateInput" class="block text-[10px] text-[#6B7280] font-bold uppercase mb-1">New date</label>
+              <label for="rescheduleDateInput" class="block text-xs text-[#6B7280] font-bold uppercase mb-1">New date</label>
               <input id="rescheduleDateInput" type="date" x-model="rescheduleDate" :min="rescheduleMinDate()" @change="loadRescheduleSlots()" class="w-full bg-white text-[#1F2937] rounded-lg p-2.5 border border-[#D9C9B4] focus:outline-none focus:ring-2 focus:ring-[#006D6F]/30">
             </div>
             <div>
-              <label for="rescheduleStylistInput" class="block text-[10px] text-[#6B7280] font-bold uppercase mb-1">Stylist</label>
+              <label for="rescheduleStylistInput" class="block text-xs text-[#6B7280] font-bold uppercase mb-1">Stylist</label>
               <select id="rescheduleStylistInput" x-model="rescheduleStaffId" @change="loadRescheduleSlots()" :disabled="rescheduleStaffId === null" class="w-full bg-white text-[#1F2937] rounded-lg p-2.5 border border-[#D9C9B4] focus:outline-none focus:ring-2 focus:ring-[#006D6F]/30">
                 <option value="">Any available stylist</option>
                 <template x-for="s in rescheduleStylists" :key="s.id">
@@ -383,9 +379,9 @@
 
           <div>
             <div class="flex items-center justify-between flex-wrap gap-1 mb-1.5">
-              <span class="text-[10px] text-[#6B7280] font-bold uppercase"
+              <span class="text-xs text-[#6B7280] font-bold uppercase"
                     x-text="rescheduleStylistName() ? 'New time · ' + rescheduleStylistName() + ' availability' : 'New time · any stylist'"></span>
-              <span class="flex items-center gap-2.5 text-[10px] text-[#6B7280]">
+              <span class="flex items-center gap-2.5 text-xs text-[#6B7280]">
                 <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded border border-[#9CA3AF] bg-white"></span>Open</span>
                 <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-[#006D6F]"></span>Selected</span>
                 <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-[#FFE4E6] border border-[#FDA4AF]"></span>Stylist busy</span>
@@ -407,15 +403,15 @@
                       : ((!slot.available || isCurrentSlot(slot.time)) ? 'bg-[#F1F5F9] border-[#E2E8F0] text-[#94A3B8] cursor-not-allowed' : 'bg-white border-[#D9C9B4] text-[#1F2937] hover:border-[#006D6F]'))"
                   class="border rounded-lg py-1.5 px-1 font-semibold transition leading-tight">
                   <span class="block" :class="(!slot.available || isCurrentSlot(slot.time)) && rescheduleTime !== slot.time ? 'line-through' : ''" x-text="slot.time"></span>
-                  <span x-show="slotReasonLabel(slot) && rescheduleTime !== slot.time" class="block text-[9px] font-bold" x-text="slotReasonLabel(slot)"></span>
+                  <span x-show="slotReasonLabel(slot) && rescheduleTime !== slot.time" class="block text-xs font-bold" x-text="slotReasonLabel(slot)"></span>
                 </button>
               </template>
             </div>
-            <p x-show="rescheduleOpenCount()" class="text-[10px] text-[#6B7280] mt-1.5"
+            <p x-show="rescheduleOpenCount()" class="text-xs text-[#6B7280] mt-1.5"
                x-text="rescheduleOpenCount() + ' open time' + (rescheduleOpenCount() === 1 ? '' : 's') + ' · each fits your full ' + rescheduleDuration + '-min service before closing' + (rescheduleStylistName() ? ' and ' + rescheduleStylistName() + ' is free the whole time.' : '.')"></p>
           </div>
 
-          <ul class="rounded-xl bg-[#F7F1E6] border border-[#E4D7C0] p-3 space-y-1 text-[11px] text-[#4B5563] list-disc list-inside">
+          <ul class="rounded-xl bg-[#F7F1E6] border border-[#E4D7C0] p-3 space-y-1 text-xs text-[#4B5563] list-disc list-inside">
             <li>Same booking reference, services, and payment — nothing is charged again.</li>
             <li x-text="rescheduleStylistName() ? 'Your booking moves to ' + rescheduleStylistName() + '. Times when they are still with another client are marked Stylist busy.' : 'Any free qualified stylist is assigned (your current one first, if free).'"></li>
             <li x-text="rescheduleStatusNote()"></li>
@@ -439,7 +435,7 @@
       <h3 class="text-base font-serif font-bold text-white">Confirm Cancellation</h3>
       <p class="text-xs text-slate-400">Are you sure you want to cancel this appointment? This action cannot be undone.</p>
       <p x-show="cancelDepositWarning()" x-text="cancelDepositWarning()" class="text-xs font-semibold rounded-lg p-2.5 bg-[#FFF1F2] text-[#881337] border border-[#FDA4AF]"></p>
-      <p class="text-[11px] text-slate-500">Policy: reservation deposits are non-refundable. Need a different time? Reschedule instead — your deposit carries over.</p>
+      <p class="text-xs text-slate-500">Policy: reservation deposits are non-refundable. Need a different time? Reschedule instead — your deposit carries over.</p>
 
       <div class="pt-4 flex flex-col gap-2">
         <button type="button" x-show="cancelAppointmentForReschedule() && canReschedule(cancelAppointmentForReschedule())" @click="rescheduleInsteadOfCancel()" class="w-full px-6 py-2 bg-luxury-700 hover:bg-luxury-600 text-white font-bold rounded-lg transition text-xs active:scale-95">Reschedule Instead</button>
@@ -511,8 +507,8 @@
         <template x-if="trackResult">
           <div class="space-y-2">
             <div class="flex justify-between items-center">
-              <span class="text-slate-500 font-bold uppercase tracking-wide text-[10px]" x-text="trackResult.type === 'home_service' ? 'Home Service Request' : 'Appointment'"></span>
-              <span :class="getTrackStatusBadgeClass(trackResult.status)" class="px-2 py-0.5 rounded text-[10px] font-bold" x-text="trackResult.status"></span>
+              <span class="text-slate-500 font-bold uppercase tracking-wide text-xs" x-text="trackResult.type === 'home_service' ? 'Home Service Request' : 'Appointment'"></span>
+              <span :class="getTrackStatusBadgeClass(trackResult.status)" class="px-2 py-0.5 rounded text-xs font-bold" x-text="trackResult.status"></span>
             </div>
             <p class="text-white font-semibold" x-text="trackResult.reference"></p>
             <template x-if="trackResult.type === 'appointment'">

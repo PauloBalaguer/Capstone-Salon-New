@@ -8,16 +8,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-  <link rel="stylesheet" href="../../assets/css/fonts-jakarta-playfair.css">
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'], serif: ['Playfair Display', 'serif'] }
-        }
-      }
-    }
-  </script>
 
   <style>
     [x-cloak] { display: none !important; }
@@ -73,8 +63,8 @@
         <div class="flex items-center space-x-3 mb-8">
           <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center font-serif text-white font-bold text-lg shadow-lg shadow-emerald-500/20">LM</div>
           <div>
-            <h1 class="text-sm font-bold tracking-wider uppercase text-emerald-400 font-serif">Leo Mejillano</h1>
-            <p class="text-[10px] text-slate-400 uppercase tracking-widest font-sans" x-text="$store.staff.profile.role || 'Staff'"></p>
+            <h1 class="text-base font-bold tracking-wider uppercase text-emerald-400 font-serif">Leo Mejillano</h1>
+            <p class="text-xs text-slate-400 uppercase tracking-widest font-sans" x-text="$store.staff.profile.role || 'Staff'"></p>
           </div>
         </div>
 
@@ -109,10 +99,10 @@
             <span>Sign Out</span>
           </a>
         </div>
-        <div class="p-4 bg-slate-950 border-t border-slate-800/80 text-[10px] text-slate-400 space-y-1">
+        <div class="p-4 bg-slate-950 border-t border-slate-800/80 text-xs text-slate-400 space-y-1">
           <p class="font-bold text-slate-300">STI College Legazpi</p>
           <p>Capstone Project Proposal &copy; 2026</p>
-          <p class="text-[9px] text-emerald-400 italic">Centralized Digital Multi-Branch Solution</p>
+          <p class="text-xs text-emerald-400 italic">Centralized Digital Multi-Branch Solution</p>
         </div>
       </div>
     </aside>
@@ -124,7 +114,7 @@
           <p class="text-lg font-bold text-white">Supplies & Usage</p>
           <p class="text-xs text-slate-400" x-text="$store.staff.profile.branchName || 'Your branch'"></p>
         </div>
-        <a href="profile.html" class="relative w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-sm shadow-lg"
+        <a href="profile.html" class="relative w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-base shadow-lg"
                 :class="$store.staff.isClockedIn() ? 'bg-gradient-to-tr from-emerald-500 to-teal-500 shift-glow' : 'bg-gradient-to-tr from-slate-600 to-slate-700'">
           <span x-text="$store.staff.initials()"></span>
           <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-slate-950" :class="$store.staff.isClockedIn() ? 'bg-emerald-400 pulse-dot' : 'bg-slate-500'"></span>
@@ -134,29 +124,29 @@
       <header class="hidden md:flex bg-slate-900 border-b border-emerald-900/40 px-6 py-4 shrink-0 items-center justify-between flex-wrap gap-4">
         <div>
           <h2 class="text-lg font-serif font-bold text-white">Supplies & Usage</h2>
-          <p class="text-[11px] text-slate-400" x-text="'Live stock for ' + ($store.staff.profile.branchName || 'your branch') + '. Log what you use as you go.'"></p>
+          <p class="text-xs text-slate-400" x-text="'Live stock for ' + ($store.staff.profile.branchName || 'your branch') + '. Log what you use as you go.'"></p>
         </div>
 
         <div class="flex items-center gap-4">
           <div class="text-right">
-            <p class="text-[10px] uppercase tracking-wider text-slate-500">Status</p>
-            <p class="text-sm font-bold" :class="$store.staff.isClockedIn() ? 'text-emerald-400' : 'text-slate-500'" x-text="$store.staff.isClockedIn() ? 'On Shift • ' + $store.staff.getShiftDurationLabel() : 'Off Shift'"></p>
+            <p class="text-xs uppercase tracking-wider text-slate-500">Status</p>
+            <p class="text-base font-bold" :class="$store.staff.isClockedIn() ? 'text-emerald-400' : 'text-slate-500'" x-text="$store.staff.isClockedIn() ? 'On Shift • ' + $store.staff.getShiftDurationLabel() : 'Off Shift'"></p>
           </div>
           <div class="relative" @click.outside="$store.staff.isNotificationPanelOpen = false">
             <button @click="$store.staff.toggleNotificationPanel()" class="relative text-slate-400 hover:text-white transition-colors">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
               <template x-if="$store.staff.unreadNotificationCount() > 0">
-                <span class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white" x-text="$store.staff.unreadNotificationCount()"></span>
+                <span class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white" x-text="$store.staff.unreadNotificationCount()"></span>
               </template>
             </button>
             <div x-show="$store.staff.isNotificationPanelOpen" x-transition class="absolute top-full right-0 mt-2 w-80 bg-slate-800 border border-slate-700 rounded-lg shadow-lg z-30 flex flex-col max-h-96" style="display:none">
-              <div class="p-3 border-b border-slate-700 shrink-0"><h4 class="text-sm font-bold text-white">Notifications</h4></div>
+              <div class="p-3 border-b border-slate-700 shrink-0"><h4 class="text-base font-bold text-white">Notifications</h4></div>
               <div class="divide-y divide-slate-700 overflow-y-auto flex-1">
                 <template x-if="$store.staff.notifications.length === 0"><p class="text-xs text-slate-400 text-center p-8">No notifications yet.</p></template>
                 <template x-for="notif in $store.staff.notifications" :key="notif.id">
                   <div class="p-3 hover:bg-slate-700/40">
                     <p class="text-xs text-slate-200" x-text="notif.message"></p>
-                    <p class="text-[10px] text-slate-500 mt-0.5" x-text="notif.time"></p>
+                    <p class="text-xs text-slate-500 mt-0.5" x-text="notif.time"></p>
                   </div>
                 </template>
               </div>
@@ -169,8 +159,8 @@
 
         <div class="flex items-center justify-between flex-wrap gap-3">
           <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl p-1">
-            <button @click="onlyLowStock = false" class="px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all" :class="!onlyLowStock ? 'bg-emerald-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'">All Items</button>
-            <button @click="onlyLowStock = true" class="px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all" :class="onlyLowStock ? 'bg-rose-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'">
+            <button @click="onlyLowStock = false" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all" :class="!onlyLowStock ? 'bg-emerald-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'">All Items</button>
+            <button @click="onlyLowStock = true" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all" :class="onlyLowStock ? 'bg-rose-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'">
               Low Stock <span class="ml-1" x-text="'(' + $store.staff.getLowStockItems().length + ')'"></span>
             </button>
           </div>
@@ -194,13 +184,13 @@
               <div class="flex items-start justify-between gap-2">
                 <div>
                   <p class="text-xs font-bold text-white" x-text="item.name"></p>
-                  <p class="text-[10px] text-slate-500" x-text="(item.sku || 'No SKU') + ' &bull; ' + item.type"></p>
+                  <p class="text-xs text-slate-500" x-text="(item.sku || 'No SKU') + ' &bull; ' + item.type"></p>
                 </div>
-                <span class="px-2 py-0.5 rounded text-[9px] font-bold shrink-0" :class="item.stock <= item.minQty ? 'bg-rose-950 text-rose-300 border border-rose-900/50' : 'bg-emerald-950 text-emerald-300 border border-emerald-900/50'" x-text="item.stock <= item.minQty ? 'LOW' : 'OK'"></span>
+                <span class="px-2 py-0.5 rounded text-xs font-bold shrink-0" :class="item.stock <= item.minQty ? 'bg-rose-950 text-rose-300 border border-rose-900/50' : 'bg-emerald-950 text-emerald-300 border border-emerald-900/50'" x-text="item.stock <= item.minQty ? 'LOW' : 'OK'"></span>
               </div>
 
               <div class="mt-3">
-                <div class="flex justify-between text-[10px] text-slate-400 mb-1">
+                <div class="flex justify-between text-xs text-slate-400 mb-1">
                   <span x-text="item.stock + ' in stock'"></span>
                   <span x-text="'Min: ' + item.minQty"></span>
                 </div>
@@ -210,7 +200,7 @@
                 </div>
               </div>
 
-              <button @click="toggleExpand(item.id)" class="mt-3 w-full text-[10px] font-bold uppercase text-emerald-400 hover:text-emerald-300 flex items-center justify-center gap-1 py-1">
+              <button @click="toggleExpand(item.id)" class="mt-3 w-full text-xs font-bold uppercase text-emerald-400 hover:text-emerald-300 flex items-center justify-center gap-1 py-1">
                 <span x-text="expandedId === item.id ? 'Close' : 'Log Usage'"></span>
                 <svg class="w-3 h-3 transition-transform duration-300" :class="expandedId === item.id ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
               </button>
@@ -219,7 +209,7 @@
                 <div>
                   <div class="pt-3 border-t border-slate-800 mt-1 space-y-2">
                     <select x-model="usageForm.referenceCode"
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                       <option value="">Select assigned booking...</option>
                       <template x-for="appt in assignableAppointments()" :key="appt.id">
                         <option :value="appt.id" x-text="appt.id + ' — ' + appt.clientName + ' (' + appt.serviceName + ')'"></option>
@@ -227,14 +217,14 @@
                     </select>
                     <div class="flex items-center gap-2">
                       <input type="number" min="1" :max="item.stock" x-model.number="usageForm.quantity" placeholder="Qty used"
-                             class="w-24 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                      <span class="text-[10px] text-slate-500" x-text="item.stock + ' available'"></span>
+                             class="w-24 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                      <span class="text-xs text-slate-500" x-text="item.stock + ' available'"></span>
                     </div>
                     <input type="text" x-model="usageForm.note" placeholder="Note (optional)"
-                           class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                           class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                     <button @click="logUsage(item.id)"
                             :disabled="$store.staff.busy || !usageForm.quantity || !usageForm.referenceCode || usageForm.quantity > item.stock"
-                            class="w-full py-2 rounded-lg text-[10px] font-bold uppercase bg-emerald-600 hover:bg-emerald-700 text-white transition-all active:scale-95 disabled:opacity-40">
+                            class="w-full py-2 rounded-lg text-xs font-bold uppercase bg-emerald-600 hover:bg-emerald-700 text-white transition-all active:scale-95 disabled:opacity-40">
                       Record Supplies Used
                     </button>
                   </div>
@@ -245,11 +235,11 @@
         </div>
 
         <div class="space-y-3">
-          <h3 class="font-serif text-sm font-bold text-white">Recent Supply Usage</h3>
+          <h3 class="font-serif text-base font-bold text-white">Recent Supply Usage</h3>
           <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-x-auto">
-            <table class="w-full text-[11px] min-w-[640px]">
+            <table class="w-full text-xs min-w-[640px]">
               <thead>
-                <tr class="text-slate-500 uppercase text-[9px] border-b border-slate-800">
+                <tr class="text-slate-500 uppercase text-xs border-b border-slate-800">
                   <th class="text-left px-3 py-2">Booking Reference</th>
                   <th class="text-left px-3 py-2">Client</th>
                   <th class="text-left px-3 py-2">Service</th>

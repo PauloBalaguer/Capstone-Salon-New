@@ -91,6 +91,12 @@ function customerHomeServiceMixin() {
     },
 
     submitHomeServiceRequest() {
+      if (!BookingFormValidation.fields([
+        ['[x-model="homeServiceForm.address"]', 'address'],
+        ['[x-model="homeServiceForm.clients"]', 'quantity'],
+        ['[x-model="homeServiceForm.preferredDate"]', 'date'],
+        ['[x-model="homeServiceForm.preferredTime"]', 'time']
+      ])) return;
       if (!this.homeServiceForm.address || !this.homeServiceForm.preferredDate || !this.homeServiceForm.preferredTime) {
         return this.pushToast('error', 'Please provide your address, preferred date, and preferred time.');
       }
@@ -103,7 +109,7 @@ function customerHomeServiceMixin() {
 
       if (!Number.isInteger(Number(this.homeServiceForm.clients)) || Number(this.homeServiceForm.clients) < 1) return this.pushToast('error', 'Please enter the number of clients (at least 1).');
       if (this.homeServiceForm.eventType !== 'Wedding' && !this.homeServiceForm.services.length) return this.pushToast('error', 'Please select the services you need.');
-      if (new Date(this.homeServiceForm.preferredDate + 'T' + this.homeServiceForm.preferredTime + ':00+08:00').getTime() <= Date.now()) return this.pushToast('error', 'Please choose a future date and time.');
+      if (!Number.isFinite(new Date(this.homeServiceForm.preferredDate + 'T' + this.homeServiceForm.preferredTime + ':00+08:00').getTime()) || new Date(this.homeServiceForm.preferredDate + 'T' + this.homeServiceForm.preferredTime + ':00+08:00').getTime() <= Date.now()) return this.pushToast('error', 'Please choose a future date and time.');
       this.isSubmittingHomeService = true;
 
       const formData = new FormData();

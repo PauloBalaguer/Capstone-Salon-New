@@ -24,6 +24,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
+require_once __DIR__ . '/../config/BookingValidation.php';
+BookingValidation::enforce($_POST, [
+    'depositAmount' => ['money', false, 'an amount with at most two decimal places'],
+]);
+
 $referenceCode = trim($_POST['id'] ?? '');
 $status = trim($_POST['status'] ?? '');
 // A staff-supplied payment status is only ever honored for the three

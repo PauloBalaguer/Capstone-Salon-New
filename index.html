@@ -37,6 +37,7 @@
     }
   </script>
   <link rel="stylesheet" href="assets/css/home-theme.css" />
+<script src="scripts/booking-validation.js"></script>
 </head>
 
 <body class="bg-sand-100 text-ink font-body antialiased">
@@ -59,7 +60,7 @@
       </button>
 
       <nav
-        class="hidden lg:flex items-center xl:gap-7 gap-5 text-[11px] font-bold tracking-widest uppercase text-ink/80 h-full">
+        class="hidden lg:flex items-center xl:gap-7 gap-5 text-xs font-bold tracking-widest uppercase text-ink/80 h-full">
         <button onclick="switchTab('home-tab')" id="nav-home-tab"
           class="nav-tab-link h-full flex items-center hover:text-plum transition-colors px-1">
           Home
@@ -105,7 +106,7 @@
           </svg>
         </button>
         <button onclick="goToPortalLogin()"
-          class="portal-btn hidden xl:inline-flex items-center gap-2 rounded-full border border-ink/20 text-[13px] font-bold px-5 py-2.5 hover:border-plum hover:text-plum transition">
+          class="portal-btn hidden xl:inline-flex items-center gap-2 rounded-full border border-ink/20 text-xs font-bold px-5 py-2.5 hover:border-plum hover:text-plum transition">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
@@ -113,7 +114,7 @@
           Login
         </button>
         <button onclick="openBookingModal()"
-          class="hidden sm:inline-flex btn-sheen items-center justify-center rounded-full bg-plum text-white text-[13px] font-bold px-6 py-3 hover:brightness-110 transition whitespace-nowrap">
+          class="hidden sm:inline-flex btn-sheen items-center justify-center rounded-full bg-plum text-white text-xs font-bold px-6 py-3 hover:brightness-110 transition whitespace-nowrap">
           Book an Appointment
         </button>
         <button id="menuBtn"
@@ -133,43 +134,43 @@
       <button onclick="
             switchTab('home-tab');
             setMobileNav(false);
-          " class="py-3 text-left border-b border-bronze/10 font-bold text-[12px] tracking-widest uppercase text-ink">
+          " class="py-3 text-left border-b border-bronze/10 font-bold text-xs tracking-widest uppercase text-ink">
         Home
       </button>
       <button onclick="
             switchTab('services-tab');
             setMobileNav(false);
-          " class="py-3 text-left border-b border-bronze/10 font-bold text-[12px] tracking-widest uppercase text-ink">
+          " class="py-3 text-left border-b border-bronze/10 font-bold text-xs tracking-widest uppercase text-ink">
         Services &amp; Menu
       </button>
       <button onclick="
             switchTab('stylists-tab');
             setMobileNav(false);
-          " class="py-3 text-left border-b border-bronze/10 font-bold text-[12px] tracking-widest uppercase text-ink">
+          " class="py-3 text-left border-b border-bronze/10 font-bold text-xs tracking-widest uppercase text-ink">
         Stylists &amp; Team
       </button>
       <button onclick="
             switchTab('products-tab');
             setMobileNav(false);
-          " class="py-3 text-left border-b border-bronze/10 font-bold text-[12px] tracking-widest uppercase text-ink">
+          " class="py-3 text-left border-b border-bronze/10 font-bold text-xs tracking-widest uppercase text-ink">
         Products
       </button>
       <button onclick="
             switchTab('branches-tab');
             setMobileNav(false);
-          " class="py-3 text-left border-b border-bronze/10 font-bold text-[12px] tracking-widest uppercase text-ink">
+          " class="py-3 text-left border-b border-bronze/10 font-bold text-xs tracking-widest uppercase text-ink">
         Branches
       </button>
       <button onclick="
             switchTab('homeservice-tab');
             setMobileNav(false);
-          " class="py-3 text-left border-b border-bronze/10 font-bold text-[12px] tracking-widest uppercase text-ink">
+          " class="py-3 text-left border-b border-bronze/10 font-bold text-xs tracking-widest uppercase text-ink">
         Home &amp; Events
       </button>
       <button onclick="
             switchTab('gallery-tab');
             setMobileNav(false);
-          " class="py-3 text-left border-b border-bronze/10 font-bold text-[12px] tracking-widest uppercase text-ink">
+          " class="py-3 text-left border-b border-bronze/10 font-bold text-xs tracking-widest uppercase text-ink">
         Gallery
       </button>
       <button onclick="goToPortalLogin()"
@@ -190,7 +191,7 @@
       <button onclick="
             openBookingModal();
             setMobileNav(false);
-          " class="mt-5 mb-10 text-center rounded-full bg-plum text-white font-bold py-3.5 text-sm">
+          " class="mt-5 mb-10 text-center rounded-full bg-plum text-white font-bold py-3.5 text-base">
         Book a Slot Now
       </button>
     </nav>
@@ -218,20 +219,20 @@
         <div class="grid gap-3">
           <button type="button" onclick="continueAsGuestBooking()"
             class="rounded-2xl border border-plum/30 bg-plum/5 p-5 text-left hover:border-plum hover:bg-plum/10 transition">
-            <span class="block text-[11px] font-bold tracking-widest uppercase text-plum">New appointment</span>
+            <span class="block text-xs font-bold tracking-widest uppercase text-plum">New appointment</span>
             <span class="block font-display text-xl mt-2">Book as a guest</span>
-            <span class="block text-[13px] text-ink/60 mt-2 leading-relaxed">Choose your branch, date, and time, then
+            <span class="block text-xs text-ink/60 mt-2 leading-relaxed">Choose your branch, date, and time, then
               enter your name,
               mobile number, and email.</span>
           </button>
         </div>
         <div class="mt-5 rounded-xl border border-bronze/30 bg-sand-100 p-4 text-center">
-          <p class="text-sm text-ink/60">Already booked as a guest?</p>
+          <p class="text-base text-ink/60">Already booked as a guest?</p>
           <button type="button" onclick="openTrackModal()"
-            class="mt-2 rounded-full bg-plum text-white font-bold text-sm px-6 py-3 hover:brightness-110 transition">Track your booking</button>
+            class="mt-2 rounded-full bg-plum text-white font-bold text-base px-6 py-3 hover:brightness-110 transition">Track your booking</button>
           <p class="text-xs text-ink/60 mt-2">Use your booking reference and mobile number. No login needed.</p>
         </div>
-        <div class="mt-5 rounded-xl bg-copper/10 border border-copper/20 p-4 text-[12px] text-ink/65 leading-relaxed text-justify">
+        <div class="mt-5 rounded-xl bg-copper/10 border border-copper/20 p-4 text-xs text-ink/65 leading-relaxed text-justify">
           <b class="text-copper-dark">Before you book:</b> Available times depend on your selected branch,
           service, and staff availability. Your booking request will remain
           <b>Waiting for Confirmation</b> until the branch reviews and confirms it.
@@ -251,25 +252,25 @@
             </p>
           </div>
           <span id="bookingModeBadge"
-            class="shrink-0 rounded-full bg-copper/10 border border-copper/25 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-copper-dark">Guest</span>
+            class="shrink-0 rounded-full bg-copper/10 border border-copper/25 px-3 py-1 text-xs font-bold uppercase tracking-widest text-copper-dark">Guest</span>
         </div>
 
         <div id="bookingService"
           class="hidden items-center gap-3 rounded-2xl bg-plum/5 border border-plum/15 px-4 py-3 mb-5">
           <div class="flex-1 min-w-0">
-            <span class="block text-[10px] font-bold uppercase tracking-widest text-plum"
+            <span class="block text-xs font-bold uppercase tracking-widest text-plum"
               id="bookingServiceLabel">Selected service</span>
-            <span class="block text-sm font-bold text-ink truncate" id="bookingServiceName"></span>
+            <span class="block text-base font-bold text-ink truncate" id="bookingServiceName"></span>
           </div>
-          <span class="text-sm font-bold text-ink whitespace-nowrap" id="bookingServicePrice"></span>
+          <span class="text-base font-bold text-ink whitespace-nowrap" id="bookingServicePrice"></span>
         </div>
 
         <form id="bookingModalForm" class="space-y-4" novalidate>
           <div>
             <label for="bookBranchSelect"
-              class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-1">Select branch</label>
+              class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Select branch</label>
             <select id="bookBranchSelect"
-              class="w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-sm focus:outline-none focus:border-plum transition disabled:opacity-60 disabled:cursor-not-allowed"
+              class="w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition disabled:opacity-60 disabled:cursor-not-allowed"
               required>
               <option value="">Choose a branch...</option>
               <option value="1">
@@ -278,13 +279,13 @@
               <option value="2">Yashano Mall — Skin Brows</option>
               <option value="3">Cabangan — Lash &amp; Brows</option>
             </select>
-            <p id="bookBranchLockNote" class="hidden text-[12px] text-ink/50 mt-1.5"></p>
+            <p id="bookBranchLockNote" class="hidden text-xs text-ink/50 mt-1.5"></p>
           </div>
 
           <div>
-            <label class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-1">Services</label>
+            <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Services</label>
             <div id="bookServiceList"
-              class="rounded-xl border border-bronze/50 bg-sand-100 p-3 text-[13px] text-ink/50">
+              class="rounded-xl border border-bronze/50 bg-sand-100 p-3 text-xs text-ink/50">
               Choose a branch to see its services.
             </div>
           </div>
@@ -292,47 +293,47 @@
           <div id="bookScheduleSection" class="space-y-4">
             <div>
               <label for="bookDate"
-                class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-1">Date</label>
+                class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Date</label>
               <input id="bookDate" type="date"
-                class="w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-sm focus:outline-none focus:border-plum transition"
+                class="w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition"
                 required />
             </div>
             <div>
-              <label class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-1">Time</label>
-              <div id="bookSlotGrid" class="rounded-xl border border-bronze/50 bg-sand-100 p-3 text-[13px] text-ink/50">
+              <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Time</label>
+              <div id="bookSlotGrid" class="rounded-xl border border-bronze/50 bg-sand-100 p-3 text-xs text-ink/50">
                 Choose a branch and date to see open times.
               </div>
             </div>
           </div>
 
           <div id="bookStaffSection" class="hidden">
-            <label class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-1">Select staff</label>
-            <p class="text-[12px] text-ink/60 mb-2">Pick a stylist for each service. <span class="text-[#15803D] font-semibold">Available</span> stylists are free for that service; <span class="text-[#9F1239] font-semibold">Busy</span> ones are still with another client.</p>
-            <div id="bookStaffList" class="rounded-xl border border-bronze/50 bg-sand-100 p-3 text-[13px] text-ink/50">
+            <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Select staff</label>
+            <p class="text-xs text-ink/60 mb-2">Pick a stylist for each service. <span class="text-[#15803D] font-semibold">Available</span> stylists are free for that service; <span class="text-[#9F1239] font-semibold">Busy</span> ones are still with another client.</p>
+            <div id="bookStaffList" class="rounded-xl border border-bronze/50 bg-sand-100 p-3 text-xs text-ink/50">
               Choose your branch, services, date, and time to see available staff.
             </div>
-            <div id="bookWaitlist" class="hidden mt-2 rounded-xl border border-dashed border-bronze/60 p-3 text-[12px] text-ink/60 space-y-2">
+            <div id="bookWaitlist" class="hidden mt-2 rounded-xl border border-dashed border-bronze/60 p-3 text-xs text-ink/60 space-y-2">
               <p><b class="text-ink">Preferred stylist booked at this time?</b> Get an email if they have an opening on this date.</p>
               <select id="bookWaitlistStaff" aria-label="Stylist to wait for"
-                class="w-full px-3 py-2 border border-bronze/50 bg-sand-100 rounded-lg text-sm focus:outline-none focus:border-plum"></select>
+                class="w-full px-3 py-2 border border-bronze/50 bg-sand-100 rounded-lg text-base focus:outline-none focus:border-plum"></select>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <input id="bookWaitlistName" type="text" autocomplete="name" placeholder="Your name"
-                  class="px-3 py-2 border border-bronze/50 bg-sand-100 rounded-lg text-sm focus:outline-none focus:border-plum" />
+                  class="px-3 py-2 border border-bronze/50 bg-sand-100 rounded-lg text-base focus:outline-none focus:border-plum" />
                 <input id="bookWaitlistEmail" type="email" autocomplete="email" placeholder="you@email.com"
-                  class="px-3 py-2 border border-bronze/50 bg-sand-100 rounded-lg text-sm focus:outline-none focus:border-plum" />
+                  class="px-3 py-2 border border-bronze/50 bg-sand-100 rounded-lg text-base focus:outline-none focus:border-plum" />
               </div>
               <button type="button" id="bookWaitlistBtn"
-                class="rounded-full border border-plum text-plum font-bold text-[12px] px-4 py-2 hover:bg-plum hover:text-white transition disabled:opacity-60">Notify me</button>
+                class="rounded-full border border-plum text-plum font-bold text-xs px-4 py-2 hover:bg-plum hover:text-white transition disabled:opacity-60">Notify me</button>
             </div>
           </div>
 
           <div id="bookDepositGate" class="hidden rounded-xl border border-plum/30 bg-plum/5 p-4">
-            <p class="text-[11px] font-bold tracking-widest uppercase text-plum mb-1">GUEST RESERVATION PAYMENT REQUIRED</p>
-            <p class="text-sm text-ink/60 mb-2">Your selected schedule is available. Complete the required guest reservation payment below to continue.</p>
-            <p class="text-sm text-ink/60 mb-2">Pay a deposit (50% of the total, minimum ₱100 — some services require full payment) or pay the full amount now.</p>
-            <p class="text-sm text-ink/60 mb-3">Your booking will remain Waiting for Confirmation until the branch verifies your payment.</p>
-            <p id="bookQuoteError" class="text-sm text-copper-dark mb-2" role="status"></p>
-            <dl class="space-y-2 text-sm border-y border-bronze/30 py-3 mb-3">
+            <p class="text-xs font-bold tracking-widest uppercase text-plum mb-1">GUEST RESERVATION PAYMENT REQUIRED</p>
+            <p class="text-base text-ink/60 mb-2">Your selected schedule is available. Complete the required guest reservation payment below to continue.</p>
+            <p class="text-base text-ink/60 mb-2">Pay a deposit (50% of the total, minimum ₱100 — some services require full payment) or pay the full amount now.</p>
+            <p class="text-base text-ink/60 mb-3">Your booking will remain Waiting for Confirmation until the branch verifies your payment.</p>
+            <p id="bookQuoteError" class="text-base text-copper-dark mb-2" role="status"></p>
+            <dl class="space-y-2 text-base border-y border-bronze/30 py-3 mb-3">
               <div><dt class="text-ink/60">Selected Service</dt><dd id="bookPaymentServices">—</dd></div>
               <div class="flex justify-between gap-3"><dt>Service Total</dt><dd id="bookPaymentTotal">—</dd></div>
               <div class="flex justify-between gap-3"><dt>Reservation Requirement</dt><dd id="bookPaymentRequirement" class="text-right">—</dd></div>
@@ -342,8 +343,8 @@
 
             <div id="bookDepositForm" class="space-y-3">
               <fieldset id="bookPaymentPlanWrap" class="hidden">
-                <legend class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-1">How much to pay now</legend>
-                <div class="grid grid-cols-2 gap-2 text-sm">
+                <legend class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">How much to pay now</legend>
+                <div class="grid grid-cols-2 gap-2 text-base">
                   <label class="flex items-center gap-2 border border-bronze/50 bg-sand-100 rounded-xl px-3 py-2.5 cursor-pointer has-[:checked]:border-plum has-[:checked]:text-plum">
                     <input type="radio" name="bookPaymentPlan" value="deposit" checked class="accent-plum"> Deposit
                   </label>
@@ -354,66 +355,66 @@
               </fieldset>
               <div>
                 <label for="bookDepositMethod"
-                  class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-1">Payment method</label>
+                  class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Payment method</label>
                 <select id="bookDepositMethod"
-                  class="w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-sm focus:outline-none focus:border-plum transition">
+                  class="w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition">
                   <option value="">Choose a payment method...</option>
                   <option value="PayMongo">Pay Online — GCash, Maya or Card</option>
                   <option value="Cash">Cash — pay at the branch</option>
                 </select>
               </div>
-              <div id="bookDepositOnlineNote" class="hidden text-[12px] text-ink/55 bg-sand-100 border border-bronze/40 rounded-lg p-3">
+              <div id="bookDepositOnlineNote" class="hidden text-xs text-ink/55 bg-sand-100 border border-bronze/40 rounded-lg p-3">
                 After you confirm, you'll be taken to PayMongo's secure checkout to pay with GCash, Maya or card. Your
                 slot is held for 30 minutes while you pay — no reference number needed.
               </div>
-              <div id="bookDepositCashNote" class="hidden text-[12px] text-ink/55 bg-sand-100 border border-bronze/40 rounded-lg p-3">
+              <div id="bookDepositCashNote" class="hidden text-xs text-ink/55 bg-sand-100 border border-bronze/40 rounded-lg p-3">
                 Cash deposits can't be verified remotely — bring the deposit amount to the branch. Your slot is held as
                 <b>Pending</b> (not locked) until you pay in person and staff confirm it.
               </div>
               <button type="button" id="bookDepositLockBtn"
-                class="btn-sheen w-full rounded-full bg-plum text-white font-bold text-sm py-3 hover:brightness-110 transition disabled:opacity-60 disabled:cursor-not-allowed">
+                class="btn-sheen w-full rounded-full bg-plum text-white font-bold text-base py-3 hover:brightness-110 transition disabled:opacity-60 disabled:cursor-not-allowed">
                 Save payment details
               </button>
             </div>
 
-            <div id="bookDepositLocked" class="hidden items-center justify-between gap-3 text-[13px]">
+            <div id="bookDepositLocked" class="hidden items-center justify-between gap-3 text-xs">
               <span class="text-ink">Reservation payment: <b id="bookDepositLockedSummary"></b></span>
               <button type="button" id="bookDepositChangeBtn" class="text-plum font-bold hover:underline shrink-0">Change</button>
             </div>
           </div>
 
           <div class="pt-2 border-t border-bronze/25">
-            <p class="text-[11px] font-bold tracking-widest uppercase text-ink/40 pt-4 pb-1">
+            <p class="text-xs font-bold tracking-widest uppercase text-ink/40 pt-4 pb-1">
               Guest details
             </p>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label for="bookName" class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-1">Full
+              <label for="bookName" class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Full
                 name</label>
               <input id="bookName" type="text" autocomplete="name" placeholder="Your name"
-                class="w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-sm focus:outline-none focus:border-plum transition"
+                class="w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition"
                 required />
             </div>
             <div>
               <label for="bookPhone"
-                class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-1">Mobile number</label>
+                class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Mobile number</label>
               <input id="bookPhone" type="tel" autocomplete="tel" inputmode="numeric" pattern="09[0-9]{9}" placeholder="09XXXXXXXXX"
                 maxlength="11"
-                class="numbers-only w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-sm focus:outline-none focus:border-plum transition"
+                class="numbers-only w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition"
                 required />
             </div>
           </div>
           <div>
-            <label for="bookEmail" class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-1">Email
+            <label for="bookEmail" class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Email
               address <span class="normal-case font-normal text-ink/35">(optional)</span></label>
             <input id="bookEmail" type="email" autocomplete="email" placeholder="you@email.com"
-              class="w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-sm focus:outline-none focus:border-plum transition" />
-            <p class="text-[11px] text-ink/40 mt-1">If you provide an email, we'll send a short code to confirm it.</p>
+              class="w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition" />
+            <p class="text-xs text-ink/40 mt-1">If you provide an email, we'll send a short code to confirm it.</p>
           </div>
 
           <div>
-            <span class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-2">Send confirmation &amp;
+            <span class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-2">Send confirmation &amp;
               reminders by</span>
             <div class="grid grid-cols-2 gap-2" id="bookNotify">
               <button type="button" data-notify="SMS" class="notify-opt on">
@@ -426,8 +427,8 @@
           </div>
 
           <div class="rounded-xl border border-bronze/40 bg-sand-100 p-4">
-            <p class="text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-2">Terms &amp; Conditions</p>
-            <div class="max-h-24 overflow-y-auto text-[12px] text-ink/60 leading-relaxed pr-1">
+            <p class="text-xs font-bold tracking-widest uppercase text-ink/50 mb-2">Terms &amp; Conditions</p>
+            <div class="max-h-24 overflow-y-auto text-xs text-ink/60 leading-relaxed pr-1">
               <ul class="list-disc list-inside space-y-1">
                 <li><b>Reservation payment:</b> A reservation payment is required to hold your appointment slot.</li>
                 <li><b>50% or full payment:</b> Depending on the service selected, you must pay either a 50% down payment or the full amount upfront — the required amount is shown before you book.</li>
@@ -440,17 +441,17 @@
                 <li>As a guest, you consent to being contacted at the number/email provided for confirmations and reminders.</li>
               </ul>
             </div>
-            <label class="flex items-start gap-2 mt-3 text-[12px] text-ink/70 cursor-pointer">
+            <label class="flex items-start gap-2 mt-3 text-xs text-ink/70 cursor-pointer">
               <input type="checkbox" id="bookAgreeTerms" class="mt-0.5 accent-plum" required>
               <span>I have read and agree to the Terms &amp; Conditions.</span>
             </label>
           </div>
 
           <button type="submit" id="bookSubmitBtn"
-            class="btn-sheen w-full rounded-full bg-plum text-white font-bold text-sm py-3.5 mt-5 hover:brightness-110 transition disabled:opacity-60 disabled:cursor-not-allowed">
+            class="btn-sheen w-full rounded-full bg-plum text-white font-bold text-base py-3.5 mt-5 hover:brightness-110 transition disabled:opacity-60 disabled:cursor-not-allowed">
             Review guest booking
           </button>
-          <p class="text-[11px] text-ink/40 text-center leading-relaxed">
+          <p class="text-xs text-ink/40 text-center leading-relaxed">
             Review your guest details, then verify your email to receive a booking reference. The branch will confirm your appointment separately.
           </p>
         </form>
@@ -458,11 +459,11 @@
 
       <div id="bookingReviewPanel" class="hidden">
         <h3 class="font-display text-2xl mb-1 text-ink" tabindex="-1" id="bookingReviewHeading">Review your guest booking</h3>
-        <p class="text-sm text-ink/60 mb-6">Check your guest appointment and contact details before continuing.</p>
-        <div id="bookingReviewSummary" class="rounded-xl border border-bronze/40 bg-sand-100 p-4 text-sm space-y-2"></div>
+        <p class="text-base text-ink/60 mb-6">Check your guest appointment and contact details before continuing.</p>
+        <div id="bookingReviewSummary" class="rounded-xl border border-bronze/40 bg-sand-100 p-4 text-base space-y-2"></div>
         <p class="text-xs text-ink/60 mt-5" id="bookReviewNextNote">Your request will remain pending until the branch confirms your appointment and deposit.</p>
-        <button type="button" id="bookReviewConfirm" class="w-full rounded-full bg-plum text-white font-bold text-sm py-3.5 mt-5">Continue to email verification</button>
-        <button type="button" id="bookReviewEdit" class="w-full text-plum text-sm py-3.5">Edit booking details</button>
+        <button type="button" id="bookReviewConfirm" class="w-full rounded-full bg-plum text-white font-bold text-base py-3.5 mt-5">Continue to email verification</button>
+        <button type="button" id="bookReviewEdit" class="w-full text-plum text-base py-3.5">Edit booking details</button>
       </div>
 
       <div id="bookingOtpPanel" class="hidden">
@@ -490,11 +491,11 @@
           </div>
 
           <button type="submit" id="bookOtpSubmitBtn"
-            class="btn-sheen w-full rounded-full bg-plum text-white font-bold text-sm py-3.5 hover:brightness-110 transition disabled:opacity-60 disabled:cursor-not-allowed">
+            class="btn-sheen w-full rounded-full bg-plum text-white font-bold text-base py-3.5 hover:brightness-110 transition disabled:opacity-60 disabled:cursor-not-allowed">
             Verify &amp; submit request
           </button>
 
-          <div class="flex items-center justify-between text-sm">
+          <div class="flex items-center justify-between text-base">
             <button type="button" id="bookOtpEditBtn" class="text-ink/60 hover:text-plum transition">
               Edit details
             </button>
@@ -512,19 +513,19 @@
           </svg>
         </span>
         <h3 class="font-display text-2xl mt-5">Booking request received</h3>
-        <p class="text-sm text-ink/60 mt-2">For future visits, <a href="pages/login/register.html" class="text-plum font-bold">create an account</a> to book from your dashboard.</p>
-        <p class="text-sm text-plum mt-2 font-bold">Pending confirmation</p>
-        <p class="text-sm text-ink/60 mt-2">The branch will review your request and deposit. Check your booking status before your visit.</p>
-        <p class="text-sm text-ink/60 mt-2">
+        <p class="text-base text-ink/60 mt-2">For future visits, <a href="pages/login/register.html" class="text-plum font-bold">create an account</a> to book from your dashboard.</p>
+        <p class="text-base text-plum mt-2 font-bold">Pending confirmation</p>
+        <p class="text-base text-ink/60 mt-2">The branch will review your request and deposit. Check your booking status before your visit.</p>
+        <p class="text-base text-ink/60 mt-2">
           Keep this reference — you'll need it to track your appointment.
         </p>
 
         <div class="mt-6 rounded-2xl bg-copper/10 border border-copper/30 px-5 py-5">
-          <span class="block text-[10px] font-bold uppercase tracking-widest text-copper-dark">Booking reference</span>
+          <span class="block text-xs font-bold uppercase tracking-widest text-copper-dark">Booking reference</span>
           <span class="block font-display text-3xl text-ink mt-1.5" id="bookRef">—</span>
         </div>
 
-        <div class="mt-5 rounded-2xl border border-bronze/30 bg-sand-100 px-5 py-5 text-left text-sm space-y-2"
+        <div class="mt-5 rounded-2xl border border-bronze/30 bg-sand-100 px-5 py-5 text-left text-base space-y-2"
           id="bookSummary"></div>
 
         <div
@@ -538,11 +539,11 @@
                   lastBookingPhone,
                 )
               "
-            class="flex-1 rounded-full bg-plum text-white font-bold text-sm py-3.5 hover:brightness-110 transition">
+            class="flex-1 rounded-full bg-plum text-white font-bold text-base py-3.5 hover:brightness-110 transition">
             Track this booking
           </button>
           <button onclick="closeBookingModal()"
-            class="flex-1 rounded-full border border-ink/20 font-bold text-sm py-3.5 hover:border-plum hover:text-plum transition">
+            class="flex-1 rounded-full border border-ink/20 font-bold text-base py-3.5 hover:border-plum hover:text-plum transition">
             Done
           </button>
         </div>
@@ -570,19 +571,19 @@
 
       <div class="space-y-4">
         <div>
-          <label for="apptTrkRef" class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-1">Booking
+          <label for="apptTrkRef" class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Booking
             reference</label>
           <input id="apptTrkRef" type="text" placeholder="LM-DAR-2026-000145"
-            class="w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-sm uppercase focus:outline-none focus:border-plum transition" />
+            class="w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-base uppercase focus:outline-none focus:border-plum transition" />
         </div>
         <div>
           <label for="apptTrkPhone"
-            class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-1">Mobile number used</label>
+            class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Mobile number used</label>
           <input id="apptTrkPhone" type="tel" inputmode="numeric" placeholder="09XXXXXXXXX" maxlength="11"
-            class="numbers-only w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-sm focus:outline-none focus:border-plum transition" />
+            class="numbers-only w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition" />
         </div>
         <button onclick="apptTrack()"
-          class="btn-sheen w-full rounded-full bg-plum text-white font-bold text-sm py-3.5 hover:brightness-110 transition">
+          class="btn-sheen w-full rounded-full bg-plum text-white font-bold text-base py-3.5 hover:brightness-110 transition">
           Check status
         </button>
       </div>
@@ -590,12 +591,12 @@
       <div id="apptTrkResult" class="hidden mt-7"></div>
 
       <div id="apptTrkFeedback" class="hidden mt-7 pt-7 border-t border-bronze/30">
-        <span class="text-[10px] font-bold uppercase tracking-widest text-copper">How did we do?</span>
+        <span class="text-xs font-bold uppercase tracking-widest text-copper">How did we do?</span>
         <h4 class="font-display text-xl mt-2">Rate your service</h4>
         <p class="text-[12.5px] text-ink/55 mt-1.5" id="apptFbFor"></p>
 
         <div class="mt-5">
-          <span class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-2">Overall service</span>
+          <span class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-2">Overall service</span>
           <div class="flex gap-1.5" id="apptFbService">
             <button onclick="apptStar('service', 1)" class="appt-star" aria-label="1 star">
               ★
@@ -616,7 +617,7 @@
         </div>
 
         <div class="mt-4">
-          <span class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-2">Your stylist</span>
+          <span class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-2">Your stylist</span>
           <div class="flex gap-1.5" id="apptFbStaff">
             <button onclick="apptStar('staff', 1)" class="appt-star" aria-label="1 star">
               ★
@@ -637,9 +638,9 @@
         </div>
 
         <textarea id="apptFbText" rows="3" placeholder="Anything you'd like the branch to know? (optional)"
-          class="w-full mt-4 px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-sm focus:outline-none focus:border-plum transition"></textarea>
+          class="w-full mt-4 px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition"></textarea>
         <button onclick="apptSubmitFeedback()"
-          class="w-full mt-3 rounded-full bg-copper text-ink font-bold text-sm py-3.5 hover:brightness-110 transition">
+          class="w-full mt-3 rounded-full bg-copper text-ink font-bold text-base py-3.5 hover:brightness-110 transition">
           Submit feedback
         </button>
       </div>
@@ -663,20 +664,20 @@
         </div>
         <div class="min-w-0">
           <h3 class="font-display text-xl text-ink truncate" id="staffProfileName"></h3>
-          <p class="text-[11px] font-bold uppercase tracking-widest text-copper-dark mt-0.5" id="staffProfilePosition"></p>
+          <p class="text-xs font-bold uppercase tracking-widest text-copper-dark mt-0.5" id="staffProfilePosition"></p>
         </div>
       </div>
 
       <div class="mt-5 flex items-center gap-2" id="staffProfileStatusRow">
         <span class="staff-status-dot" id="staffProfileStatusDot"></span>
-        <span class="text-sm font-bold text-ink" id="staffProfileStatusLabel"></span>
+        <span class="text-base font-bold text-ink" id="staffProfileStatusLabel"></span>
       </div>
       <p class="text-[12.5px] text-ink/55 mt-1" id="staffProfileStatusNote"></p>
 
-      <dl class="mt-6 pt-5 border-t border-bronze/25 space-y-2 text-sm" id="staffProfileDetails"></dl>
+      <dl class="mt-6 pt-5 border-t border-bronze/25 space-y-2 text-base" id="staffProfileDetails"></dl>
 
       <button id="staffProfileBookBtn"
-        class="btn-sheen w-full mt-6 rounded-full bg-plum text-white font-bold text-sm py-3.5 hover:brightness-110 transition">
+        class="btn-sheen w-full mt-6 rounded-full bg-plum text-white font-bold text-base py-3.5 hover:brightness-110 transition">
         Book an appointment
       </button>
     </div>
@@ -696,7 +697,7 @@
   </div>
 
   <div id="toast"
-    class="fixed left-1/2 -translate-x-1/2 bottom-7 bg-ink text-white text-sm font-semibold px-5 py-3 rounded-full opacity-0 pointer-events-none transition-all duration-300 z-60 whitespace-nowrap">
+    class="fixed left-1/2 -translate-x-1/2 bottom-7 bg-ink text-white text-base font-semibold px-5 py-3 rounded-full opacity-0 pointer-events-none transition-all duration-300 z-60 whitespace-nowrap">
     Notification
   </div>
 
@@ -718,7 +719,7 @@
           class="max-w-7xl mx-auto px-5 sm:px-8 grid md:grid-cols-[1.03fr_.97fr] gap-9 lg:gap-14 items-center py-12 sm:py-16 lg:py-20 hero-fill">
           <div class="hero-copy relative z-10">
             <span
-              class="inline-flex items-center gap-2 bg-plum/10 text-plum text-[11px] sm:text-[12px] font-bold tracking-[0.14em] uppercase px-4 py-2.5 rounded-full relative overflow-hidden w-max">
+              class="inline-flex items-center gap-2 bg-plum/10 text-plum text-xs sm:text-xs font-bold tracking-[0.14em] uppercase px-4 py-2.5 rounded-full relative overflow-hidden w-max">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M12 2l2.4 7.2H22l-6 4.6L18.4 21 12 16.4 5.6 21 8 13.8 2 9.2h7.6z" />
               </svg>
@@ -749,7 +750,7 @@
 
             <div class="flex flex-wrap gap-3 mt-8">
               <button onclick="openBookingModal()"
-                class="btn-sheen inline-flex items-center gap-2 rounded-full bg-plum text-white font-bold text-sm px-7 py-3.5 hover:brightness-110 transition shadow-lg shadow-plum/15">
+                class="btn-sheen inline-flex items-center gap-2 rounded-full bg-plum text-white font-bold text-base px-7 py-3.5 hover:brightness-110 transition shadow-lg shadow-plum/15">
                 Book an appointment
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
                   aria-hidden="true">
@@ -757,7 +758,7 @@
                 </svg>
               </button>
               <button onclick="switchTab('services-tab')"
-                class="inline-flex items-center gap-2 rounded-full border border-ink/20 bg-panel/60 font-bold text-sm px-7 py-3.5 hover:border-plum hover:text-plum transition">
+                class="inline-flex items-center gap-2 rounded-full border border-ink/20 bg-panel/60 font-bold text-base px-7 py-3.5 hover:border-plum hover:text-plum transition">
                 See the menu &amp; prices
               </button>
             </div>
@@ -774,20 +775,20 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-5 sm:gap-6 mt-9 pt-7 border-t border-ink/10 max-w-xl">
               <div class="hero-stat">
                 <b class="font-display text-2xl sm:text-3xl text-plum block" data-count="3">3</b>
-                <span class="text-[11px] sm:text-xs text-ink/55">Albay branches</span>
+                <span class="text-xs sm:text-xs text-ink/55">Albay branches</span>
               </div>
               <div class="hero-stat">
                 <b class="font-display text-2xl sm:text-3xl text-plum block" data-count="200" data-suffix="+">200+</b>
-                <span class="text-[11px] sm:text-xs text-ink/55">services on the menu</span>
+                <span class="text-xs sm:text-xs text-ink/55">services on the menu</span>
               </div>
               <div class="hero-stat">
                 <b class="font-display text-2xl sm:text-3xl text-plum block" data-count="50" data-suffix="+">50+</b>
-                <span class="text-[11px] sm:text-xs text-ink/55">beauty professionals</span>
+                <span class="text-xs sm:text-xs text-ink/55">beauty professionals</span>
               </div>
               <div class="hero-stat">
                 <b class="font-display text-2xl sm:text-3xl text-plum block" data-count="30"
                   data-prefix="&#8369;">&#8369;30</b>
-                <span class="text-[11px] sm:text-xs text-ink/55">haircut with blow dry</span>
+                <span class="text-xs sm:text-xs text-ink/55">haircut with blow dry</span>
               </div>
             </div>
           </div>
@@ -804,7 +805,7 @@
                 <div class="hero-branch-pill bg-panel rounded-2xl border border-white/60 shadow-xl px-4 py-3.5 sm:px-5 sm:py-4">
                   <div class="flex items-center justify-between gap-3">
                     <div>
-                      <p class="text-[9px] font-bold tracking-[0.16em] uppercase text-plum">
+                      <p class="text-xs font-bold tracking-[0.16em] uppercase text-plum">
                         One beauty destination
                       </p>
                       <p class="font-display text-lg sm:text-xl mt-0.5 text-ink">
@@ -825,7 +826,7 @@
             </div>
 
             <div
-              class="absolute -top-3 right-4 sm:-top-4 sm:right-8 bg-copper text-white rounded-full px-4 py-2 text-[10px] font-bold tracking-[0.13em] uppercase shadow-lg rotate-2">
+              class="absolute -top-3 right-4 sm:-top-4 sm:right-8 bg-copper text-white rounded-full px-4 py-2 text-xs font-bold tracking-[0.13em] uppercase shadow-lg rotate-2">
               Hair • Skin • Nails • Makeup
             </div>
 
@@ -833,7 +834,7 @@
         </div>
 
         <div class="bg-plum text-sand-200 py-3 overflow-hidden border-y border-bronze/30">
-          <div class="marquee-track text-sm font-bold tracking-[0.15em] uppercase">
+          <div class="marquee-track text-base font-bold tracking-[0.15em] uppercase">
             <span class="flex items-center gap-8 pr-8">
               <span>Hair Rebonding</span><span class="text-copper">✦</span>
               <span>Brazilian Botox</span><span class="text-copper">✦</span>
@@ -858,12 +859,12 @@
         <div class="max-w-7xl mx-auto px-5 sm:px-8">
           <div class="sr flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
             <div>
-              <span class="text-[12px] font-bold tracking-widest uppercase text-copper">Start here</span>
+              <span class="text-xs font-bold tracking-widest uppercase text-copper">Start here</span>
               <h2 class="font-display text-3xl sm:text-4xl mt-2">
                 Which branch is nearest you?
               </h2>
             </div>
-            <p class="text-ink/60 text-sm max-w-xs">
+            <p class="text-ink/60 text-base max-w-xs">
               Each location has its own specialty. Pick one to see its menu,
               or book straight into it.
             </p>
@@ -888,14 +889,14 @@
                 <p class="font-display text-2xl text-plum leading-none">
                   2018s–now
                 </p>
-                <p class="text-[10px] font-bold tracking-[0.14em] uppercase text-ink/45 mt-1.5">
+                <p class="text-xs font-bold tracking-[0.14em] uppercase text-ink/45 mt-1.5">
                   Serving Albay
                 </p>
               </div>
             </div>
 
             <div class="sr sr-d1">
-              <span class="text-[12px] font-bold tracking-widest uppercase text-copper">Inside Leo Mejillano</span>
+              <span class="text-xs font-bold tracking-widest uppercase text-copper">Inside Leo Mejillano</span>
               <h2 class="font-display text-3xl sm:text-[2.7rem] leading-[1.08] mt-3">
                 Three branches.<br />One name.<br />Beauty made personal.
               </h2>
@@ -934,7 +935,7 @@
                   <p class="font-display text-[1.05rem] mt-3.5">
                     Three branches, one brand
                   </p>
-                  <p class="text-[13px] text-ink/60 mt-1.5 leading-relaxed">
+                  <p class="text-xs text-ink/60 mt-1.5 leading-relaxed">
                     Book whichever is closest. The standard travels with the
                     name.
                   </p>
@@ -949,7 +950,7 @@
                   <p class="font-display text-[1.05rem] mt-3.5">
                     Prices on the board
                   </p>
-                  <p class="text-[13px] text-ink/60 mt-1.5 leading-relaxed">
+                  <p class="text-xs text-ink/60 mt-1.5 leading-relaxed">
                     Every rate is published on the menu, so nothing appears at
                     the counter.
                   </p>
@@ -965,7 +966,7 @@
                   <p class="font-display text-[1.05rem] mt-3.5">
                     Booked in under a minute
                   </p>
-                  <p class="text-[13px] text-ink/60 mt-1.5 leading-relaxed">
+                  <p class="text-xs text-ink/60 mt-1.5 leading-relaxed">
                     Name and number. No account, no waiting on a reply to a
                     message.
                   </p>
@@ -980,7 +981,7 @@
                   <p class="font-display text-[1.05rem] mt-3.5">
                     We ask how it went
                   </p>
-                  <p class="text-[13px] text-ink/60 mt-1.5 leading-relaxed">
+                  <p class="text-xs text-ink/60 mt-1.5 leading-relaxed">
                     Every finished appointment gets a short rating form and
                     it gets read.
                   </p>
@@ -988,7 +989,7 @@
               </div>
 
               <button onclick="switchTab('stylists-tab')"
-                class="inline-flex items-center gap-2 mt-8 text-sm font-bold text-plum hover:text-copper-dark transition">
+                class="inline-flex items-center gap-2 mt-8 text-base font-bold text-plum hover:text-copper-dark transition">
                 Meet the people who do the work
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
                   aria-hidden="true">
@@ -1012,26 +1013,26 @@
 
         <div class="max-w-6xl mx-auto px-5 sm:px-8 relative z-10">
           <div class="sr text-center max-w-3xl mx-auto mb-10">
-            <span class="text-[12px] font-bold tracking-widest uppercase text-copper">See it for yourself</span>
+            <span class="text-xs font-bold tracking-widest uppercase text-copper">See it for yourself</span>
             <h2 class="font-display text-3xl sm:text-4xl mt-3">
               Drag to see the difference
             </h2>
-            <p class="text-white/65 text-sm mt-4 leading-relaxed">
+            <p class="text-white/65 text-base mt-4 leading-relaxed">
               Pull the handle across each result. No filters, no retouching this is what walks back out the&nbsp;door.
             </p>
           </div>
 
           <div id="baTabs" class="sr sr-d1 flex justify-center gap-2.5 flex-wrap mb-8">
             <button data-ba="0"
-              class="ba-tab on px-5 py-2.5 rounded-full text-[13px] font-bold border border-white/25 transition">
+              class="ba-tab on px-5 py-2.5 rounded-full text-xs font-bold border border-white/25 transition">
               Organic Rebonding
             </button>
             <button data-ba="1"
-              class="ba-tab px-5 py-2.5 rounded-full text-[13px] font-bold border border-white/25 transition">
+              class="ba-tab px-5 py-2.5 rounded-full text-xs font-bold border border-white/25 transition">
               Premium Microblading
             </button>
             <button data-ba="2"
-              class="ba-tab px-5 py-2.5 rounded-full text-[13px] font-bold border border-white/25 transition">
+              class="ba-tab px-5 py-2.5 rounded-full text-xs font-bold border border-white/25 transition">
               Basic Facial
             </button>
           </div>
@@ -1061,13 +1062,13 @@
             </div>
 
             <div class="text-center lg:text-left">
-              <p class="text-[11px] font-bold tracking-[0.16em] uppercase text-copper" id="baKicker">
+              <p class="text-xs font-bold tracking-[0.16em] uppercase text-copper" id="baKicker">
                 Hair
               </p>
               <h3 class="font-display text-2xl sm:text-3xl mt-2.5" id="baTitle">
                 Organic Rebonding
               </h3>
-              <p class="text-white/65 text-sm mt-4 leading-relaxed" id="baBlurb">
+              <p class="text-white/65 text-base mt-4 leading-relaxed" id="baBlurb">
                 Any length, one sitting. Straightened without the chemical
                 smell, finished with a keratin seal so it grows out soft
                 instead of snapping.
@@ -1075,11 +1076,11 @@
               <p class="font-display text-3xl text-copper mt-6" id="baPrice">
                 ₱999
               </p>
-              <p class="text-[12px] text-white/45 mt-1" id="baWhere">
+              <p class="text-xs text-white/45 mt-1" id="baWhere">
                 Daraga Main · Cabangan
               </p>
               <button id="baBook"
-                class="btn-sheen w-full lg:w-auto mt-6 rounded-full bg-copper text-ink font-bold text-sm px-7 py-3.5 hover:brightness-110 transition">
+                class="btn-sheen w-full lg:w-auto mt-6 rounded-full bg-copper text-ink font-bold text-base px-7 py-3.5 hover:brightness-110 transition">
                 Book this look
               </button>
             </div>
@@ -1090,11 +1091,11 @@
       <section class="py-16 sm:py-24 bg-panel border-b border-bronze/20">
         <div class="max-w-6xl mx-auto px-5 sm:px-8">
           <div class="sr text-center max-w-3xl mx-auto mb-12">
-            <span class="text-[12px] font-bold tracking-widest uppercase text-copper">How booking works</span>
+            <span class="text-xs font-bold tracking-widest uppercase text-copper">How booking works</span>
             <h2 class="font-display text-3xl sm:text-4xl mt-3">
               Book your appointment your way
             </h2>
-            <p class="text-ink/60 text-sm mt-4 leading-relaxed">
+            <p class="text-ink/60 text-base mt-4 leading-relaxed">
               Create an account for faster future bookings, or choose guest booking when you want to book without registering.
             </p>
           </div>
@@ -1103,7 +1104,7 @@
             <li class="sr sr-d1 step-card">
               <span class="step-num">01</span>
               <p class="font-display text-lg mt-4">Open the booking form</p>
-              <p class="text-[13px] text-ink/60 mt-2 leading-relaxed" style="text-align: justify;">
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed" style="text-align: justify;">
                 Tap Book an Appointment, then choose Book as a guest or sign in
                 through the Client Portal.
               </p>
@@ -1111,7 +1112,7 @@
             <li class="sr sr-d2 step-card">
               <span class="step-num">02</span>
               <p class="font-display text-lg mt-4">Choose services and schedule</p>
-              <p class="text-[13px] text-ink/60 mt-2 leading-relaxed" style="text-align: justify;">
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed" style="text-align: justify;">
                 Choose your branch and services, then select an available date
                 and time.
               </p>
@@ -1121,7 +1122,7 @@
               <p class="font-display text-lg mt-4">
                 Enter your contact details
               </p>
-              <p class="text-[13px] text-ink/60 mt-2 leading-relaxed" style="text-align: justify;">
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed" style="text-align: justify;">
                 Enter or review your name, mobile number, and email address so
                 the branch can reach you.
               </p>
@@ -1129,7 +1130,7 @@
             <li class="sr sr-d4 step-card">
               <span class="step-num">04</span>
               <p class="font-display text-lg mt-4">Review and submit</p>
-              <p class="text-[13px] text-ink/60 mt-2 leading-relaxed" style="text-align: justify;">
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed" style="text-align: justify;">
                 Review your details. For guest bookings, verify your email before
                 submitting. Your request stays pending until the branch confirms it.
               </p>
@@ -1137,7 +1138,7 @@
             <li class="sr sr-d5 step-card">
               <span class="step-num">05</span>
               <p class="font-display text-lg mt-4">Track your booking</p>
-              <p class="text-[13px] text-ink/60 mt-2 leading-relaxed" style="text-align: justify;">
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed" style="text-align: justify;">
                 Track a guest booking with your reference and mobile number,
                 or view your bookings in the Client Portal.
               </p>
@@ -1146,53 +1147,53 @@
 
           <div class="sr mt-12 grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             <div class="rounded-[26px] border border-bronze/30 bg-sand-100 p-7">
-              <p class="text-[11px] font-bold tracking-[0.16em] uppercase text-copper-dark">
+              <p class="text-xs font-bold tracking-[0.16em] uppercase text-copper-dark">
                 Client Portal
               </p>
               <h3 class="font-display text-2xl mt-2">Your appointments and account</h3>
-              <p class="text-sm text-ink/60 mt-3 leading-relaxed">
+              <p class="text-base text-ink/60 mt-3 leading-relaxed">
                 Log in or create an account to book appointments, view your
                 bookings, and manage your profile.
               </p>
               <a href="pages/login/login.html"
-                class="inline-block mt-5 rounded-full bg-plum text-white font-bold text-sm px-6 py-3 hover:brightness-110 transition">
+                class="inline-block mt-5 rounded-full bg-plum text-white font-bold text-base px-6 py-3 hover:brightness-110 transition">
                 Client Portal
               </a>
             </div>
             <div class="rounded-[26px] border border-plum/20 bg-plum/5 p-7">
-              <p class="text-[11px] font-bold tracking-[0.16em] uppercase text-plum">
+              <p class="text-xs font-bold tracking-[0.16em] uppercase text-plum">
                 Team Portal
               </p>
               <h3 class="font-display text-2xl mt-2">For staff, cashiers, and admins</h3>
-              <p class="text-sm text-ink/60 mt-3 leading-relaxed">
+              <p class="text-base text-ink/60 mt-3 leading-relaxed">
                 Sign in with your email and password, or use your role and PIN,
                 to access the salon tools available to your team role.
               </p>
               <button onclick="goToPortalLogin()"
-                class="mt-5 rounded-full bg-plum text-white font-bold text-sm px-6 py-3 hover:brightness-110 transition">
+                class="mt-5 rounded-full bg-plum text-white font-bold text-base px-6 py-3 hover:brightness-110 transition">
                 Login
               </button>
             </div>
             <div class="rounded-[26px] border border-bronze/30 bg-sand-100 p-7">
-              <p class="text-[11px] font-bold tracking-[0.16em] uppercase text-copper-dark">
+              <p class="text-xs font-bold tracking-[0.16em] uppercase text-copper-dark">
                 Guest booking
               </p>
               <h3 class="font-display text-2xl mt-2">
                 No registration required
               </h3>
-              <p class="text-sm text-ink/60 mt-3 leading-relaxed">
+              <p class="text-base text-ink/60 mt-3 leading-relaxed">
                 Book without creating an account. Choose your services and
                 schedule, enter your contact details, and verify your email
                 to submit your request.
               </p>
               <button onclick="continueAsGuestBooking()"
-                class="mt-5 rounded-full border border-ink/20 font-bold text-sm px-6 py-3 hover:border-plum hover:text-plum transition">
+                class="mt-5 rounded-full border border-ink/20 font-bold text-base px-6 py-3 hover:border-plum hover:text-plum transition">
                 Book as a guest
               </button>
               <div class="mt-5 border-t border-bronze/30 pt-4">
-                <p class="text-sm text-ink/60">Already booked?</p>
+                <p class="text-base text-ink/60">Already booked?</p>
                 <button type="button" onclick="openTrackModal()"
-                  class="mt-2 rounded-full bg-plum text-white font-bold text-sm px-6 py-3 hover:brightness-110 transition">Track your booking</button>
+                  class="mt-2 rounded-full bg-plum text-white font-bold text-base px-6 py-3 hover:brightness-110 transition">Track your booking</button>
                 <p class="text-xs text-ink/60 mt-2">No login needed. Have your booking reference and mobile number ready.</p>
               </div>
             </div>
@@ -1201,14 +1202,14 @@
           <div class="sr mt-12 bg-sand-100 border border-bronze/30 rounded-[26px] p-7 sm:p-9">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-8">
               <div>
-                <p class="text-[11px] font-bold tracking-[0.16em] uppercase text-ink/45">
+                <p class="text-xs font-bold tracking-[0.16em] uppercase text-ink/45">
                   Your booking status
                 </p>
                 <p class="font-display text-xl mt-1">
                   Reference <span class="text-plum">LM-DAR-2026-000128</span>
                 </p>
               </div>
-              <span class="text-[12px] text-ink/45">Sample this is what you'll see after booking.</span>
+              <span class="text-xs text-ink/45">Sample this is what you'll see after booking.</span>
             </div>
 
             <div class="trk-rail">
@@ -1235,7 +1236,7 @@
               </div>
             </div>
 
-            <p id="trkMsg" class="text-sm text-ink/65 mt-7 text-center">
+            <p id="trkMsg" class="text-base text-ink/65 mt-7 text-center">
               Request received. The Daraga front desk is checking the slot.
             </p>
           </div>
@@ -1245,11 +1246,11 @@
       <section class="py-16 sm:py-20 bg-sand-100 border-b border-bronze/20">
         <div class="max-w-5xl mx-auto px-5 sm:px-8">
           <div class="sr text-center max-w-xl mx-auto mb-10">
-            <span class="text-[12px] font-bold tracking-widest uppercase text-copper">Gift Certificates</span>
+            <span class="text-xs font-bold tracking-widest uppercase text-copper">Gift Certificates</span>
             <h2 class="font-display text-3xl sm:text-4xl mt-3">
               Gift Certificates
             </h2>
-            <p class="text-ink/60 text-sm mt-4 leading-relaxed">
+            <p class="text-ink/60 text-base mt-4 leading-relaxed">
               Give the gift of beauty with a Leo Mejillano Salon gift
               certificate.
             </p>
@@ -1257,10 +1258,10 @@
 
           <div class="sr overflow-hidden rounded-3xl border border-bronze/30 bg-panel shadow-sm">
             <div class="grid grid-cols-2 bg-copper/10 border-b border-bronze/30">
-              <div class="px-6 sm:px-8 py-4 text-sm font-bold uppercase tracking-widest text-ink">
+              <div class="px-6 sm:px-8 py-4 text-base font-bold uppercase tracking-widest text-ink">
                 Denomination
               </div>
-              <div class="px-6 sm:px-8 py-4 text-sm font-bold uppercase tracking-widest text-ink text-right">
+              <div class="px-6 sm:px-8 py-4 text-base font-bold uppercase tracking-widest text-ink text-right">
                 Price
               </div>
             </div>
@@ -1284,7 +1285,7 @@
             </div>
           </div>
 
-          <p class="sr text-xs sm:text-sm text-ink/60 text-center mt-6 leading-relaxed">
+          <p class="sr text-xs sm:text-base text-ink/60 text-center mt-6 leading-relaxed">
             <strong class="text-ink">Note:</strong> Valid for one time use
             only. Not convertible to cash. Must be availed in full value no
             change will be given for unused balance.
@@ -1294,11 +1295,11 @@
 
       <section class="py-16 sm:py-24 bg-panel border-b border-bronze/20">
         <div class="max-w-3xl mx-auto px-5 sm:px-8 text-center">
-          <span class="text-[12px] font-bold tracking-widest uppercase text-copper">Client stories</span>
+          <span class="text-xs font-bold tracking-widest uppercase text-copper">Client stories</span>
           <h2 class="font-display text-3xl sm:text-4xl mt-3">
             What keeps them coming back
           </h2>
-          <p class="text-ink/55 text-sm mt-4">
+          <p class="text-ink/55 text-base mt-4">
             Pulled from the rating form we send after every completed
             appointment.
           </p>
@@ -1311,7 +1312,7 @@
                 exactly what I asked for — first time that's happened
                 anywhere.
               </blockquote>
-              <figcaption class="text-sm text-ink/50 mt-5 font-semibold">
+              <figcaption class="text-base text-ink/50 mt-5 font-semibold">
                 Regular guest · Daraga Main
               </figcaption>
             </figure>
@@ -1321,7 +1322,7 @@
                 Booked home service for my wedding and the team stayed for
                 touch-ups through the whole reception. Worth every peso.
               </blockquote>
-              <figcaption class="text-sm text-ink/50 mt-5 font-semibold">
+              <figcaption class="text-base text-ink/50 mt-5 font-semibold">
                 Bride · Home &amp; event service
               </figcaption>
             </figure>
@@ -1332,7 +1333,7 @@
                 confirmation before I finished my coffee. Brows done the same
                 afternoon.
               </blockquote>
-              <figcaption class="text-sm text-ink/50 mt-5 font-semibold">
+              <figcaption class="text-base text-ink/50 mt-5 font-semibold">
                 Walk-in turned regular · Yashano Mall
               </figcaption>
             </figure>
@@ -1342,7 +1343,7 @@
                 My lash tech remembered the shape I liked from three visits
                 ago. Small thing, but it's why I stopped shopping around.
               </blockquote>
-              <figcaption class="text-sm text-ink/50 mt-5 font-semibold">
+              <figcaption class="text-base text-ink/50 mt-5 font-semibold">
                 Monthly client · Cabangan
               </figcaption>
             </figure>
@@ -1371,22 +1372,22 @@
         <div class="absolute -left-32 -bottom-28 w-96 h-96 rounded-full bg-plum/10 blur-3xl pointer-events-none"
           aria-hidden="true"></div>
         <div class="max-w-4xl mx-auto px-5 sm:px-8 text-center relative z-10">
-          <span class="text-[12px] font-bold tracking-widest uppercase text-copper-dark">Ready when you are</span>
+          <span class="text-xs font-bold tracking-widest uppercase text-copper-dark">Ready when you are</span>
           <h2 class="font-display text-3xl sm:text-[2.9rem] leading-tight mt-4">
             Sit down as you are.<br />Walk out as you meant to be.
           </h2>
           <div class="hair-strand-divider max-w-35 mx-auto mt-6"></div>
-          <p class="text-ink/60 text-sm sm:text-base mt-6 max-w-2xl mx-auto leading-relaxed">
+          <p class="text-ink/60 text-base sm:text-base mt-6 max-w-2xl mx-auto leading-relaxed">
             Open daily across all three branches. Book online, or call and we'll pencil you in.
           </p>
 
           <div class="flex flex-col sm:flex-row gap-3 justify-center mt-9">
             <button onclick="openBookingModal()"
-              class="btn-sheen rounded-full bg-plum text-white font-bold text-sm px-8 py-4 hover:brightness-110 transition shadow-lg shadow-plum/20">
+              class="btn-sheen rounded-full bg-plum text-white font-bold text-base px-8 py-4 hover:brightness-110 transition shadow-lg shadow-plum/20">
               Book an appointment
             </button>
             <button onclick="switchTab('homeservice-tab')"
-              class="rounded-full border border-ink/25 bg-panel/70 font-bold text-sm px-8 py-4 hover:border-plum hover:text-plum transition">
+              class="rounded-full border border-ink/25 bg-panel/70 font-bold text-base px-8 py-4 hover:border-plum hover:text-plum transition">
               Request home &amp; event service
             </button>
           </div>
@@ -1398,11 +1399,11 @@
       <section class="py-14 sm:py-20 bg-sand-100 min-h-screen">
         <div class="max-w-7xl mx-auto px-5 sm:px-8">
           <div class="text-center max-w-2xl mx-auto mb-10">
-            <span class="text-[12px] font-bold tracking-widest uppercase text-copper">Full Studio Menu</span>
+            <span class="text-xs font-bold tracking-widest uppercase text-copper">Full Studio Menu</span>
             <h2 class="font-display text-3xl sm:text-4xl mt-3">
               Services &amp; Pricing
             </h2>
-            <p class="text-ink/60 text-sm mt-4 leading-relaxed">
+            <p class="text-ink/60 text-base mt-4 leading-relaxed">
               Prices are set per branch, so pick a location first. Final
               pricing may still vary a little depending on hair length and
               condition. Tap any item on the menu to open the booking form
@@ -1453,9 +1454,9 @@
 
           <div id="svcPromo"
             class="hidden max-w-2xl mx-auto mb-10 text-center rounded-2xl bg-copper/12 border border-copper/25 px-6 py-4">
-            <span class="block text-[10px] font-bold uppercase tracking-widest text-copper-dark mb-1">Active promo at
+            <span class="block text-xs font-bold uppercase tracking-widest text-copper-dark mb-1">Active promo at
               <span id="svcPromoBranch">this branch</span></span>
-            <p class="text-sm font-semibold text-ink" id="svcPromoText"></p>
+            <p class="text-base font-semibold text-ink" id="svcPromoText"></p>
           </div>
 
           <div id="svcGroups" class="max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-10">
@@ -1469,7 +1470,7 @@
                 <path d="M21 21l-4.35-4.35" />
               </svg>
               <input id="svcFilter" type="text" placeholder="Search for your preferred beauty service..."
-                class="w-full rounded-full border border-bronze/40 bg-panel pl-12 pr-11 py-3.5 text-sm text-ink focus:outline-none focus:border-plum focus:ring-2 focus:ring-plum/15 transition" />
+                class="w-full rounded-full border border-bronze/40 bg-panel pl-12 pr-11 py-3.5 text-base text-ink focus:outline-none focus:border-plum focus:ring-2 focus:ring-plum/15 transition" />
               <button id="svcFilterClear"
                 class="hidden absolute right-4 top-1/2 -translate-y-1/2 text-ink/40 hover:text-plum transition"
                 aria-label="Clear filter">
@@ -1479,29 +1480,29 @@
               </button>
             </div>
             <div class="flex justify-between items-center gap-4 mt-3 px-2">
-              <span class="text-[11px] font-semibold uppercase tracking-widest text-ink/40" id="svcCount"></span>
+              <span class="text-xs font-semibold uppercase tracking-widest text-ink/40" id="svcCount"></span>
               <button id="svcExpandAll"
-                class="text-[11px] font-bold uppercase tracking-widest text-plum hover:text-copper-dark transition shrink-0">
+                class="text-xs font-bold uppercase tracking-widest text-plum hover:text-copper-dark transition shrink-0">
                 Open All
               </button>
             </div>
           </div>
 
           <div id="svcMenus" class="max-w-3xl mx-auto"></div>
-          <p id="svcEmpty" class="hidden text-center text-sm text-ink/50 py-10">
+          <p id="svcEmpty" class="hidden text-center text-base text-ink/50 py-10">
             No matching services found for this branch filter.
           </p>
 
           <div class="mt-20 max-w-6xl mx-auto border-t border-bronze/20 pt-16">
             <div class="text-center max-w-xl mx-auto mb-10">
-              <span class="text-[12px] font-bold tracking-widest uppercase text-copper">Bridal &amp; Event
+              <span class="text-xs font-bold tracking-widest uppercase text-copper">Bridal &amp; Event
                 Styling</span>
               <h3 class="font-display text-2xl sm:text-3xl mt-3">
                 Wedding Packages
               </h3>
             </div>
             <div id="weddingPackagesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch"></div>
-            <p id="weddingPackagesEmpty" class="hidden text-center text-sm text-ink/50 py-10">
+            <p id="weddingPackagesEmpty" class="hidden text-center text-base text-ink/50 py-10">
               No wedding packages available right now.
             </p>
           </div>
@@ -1513,11 +1514,11 @@
       <section class="py-14 sm:py-20 bg-sand-100 min-h-screen">
         <div class="max-w-6xl mx-auto px-5 sm:px-8">
           <div class="text-center max-w-4xl mx-auto mb-10">
-            <span class="text-[12px] font-bold tracking-widest uppercase text-copper">Our Artists</span>
+            <span class="text-xs font-bold tracking-widest uppercase text-copper">Our Artists</span>
             <h2 class="font-display text-3xl sm:text-4xl mt-3">
               Stylists &amp; Salon Team
             </h2>
-            <p class="text-ink/60 text-sm mt-4 leading-relaxed">
+            <p class="text-ink/60 text-base mt-4 leading-relaxed">
               Meet our stylists and specialists across our three Albay hubs. Tap any artist card to request a slot with them directly.
             </p>
           </div>
@@ -1536,7 +1537,7 @@
 
           <div id="staffStudio" class="text-center mb-10">
             <h3 class="font-display text-xl sm:text-2xl text-ink" id="staffStudioName"></h3>
-            <p class="text-[11px] font-bold uppercase tracking-widest text-plum mt-2" id="staffStudioCount"></p>
+            <p class="text-xs font-bold uppercase tracking-widest text-plum mt-2" id="staffStudioCount"></p>
           </div>
 
           <div id="staffRoster"></div>
@@ -1548,11 +1549,11 @@
       <section class="py-14 sm:py-20 bg-panel min-h-screen">
         <div class="max-w-7xl mx-auto px-5 sm:px-8">
           <div class="text-center max-w-xl mx-auto mb-12">
-            <span class="text-[12px] font-bold tracking-widest uppercase text-copper">Salon-Grade Formulations</span>
+            <span class="text-xs font-bold tracking-widest uppercase text-copper">Salon-Grade Formulations</span>
             <h2 class="font-display text-3xl sm:text-4xl mt-3">
               Professional Products
             </h2>
-            <p class="text-ink/60 text-sm mt-4">
+            <p class="text-ink/60 text-base mt-4">
               Explore our wide selection of professional hair, nail, skin, make-up, and salon care products.
             </p>
           </div>
@@ -1569,10 +1570,10 @@
                 <path d="M3 7v10l9 4 9-4V7" />
               </svg>
             </span>
-            <p class="text-sm text-ink/60 mt-4" id="prodEmptyLead">
+            <p class="text-base text-ink/60 mt-4" id="prodEmptyLead">
               Our retail line-up is being updated.
             </p>
-            <p class="text-[13px] text-ink/45 mt-1.5">
+            <p class="text-xs text-ink/45 mt-1.5">
               Ask any branch about product availability and current stock.
             </p>
           </div>
@@ -1584,26 +1585,26 @@
       <section class="py-14 sm:py-20 bg-plum text-white min-h-screen relative overflow-hidden">
         <div class="max-w-7xl mx-auto px-5 sm:px-8 relative z-10">
           <div class="text-center max-w-3xl mx-auto mb-12">
-            <span class="text-[12px] font-bold tracking-widest uppercase text-copper">Our Locations</span>
+            <span class="text-xs font-bold tracking-widest uppercase text-copper">Our Locations</span>
             <h2 class="font-display text-3xl sm:text-4xl mt-3">
               Beauty Services, Wherever You Are
             </h2>
-            <p class="text-white/65 text-sm mt-4 leading-relaxed">
+            <p class="text-white/65 text-base mt-4 leading-relaxed">
               Explore our three Leo Mejillano locations across Albay and choose the branch that fits your beauty needs.
             </p>
           </div>
 
           <div class="flex justify-center gap-3 flex-wrap mb-10" id="branchTabs">
             <button data-b="daraga"
-              class="branch-tab-btn active px-6 py-3 rounded-full text-sm font-bold border border-white/20 bg-white/10">
+              class="branch-tab-btn active px-6 py-3 rounded-full text-base font-bold border border-white/20 bg-white/10">
               Daraga Main
             </button>
             <button data-b="yashano"
-              class="branch-tab-btn px-6 py-3 rounded-full text-sm font-bold border border-white/20">
+              class="branch-tab-btn px-6 py-3 rounded-full text-base font-bold border border-white/20">
               Yashano Mall
             </button>
             <button data-b="cabangan"
-              class="branch-tab-btn px-6 py-3 rounded-full text-sm font-bold border border-white/20">
+              class="branch-tab-btn px-6 py-3 rounded-full text-base font-bold border border-white/20">
               Cabangan
             </button>
           </div>
@@ -1611,11 +1612,11 @@
           <div
             class="grid md:grid-cols-2 gap-0 rounded-3xl overflow-hidden border border-white/15 bg-white/5 shadow-2xl">
             <div class="p-9 md:p-12 bg-sand-100 text-ink" id="branchInfo">
-              <span class="text-[11px] font-bold tracking-widest uppercase text-copper" id="bTag">Flagship Hub</span>
+              <span class="text-xs font-bold tracking-widest uppercase text-copper" id="bTag">Flagship Hub</span>
               <h3 class="font-display text-2xl sm:text-3xl mt-2" id="bName">
                 Leo Mejillano Salon &amp; Make-Up Studio
               </h3>
-              <p class="text-ink/70 text-sm mt-4 flex gap-2">
+              <p class="text-ink/70 text-base mt-4 flex gap-2">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   class="shrink-0 mt-0.5">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
@@ -1625,7 +1626,7 @@
                   Albay</span>
               </p>
               <p class="hidden text-ink/45 text-xs mt-1.5 ml-5.75" id="bLandmark"></p>
-              <p class="text-ink/80 text-sm mt-5 leading-relaxed" id="bSpec" style="text-align: justify;">
+              <p class="text-ink/80 text-base mt-5 leading-relaxed" id="bSpec" style="text-align: justify;">
                 Step into the Leo Mejillano beauty experience at our flagship
                 Daraga branch, where professional beauty services,
                 personalized care, and expertise come together. From hair,
@@ -1637,15 +1638,15 @@
               </p>
               <div class="flex gap-8 mt-7">
                 <div>
-                  <b class="block text-sm" id="bHours">8:00 AM – 8:00 PM</b><span class="text-xs text-ink/50"
+                  <b class="block text-base" id="bHours">8:00 AM – 8:00 PM</b><span class="text-xs text-ink/50"
                     id="bHoursNote">Open Daily</span>
                 </div>
               </div>
               <div class="mt-8 pt-7 border-t border-ink/15">
-                <span class="text-[11px] font-bold tracking-widest uppercase text-copper">Contact Us</span>
+                <span class="text-xs font-bold tracking-widest uppercase text-copper">Contact Us</span>
                 <div class="flex flex-wrap gap-x-8 gap-y-3 mt-4">
                   <a id="bPhone" href="tel:+639185368016"
-                    class="flex items-center gap-2.5 text-sm text-ink/85 hover:text-plum transition">
+                    class="flex items-center gap-2.5 text-base text-ink/85 hover:text-plum transition">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                       class="shrink-0">
                       <path
@@ -1654,7 +1655,7 @@
                     <span id="bPhoneText">0918 536 8016</span>
                   </a>
                   <a id="bEmail" href="mailto:leomejillano88@yahoo.com"
-                    class="flex items-center gap-2.5 text-sm text-ink/85 hover:text-plum transition">
+                    class="flex items-center gap-2.5 text-base text-ink/85 hover:text-plum transition">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                       class="shrink-0">
                       <rect x="2" y="4" width="20" height="16" rx="2" />
@@ -1663,13 +1664,13 @@
                     <span id="bEmailText">leomejillano88@yahoo.com</span>
                   </a>
                   <a id="bPhone2" href="tel:+639078696035"
-                    class="hidden items-center gap-2.5 text-sm text-ink/85 hover:text-plum transition">
+                    class="hidden items-center gap-2.5 text-base text-ink/85 hover:text-plum transition">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                       class="shrink-0">
                       <path d="M12 3v4M12 17v4M3 12h4M17 12h4" />
                       <circle cx="12" cy="12" r="3.5" />
                     </svg>
-                    <span><span id="bPhone2Text">0907 869 6035</span><span class="block text-[11px] text-ink/45"
+                    <span><span id="bPhone2Text">0907 869 6035</span><span class="block text-xs text-ink/45"
                         id="bPhone2Label"></span></span>
                   </a>
                 </div>
@@ -1690,7 +1691,7 @@
         <div
           class="max-w-7xl mx-auto px-5 sm:px-8 py-14 sm:py-20 grid lg:grid-cols-12 gap-10 items-center relative z-10">
           <div class="lg:col-span-6">
-            <span class="text-[12px] font-bold tracking-widest uppercase text-copper">Home &amp; Event Service</span>
+            <span class="text-xs font-bold tracking-widest uppercase text-copper">Home &amp; Event Service</span>
             <h2 class="font-display text-3xl sm:text-5xl mt-3 leading-tight">
               Beauty, Wherever Your Event Takes You.
             </h2>
@@ -1698,18 +1699,18 @@
               Bring professional Leo Mejillano beauty services directly to
               your home, venue, or special event.
             </p>
-            <p class="text-white/60 text-sm mt-4 max-w-lg leading-relaxed">
+            <p class="text-white/60 text-base mt-4 max-w-lg leading-relaxed">
               Whether you're preparing for a wedding, debut, graduation, gala,
               or personal celebration, our professional team can bring the
               beauty experience directly to you.
             </p>
             <div class="flex flex-wrap gap-3 mt-8">
               <button onclick="hsJump('hsRequest')"
-                class="btn-sheen rounded-full bg-copper text-white text-[13px] font-bold px-7 py-3.5 hover:brightness-110 transition">
+                class="btn-sheen rounded-full bg-copper text-white text-xs font-bold px-7 py-3.5 hover:brightness-110 transition">
                 Request Home Service
               </button>
               <button onclick="hsJump('hsTrack')"
-                class="rounded-full border border-white/30 text-[13px] font-bold px-7 py-3.5 hover:bg-white/10 transition">
+                class="rounded-full border border-white/30 text-xs font-bold px-7 py-3.5 hover:bg-white/10 transition">
                 Track My Request
               </button>
             </div>
@@ -1727,7 +1728,7 @@
       <section class="py-14 sm:py-20 bg-sand-100 border-b border-bronze/20">
         <div class="max-w-6xl mx-auto px-5 sm:px-8">
           <div class="text-center max-w-xl mx-auto mb-10">
-            <span class="text-[12px] font-bold tracking-widest uppercase text-copper">Event Categories</span>
+            <span class="text-xs font-bold tracking-widest uppercase text-copper">Event Categories</span>
             <h3 class="font-display text-2xl sm:text-3xl mt-3">
               Services for Your Special Moment
             </h3>
@@ -1740,19 +1741,19 @@
                 </svg>
               </span>
               <h4 class="font-display text-xl mt-5">Weddings &amp; Debuts</h4>
-              <p class="text-[13px] text-ink/65 mt-3 leading-relaxed">
+              <p class="text-xs text-ink/65 mt-3 leading-relaxed">
                 Professional beauty services for brides, debutantes, and event
                 guests.
               </p>
-              <p class="text-[11px] font-bold uppercase tracking-widest text-copper-dark mt-5">
+              <p class="text-xs font-bold uppercase tracking-widest text-copper-dark mt-5">
                 Full Team Dispatch
               </p>
-              <p class="text-[13px] text-ink/60 mt-2 leading-relaxed flex-1">
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed flex-1">
                 Coordinated hair and makeup services for special ceremonies
                 and celebrations.
               </p>
               <button onclick="hsPreset('Wedding')"
-                class="mt-6 rounded-full border border-ink/15 text-[12px] font-bold uppercase tracking-widest py-3 hover:border-plum hover:text-plum transition">
+                class="mt-6 rounded-full border border-ink/15 text-xs font-bold uppercase tracking-widest py-3 hover:border-plum hover:text-plum transition">
                 Request Service
               </button>
             </div>
@@ -1766,17 +1767,17 @@
               <h4 class="font-display text-xl mt-5">
                 Graduations &amp; Galas
               </h4>
-              <p class="text-[13px] text-ink/65 mt-3 leading-relaxed">
+              <p class="text-xs text-ink/65 mt-3 leading-relaxed">
                 Look your best for important milestones and formal events.
               </p>
-              <p class="text-[11px] font-bold uppercase tracking-widest text-copper-dark mt-5">
+              <p class="text-xs font-bold uppercase tracking-widest text-copper-dark mt-5">
                 Group &amp; Individual Styling
               </p>
-              <p class="text-[13px] text-ink/60 mt-2 leading-relaxed flex-1">
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed flex-1">
                 Coordinated beauty services for individuals or groups.
               </p>
               <button onclick="hsPreset('Graduation')"
-                class="mt-6 rounded-full border border-ink/15 text-[12px] font-bold uppercase tracking-widest py-3 hover:border-plum hover:text-plum transition">
+                class="mt-6 rounded-full border border-ink/15 text-xs font-bold uppercase tracking-widest py-3 hover:border-plum hover:text-plum transition">
                 Request Service
               </button>
             </div>
@@ -1787,18 +1788,18 @@
                 </svg>
               </span>
               <h4 class="font-display text-xl mt-5">Personal Events</h4>
-              <p class="text-[13px] text-ink/65 mt-3 leading-relaxed">
+              <p class="text-xs text-ink/65 mt-3 leading-relaxed">
                 Beauty services for personal celebrations, gatherings,
                 photoshoots, and other special occasions.
               </p>
-              <p class="text-[11px] font-bold uppercase tracking-widest text-copper-dark mt-5">
+              <p class="text-xs font-bold uppercase tracking-widest text-copper-dark mt-5">
                 Flexible Booking
               </p>
-              <p class="text-[13px] text-ink/60 mt-2 leading-relaxed flex-1">
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed flex-1">
                 Book a single artist or a small team, wherever you need us.
               </p>
               <button onclick="hsPreset('Personal Event')"
-                class="mt-6 rounded-full border border-ink/15 text-[12px] font-bold uppercase tracking-widest py-3 hover:border-plum hover:text-plum transition">
+                class="mt-6 rounded-full border border-ink/15 text-xs font-bold uppercase tracking-widest py-3 hover:border-plum hover:text-plum transition">
                 Request Service
               </button>
             </div>
@@ -1809,55 +1810,55 @@
       <section class="py-14 sm:py-20 bg-panel border-b border-bronze/20">
         <div class="max-w-6xl mx-auto px-5 sm:px-8">
           <div class="text-center max-w-xl mx-auto mb-10">
-            <span class="text-[12px] font-bold tracking-widest uppercase text-copper">The Process</span>
+            <span class="text-xs font-bold tracking-widest uppercase text-copper">The Process</span>
             <h3 class="font-display text-2xl sm:text-3xl mt-3">
               How Home &amp; Event Service Works
             </h3>
           </div>
           <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div class="bg-sand-100 rounded-2xl p-6 border border-bronze/20">
-              <span class="font-display text-2xl text-copper">01</span><b class="block text-sm mt-2">Tell Us About Your
+              <span class="font-display text-2xl text-copper">01</span><b class="block text-base mt-2">Tell Us About Your
                 Event</b>
-              <p class="text-[13px] text-ink/60 mt-2 leading-relaxed">
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed">
                 Provide your event type, preferred date, location, number of
                 clients, and service requirements.
               </p>
             </div>
             <div class="bg-sand-100 rounded-2xl p-6 border border-bronze/20">
-              <span class="font-display text-2xl text-copper">02</span><b class="block text-sm mt-2">Submit Your
+              <span class="font-display text-2xl text-copper">02</span><b class="block text-base mt-2">Submit Your
                 Request</b>
-              <p class="text-[13px] text-ink/60 mt-2 leading-relaxed">
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed">
                 Send your home or event service request to the Leo Mejillano
                 team.
               </p>
             </div>
             <div class="bg-sand-100 rounded-2xl p-6 border border-bronze/20">
-              <span class="font-display text-2xl text-copper">03</span><b class="block text-sm mt-2">We Check
+              <span class="font-display text-2xl text-copper">03</span><b class="block text-base mt-2">We Check
                 Availability</b>
-              <p class="text-[13px] text-ink/60 mt-2 leading-relaxed">
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed">
                 Our team reviews your requested date, location, services, and
                 staff availability.
               </p>
             </div>
             <div class="bg-sand-100 rounded-2xl p-6 border border-bronze/20">
-              <span class="font-display text-2xl text-copper">04</span><b class="block text-sm mt-2">Your Team Is
+              <span class="font-display text-2xl text-copper">04</span><b class="block text-base mt-2">Your Team Is
                 Assigned</b>
-              <p class="text-[13px] text-ink/60 mt-2 leading-relaxed">
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed">
                 Available staff are organized and assigned to your event.
               </p>
             </div>
             <div class="bg-sand-100 rounded-2xl p-6 border border-bronze/20">
-              <span class="font-display text-2xl text-copper">05</span><b class="block text-sm mt-2">Enjoy Your
+              <span class="font-display text-2xl text-copper">05</span><b class="block text-base mt-2">Enjoy Your
                 Service</b>
-              <p class="text-[13px] text-ink/60 mt-2 leading-relaxed">
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed">
                 Our assigned beauty professionals provide the requested
                 services at your venue.
               </p>
             </div>
             <div class="bg-sand-100 rounded-2xl p-6 border border-bronze/20">
-              <span class="font-display text-2xl text-copper">06</span><b class="block text-sm mt-2">Share Your
+              <span class="font-display text-2xl text-copper">06</span><b class="block text-base mt-2">Share Your
                 Experience</b>
-              <p class="text-[13px] text-ink/60 mt-2 leading-relaxed">
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed">
                 After your service is completed, rate the service and provide
                 feedback.
               </p>
@@ -1869,7 +1870,7 @@
       <section id="hsRequest" class="py-14 sm:py-20 bg-sand-100 border-b border-bronze/20 scroll-mt-24">
         <div class="max-w-7xl mx-auto px-5 sm:px-8">
           <div class="text-center max-w-xl mx-auto mb-10">
-            <span class="text-[12px] font-bold tracking-widest uppercase text-copper">Booking</span>
+            <span class="text-xs font-bold tracking-widest uppercase text-copper">Booking</span>
             <h3 class="font-display text-2xl sm:text-3xl mt-3">
               Home Service Request
             </h3>
@@ -1880,19 +1881,19 @@
               <div class="grid grid-cols-4 gap-2 mb-8" id="hsProgress">
                 <div class="hs-prog" data-p="1">
                   <span class="block h-1 rounded-full bg-bronze/30"></span><span
-                    class="block text-[10px] font-bold uppercase tracking-widest mt-2 text-ink/40">01 Info</span>
+                    class="block text-xs font-bold uppercase tracking-widest mt-2 text-ink/40">01 Info</span>
                 </div>
                 <div class="hs-prog" data-p="2">
                   <span class="block h-1 rounded-full bg-bronze/30"></span><span
-                    class="block text-[10px] font-bold uppercase tracking-widest mt-2 text-ink/40">02 Event</span>
+                    class="block text-xs font-bold uppercase tracking-widest mt-2 text-ink/40">02 Event</span>
                 </div>
                 <div class="hs-prog" data-p="3">
                   <span class="block h-1 rounded-full bg-bronze/30"></span><span
-                    class="block text-[10px] font-bold uppercase tracking-widest mt-2 text-ink/40">03 Services</span>
+                    class="block text-xs font-bold uppercase tracking-widest mt-2 text-ink/40">03 Services</span>
                 </div>
                 <div class="hs-prog" data-p="4">
                   <span class="block h-1 rounded-full bg-bronze/30"></span><span
-                    class="block text-[10px] font-bold uppercase tracking-widest mt-2 text-ink/40">04 Review</span>
+                    class="block text-xs font-bold uppercase tracking-widest mt-2 text-ink/40">04 Review</span>
                 </div>
               </div>
 
@@ -1900,41 +1901,41 @@
                 <h4 class="font-display text-xl">Your Information</h4>
                 <div class="grid sm:grid-cols-2 gap-4 mt-6">
                   <div class="sm:col-span-2">
-                    <label class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-1.5">Full
+                    <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1.5">Full
                       Name</label>
                     <input id="hsName" type="text" placeholder="Juan Dela Cruz"
-                      class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-sm focus:outline-none focus:border-plum transition" />
+                      class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition" />
                   </div>
                   <div>
-                    <label class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-1.5">Phone
+                    <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1.5">Phone
                       Number</label>
                     <input id="hsPhone" type="tel" inputmode="numeric" placeholder="09XXXXXXXXX" maxlength="11"
-                      class="numbers-only w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-sm focus:outline-none focus:border-plum transition" />
+                      class="numbers-only w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition" />
                   </div>
                   <div>
-                    <label class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-1.5">Email
+                    <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1.5">Email
                       Address
                       <span class="text-ink/40 normal-case tracking-normal font-semibold">(used to track &amp; reschedule)</span></label>
                     <input id="hsEmail" type="email" required placeholder="Enter your email address"
-                      class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-sm focus:outline-none focus:border-plum transition" />
+                      class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition" />
                   </div>
                 </div>
                 <div class="mt-6 rounded-2xl bg-copper/10 border border-copper/25 p-5">
-                  <b class="text-sm text-copper-dark">Guest Booking</b>
-                  <p class="text-[13px] text-ink/65 mt-1.5 leading-relaxed">
+                  <b class="text-base text-copper-dark">Guest Booking</b>
+                  <p class="text-xs text-ink/65 mt-1.5 leading-relaxed">
                     No account? No problem. You can request a home service
                     using your name and contact number.
                   </p>
                 </div>
 
                 <div class="mt-6 rounded-2xl border border-plum/30 bg-plum/5 p-5">
-                  <p class="text-[11px] font-bold tracking-widest uppercase text-plum mb-1">Albay Province only</p>
+                  <p class="text-xs font-bold tracking-widest uppercase text-plum mb-1">Albay Province only</p>
                   <p class="text-[12.5px] text-ink/60">Home Service is currently available only within Albay Province. Your preferred date and time are a request only — our team confirms availability, pricing, staff, and any required payment after review.</p>
                 </div>
 
                 <div class="flex justify-end mt-7">
                   <button onclick="hsNext(1)"
-                    class="rounded-full bg-plum text-white text-[12px] font-bold uppercase tracking-widest px-8 py-3.5 hover:brightness-110 transition">
+                    class="rounded-full bg-plum text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 hover:brightness-110 transition">
                     Continue
                   </button>
                 </div>
@@ -1944,10 +1945,10 @@
                 <h4 class="font-display text-xl">Tell Us About Your Event</h4>
                 <div class="grid sm:grid-cols-2 gap-4 mt-6">
                   <div>
-                    <label class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-1.5">Event
+                    <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1.5">Event
                       Type</label>
                     <select id="hsEventType"
-                      class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-sm focus:outline-none focus:border-plum transition">
+                      class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition">
                       <option value="">Choose event type</option>
                       <option>Standard Home Service</option>
                       <option>Group Package</option>
@@ -1961,54 +1962,54 @@
                     </select>
                   </div>
                   <div>
-                    <label class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-1.5">Number of
+                    <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1.5">Number of
                       Clients</label>
                     <input id="hsClients" type="number" min="1" placeholder="Enter number of people"
-                      class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-sm focus:outline-none focus:border-plum transition" />
+                      class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition" />
                   </div>
                   <div>
-                    <label class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-1.5">Preferred
+                    <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1.5">Preferred
                       Date</label>
                     <input id="hsDate" type="date"
-                      class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-sm focus:outline-none focus:border-plum transition" />
+                      class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition" />
                   </div>
                   <div>
-                    <label class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-1.5">Preferred
+                    <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1.5">Preferred
                       Time</label>
                     <input id="hsTime" type="time"
-                      class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-sm focus:outline-none focus:border-plum transition" />
+                      class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition" />
                   </div>
                   <div class="sm:col-span-2">
-                    <label class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-1.5">Venue /
+                    <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1.5">Venue /
                       Address</label>
                     <input id="hsVenue" type="text" placeholder="Street, Barangay, City/Municipality"
-                      class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-sm focus:outline-none focus:border-plum transition" />
+                      class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition" />
                   </div>
                   <div class="sm:col-span-2">
-                    <label class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-1.5">Venue
+                    <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1.5">Venue
                       Details</label>
                     <input id="hsVenueDetails" type="text"
                       placeholder="Landmark, building, floor, room, or other instructions"
-                      class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-sm focus:outline-none focus:border-plum transition" />
+                      class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition" />
                   </div>
                 </div>
 
                 <div id="hsOtherEventRow" class="hidden mt-4">
-                  <label for="hsOtherEvent" class="block text-sm mb-2">Please Specify Event</label>
-                  <input id="hsOtherEvent" type="text" class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-sm" placeholder="Enter your event type" />
+                  <label for="hsOtherEvent" class="block text-base mb-2">Please Specify Event</label>
+                  <input id="hsOtherEvent" type="text" class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base" placeholder="Enter your event type" />
                 </div>
                 <div class="mt-6 rounded-2xl border border-bronze/30 bg-sand-100 p-5">
-                  <b class="text-sm">Your schedule is a request</b>
-                  <p class="text-[12px] text-ink/55 mt-1">Our team will review your preferred date, time, venue, and service requirements. Your request remains Under Review until we contact you and confirm the arrangements. No payment is collected when you submit this request.</p>
+                  <b class="text-base">Your schedule is a request</b>
+                  <p class="text-xs text-ink/55 mt-1">Our team will review your preferred date, time, venue, and service requirements. Your request remains Under Review until we contact you and confirm the arrangements. No payment is collected when you submit this request.</p>
                 </div>
 
                 <div class="flex justify-between mt-7">
                   <button onclick="hsGo(1)"
-                    class="rounded-full border border-ink/15 text-[12px] font-bold uppercase tracking-widest px-7 py-3.5 hover:border-plum hover:text-plum transition">
+                    class="rounded-full border border-ink/15 text-xs font-bold uppercase tracking-widest px-7 py-3.5 hover:border-plum hover:text-plum transition">
                     Back
                   </button>
                   <button onclick="hsNext(2)"
-                    class="rounded-full bg-plum text-white text-[12px] font-bold uppercase tracking-widest px-8 py-3.5 hover:brightness-110 transition">
+                    class="rounded-full bg-plum text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 hover:brightness-110 transition">
                     Continue
                   </button>
                 </div>
@@ -2018,15 +2019,15 @@
                 <h4 id="hsServicesHeading" class="font-display text-xl">
                   What Services Do You Need?
                 </h4>
-                <p id="hsServicesIntro" class="text-[13px] text-ink/55 mt-2">
+                <p id="hsServicesIntro" class="text-xs text-ink/55 mt-2">
                   Select all that apply.
                 </p>
                 <div id="hsWeddingPackages" class="hidden mt-6">
                   <div id="hsWeddingPackageGrid" class="grid sm:grid-cols-2 gap-4"></div>
                   <div id="hsWeddingLiveSummary" class="hidden mt-6 rounded-2xl border border-copper/35 bg-copper/10 p-5">
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-copper-dark">Package Summary</span>
-                    <p class="text-[12px] text-ink/55 mt-2">No payment now. The reservation fee (DP) is an estimate until your quote — you pay it online after review; the remaining balance is paid on the event day.</p>
-                    <div class="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm mt-3">
+                    <span class="text-xs font-bold uppercase tracking-widest text-copper-dark">Package Summary</span>
+                    <p class="text-xs text-ink/55 mt-2">No payment now. The reservation fee (DP) is an estimate until your quote — you pay it online after review; the remaining balance is paid on the event day.</p>
+                    <div class="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-base mt-3">
                       <p><span class="text-ink/50">Wedding Package:</span> <b data-wedding-summary="name"></b></p>
                       <p><span class="text-ink/50">Package Price:</span> <b data-wedding-summary="price"></b></p>
                       <p><span class="text-ink/50">Reservation Fee:</span> <b data-wedding-summary="fee"></b></p>
@@ -2040,61 +2041,61 @@
                 <div class="grid sm:grid-cols-2 gap-3 mt-6" id="hsServiceCards">
                   <button type="button" onclick="hsToggleSvc(this)" data-svc="Hair Styling"
                     class="hs-svc text-left rounded-2xl border border-bronze/30 bg-sand-100 p-5 transition">
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-copper">Hair</span>
-                    <b class="block text-sm mt-1.5">Hair Styling</b>
-                    <span class="block text-[12px] text-ink/60 mt-1.5 leading-relaxed">Professional styling prepared
+                    <span class="text-xs font-bold uppercase tracking-widest text-copper">Hair</span>
+                    <b class="block text-base mt-1.5">Hair Styling</b>
+                    <span class="block text-xs text-ink/60 mt-1.5 leading-relaxed">Professional styling prepared
                       according to your
                       event.</span>
                   </button>
                   <button type="button" onclick="hsToggleSvc(this)" data-svc="Event Makeup"
                     class="hs-svc text-left rounded-2xl border border-bronze/30 bg-sand-100 p-5 transition">
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-copper">Makeup</span>
-                    <b class="block text-sm mt-1.5">Event Makeup</b>
-                    <span class="block text-[12px] text-ink/60 mt-1.5 leading-relaxed">Professional makeup for your
+                    <span class="text-xs font-bold uppercase tracking-widest text-copper">Makeup</span>
+                    <b class="block text-base mt-1.5">Event Makeup</b>
+                    <span class="block text-xs text-ink/60 mt-1.5 leading-relaxed">Professional makeup for your
                       special occasion.</span>
                   </button>
                   <button type="button" onclick="hsToggleSvc(this)" data-svc="Brow Services"
                     class="hs-svc text-left rounded-2xl border border-bronze/30 bg-sand-100 p-5 transition">
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-copper">Brows</span>
-                    <b class="block text-sm mt-1.5">Brow Services</b>
-                    <span class="block text-[12px] text-ink/60 mt-1.5 leading-relaxed">Professional brow grooming and
+                    <span class="text-xs font-bold uppercase tracking-widest text-copper">Brows</span>
+                    <b class="block text-base mt-1.5">Brow Services</b>
+                    <span class="block text-xs text-ink/60 mt-1.5 leading-relaxed">Professional brow grooming and
                       styling.</span>
                   </button>
                   <button type="button" onclick="hsToggleSvc(this)" data-svc="Lash Services"
                     class="hs-svc text-left rounded-2xl border border-bronze/30 bg-sand-100 p-5 transition">
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-copper">Lashes</span>
-                    <b class="block text-sm mt-1.5">Lash Services</b>
-                    <span class="block text-[12px] text-ink/60 mt-1.5 leading-relaxed">Professional lash enhancement for
+                    <span class="text-xs font-bold uppercase tracking-widest text-copper">Lashes</span>
+                    <b class="block text-base mt-1.5">Lash Services</b>
+                    <span class="block text-xs text-ink/60 mt-1.5 leading-relaxed">Professional lash enhancement for
                       your event
                       look.</span>
                   </button>
                   <button type="button" onclick="hsToggleSvc(this)" data-svc="Hair & Makeup Package"
                     class="hs-svc sm:col-span-2 text-left rounded-2xl border border-bronze/30 bg-sand-100 p-5 transition">
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-copper">Package</span>
-                    <b class="block text-sm mt-1.5">Hair &amp; Makeup Package</b>
-                    <span class="block text-[12px] text-ink/60 mt-1.5 leading-relaxed">Coordinated hair and makeup
+                    <span class="text-xs font-bold uppercase tracking-widest text-copper">Package</span>
+                    <b class="block text-base mt-1.5">Hair &amp; Makeup Package</b>
+                    <span class="block text-xs text-ink/60 mt-1.5 leading-relaxed">Coordinated hair and makeup
                       services for special
                       occasions.</span>
                   </button>
                 </div>
                 <p id="hsNonWeddingPricingNote" class="text-[12.5px] text-ink/55 mt-4">Final price and reservation payment will be confirmed after review.</p>
                 <div class="mt-6">
-                  <label class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-1.5">Additional
+                  <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1.5">Additional
                     Requirements</label>
                   <textarea id="hsNotes" rows="3" placeholder="Tell us anything else we should know about your event..."
-                    class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-sm focus:outline-none focus:border-plum transition resize-none"></textarea>
-                  <p class="text-[12px] text-ink/45 mt-2">
+                    class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition resize-none"></textarea>
+                  <p class="text-xs text-ink/45 mt-2">
                     Example: "6 people need hair and makeup before the
                     ceremony at 10:00 AM."
                   </p>
                 </div>
                 <div class="flex justify-between mt-7">
                   <button onclick="hsGo(2)"
-                    class="rounded-full border border-ink/15 text-[12px] font-bold uppercase tracking-widest px-7 py-3.5 hover:border-plum hover:text-plum transition">
+                    class="rounded-full border border-ink/15 text-xs font-bold uppercase tracking-widest px-7 py-3.5 hover:border-plum hover:text-plum transition">
                     Back
                   </button>
                   <button onclick="hsNext(3)"
-                    class="rounded-full bg-plum text-white text-[12px] font-bold uppercase tracking-widest px-8 py-3.5 hover:brightness-110 transition">
+                    class="rounded-full bg-plum text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 hover:brightness-110 transition">
                     Continue
                   </button>
                 </div>
@@ -2104,51 +2105,51 @@
                 <h4 class="font-display text-xl">Review Your Request</h4>
                 <div class="mt-6 space-y-4">
                   <div class="rounded-2xl border border-bronze/25 bg-sand-100 p-5">
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-copper">Customer</span>
-                    <p class="text-sm mt-2">
+                    <span class="text-xs font-bold uppercase tracking-widest text-copper">Customer</span>
+                    <p class="text-base mt-2">
                       <span class="text-ink/50">Name:</span>
                       <b id="rvName">—</b>
                     </p>
-                    <p class="text-sm mt-1">
+                    <p class="text-base mt-1">
                       <span class="text-ink/50">Phone:</span>
                       <b id="rvPhone">—</b>
                     </p>
-                    <p class="text-sm mt-1" id="rvEmailRow">
+                    <p class="text-base mt-1" id="rvEmailRow">
                       <span class="text-ink/50">Email:</span>
                       <b id="rvEmail">—</b>
                     </p>
                   </div>
                   <div class="rounded-2xl border border-bronze/25 bg-sand-100 p-5">
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-copper">Event</span>
-                    <p class="text-sm mt-2">
+                    <span class="text-xs font-bold uppercase tracking-widest text-copper">Event</span>
+                    <p class="text-base mt-2">
                       <span class="text-ink/50">Event Type:</span>
                       <b id="rvEvent">—</b>
                     </p>
-                    <p class="text-sm mt-1">
+                    <p class="text-base mt-1">
                       <span class="text-ink/50">Date:</span>
                       <b id="rvDate">—</b>
                     </p>
-                    <p class="text-sm mt-1">
+                    <p class="text-base mt-1">
                       <span class="text-ink/50">Time:</span>
                       <b id="rvTime">—</b>
                     </p>
-                    <p class="text-sm mt-1">
+                    <p class="text-base mt-1">
                       <span class="text-ink/50">Number of Clients:</span>
                       <b id="rvClients">—</b>
                     </p>
                   </div>
                   <div class="rounded-2xl border border-bronze/25 bg-sand-100 p-5">
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-copper">Location</span>
-                    <p class="text-sm mt-2" id="rvVenue">—</p>
-                    <p class="text-[13px] text-ink/55 mt-1" id="rvVenueDetails"></p>
+                    <span class="text-xs font-bold uppercase tracking-widest text-copper">Location</span>
+                    <p class="text-base mt-2" id="rvVenue">—</p>
+                    <p class="text-xs text-ink/55 mt-1" id="rvVenueDetails"></p>
                   </div>
                   <div id="rvStandardServicesCard" class="rounded-2xl border border-bronze/25 bg-sand-100 p-5">
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-copper">Services Requested</span>
-                    <ul class="text-sm mt-2 space-y-1.5" id="rvServices"></ul>
+                    <span class="text-xs font-bold uppercase tracking-widest text-copper">Services Requested</span>
+                    <ul class="text-base mt-2 space-y-1.5" id="rvServices"></ul>
                   </div>
                   <div id="rvWeddingPackageCard" class="hidden rounded-2xl border border-copper/35 bg-copper/10 p-5">
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-copper-dark">Package Summary</span>
-                    <div class="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm mt-3">
+                    <span class="text-xs font-bold uppercase tracking-widest text-copper-dark">Package Summary</span>
+                    <div class="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-base mt-3">
                       <p><span class="text-ink/50">Wedding Package:</span> <b data-review-wedding="name"></b></p>
                       <p><span class="text-ink/50">Package Price:</span> <b data-review-wedding="price"></b></p>
                       <p><span class="text-ink/50">Reservation Fee:</span> <b data-review-wedding="fee"></b></p>
@@ -2159,14 +2160,14 @@
                     </div>
                   </div>
                   <div class="rounded-2xl border border-bronze/25 bg-sand-100 p-5">
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-copper">Additional
+                    <span class="text-xs font-bold uppercase tracking-widest text-copper">Additional
                       Requirements</span>
-                    <p class="text-sm mt-2 leading-relaxed" id="rvNotes">—</p>
+                    <p class="text-base mt-2 leading-relaxed" id="rvNotes">—</p>
                   </div>
 
                   <div class="rounded-2xl border border-bronze/25 bg-sand-100 p-5">
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-copper">Terms &amp; Conditions</span>
-                    <div class="max-h-24 overflow-y-auto text-[12px] text-ink/60 leading-relaxed mt-2 pr-1">
+                    <span class="text-xs font-bold uppercase tracking-widest text-copper">Terms &amp; Conditions</span>
+                    <div class="max-h-24 overflow-y-auto text-xs text-ink/60 leading-relaxed mt-2 pr-1">
                       <ul class="list-disc list-inside space-y-1">
                         <li>Home Service requests are subject to staff availability and approval.</li>
                         <li>Your preferred date and time are not guaranteed until confirmed.</li>
@@ -2180,7 +2181,7 @@
                     </div>
                     <!-- How payment works + estimated DP -->
                     <div class="mt-4 rounded-2xl bg-plum/5 border border-plum/20 p-4 text-[12.5px] text-ink/75 space-y-2.5">
-                      <p class="font-bold text-plum text-[13px]">How payment works</p>
+                      <p class="font-bold text-plum text-xs">How payment works</p>
                       <ol class="list-decimal list-inside space-y-1 leading-relaxed">
                         <li><b>No payment now</b> — just submit this request.</li>
                         <li>We review it and email your <b>quote</b> with a <b>reservation fee (DP)</b>.</li>
@@ -2189,11 +2190,11 @@
                       </ol>
                       <div class="rounded-xl bg-panel border border-plum/20 p-3">
                         <p id="hsDpEstimate">Your DP is set in your quote.</p>
-                        <p class="text-[11px] text-ink/50 mt-1">The final amount is confirmed in your quote.</p>
+                        <p class="text-xs text-ink/50 mt-1">The final amount is confirmed in your quote.</p>
                       </div>
-                      <p class="text-[11px] text-ink/55">The DP is <b>non-refundable</b>, but it carries over if you <b>reschedule</b> (online, at least 3 days before the event).</p>
+                      <p class="text-xs text-ink/55">The DP is <b>non-refundable</b>, but it carries over if you <b>reschedule</b> (online, at least 3 days before the event).</p>
                     </div>
-                    <label class="flex items-start gap-2 mt-3 text-[12px] text-ink/70 cursor-pointer">
+                    <label class="flex items-start gap-2 mt-3 text-xs text-ink/70 cursor-pointer">
                       <input type="checkbox" id="hsAgreeTerms" class="mt-0.5 accent-plum" required>
                       <span>I have read and agree to the Home Service Terms &amp; Conditions.</span>
                     </label>
@@ -2201,11 +2202,11 @@
                 </div>
                 <div class="flex flex-wrap gap-3 justify-between mt-7">
                   <button onclick="hsGo(1)"
-                    class="rounded-full border border-ink/15 text-[12px] font-bold uppercase tracking-widest px-7 py-3.5 hover:border-plum hover:text-plum transition">
+                    class="rounded-full border border-ink/15 text-xs font-bold uppercase tracking-widest px-7 py-3.5 hover:border-plum hover:text-plum transition">
                     Edit Request
                   </button>
                   <button id="hsSubmitBtn" onclick="hsSubmit()"
-                    class="btn-sheen rounded-full bg-copper text-white text-[12px] font-bold uppercase tracking-widest px-8 py-3.5 hover:brightness-110 transition disabled:opacity-60 disabled:cursor-not-allowed">
+                    class="btn-sheen rounded-full bg-copper text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 hover:brightness-110 transition disabled:opacity-60 disabled:cursor-not-allowed">
                     Submit Home Service Request
                   </button>
                 </div>
@@ -2219,45 +2220,45 @@
                       <path d="M20 6L9 17l-5-5" />
                     </svg>
                   </span>
-                  <span class="block text-[11px] font-bold uppercase tracking-widest text-copper mt-5">Request
+                  <span class="block text-xs font-bold uppercase tracking-widest text-copper mt-5">Request
                     Submitted</span>
                   <h4 class="font-display text-2xl mt-2">
                     Your Home Service Request Has Been Received
                   </h4>
-                  <p class="text-[13px] text-ink/60 mt-3 max-w-md mx-auto leading-relaxed">
+                  <p class="text-xs text-ink/60 mt-3 max-w-md mx-auto leading-relaxed">
                     Thank you for choosing Leo Mejillano Salon &amp; Beauty
                     Services.
                   </p>
                 </div>
                 <div class="mt-7 rounded-2xl bg-plum text-white p-6 text-center">
-                  <span class="text-[10px] font-bold uppercase tracking-widest text-copper">Booking Reference</span>
+                  <span class="text-xs font-bold uppercase tracking-widest text-copper">Booking Reference</span>
                   <div class="font-display text-3xl mt-2" id="hsRef">—</div>
-                  <p class="text-[12px] text-white/60 mt-2">
+                  <p class="text-xs text-white/60 mt-2">
                     Save this reference number so you can track your request.
                   </p>
                 </div>
                 <div class="mt-4 rounded-2xl border border-bronze/25 bg-sand-100 p-5 text-center">
-                  <span class="text-[10px] font-bold uppercase tracking-widest text-ink/45">Current Status</span>
+                  <span class="text-xs font-bold uppercase tracking-widest text-ink/45">Current Status</span>
                   <div
-                    class="mt-2 inline-flex items-center gap-2 rounded-full bg-copper/15 text-copper-dark text-[12px] font-bold uppercase tracking-widest px-4 py-2">
+                    class="mt-2 inline-flex items-center gap-2 rounded-full bg-copper/15 text-copper-dark text-xs font-bold uppercase tracking-widest px-4 py-2">
                     <span class="w-2 h-2 rounded-full bg-copper"></span>
                     Under Review
                   </div>
-                  <p class="text-[12px] text-ink/55 mt-3">
+                  <p class="text-xs text-ink/55 mt-3">
                     Your request is currently being reviewed by our team.
                   </p>
                 </div>
                 <div class="mt-4 rounded-2xl border border-bronze/25 bg-sand-100 p-5">
-                  <span class="text-[10px] font-bold uppercase tracking-widest text-copper">Request Summary</span>
-                  <div class="text-sm mt-3 space-y-1.5" id="hsSummary"></div>
+                  <span class="text-xs font-bold uppercase tracking-widest text-copper">Request Summary</span>
+                  <div class="text-base mt-3 space-y-1.5" id="hsSummary"></div>
                 </div>
                 <div class="flex flex-wrap gap-3 justify-center mt-7">
                   <button onclick="hsJump('hsTrack')"
-                    class="rounded-full bg-plum text-white text-[12px] font-bold uppercase tracking-widest px-8 py-3.5 hover:brightness-110 transition">
+                    class="rounded-full bg-plum text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 hover:brightness-110 transition">
                     Track Request
                   </button>
                   <button onclick="hsReset()"
-                    class="rounded-full border border-ink/15 text-[12px] font-bold uppercase tracking-widest px-7 py-3.5 hover:border-plum hover:text-plum transition">
+                    class="rounded-full border border-ink/15 text-xs font-bold uppercase tracking-widest px-7 py-3.5 hover:border-plum hover:text-plum transition">
                     New Request
                   </button>
                 </div>
@@ -2265,11 +2266,11 @@
             </div>
 
             <aside class="lg:col-span-4 bg-plum text-white rounded-[28px] p-7 sm:p-8 shadow-lg lg:sticky lg:top-24">
-              <span class="text-[11px] font-bold uppercase tracking-widest text-copper">Before You Request</span>
+              <span class="text-xs font-bold uppercase tracking-widest text-copper">Before You Request</span>
               <h4 class="font-display text-xl mt-2">
                 Please prepare the following
               </h4>
-              <ul class="mt-5 space-y-3 text-[13px] text-white/80">
+              <ul class="mt-5 space-y-3 text-xs text-white/80">
                 <li class="flex gap-2.5">
                   <span class="text-copper shrink-0">✓</span><span>Complete name and contact number</span>
                 </li>
@@ -2293,8 +2294,8 @@
                 </li>
               </ul>
               <div class="mt-6 pt-5 border-t border-white/15">
-                <b class="text-[12px] uppercase tracking-widest text-copper">Important Notice</b>
-                <p class="text-[12px] text-white/65 mt-2 leading-relaxed">
+                <b class="text-xs uppercase tracking-widest text-copper">Important Notice</b>
+                <p class="text-xs text-white/65 mt-2 leading-relaxed">
                   Home and event service requests are subject to staff
                   availability, location coverage, scheduling limits, and
                   confirmation by the Leo Mejillano Salon team.
@@ -2308,11 +2309,11 @@
       <section id="hsTrack" class="py-14 sm:py-20 bg-panel border-b border-bronze/20 scroll-mt-24">
         <div class="max-w-3xl mx-auto px-5 sm:px-8">
           <div class="text-center max-w-xl mx-auto mb-9">
-            <span class="text-[12px] font-bold tracking-widest uppercase text-copper">Status</span>
+            <span class="text-xs font-bold tracking-widest uppercase text-copper">Status</span>
             <h3 class="font-display text-2xl sm:text-3xl mt-3">
               Track Your Home Service
             </h3>
-            <p class="text-[14px] text-ink/60 mt-3 leading-relaxed">
+            <p class="text-base text-ink/60 mt-3 leading-relaxed">
               Check your request's status, pay your reservation fee, or move it to a new date — using the
               reference number and the email address you gave when you requested.
             </p>
@@ -2320,20 +2321,20 @@
           <div class="bg-sand-100 border border-bronze/25 rounded-[28px] p-6 sm:p-8 shadow-sm">
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-1.5">Booking
+                <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1.5">Booking
                   Reference</label>
                 <input id="trkRef" type="text" placeholder="LM-HOM-2026-000041"
-                  class="w-full px-4 py-3 border border-bronze/50 bg-panel rounded-xl text-sm uppercase focus:outline-none focus:border-plum transition" />
+                  class="w-full px-4 py-3 border border-bronze/50 bg-panel rounded-xl text-base uppercase focus:outline-none focus:border-plum transition" />
               </div>
               <div>
-                <label class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-1.5">Email
+                <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1.5">Email
                   Address</label>
                 <input id="trkEmail" type="email" placeholder="you@example.com" autocomplete="email"
-                  class="w-full px-4 py-3 border border-bronze/50 bg-panel rounded-xl text-sm focus:outline-none focus:border-plum transition" />
+                  class="w-full px-4 py-3 border border-bronze/50 bg-panel rounded-xl text-base focus:outline-none focus:border-plum transition" />
               </div>
             </div>
             <button onclick="hsTrack()"
-              class="w-full mt-5 rounded-full bg-plum text-white text-[12px] font-bold uppercase tracking-widest py-3.5 hover:brightness-110 transition">
+              class="w-full mt-5 rounded-full bg-plum text-white text-xs font-bold uppercase tracking-widest py-3.5 hover:brightness-110 transition">
               Track Request
             </button>
             <div id="trkResult" class="hidden mt-7 pt-7 border-t border-bronze/25"></div>
@@ -2342,18 +2343,18 @@
           <!-- How to reschedule + important rules -->
           <div class="mt-8 grid md:grid-cols-2 gap-5">
             <div class="bg-sand-100 border border-bronze/25 rounded-[24px] p-6">
-              <span class="text-[11px] font-bold tracking-widest uppercase text-copper">How to reschedule</span>
-              <ol class="mt-3 space-y-2.5 text-[13px] text-ink/75 leading-relaxed list-decimal list-inside">
+              <span class="text-xs font-bold tracking-widest uppercase text-copper">How to reschedule</span>
+              <ol class="mt-3 space-y-2.5 text-xs text-ink/75 leading-relaxed list-decimal list-inside">
                 <li>Enter your <b>booking reference</b> (e.g. LM-HOM-2026-000041) and the <b>email</b> you used, then tap <b>Track Request</b>.</li>
                 <li>Open <b>“Need a different date? Reschedule online”</b> below your request.</li>
                 <li>Pick a <b>new date and time</b> at least <b>3 days</b> away, then tap <b>Move my booking</b>.</li>
                 <li>You'll get an <b>email confirmation</b> of the new schedule. Your assigned team is notified too.</li>
               </ol>
-              <p class="mt-3 text-[12px] text-ink/55">Have an account? You can also reschedule from <b>My Account → Home Service</b>.</p>
+              <p class="mt-3 text-xs text-ink/55">Have an account? You can also reschedule from <b>My Account → Home Service</b>.</p>
             </div>
             <div class="bg-copper/10 border border-copper/30 rounded-[24px] p-6">
-              <span class="text-[11px] font-bold tracking-widest uppercase text-copper-dark">Important reminders &amp; rules</span>
-              <ul class="mt-3 space-y-2.5 text-[13px] text-ink/75 leading-relaxed">
+              <span class="text-xs font-bold tracking-widest uppercase text-copper-dark">Important reminders &amp; rules</span>
+              <ul class="mt-3 space-y-2.5 text-xs text-ink/75 leading-relaxed">
                 <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>Reschedule online at least <b>3 days (72 hours)</b> before your event. Closer than that, please call <b>0918 536 8016</b>.</span></li>
                 <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>You can move a request online up to <b>2 times</b>. After that, contact the branch.</span></li>
                 <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>If stylists are already assigned, the <b>whole team must be free</b> on the new date — otherwise pick another date.</span></li>
@@ -2370,33 +2371,33 @@
       <section class="py-14 sm:py-20 bg-sand-100 border-b border-bronze/20">
         <div class="max-w-6xl mx-auto px-5 sm:px-8">
           <div class="text-center max-w-xl mx-auto mb-10">
-            <span class="text-[12px] font-bold tracking-widest uppercase text-copper">Notifications</span>
+            <span class="text-xs font-bold tracking-widest uppercase text-copper">Notifications</span>
             <h3 class="font-display text-2xl sm:text-3xl mt-3">
               Stay Updated on Your Request
             </h3>
           </div>
           <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-panel rounded-2xl p-6 border border-bronze/20">
-              <b class="block text-sm">Booking Confirmation</b>
-              <p class="text-[13px] text-ink/60 mt-2 leading-relaxed">
+              <b class="block text-base">Booking Confirmation</b>
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed">
                 We'll notify you when your request has been processed.
               </p>
             </div>
             <div class="bg-panel rounded-2xl p-6 border border-bronze/20">
-              <b class="block text-sm">Appointment Reminder</b>
-              <p class="text-[13px] text-ink/60 mt-2 leading-relaxed">
+              <b class="block text-base">Appointment Reminder</b>
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed">
                 Receive a reminder before your scheduled event.
               </p>
             </div>
             <div class="bg-panel rounded-2xl p-6 border border-bronze/20">
-              <b class="block text-sm">Service Updates</b>
-              <p class="text-[13px] text-ink/60 mt-2 leading-relaxed">
+              <b class="block text-base">Service Updates</b>
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed">
                 Receive updates when your appointment status changes.
               </p>
             </div>
             <div class="bg-panel rounded-2xl p-6 border border-bronze/20">
-              <b class="block text-sm">SMS &amp; Email</b>
-              <p class="text-[13px] text-ink/60 mt-2 leading-relaxed">
+              <b class="block text-base">SMS &amp; Email</b>
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed">
                 Important updates can be delivered through SMS or email.
               </p>
             </div>
@@ -2407,41 +2408,41 @@
       <section class="py-14 sm:py-20 bg-panel border-b border-bronze/20">
         <div class="max-w-6xl mx-auto px-5 sm:px-8">
           <div class="text-center max-w-xl mx-auto mb-10">
-            <span class="text-[12px] font-bold tracking-widest uppercase text-copper">Off-Site Menu</span>
+            <span class="text-xs font-bold tracking-widest uppercase text-copper">Off-Site Menu</span>
             <h3 class="font-display text-2xl sm:text-3xl mt-3">
               What We Can Bring to Your Event
             </h3>
           </div>
           <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <div class="bg-sand-100 rounded-2xl p-6 border border-bronze/20">
-              <b class="block text-sm">Makeup</b>
-              <p class="text-[13px] text-ink/60 mt-2 leading-relaxed">
+              <b class="block text-base">Makeup</b>
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed">
                 Professional makeup for weddings, debuts, graduations, galas,
                 and personal events.
               </p>
             </div>
             <div class="bg-sand-100 rounded-2xl p-6 border border-bronze/20">
-              <b class="block text-sm">Hair Styling</b>
-              <p class="text-[13px] text-ink/60 mt-2 leading-relaxed">
+              <b class="block text-base">Hair Styling</b>
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed">
                 Event-ready hair styling designed according to your preferred
                 look.
               </p>
             </div>
             <div class="bg-sand-100 rounded-2xl p-6 border border-bronze/20">
-              <b class="block text-sm">Lash Services</b>
-              <p class="text-[13px] text-ink/60 mt-2 leading-relaxed">
+              <b class="block text-base">Lash Services</b>
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed">
                 Lash services for an enhanced event appearance.
               </p>
             </div>
             <div class="bg-sand-100 rounded-2xl p-6 border border-bronze/20">
-              <b class="block text-sm">Brow Services</b>
-              <p class="text-[13px] text-ink/60 mt-2 leading-relaxed">
+              <b class="block text-base">Brow Services</b>
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed">
                 Professional brow grooming and styling.
               </p>
             </div>
             <div class="bg-sand-100 rounded-2xl p-6 border border-bronze/20">
-              <b class="block text-sm">Event Packages</b>
-              <p class="text-[13px] text-ink/60 mt-2 leading-relaxed">
+              <b class="block text-base">Event Packages</b>
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed">
                 Coordinated services for individuals or groups attending
                 special events.
               </p>
@@ -2453,15 +2454,15 @@
       <section id="hsFeedback" class="hidden py-14 sm:py-20 bg-sand-100">
         <div class="max-w-2xl mx-auto px-5 sm:px-8">
           <div class="text-center mb-9">
-            <span class="text-[12px] font-bold tracking-widest uppercase text-copper">Post-Service</span>
+            <span class="text-xs font-bold tracking-widest uppercase text-copper">Post-Service</span>
             <h3 class="font-display text-2xl sm:text-3xl mt-3">
               How Was Your Home Service Experience?
             </h3>
-            <p class="text-[13px] text-ink/55 mt-3" id="fbFor"></p>
+            <p class="text-xs text-ink/55 mt-3" id="fbFor"></p>
           </div>
           <div class="bg-panel border border-bronze/25 rounded-[28px] p-7 sm:p-8 shadow-sm">
             <div>
-              <label class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-2">Rate Your
+              <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-2">Rate Your
                 Experience</label>
               <div class="flex gap-1.5 text-3xl" data-stars="service">
                 <button type="button" onclick="hsStar(this, 1)"
@@ -2487,7 +2488,7 @@
               </div>
             </div>
             <div class="mt-6">
-              <label class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-2">Rate Your Beauty
+              <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-2">Rate Your Beauty
                 Professional</label>
               <div class="flex gap-1.5 text-3xl" data-stars="staff">
                 <button type="button" onclick="hsStar(this, 1)"
@@ -2513,13 +2514,13 @@
               </div>
             </div>
             <div class="mt-6">
-              <label class="block text-[11px] font-bold tracking-widest uppercase text-ink/50 mb-2">Tell Us About Your
+              <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-2">Tell Us About Your
                 Experience</label>
               <textarea id="fbText" rows="4" placeholder="Share your feedback..."
-                class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-sm focus:outline-none focus:border-plum transition resize-none"></textarea>
+                class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition resize-none"></textarea>
             </div>
             <button onclick="hsSubmitFeedback()"
-              class="w-full mt-6 rounded-full bg-copper text-white text-[12px] font-bold uppercase tracking-widest py-3.5 hover:brightness-110 transition">
+              class="w-full mt-6 rounded-full bg-copper text-white text-xs font-bold uppercase tracking-widest py-3.5 hover:brightness-110 transition">
               Submit Feedback
             </button>
           </div>
@@ -2531,11 +2532,11 @@
       <section class="py-14 sm:py-20 bg-sand-100 min-h-screen">
         <div class="max-w-6xl mx-auto px-5 sm:px-8">
           <div class="text-center max-w-2xl mx-auto mb-10">
-            <span class="text-[12px] font-bold tracking-widest uppercase text-copper">Our Work</span>
+            <span class="text-xs font-bold tracking-widest uppercase text-copper">Our Work</span>
             <h2 class="font-display text-3xl sm:text-4xl mt-3">
               Studio Gallery
             </h2>
-            <p class="text-ink/60 text-sm mt-3">
+            <p class="text-ink/60 text-base mt-3">
               A closer look at our salon work, transformations, and beauty services.
             </p>
           </div>
@@ -2603,33 +2604,33 @@
   <footer class="bg-plum text-white py-12">
     <div class="max-w-7xl mx-auto px-5 sm:px-8 grid sm:grid-cols-2 gap-8">
       <div>
-        <b class="text-[11px] font-bold uppercase tracking-widest text-copper">Branches</b>
+        <b class="text-xs font-bold uppercase tracking-widest text-copper">Branches</b>
         <div class="mt-3 space-y-4">
           <div>
-            <b class="block text-[13px] text-white/85">Leo Mejillano Salon &amp; Make-Up Studio</b>
-            <p class="text-[12px] text-white/55 mt-1 leading-relaxed">
+            <b class="block text-xs text-white/85">Leo Mejillano Salon &amp; Make-Up Studio</b>
+            <p class="text-xs text-white/55 mt-1 leading-relaxed">
               2nd Floor, Luna Building, Regidor Street, Daraga, Albay
             </p>
           </div>
           <div>
-            <b class="block text-[13px] text-white/85">Skin Brows by Leo Mejillano</b>
-            <p class="text-[12px] text-white/55 mt-1 leading-relaxed">
+            <b class="block text-xs text-white/85">Skin Brows by Leo Mejillano</b>
+            <p class="text-xs text-white/55 mt-1 leading-relaxed">
               2nd Floor, Yashano Mall, Legazpi City, Albay<br /><span class="text-white/40">Beside Angel's Pizza</span>
             </p>
           </div>
           <div>
-            <b class="block text-[13px] text-white/85">Lash &amp; Brows by Leo Mejillano</b>
-            <p class="text-[12px] text-white/55 mt-1 leading-relaxed">
+            <b class="block text-xs text-white/85">Lash &amp; Brows by Leo Mejillano</b>
+            <p class="text-xs text-white/55 mt-1 leading-relaxed">
               Brgy. 18, Rizal Street, Cabangan, Legazpi City, Albay
             </p>
           </div>
         </div>
       </div>
       <div>
-        <b class="text-[11px] font-bold uppercase tracking-widest text-copper">Contact</b>
+        <b class="text-xs font-bold uppercase tracking-widest text-copper">Contact</b>
         <div class="mt-3 space-y-2.5">
           <a href="tel:+639185368016"
-            class="flex items-center gap-2.5 text-[13px] text-white/70 hover:text-copper transition">
+            class="flex items-center gap-2.5 text-xs text-white/70 hover:text-copper transition">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               class="shrink-0">
               <path
@@ -2638,7 +2639,7 @@
             0918 536 8016
           </a>
           <a href="mailto:leomejillano88@yahoo.com"
-            class="flex items-center gap-2.5 text-[13px] text-white/70 hover:text-copper transition break-all">
+            class="flex items-center gap-2.5 text-xs text-white/70 hover:text-copper transition break-all">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               class="shrink-0">
               <rect x="2" y="4" width="20" height="16" rx="2" />
@@ -2647,7 +2648,7 @@
             leomejillano88@yahoo.com
           </a>
           <a href="mailto:mejillanoleo@gmail.com"
-            class="flex items-center gap-2.5 text-[13px] text-white/70 hover:text-copper transition break-all">
+            class="flex items-center gap-2.5 text-xs text-white/70 hover:text-copper transition break-all">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               class="shrink-0">
               <rect x="2" y="4" width="20" height="16" rx="2" />
@@ -2657,10 +2658,10 @@
           </a>
         </div>
         <div class="mt-5">
-          <span class="block text-[11px] font-bold uppercase tracking-widest text-copper mb-3">Facebook Pages</span>
+          <span class="block text-xs font-bold uppercase tracking-widest text-copper mb-3">Facebook Pages</span>
           <div class="flex flex-wrap gap-2">
             <a href="https://www.facebook.com/share/19B4rtQkgC/" target="_blank" rel="noopener"
-              class="inline-flex items-center gap-2.5 rounded-full border border-white/25 pl-2 pr-4 py-2 text-[12px] font-bold text-white/80 hover:border-copper hover:text-copper transition">
+              class="inline-flex items-center gap-2.5 rounded-full border border-white/25 pl-2 pr-4 py-2 text-xs font-bold text-white/80 hover:border-copper hover:text-copper transition">
               <span class="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center shrink-0">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h2.5l.5-3h-3v-2c0-.6.4-1 1-1z" />
@@ -2669,7 +2670,7 @@
               Leo Mejillano
             </a>
             <a href="https://www.facebook.com/share/193e2DePxH/" target="_blank" rel="noopener"
-              class="inline-flex items-center gap-2.5 rounded-full border border-white/25 pl-2 pr-4 py-2 text-[12px] font-bold text-white/80 hover:border-copper hover:text-copper transition">
+              class="inline-flex items-center gap-2.5 rounded-full border border-white/25 pl-2 pr-4 py-2 text-xs font-bold text-white/80 hover:border-copper hover:text-copper transition">
               <span class="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center shrink-0">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h2.5l.5-3h-3v-2c0-.6.4-1 1-1z" />
@@ -2678,7 +2679,7 @@
               Skin Brows
             </a>
             <a href="https://www.facebook.com/share/1LeCkdDPPD/" target="_blank" rel="noopener"
-              class="inline-flex items-center gap-2.5 rounded-full border border-white/25 pl-2 pr-4 py-2 text-[12px] font-bold text-white/80 hover:border-copper hover:text-copper transition">
+              class="inline-flex items-center gap-2.5 rounded-full border border-white/25 pl-2 pr-4 py-2 text-xs font-bold text-white/80 hover:border-copper hover:text-copper transition">
               <span class="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center shrink-0">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h2.5l.5-3h-3v-2c0-.6.4-1 1-1z" />
@@ -2687,7 +2688,7 @@
               Lash &amp; Brows
             </a>
             <a href="https://www.facebook.com/share/1EKTJ9AfYa" target="_blank" rel="noopener"
-              class="inline-flex items-center gap-2.5 rounded-full border border-white/25 pl-2 pr-4 py-2 text-[12px] font-bold text-white/80 hover:border-copper hover:text-copper transition">
+              class="inline-flex items-center gap-2.5 rounded-full border border-white/25 pl-2 pr-4 py-2 text-xs font-bold text-white/80 hover:border-copper hover:text-copper transition">
               <span class="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center shrink-0">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h2.5l.5-3h-3v-2c0-.6.4-1 1-1z" />

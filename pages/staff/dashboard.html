@@ -8,16 +8,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-  <link rel="stylesheet" href="../../assets/css/fonts-jakarta-playfair.css">
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'], serif: ['Playfair Display', 'serif'] }
-        }
-      }
-    }
-  </script>
 
   <style>
     [x-cloak] { display: none !important; }
@@ -88,8 +78,8 @@
         <div class="flex items-center space-x-3 mb-8">
           <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center font-serif text-white font-bold text-lg shadow-lg shadow-emerald-500/20">LM</div>
           <div>
-            <h1 class="text-sm font-bold tracking-wider uppercase text-emerald-400 font-serif">Leo Mejillano</h1>
-            <p class="text-[10px] text-slate-400 uppercase tracking-widest font-sans" x-text="$store.staff.profile.role || 'Staff'"></p>
+            <h1 class="text-base font-bold tracking-wider uppercase text-emerald-400 font-serif">Leo Mejillano</h1>
+            <p class="text-xs text-slate-400 uppercase tracking-widest font-sans" x-text="$store.staff.profile.role || 'Staff'"></p>
           </div>
         </div>
 
@@ -124,10 +114,10 @@
             <span>Sign Out</span>
           </a>
         </div>
-        <div class="p-4 bg-slate-950 border-t border-slate-800/80 text-[10px] text-slate-400 space-y-1">
+        <div class="p-4 bg-slate-950 border-t border-slate-800/80 text-xs text-slate-400 space-y-1">
           <p class="font-bold text-slate-300">STI College Legazpi</p>
           <p>Capstone Project Proposal &copy; 2026</p>
-          <p class="text-[9px] text-emerald-400 italic">Centralized Digital Multi-Branch Solution</p>
+          <p class="text-xs text-emerald-400 italic">Centralized Digital Multi-Branch Solution</p>
         </div>
       </div>
     </aside>
@@ -140,7 +130,7 @@
             <p class="text-lg font-bold text-white">Hello, <span x-text="$store.staff.firstName()"></span></p>
             <p class="text-xs text-slate-400" x-text="$store.staff.profile.branchName || 'Welcome back'"></p>
           </div>
-          <a href="profile.html" class="relative w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-sm shadow-lg"
+          <a href="profile.html" class="relative w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-base shadow-lg"
                   :class="$store.staff.isClockedIn() ? 'bg-gradient-to-tr from-emerald-500 to-teal-500 shift-glow' : 'bg-gradient-to-tr from-slate-600 to-slate-700'">
             <span x-text="$store.staff.initials()"></span>
             <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-slate-950" :class="$store.staff.isClockedIn() ? 'bg-emerald-400 pulse-dot' : 'bg-slate-500'"></span>
@@ -158,7 +148,7 @@
             </button>
             <div x-show="mobileFilterOpen" @click.outside="mobileFilterOpen = false" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
                  class="absolute right-0 mt-2 w-44 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-40 p-2 space-y-1 text-xs">
-              <p class="text-slate-500 font-semibold uppercase tracking-wide text-[9px] px-2 pt-1 pb-1.5">Quick Actions</p>
+              <p class="text-slate-500 font-semibold uppercase tracking-wide text-xs px-2 pt-1 pb-1.5">Quick Actions</p>
               <button @click="mobileSearch = ''; mobileFilterOpen = false" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-slate-200 transition-colors">Clear search</button>
               <button @click="mobileTab = 'today'; mobileFilterOpen = false" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-slate-200 transition-colors">Jump to Today</button>
               <button @click="openPerformanceModal(); mobileFilterOpen = false" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-slate-200 transition-colors">View Performance</button>
@@ -189,10 +179,10 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.774a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
               </a>
 
-              <span class="absolute top-4 left-4 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wide" :class="$store.staff.getStatusBadgeClass(mobileFeatured().status)" x-text="mobileFeatured().status"></span>
+              <span class="absolute top-4 left-4 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide" :class="$store.staff.getStatusBadgeClass(mobileFeatured().status)" x-text="mobileFeatured().status"></span>
 
               <div class="absolute bottom-0 inset-x-0 p-5 bg-gradient-to-t from-black/75 via-black/20 to-transparent">
-                <p class="text-[10px] uppercase tracking-widest text-emerald-200 font-semibold" x-text="mobileFeatured().date + ' &bull; ' + mobileFeatured().time"></p>
+                <p class="text-xs uppercase tracking-widest text-emerald-200 font-semibold" x-text="mobileFeatured().date + ' &bull; ' + mobileFeatured().time"></p>
                 <p class="text-xl font-bold text-white font-serif truncate" x-text="mobileFeatured().clientName"></p>
                 <div class="flex items-center gap-1.5 mt-1">
                   <svg class="w-3.5 h-3.5 text-amber-400 fill-current shrink-0" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
@@ -231,7 +221,7 @@
       <header class="hidden md:flex bg-slate-900 border-b border-emerald-900/40 px-6 py-4 shrink-0 items-center justify-between flex-wrap gap-4">
         <div>
           <h2 class="text-lg font-serif font-bold text-white">Good day, <span x-text="$store.staff.profile.name || 'there'"></span></h2>
-          <p class="text-[11px] text-slate-400">
+          <p class="text-xs text-slate-400">
             <span x-text="$store.staff.profile.branchName || 'Loading branch...'"></span>
             <span x-show="$store.staff.profile.role"> &bull; <span x-text="$store.staff.profile.role"></span></span>
           </p>
@@ -239,24 +229,24 @@
 
         <div class="flex items-center gap-4">
           <div class="text-right">
-            <p class="text-[10px] uppercase tracking-wider text-slate-500">Status</p>
-            <p class="text-sm font-bold" :class="$store.staff.isClockedIn() ? 'text-emerald-400' : 'text-slate-500'" x-text="$store.staff.isClockedIn() ? 'On Shift • ' + $store.staff.getShiftDurationLabel() : 'Off Shift'"></p>
+            <p class="text-xs uppercase tracking-wider text-slate-500">Status</p>
+            <p class="text-base font-bold" :class="$store.staff.isClockedIn() ? 'text-emerald-400' : 'text-slate-500'" x-text="$store.staff.isClockedIn() ? 'On Shift • ' + $store.staff.getShiftDurationLabel() : 'Off Shift'"></p>
           </div>
           <div class="relative" @click.outside="$store.staff.isNotificationPanelOpen = false">
             <button @click="$store.staff.toggleNotificationPanel()" class="relative text-slate-400 hover:text-white transition-colors">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
               <template x-if="$store.staff.unreadNotificationCount() > 0">
-                <span class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white" x-text="$store.staff.unreadNotificationCount()"></span>
+                <span class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white" x-text="$store.staff.unreadNotificationCount()"></span>
               </template>
             </button>
             <div x-show="$store.staff.isNotificationPanelOpen" x-transition class="absolute top-full right-0 mt-2 w-80 bg-slate-800 border border-slate-700 rounded-lg shadow-lg z-30 flex flex-col max-h-96" style="display:none">
-              <div class="p-3 border-b border-slate-700 shrink-0"><h4 class="text-sm font-bold text-white">Notifications</h4></div>
+              <div class="p-3 border-b border-slate-700 shrink-0"><h4 class="text-base font-bold text-white">Notifications</h4></div>
               <div class="divide-y divide-slate-700 overflow-y-auto flex-1">
                 <template x-if="$store.staff.notifications.length === 0"><p class="text-xs text-slate-400 text-center p-8">No notifications yet.</p></template>
                 <template x-for="notif in $store.staff.notifications" :key="notif.id">
                   <div class="p-3 hover:bg-slate-700/40">
                     <p class="text-xs text-slate-200" x-text="notif.message"></p>
-                    <p class="text-[10px] text-slate-500 mt-0.5" x-text="notif.time"></p>
+                    <p class="text-xs text-slate-500 mt-0.5" x-text="notif.time"></p>
                   </div>
                 </template>
               </div>
@@ -328,10 +318,10 @@
           <div class="bg-slate-900 border border-emerald-900/40 rounded-2xl p-5 lg:col-span-2 space-y-4">
             <div class="flex items-center justify-between flex-wrap gap-2">
               <div>
-                <h3 class="font-serif text-sm font-bold text-white">Today's Assignments</h3>
-                <p class="text-[11px] text-slate-400">Review each client's service, then start and complete as you go.</p>
+                <h3 class="font-serif text-base font-bold text-white">Today's Assignments</h3>
+                <p class="text-xs text-slate-400">Review each client's service, then start and complete as you go.</p>
               </div>
-              <a href="assignedAppointments.html" class="text-[11px] font-semibold text-emerald-400 hover:text-emerald-300">View all &rarr;</a>
+              <a href="assignedAppointments.html" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300">View all &rarr;</a>
             </div>
 
             <div class="space-y-3">
@@ -349,16 +339,16 @@
                     <div>
                       <div class="flex items-center gap-2">
                         <span class="text-xs font-bold text-white" x-text="appt.clientName"></span>
-                        <span :class="$store.staff.getStatusBadgeClass(appt.status)" class="px-2 py-0.5 rounded text-[9px] font-bold" x-text="appt.status"></span>
+                        <span :class="$store.staff.getStatusBadgeClass(appt.status)" class="px-2 py-0.5 rounded text-xs font-bold" x-text="appt.status"></span>
                       </div>
-                      <p class="text-[11px] text-slate-400 mt-0.5" x-text="appt.serviceName"></p>
-                      <p class="text-[10px] text-slate-500 mt-1" x-text="appt.time + ' &bull; ' + appt.id"></p>
+                      <p class="text-xs text-slate-400 mt-0.5" x-text="appt.serviceName"></p>
+                      <p class="text-xs text-slate-500 mt-1" x-text="appt.time + ' &bull; ' + appt.id"></p>
                     </div>
                     <div class="flex items-center gap-2">
                       <button x-show="appt.isMainStylist !== false && ['Pending', 'Confirmed'].includes(appt.status)" @click="$store.staff.startService(appt.id)" :disabled="$store.staff.busy"
-                        class="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase bg-teal-600 hover:bg-teal-700 text-white transition-all active:scale-95 disabled:opacity-50">Start</button>
+                        class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase bg-teal-600 hover:bg-teal-700 text-white transition-all active:scale-95 disabled:opacity-50">Start</button>
                       <button x-show="appt.isMainStylist !== false && appt.status === 'In Progress'" @click="$store.staff.completeService(appt.id)" :disabled="$store.staff.busy"
-                        class="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase bg-emerald-600 hover:bg-emerald-700 text-white transition-all active:scale-95 disabled:opacity-50">Complete</button>
+                        class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase bg-emerald-600 hover:bg-emerald-700 text-white transition-all active:scale-95 disabled:opacity-50">Complete</button>
                     </div>
                   </div>
                 </div>
@@ -368,45 +358,45 @@
 
           <div class="bg-slate-900 border border-emerald-900/40 rounded-2xl p-5 space-y-4">
             <div class="flex items-center justify-between">
-              <h3 class="font-serif text-sm font-bold text-white">My Performance</h3>
-              <button @click="openPerformanceModal()" class="text-[11px] font-semibold text-emerald-400 hover:text-emerald-300">Details &rarr;</button>
+              <h3 class="font-serif text-base font-bold text-white">My Performance</h3>
+              <button @click="openPerformanceModal()" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300">Details &rarr;</button>
             </div>
 
             <div class="flex items-center gap-1" x-show="!$store.staff.loading && $store.staff.performance.totalReviews > 0">
               <template x-for="star in 5" :key="star">
                 <svg class="w-5 h-5 star-fill" :class="star <= Math.round($store.staff.performance.avgRating) ? 'text-amber-400' : 'text-slate-700'" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
               </template>
-              <span class="ml-2 text-sm font-bold text-white" x-text="Number($store.staff.performance.avgRating).toFixed(1)"></span>
+              <span class="ml-2 text-base font-bold text-white" x-text="Number($store.staff.performance.avgRating).toFixed(1)"></span>
             </div>
             <p class="text-xs text-slate-500 italic" x-show="!$store.staff.loading && $store.staff.performance.totalReviews === 0">No rating yet</p>
 
             <div class="grid grid-cols-3 gap-3 border-t border-slate-800 pt-3 text-xs">
               <div>
-                <span class="text-[10px] text-slate-400 block">Completed (All Time)</span>
-                <span class="text-sm font-bold text-white" x-text="$store.staff.performance.completedCount"></span>
+                <span class="text-xs text-slate-400 block">Completed (All Time)</span>
+                <span class="text-base font-bold text-white" x-text="$store.staff.performance.completedCount"></span>
               </div>
               <div>
-                <span class="text-[10px] text-slate-400 block">Client Reviews</span>
-                <span class="text-sm font-bold text-white" x-text="$store.staff.performance.totalReviews"></span>
+                <span class="text-xs text-slate-400 block">Client Reviews</span>
+                <span class="text-base font-bold text-white" x-text="$store.staff.performance.totalReviews"></span>
               </div>
               <div>
-                <span class="text-[10px] text-slate-400 block">Attendance (30d)</span>
-                <span class="text-sm font-bold text-white" x-text="($store.staff.performance.attendanceRate || 0) + '%'"></span>
+                <span class="text-xs text-slate-400 block">Attendance (30d)</span>
+                <span class="text-base font-bold text-white" x-text="($store.staff.performance.attendanceRate || 0) + '%'"></span>
               </div>
             </div>
 
             <div class="border-t border-slate-800 pt-3 space-y-2">
-              <h4 class="text-[11px] font-bold text-slate-300 uppercase tracking-wide">Recent Feedback</h4>
+              <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wide">Recent Feedback</h4>
               <template x-if="!$store.staff.loading && $store.staff.recentFeedback.length === 0">
-                <p class="text-[11px] text-slate-500 italic py-2">No client feedback yet.</p>
+                <p class="text-xs text-slate-500 italic py-2">No client feedback yet.</p>
               </template>
               <template x-for="fb in $store.staff.recentFeedback.slice(0, 3)" :key="fb.id">
                 <div class="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
                   <div class="flex items-center justify-between">
-                    <span class="text-[11px] font-semibold text-slate-200" x-text="fb.clientName"></span>
-                    <span class="text-[10px] font-bold text-amber-400" x-text="fb.rating + ' ★'"></span>
+                    <span class="text-xs font-semibold text-slate-200" x-text="fb.clientName"></span>
+                    <span class="text-xs font-bold text-amber-400" x-text="fb.rating + ' ★'"></span>
                   </div>
-                  <p class="text-[10px] text-slate-400 mt-1 line-clamp-2" x-text="fb.comment || 'No comment left.'"></p>
+                  <p class="text-xs text-slate-400 mt-1 line-clamp-2" x-text="fb.comment || 'No comment left.'"></p>
                 </div>
               </template>
             </div>
@@ -458,9 +448,9 @@
         <div class="space-y-5">
           <div class="grid grid-cols-2 gap-3">
             <div class="p-3 bg-slate-950 rounded-lg border border-slate-800">
-              <span class="text-[10px] text-slate-400 block">Attendance (Last 30 Days)</span>
-              <span class="text-sm font-bold text-white" x-text="modalAttendanceRate + '%'"></span>
-              <span class="text-[10px] text-slate-500 ml-1" x-text="'(' + modalAttendanceDays + ' of last 30 days)'"></span>
+              <span class="text-xs text-slate-400 block">Attendance (Last 30 Days)</span>
+              <span class="text-base font-bold text-white" x-text="modalAttendanceRate + '%'"></span>
+              <span class="text-xs text-slate-500 ml-1" x-text="'(' + modalAttendanceDays + ' of last 30 days)'"></span>
             </div>
           </div>
 
@@ -469,14 +459,14 @@
             <div class="flex items-end gap-3 h-28 border-b border-slate-800 pb-1" x-show="monthlyTrend.length">
               <template x-for="m in monthlyTrend" :key="m.label">
                 <div class="flex-1 flex flex-col items-center justify-end gap-1">
-                  <span class="text-[9px] text-slate-400" x-text="m.completed"></span>
+                  <span class="text-xs text-slate-400" x-text="m.completed"></span>
                   <div class="w-full bg-gradient-to-t from-emerald-600 to-teal-500 rounded-t-md transition-all duration-700" :style="'height: ' + Math.max(4, (m.completed / Math.max(...monthlyTrend.map(x => x.completed), 1)) * 100) + '%'"></div>
-                  <span class="text-[9px] text-slate-500" x-text="m.label"></span>
-                  <span class="text-[9px] text-indigo-400 font-semibold" x-text="m.daysAttended + 'd'"></span>
+                  <span class="text-xs text-slate-500" x-text="m.label"></span>
+                  <span class="text-xs text-indigo-400 font-semibold" x-text="m.daysAttended + 'd'"></span>
                 </div>
               </template>
             </div>
-            <p class="text-[11px] text-slate-500 italic py-4 text-center" x-show="!monthlyTrend.length">No appointment history in the last 6 months.</p>
+            <p class="text-xs text-slate-500 italic py-4 text-center" x-show="!monthlyTrend.length">No appointment history in the last 6 months.</p>
           </div>
 
           <div>
@@ -486,13 +476,13 @@
                 <div class="p-3 bg-slate-950 rounded-lg border border-slate-800">
                   <div class="flex items-center justify-between">
                     <span class="text-xs font-semibold text-slate-200" x-text="fb.clientName"></span>
-                    <span class="text-[10px] font-bold text-amber-400" x-text="fb.rating + ' ★'"></span>
+                    <span class="text-xs font-bold text-amber-400" x-text="fb.rating + ' ★'"></span>
                   </div>
-                  <p class="text-[10px] text-slate-500 mt-0.5" x-text="fb.serviceName + ' &bull; ' + fb.date"></p>
-                  <p class="text-[11px] text-slate-400 mt-1" x-text="fb.comment || 'No comment left.'"></p>
+                  <p class="text-xs text-slate-500 mt-0.5" x-text="fb.serviceName + ' &bull; ' + fb.date"></p>
+                  <p class="text-xs text-slate-400 mt-1" x-text="fb.comment || 'No comment left.'"></p>
                 </div>
               </template>
-              <p class="text-[11px] text-slate-500 italic py-4 text-center" x-show="!allFeedback.length">No feedback submitted yet.</p>
+              <p class="text-xs text-slate-500 italic py-4 text-center" x-show="!allFeedback.length">No feedback submitted yet.</p>
             </div>
           </div>
         </div>

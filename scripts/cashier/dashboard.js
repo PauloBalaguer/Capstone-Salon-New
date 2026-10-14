@@ -114,24 +114,24 @@ function renderQueue() {
   container.innerHTML = queue.map(b => `
     <div class="p-4 hover:bg-amber-50/40 transition-colors duration-150 flex items-center justify-between gap-3 flex-wrap">
       <div class="flex items-center space-x-3 flex-1 min-w-0">
-        <div class="w-9 h-9 rounded-full bg-amber-100 text-amber-700 font-bold text-[11px] flex items-center justify-center shrink-0">${escapeHtml(initialsOf(b.clientName))}</div>
+        <div class="w-9 h-9 rounded-full bg-amber-100 text-amber-700 font-bold text-xs flex items-center justify-center shrink-0">${escapeHtml(initialsOf(b.clientName))}</div>
         <div class="min-w-0">
           <p class="font-bold text-slate-800 text-xs truncate capitalize">${escapeHtml(b.clientName)}</p>
-          <p class="text-[10px] text-gray-400 truncate">${escapeHtml(b.serviceName || 'No service listed')} &bull; <span class="font-mono">${escapeHtml(b.id)}</span></p>
+          <p class="text-xs text-gray-400 truncate">${escapeHtml(b.serviceName || 'No service listed')} &bull; <span class="font-mono">${escapeHtml(b.id)}</span></p>
         </div>
       </div>
       <div class="text-center shrink-0 w-24 hidden sm:block">
-        <p class="text-[10px] text-gray-400">${escapeHtml(b.time)}</p>
-        <p class="text-[10px] font-semibold text-slate-600 truncate capitalize">${escapeHtml(b.staffName || 'Unassigned')}</p>
+        <p class="text-xs text-gray-400">${escapeHtml(b.time)}</p>
+        <p class="text-xs font-semibold text-slate-600 truncate capitalize">${escapeHtml(b.staffName || 'Unassigned')}</p>
       </div>
       <div class="shrink-0 space-y-1 text-center">
-        <span class="block text-[10px] font-bold px-2 py-0.5 rounded ${statusBadgeClass(b.status)}${b.status === 'In Progress' ? ' badge-live' : ''}">${escapeHtml(b.status)}</span>
-        <span class="block text-[9px] font-bold px-2 py-0.5 rounded ${paymentStatusBadgeClass(b)}">${paymentStatusLabel(b)}</span>
+        <span class="block text-xs font-bold px-2 py-0.5 rounded ${statusBadgeClass(b.status)}${b.status === 'In Progress' ? ' badge-live' : ''}">${escapeHtml(b.status)}</span>
+        <span class="block text-xs font-bold px-2 py-0.5 rounded ${paymentStatusBadgeClass(b)}">${paymentStatusLabel(b)}</span>
       </div>
       <div class="text-right shrink-0 w-20">
         <p class="font-black text-slate-800 text-xs">${CashierApp.formatCurrency(b.price)}</p>
       </div>
-      <div class="shrink-0 text-[10px] w-40 text-right">
+      <div class="shrink-0 text-xs w-40 text-right">
         ${queueActionsFor(b)}
       </div>
     </div>
@@ -165,13 +165,14 @@ function openWalkInModal() {
 
 async function submitWalkIn(e) {
   e.preventDefault();
+  if (!BookingFormValidation.fields([['#inputClientName', 'text'], ['#inputClientPhone', 'mobile']])) return;
   const clientName = document.getElementById('inputClientName').value.trim();
   const clientPhone = document.getElementById('inputClientPhone').value.trim();
   const stylistId = document.getElementById('selectStylist').value;
   const serviceIds = Array.from(document.querySelectorAll('.walkin-service-checkbox:checked')).map(cb => cb.value);
 
-  if (!/^[0-9]{11}$/.test(clientPhone)) {
-    CashierApp.toast('Contact number must be exactly 11 digits.', 'error');
+  if (!/^09[0-9]{9}$/.test(clientPhone)) {
+    CashierApp.toast('Please enter a valid mobile number (09XXXXXXXXX).', 'error');
     return;
   }
 

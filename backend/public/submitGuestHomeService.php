@@ -36,6 +36,18 @@ if ($request_limiter->isExceeded()) {
     exit();
 }
 
+require_once __DIR__ . '/../config/BookingValidation.php';
+BookingValidation::enforce($_POST, [
+    'fullname' => ['text', true, 'your full name'],
+    'contact' => ['mobile', true, 'a mobile number (09XXXXXXXXX)'],
+    'email' => ['email', true, 'an email address'],
+    'address' => ['address', true, 'an address (5 to 500 characters)'],
+    'date' => ['date', true, 'an appointment date'],
+    'time' => ['time', true, 'an appointment time'],
+    'clients' => ['quantity', true, 'a whole number of clients'],
+    'services' => ['strings', false, 'services'],
+]);
+
 $fullName = trim($_POST['fullname'] ?? '');
 $contact = trim($_POST['contact'] ?? '');
 $email = trim($_POST['email'] ?? '');

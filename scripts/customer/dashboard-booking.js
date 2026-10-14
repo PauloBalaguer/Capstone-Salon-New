@@ -189,6 +189,7 @@ function customerBookingMixin() {
       this.bookingStep = 'review';
     },
     async proceedFromReview() {
+      if (!BookingFormValidation.fields([['[x-model="bookingForm.customerName"]', 'text'], ['[x-model="bookingForm.customerPhone"]', 'mobile']])) return;
       if (!this.bookingForm.customerName || !this.bookingForm.customerPhone) {
         return this.pushToast('error', 'Please provide your name and contact number.');
       }
@@ -397,6 +398,11 @@ function customerBookingMixin() {
     },
 
     submitBooking() {
+      if (!BookingFormValidation.fields([
+        ['[x-model="bookingForm.customerName"]', 'text'],
+        ['[x-model="bookingForm.customerPhone"]', 'mobile'],
+        ['[x-model="bookingForm.date"]', 'date']
+      ])) return;
       if (this.selectedServicesForBooking.length === 0) return this.pushToast('error', 'Please select at least one service to book.');
       if (!this.bookingForm.date || !this.bookingForm.time) return this.pushToast('error', 'Please select a date and time for your appointment.');
       if (!this.depositLocked) return this.pushToast('error', 'Please submit your reservation deposit before confirming.');

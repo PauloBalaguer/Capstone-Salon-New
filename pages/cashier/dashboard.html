@@ -39,6 +39,7 @@
         .badge-live { @apply animate-pulse; }
     </style>
     <link rel="stylesheet" href="../../assets/css/cashier-theme.css">
+<script src="../../scripts/booking-validation.js"></script>
 </head>
 <body class="bg-gray-100 font-sans antialiased flex h-screen overflow-hidden">
 
@@ -49,7 +50,7 @@
             <div class="p-4 bg-slate-950 flex items-center space-x-3 border-b border-slate-800">
                 <div class="bg-amber-500 text-slate-950 font-bold rounded-full w-10 h-10 flex items-center justify-center">LM</div>
                 <div>
-                    <h1 class="font-bold text-sm tracking-wide uppercase text-amber-400">Leo Mejillano</h1>
+                    <h1 class="font-bold text-base tracking-wide uppercase text-amber-400">Leo Mejillano</h1>
                     <p id="cashierBranchSubtitle" class="text-xs text-slate-400">Loading branch...</p>
                 </div>
             </div>
@@ -59,33 +60,33 @@
                     <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                     <span id="sidebarBranchTitle">Leo Mejillano Salon & Makeup Studio</span>
                 </div>
-                <p class="text-[10px] text-slate-400 mt-1 pl-4" id="sidebarTerminalId">Terminal: #DAR-01</p>
+                <p class="text-xs text-slate-400 mt-1 pl-4" id="sidebarTerminalId">Terminal: #DAR-01</p>
             </div>
 
             <nav class="px-3 space-y-1" id="sidebarNav">
                 <a href="dashboard.html" data-nav-page="dashboard.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
                     <i class="fa-solid fa-cash-register w-5 text-center"></i>
-                    <span class="text-sm">Cashier Panel</span>
+                    <span class="text-base">Cashier Panel</span>
                 </a>
                 <a href="appointments.html" data-nav-page="appointments.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
                     <i class="fa-solid fa-calendar-check w-5 text-center text-slate-400"></i>
-                    <span class="text-sm flex-1 flex justify-between items-center">Appointments <span id="appointmentCountBadge" class="bg-amber-500/20 text-amber-400 text-[10px] px-1.5 rounded-full font-bold">0</span></span>
+                    <span class="text-base flex-1 flex justify-between items-center">Appointments <span id="appointmentCountBadge" class="bg-amber-500/20 text-amber-400 text-xs px-1.5 rounded-full font-bold">0</span></span>
                 </a>
                 <a href="payment.html" data-nav-page="payment.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
                     <i class="fa-solid fa-money-check-dollar w-5 text-center text-slate-400"></i>
-                    <span class="text-sm">Checkout & Payments</span>
+                    <span class="text-base">Checkout & Payments</span>
                 </a>
                 <a href="inventory.html" data-nav-page="inventory.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
                     <i class="fa-solid fa-boxes-stacked w-5 text-center text-slate-400"></i>
-                    <span class="text-sm">Inventory Tracking</span>
+                    <span class="text-base">Inventory Tracking</span>
                 </a>
                 <a href="staff.html" data-nav-page="staff.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
                     <i class="fa-solid fa-users-gear w-5 text-center text-slate-400"></i>
-                    <span class="text-sm">Staff Assignments</span>
+                    <span class="text-base">Staff Assignments</span>
                 </a>
                 <a href="profile.html" data-nav-page="profile.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
                     <i class="fa-solid fa-user-shield w-5 text-center text-slate-400"></i>
-                    <span class="text-sm">Profile &amp; Security</span>
+                    <span class="text-base">Profile &amp; Security</span>
                 </a>
             </nav>
         </div>
@@ -97,7 +98,7 @@
                     <span>Sign Out</span>
                 </a>
             </div>
-            <div class="p-4 bg-slate-950 border-t border-slate-800 text-[11px] text-slate-400 space-y-0.5">
+            <div class="p-4 bg-slate-950 border-t border-slate-800 text-xs text-slate-400 space-y-0.5">
                 <div><i class="fa-solid fa-circle-nodes text-green-400 mr-1"></i> Multi-branch Sync Online</div>
                 <div class="text-slate-500">v2.0.0 (RAD Prototype)</div>
             </div>
@@ -111,7 +112,7 @@
                 <span id="branchLabel" class="bg-amber-50 border border-amber-300 font-bold text-slate-900 text-xs rounded-xl px-3 py-1.5 shadow-sm">Loading branch…</span>
             </div>
             <div class="text-right">
-                <p class="text-[10px] text-gray-500 font-medium">System Date & Time</p>
+                <p class="text-xs text-gray-500 font-medium">System Date & Time</p>
                 <p class="text-xs font-semibold text-gray-700" id="liveClock">--</p>
             </div>
         </header>
@@ -119,27 +120,27 @@
         <section class="flex-1 p-6 overflow-y-auto space-y-6">
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" id="statCardsContainer">
                 <div class="stagger-item bg-white p-3.5 rounded-xl shadow-sm border border-gray-200">
-                    <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wide">Today's Appointments</p>
+                    <p class="text-xs text-gray-400 uppercase font-bold tracking-wide">Today's Appointments</p>
                     <p class="text-2xl font-black text-slate-800 mt-1" id="statTodayAppointments">0</p>
                 </div>
                 <div class="stagger-item bg-white p-3.5 rounded-xl shadow-sm border border-gray-200">
-                    <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wide">Pending Confirmation</p>
+                    <p class="text-xs text-gray-400 uppercase font-bold tracking-wide">Pending Confirmation</p>
                     <p class="text-2xl font-black text-amber-600 mt-1" id="statPendingConfirmation">0</p>
                 </div>
                 <div class="stagger-item bg-white p-3.5 rounded-xl shadow-sm border border-gray-200">
-                    <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wide">Payments to Verify</p>
+                    <p class="text-xs text-gray-400 uppercase font-bold tracking-wide">Payments to Verify</p>
                     <p class="text-2xl font-black text-rose-600 mt-1" id="statPaymentsToVerify">0</p>
                 </div>
                 <div class="stagger-item bg-white p-3.5 rounded-xl shadow-sm border border-gray-200">
-                    <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wide">Walk-Ins Today</p>
+                    <p class="text-xs text-gray-400 uppercase font-bold tracking-wide">Walk-Ins Today</p>
                     <p class="text-2xl font-black text-slate-800 mt-1" id="statWalkInsToday">0</p>
                 </div>
                 <div class="stagger-item bg-white p-3.5 rounded-xl shadow-sm border border-gray-200">
-                    <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wide">In Progress</p>
+                    <p class="text-xs text-gray-400 uppercase font-bold tracking-wide">In Progress</p>
                     <p class="text-2xl font-black text-teal-600 mt-1" id="statInProgress">0</p>
                 </div>
                 <div class="stagger-item bg-white p-3.5 rounded-xl shadow-sm border border-gray-200">
-                    <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wide">Ready for Checkout</p>
+                    <p class="text-xs text-gray-400 uppercase font-bold tracking-wide">Ready for Checkout</p>
                     <p class="text-2xl font-black text-emerald-600 mt-1" id="statReadyForCheckout">0</p>
                 </div>
             </div>
@@ -150,7 +151,7 @@
                     <input id="queueSearch" type="text" placeholder="Search customer name..." class="w-full bg-gray-50 border border-gray-300 rounded-lg pl-9 pr-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 transition-shadow">
                 </div>
                 <button id="btnNewWalkIn" class="bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs px-4 py-2 rounded-lg flex items-center space-x-2 shadow-sm hover:shadow-md">
-                    <i class="fa-solid fa-plus text-[10px]"></i>
+                    <i class="fa-solid fa-plus text-xs"></i>
                     <span>New Walk-In Booking</span>
                 </button>
             </div>
@@ -158,7 +159,7 @@
             <div class="stagger-item bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div class="bg-slate-50 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
                     <h3 class="font-bold text-slate-800 text-xs tracking-wide uppercase"><i class="fa-solid fa-clock-rotate-left mr-2 text-amber-500"></i>Today's Queue</h3>
-                    <span class="badge-live bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded" id="queueBranchBadge">DARAGA Active</span>
+                    <span class="badge-live bg-amber-100 text-amber-800 text-xs font-bold px-2 py-0.5 rounded" id="queueBranchBadge">DARAGA Active</span>
                 </div>
                 <div class="divide-y divide-gray-100" id="queueContainer">
                     <div class="skeleton-row"><div class="skeleton skeleton-avatar"></div><div class="flex-1 space-y-2"><div class="skeleton skeleton-line w-1/3"></div><div class="skeleton skeleton-line w-1/2"></div></div></div>
@@ -171,24 +172,24 @@
     <div id="walkInModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-center justify-center hidden opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl border border-gray-100 transform scale-95 transition-transform duration-300">
             <div class="bg-slate-950 p-4 text-white flex justify-between items-center">
-                <h4 class="font-bold text-sm tracking-wide"><i class="fa-solid fa-user-plus text-amber-400 mr-2"></i>Walk-in Counter Check-in</h4>
+                <h4 class="font-bold text-base tracking-wide"><i class="fa-solid fa-user-plus text-amber-400 mr-2"></i>Walk-in Counter Check-in</h4>
                 <button id="btnCloseModal" class="text-gray-400 hover:text-white transition-all text-lg">&times;</button>
             </div>
             <form id="walkInForm" class="p-5 space-y-3.5 text-xs">
                 <div>
-                    <label class="block text-[10px] font-bold uppercase text-gray-500 tracking-wider mb-1">Customer Full Name</label>
+                    <label class="block text-xs font-bold uppercase text-gray-500 tracking-wider mb-1">Customer Full Name</label>
                     <input type="text" id="inputClientName" required placeholder="e.g. Angelo Ramirez" class="w-full bg-gray-50 border border-gray-300 rounded-xl p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold uppercase text-gray-500 tracking-wider mb-1">Customer Contact Number</label>
-                    <input type="tel" id="inputClientPhone" required inputmode="numeric" maxlength="11" pattern="[0-9]{11}" title="Enter an 11-digit mobile number" placeholder="e.g. 09171234567" class="w-full bg-gray-50 border border-gray-300 rounded-xl p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <label class="block text-xs font-bold uppercase text-gray-500 tracking-wider mb-1">Customer Contact Number</label>
+                    <input type="tel" id="inputClientPhone" required inputmode="numeric" maxlength="11" pattern="09[0-9]{9}" title="Enter an 11-digit mobile number starting with 09" placeholder="e.g. 09171234567" class="w-full bg-gray-50 border border-gray-300 rounded-xl p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold uppercase text-gray-500 tracking-wider mb-1">Select Services (Check all that apply)</label>
+                    <label class="block text-xs font-bold uppercase text-gray-500 tracking-wider mb-1">Select Services (Check all that apply)</label>
                     <div id="servicesCheckboxContainer" class="bg-gray-50 border border-gray-300 rounded-xl p-3 max-h-40 overflow-y-auto space-y-2"></div>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold uppercase text-gray-500 tracking-wider mb-1">Assign Onsite Stylist</label>
+                    <label class="block text-xs font-bold uppercase text-gray-500 tracking-wider mb-1">Assign Onsite Stylist</label>
                     <select id="selectStylist" required class="w-full bg-gray-50 border border-gray-300 rounded-xl p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"></select>
                 </div>
                 <div class="pt-2 flex space-x-3">

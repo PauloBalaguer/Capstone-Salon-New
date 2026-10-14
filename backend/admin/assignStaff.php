@@ -23,6 +23,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
+require_once __DIR__ . '/../config/BookingValidation.php';
+BookingValidation::enforce($_POST, [
+    'id' => ['text', true, 'id'],
+    'staffId' => ['id', false, 'a staff or branch selection'],
+    'staffIds' => ['ids', false, 'service or staff selections'],
+]);
+
 $referenceCode = trim($_POST['id'] ?? '');
 $staffId = (int) ($_POST['staffId'] ?? 0);
 // Home service teams: staffIds[] (several stylists). A single staffId still works.

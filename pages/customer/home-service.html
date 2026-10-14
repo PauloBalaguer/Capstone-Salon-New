@@ -336,7 +336,8 @@
 
         <div>
           <label class="block text-slate-400 mb-1">Venue Address</label>
-          <input type="text" x-model="homeServiceForm.address" required placeholder="e.g., 123 Main St, Legazpi City" class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+          <input id="serviceAddressText" type="hidden" x-model="homeServiceForm.address">
+          <div id="service-address" data-address-target="serviceAddressText" data-address-saved="true"></div>
           <p class="text-slate-500 mt-1">Home Service is available only within Albay Province.</p>
         </div>
 
@@ -591,6 +592,7 @@
   <script src="../../scripts/customer/dashboard-helpers.js"></script>
   <script src="../../scripts/customer/dashboard-state.js?v=home-service-aligned-1"></script>
   <script src="../../scripts/customer/dashboard-notifications.js"></script>
+  <script src="../../scripts/address-form.js"></script>
   <script src="../../scripts/customer/dashboard-home-service.js?v=home-service-aligned-1"></script>
   <script src="../../scripts/customer/dashboard-track-booking.js"></script>
   <script src="../../scripts/customer/dashboard.js"></script>

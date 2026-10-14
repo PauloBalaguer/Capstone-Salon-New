@@ -246,6 +246,12 @@ function customerBookingMixin() {
     bookingSubtotal() {
       return this.selectedServicesForBooking.reduce((sum, s) => sum + s.price, 0);
     },
+    bookingDurationMinutes() {
+      return ServiceDuration.total(this.selectedServicesForBooking);
+    },
+    bookingEstimatedEndTime() {
+      return ServiceDuration.endTime(this.bookingForm.date, this.bookingForm.time, this.bookingDurationMinutes());
+    },
     // Mirrors backend/customer/submitBooking.php's math exactly: floor the
     // subtotal down to a whole number of points first, then convert that
     // back to pesos — not the other way around. Converting a peso value
@@ -482,7 +488,7 @@ function customerBookingMixin() {
             date: appt.date,
             time: appt.time,
             status: appt.status,
-            durationMinutes: this.selectedServicesForBooking.reduce((sum, s) => sum + (s.durationMinutes || 30), 0) || 30
+            durationMinutes: appt.durationMinutes
           });
           this.customerProfile.loyaltyPoints = body.loyaltyPoints;
           this.animateCount('displayLoyaltyPoints', body.loyaltyPoints, 500);

@@ -9,6 +9,7 @@
 
 require_once '../config/cors.php';
 require_once '../config/database.php';
+require_once '../config/ServiceDuration.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -36,6 +37,7 @@ try {
         $row['id'] = (string) $row['id'];
         $row['price'] = (float) $row['price'];
         $row['durationMinutes'] = (int) $row['durationMinutes'];
+        $row['duration'] = ServiceDuration::format($row['durationMinutes']);
         return $row;
     }, $stmt->fetchAll());
 

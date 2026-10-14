@@ -96,18 +96,9 @@ function formatApptDateLong(dateStr) {
   return new Date(year, month - 1, day).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
-// Services always have a real duration_minutes (NOT NULL in the database),
-// but duration_label is sometimes blank (see database/sync_service_menu.php,
-// which seeds it as an empty string). Derive a friendly duration string from
-// the real minutes value whenever the label isn't already set, so every
-// service card shows a duration instead of a blank one.
+// Integer minutes are authoritative; legacy text labels may be stale or ranges.
 function formatServiceDuration(service) {
-  if (service && service.duration && service.duration.trim()) return service.duration;
-  const minutes = Number(service && service.durationMinutes) || 30;
-  if (minutes < 60) return `About ${minutes} minutes`;
-  const hours = minutes / 60;
-  const hoursText = Number.isInteger(hours) ? hours : hours.toFixed(1);
-  return `About ${hoursText} hour${hours === 1 ? '' : 's'}`;
+  return 'Estimated Duration: ' + ServiceDuration.format(service && service.durationMinutes);
 }
 
 // Translates the services.payment_requirement enum into the wording shown

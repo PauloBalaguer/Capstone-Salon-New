@@ -161,7 +161,7 @@
                     <td class="p-3 font-semibold text-slate-100" x-text="service.name"></td>
                     <td class="p-3 font-medium text-purple-300" x-text="$store.admin.getBranchName(service.branchId)"></td>
                     <td class="p-3 text-slate-400" x-text="service.category || '—'"></td>
-                    <td class="p-3 text-center text-slate-300" x-text="service.durationLabel || (service.durationMinutes + ' min')"></td>
+                    <td class="p-3 text-center text-slate-300" x-text="ServiceDuration.format(service.durationMinutes)"></td>
                     <td class="p-3 text-right text-slate-300" x-text="$store.admin.formatCurrency(service.price)"></td>
                     <td class="p-3 text-center">
                       <span :class="service.loyaltyMultiplier > 1 ? 'text-gold-400' : (service.loyaltyMultiplier < 1 ? 'text-slate-500' : 'text-slate-300')" class="font-semibold" x-text="service.loyaltyMultiplier + 'x'"></span>
@@ -319,8 +319,8 @@
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs text-slate-400 mb-1">Duration (minutes, minimum 20)</label>
-            <input type="number" x-model.number="serviceForm.durationMinutes" min="20" step="1" required class="w-full bg-slate-950 text-slate-300 text-xs rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+            <label class="block text-xs text-slate-400 mb-1">Estimated Duration (minutes)</label>
+            <input type="number" x-model.number="serviceForm.durationMinutes" min="1" max="2147483647" step="1" required class="w-full bg-slate-950 text-slate-300 text-xs rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
           </div>
           <div>
             <label class="block text-xs text-slate-400 mb-1">Price (PHP)</label>
@@ -469,6 +469,7 @@
   </div>
 
   <script src="../../scripts/admin/shared-data.js"></script>
+  <script src="../../scripts/service-duration.js"></script>
   <script src="../../scripts/admin/promotions.js"></script>
 </body>
 </html>

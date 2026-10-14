@@ -1,0 +1,3004 @@
+{
+    "source": "https://psgc.gitlab.io/api/",
+    "retrieved_at": "2026-10-14T15:01:40+00:00",
+    "provinces": [
+        {
+            "code": "050500000",
+            "name": "Albay"
+        }
+    ],
+    "cities": {
+        "050500000": [
+            {
+                "code": "050501000",
+                "name": "Bacacay"
+            },
+            {
+                "code": "050502000",
+                "name": "Camalig"
+            },
+            {
+                "code": "050506000",
+                "name": "City of Legazpi"
+            },
+            {
+                "code": "050508000",
+                "name": "City of Ligao"
+            },
+            {
+                "code": "050517000",
+                "name": "City of Tabaco"
+            },
+            {
+                "code": "050503000",
+                "name": "Daraga"
+            },
+            {
+                "code": "050504000",
+                "name": "Guinobatan"
+            },
+            {
+                "code": "050505000",
+                "name": "Jovellar"
+            },
+            {
+                "code": "050507000",
+                "name": "Libon"
+            },
+            {
+                "code": "050509000",
+                "name": "Malilipot"
+            },
+            {
+                "code": "050510000",
+                "name": "Malinao"
+            },
+            {
+                "code": "050511000",
+                "name": "Manito"
+            },
+            {
+                "code": "050512000",
+                "name": "Oas"
+            },
+            {
+                "code": "050513000",
+                "name": "Pio Duran"
+            },
+            {
+                "code": "050514000",
+                "name": "Polangui"
+            },
+            {
+                "code": "050515000",
+                "name": "Rapu-Rapu"
+            },
+            {
+                "code": "050516000",
+                "name": "Santo Domingo"
+            },
+            {
+                "code": "050518000",
+                "name": "Tiwi"
+            }
+        ]
+    },
+    "barangays": {
+        "050501000": [
+            {
+                "code": "050501001",
+                "name": "Baclayon"
+            },
+            {
+                "code": "050501002",
+                "name": "Banao"
+            },
+            {
+                "code": "050501032",
+                "name": "Barangay 1 (Pob.)"
+            },
+            {
+                "code": "050501033",
+                "name": "Barangay 10 (Pob.)"
+            },
+            {
+                "code": "050501034",
+                "name": "Barangay 11 (Pob.)"
+            },
+            {
+                "code": "050501035",
+                "name": "Barangay 12 (Pob.)"
+            },
+            {
+                "code": "050501036",
+                "name": "Barangay 13 (Pob.)"
+            },
+            {
+                "code": "050501037",
+                "name": "Barangay 14 (Pob.)"
+            },
+            {
+                "code": "050501038",
+                "name": "Barangay 2 (Pob.)"
+            },
+            {
+                "code": "050501039",
+                "name": "Barangay 3 (Pob.)"
+            },
+            {
+                "code": "050501040",
+                "name": "Barangay 4 (Pob.)"
+            },
+            {
+                "code": "050501041",
+                "name": "Barangay 5 (Pob.)"
+            },
+            {
+                "code": "050501042",
+                "name": "Barangay 6 (Pob.)"
+            },
+            {
+                "code": "050501043",
+                "name": "Barangay 7 (Pob.)"
+            },
+            {
+                "code": "050501044",
+                "name": "Barangay 8 (Pob.)"
+            },
+            {
+                "code": "050501045",
+                "name": "Barangay 9 (Pob.)"
+            },
+            {
+                "code": "050501003",
+                "name": "Bariw"
+            },
+            {
+                "code": "050501004",
+                "name": "Basud"
+            },
+            {
+                "code": "050501005",
+                "name": "Bayandong"
+            },
+            {
+                "code": "050501006",
+                "name": "Bonga"
+            },
+            {
+                "code": "050501008",
+                "name": "Buang"
+            },
+            {
+                "code": "050501048",
+                "name": "Busdac"
+            },
+            {
+                "code": "050501009",
+                "name": "Cabasan"
+            },
+            {
+                "code": "050501010",
+                "name": "Cagbulacao"
+            },
+            {
+                "code": "050501011",
+                "name": "Cagraray"
+            },
+            {
+                "code": "050501012",
+                "name": "Cajogutan"
+            },
+            {
+                "code": "050501013",
+                "name": "Cawayan"
+            },
+            {
+                "code": "050501014",
+                "name": "Damacan"
+            },
+            {
+                "code": "050501015",
+                "name": "Gubat Ilawod"
+            },
+            {
+                "code": "050501016",
+                "name": "Gubat Iraya"
+            },
+            {
+                "code": "050501017",
+                "name": "Hindi"
+            },
+            {
+                "code": "050501018",
+                "name": "Igang"
+            },
+            {
+                "code": "050501019",
+                "name": "Langaton"
+            },
+            {
+                "code": "050501020",
+                "name": "Manaet"
+            },
+            {
+                "code": "050501021",
+                "name": "Mapulang Daga"
+            },
+            {
+                "code": "050501022",
+                "name": "Mataas"
+            },
+            {
+                "code": "050501023",
+                "name": "Misibis"
+            },
+            {
+                "code": "050501024",
+                "name": "Nahapunan"
+            },
+            {
+                "code": "050501025",
+                "name": "Namanday"
+            },
+            {
+                "code": "050501026",
+                "name": "Namantao"
+            },
+            {
+                "code": "050501027",
+                "name": "Napao"
+            },
+            {
+                "code": "050501028",
+                "name": "Panarayon"
+            },
+            {
+                "code": "050501029",
+                "name": "Pigcobohan"
+            },
+            {
+                "code": "050501030",
+                "name": "Pili Ilawod"
+            },
+            {
+                "code": "050501031",
+                "name": "Pili Iraya"
+            },
+            {
+                "code": "050501046",
+                "name": "Pongco"
+            },
+            {
+                "code": "050501049",
+                "name": "San Pablo"
+            },
+            {
+                "code": "050501050",
+                "name": "San Pedro"
+            },
+            {
+                "code": "050501051",
+                "name": "Sogod"
+            },
+            {
+                "code": "050501052",
+                "name": "Sula"
+            },
+            {
+                "code": "050501053",
+                "name": "Tambilagao"
+            },
+            {
+                "code": "050501054",
+                "name": "Tambongon"
+            },
+            {
+                "code": "050501055",
+                "name": "Tanagan"
+            },
+            {
+                "code": "050501056",
+                "name": "Uson"
+            },
+            {
+                "code": "050501057",
+                "name": "Vinisitahan-Basud"
+            },
+            {
+                "code": "050501058",
+                "name": "Vinisitahan-Napao"
+            }
+        ],
+        "050502000": [
+            {
+                "code": "050502001",
+                "name": "Anoling"
+            },
+            {
+                "code": "050502002",
+                "name": "Baligang"
+            },
+            {
+                "code": "050502003",
+                "name": "Bantonan"
+            },
+            {
+                "code": "050502046",
+                "name": "Barangay 1 (Pob.)"
+            },
+            {
+                "code": "050502047",
+                "name": "Barangay 2 (Pob.)"
+            },
+            {
+                "code": "050502048",
+                "name": "Barangay 3 (Pob.)"
+            },
+            {
+                "code": "050502049",
+                "name": "Barangay 4 (Pob.)"
+            },
+            {
+                "code": "050502050",
+                "name": "Barangay 5 (Pob.)"
+            },
+            {
+                "code": "050502051",
+                "name": "Barangay 6 (Pob.)"
+            },
+            {
+                "code": "050502052",
+                "name": "Barangay 7 (Pob.)"
+            },
+            {
+                "code": "050502004",
+                "name": "Bariw"
+            },
+            {
+                "code": "050502006",
+                "name": "Binanderahan"
+            },
+            {
+                "code": "050502007",
+                "name": "Binitayan"
+            },
+            {
+                "code": "050502009",
+                "name": "Bongabong"
+            },
+            {
+                "code": "050502010",
+                "name": "Cabagñan"
+            },
+            {
+                "code": "050502011",
+                "name": "Cabraran Pequeño"
+            },
+            {
+                "code": "050502053",
+                "name": "Caguiba"
+            },
+            {
+                "code": "050502012",
+                "name": "Calabidongan"
+            },
+            {
+                "code": "050502013",
+                "name": "Comun"
+            },
+            {
+                "code": "050502014",
+                "name": "Cotmon"
+            },
+            {
+                "code": "050502015",
+                "name": "Del Rosario"
+            },
+            {
+                "code": "050502016",
+                "name": "Gapo"
+            },
+            {
+                "code": "050502017",
+                "name": "Gotob"
+            },
+            {
+                "code": "050502018",
+                "name": "Ilawod"
+            },
+            {
+                "code": "050502019",
+                "name": "Iluluan"
+            },
+            {
+                "code": "050502021",
+                "name": "Libod"
+            },
+            {
+                "code": "050502022",
+                "name": "Ligban"
+            },
+            {
+                "code": "050502023",
+                "name": "Mabunga"
+            },
+            {
+                "code": "050502024",
+                "name": "Magogon"
+            },
+            {
+                "code": "050502025",
+                "name": "Manawan"
+            },
+            {
+                "code": "050502026",
+                "name": "Maninila"
+            },
+            {
+                "code": "050502027",
+                "name": "Mina"
+            },
+            {
+                "code": "050502028",
+                "name": "Miti"
+            },
+            {
+                "code": "050502029",
+                "name": "Palanog"
+            },
+            {
+                "code": "050502030",
+                "name": "Panoypoy"
+            },
+            {
+                "code": "050502031",
+                "name": "Pariaan"
+            },
+            {
+                "code": "050502032",
+                "name": "Quinartilan"
+            },
+            {
+                "code": "050502033",
+                "name": "Quirangay"
+            },
+            {
+                "code": "050502034",
+                "name": "Quitinday"
+            },
+            {
+                "code": "050502035",
+                "name": "Salugan"
+            },
+            {
+                "code": "050502036",
+                "name": "Solong"
+            },
+            {
+                "code": "050502037",
+                "name": "Sua"
+            },
+            {
+                "code": "050502038",
+                "name": "Sumlang"
+            },
+            {
+                "code": "050502039",
+                "name": "Tagaytay"
+            },
+            {
+                "code": "050502040",
+                "name": "Tagoytoy"
+            },
+            {
+                "code": "050502041",
+                "name": "Taladong"
+            },
+            {
+                "code": "050502042",
+                "name": "Taloto"
+            },
+            {
+                "code": "050502043",
+                "name": "Taplacon"
+            },
+            {
+                "code": "050502044",
+                "name": "Tinago"
+            },
+            {
+                "code": "050502045",
+                "name": "Tumpa"
+            }
+        ],
+        "050506000": [
+            {
+                "code": "050506005",
+                "name": "Bgy. 1 - Em's Barrio (Pob.)"
+            },
+            {
+                "code": "050506072",
+                "name": "Bgy. 10 - Cabugao"
+            },
+            {
+                "code": "050506007",
+                "name": "Bgy. 11 - Maoyod Pob."
+            },
+            {
+                "code": "050506008",
+                "name": "Bgy. 12 - Tula-tula (Pob.)"
+            },
+            {
+                "code": "050506009",
+                "name": "Bgy. 13 - Ilawod West Pob."
+            },
+            {
+                "code": "050506010",
+                "name": "Bgy. 14 - Ilawod Pob."
+            },
+            {
+                "code": "050506011",
+                "name": "Bgy. 15 - Ilawod East Pob."
+            },
+            {
+                "code": "050506012",
+                "name": "Bgy. 16 - Kawit-East Washington Drive (Pob.)"
+            },
+            {
+                "code": "050506013",
+                "name": "Bgy. 17 - Rizal Street., Ilawod (Pob.)"
+            },
+            {
+                "code": "050506017",
+                "name": "Bgy. 18 - Cabagñan West (Pob.)"
+            },
+            {
+                "code": "050506015",
+                "name": "Bgy. 19 - Cabagñan"
+            },
+            {
+                "code": "050506016",
+                "name": "Bgy. 2 - Em's Barrio South (Pob.)"
+            },
+            {
+                "code": "050506021",
+                "name": "Bgy. 20 - Cabagñan East (Pob.)"
+            },
+            {
+                "code": "050506018",
+                "name": "Bgy. 21 - Binanuahan West (Pob.)"
+            },
+            {
+                "code": "050506019",
+                "name": "Bgy. 22 - Binanuahan East (Pob.)"
+            },
+            {
+                "code": "050506020",
+                "name": "Bgy. 23 - Imperial Court Subd. (Pob.)"
+            },
+            {
+                "code": "050506073",
+                "name": "Bgy. 24 - Rizal Street"
+            },
+            {
+                "code": "050506022",
+                "name": "Bgy. 25 - Lapu-lapu (Pob.)"
+            },
+            {
+                "code": "050506023",
+                "name": "Bgy. 26 - Dinagaan (Pob.)"
+            },
+            {
+                "code": "050506024",
+                "name": "Bgy. 27 - Victory Village South (Pob.)"
+            },
+            {
+                "code": "050506025",
+                "name": "Bgy. 28 - Victory Village North (Pob.)"
+            },
+            {
+                "code": "050506026",
+                "name": "Bgy. 29 - Sabang (Pob.)"
+            },
+            {
+                "code": "050506027",
+                "name": "Bgy. 3 - Em's Barrio East (Pob.)"
+            },
+            {
+                "code": "050506029",
+                "name": "Bgy. 30 - Pigcale (Pob.)"
+            },
+            {
+                "code": "050506030",
+                "name": "Bgy. 31 - Centro-Baybay (Pob.)"
+            },
+            {
+                "code": "050506067",
+                "name": "Bgy. 32 - San Roque"
+            },
+            {
+                "code": "050506032",
+                "name": "Bgy. 33 - PNR-Peñaranda St.-Iraya (Pob.)"
+            },
+            {
+                "code": "050506033",
+                "name": "Bgy. 34 - Oro Site-Magallanes St. (Pob.)"
+            },
+            {
+                "code": "050506034",
+                "name": "Bgy. 35 - Tinago (Pob.)"
+            },
+            {
+                "code": "050506028",
+                "name": "Bgy. 36 - Kapantawan (Pob.)"
+            },
+            {
+                "code": "050506035",
+                "name": "Bgy. 37 - Bitano (Pob.)"
+            },
+            {
+                "code": "050506055",
+                "name": "Bgy. 38 - Gogon"
+            },
+            {
+                "code": "050506037",
+                "name": "Bgy. 39 - Bonot (Pob.)"
+            },
+            {
+                "code": "050506038",
+                "name": "Bgy. 4 - Sagpon Pob."
+            },
+            {
+                "code": "050506051",
+                "name": "Bgy. 40 - Cruzada"
+            },
+            {
+                "code": "050506046",
+                "name": "Bgy. 41 - Bogtong"
+            },
+            {
+                "code": "050506064",
+                "name": "Bgy. 42 - Rawis"
+            },
+            {
+                "code": "050506069",
+                "name": "Bgy. 43 - Tamaoyan"
+            },
+            {
+                "code": "050506062",
+                "name": "Bgy. 44 - Pawa"
+            },
+            {
+                "code": "050506053",
+                "name": "Bgy. 45 - Dita"
+            },
+            {
+                "code": "050506066",
+                "name": "Bgy. 46 - San Joaquin"
+            },
+            {
+                "code": "050506001",
+                "name": "Bgy. 47 - Arimbay"
+            },
+            {
+                "code": "050506003",
+                "name": "Bgy. 48 - Bagong Abre"
+            },
+            {
+                "code": "050506045",
+                "name": "Bgy. 49 - Bigaa"
+            },
+            {
+                "code": "050506039",
+                "name": "Bgy. 5 - Sagmin Pob."
+            },
+            {
+                "code": "050506061",
+                "name": "Bgy. 50 - Padang"
+            },
+            {
+                "code": "050506049",
+                "name": "Bgy. 51 - Buyuan"
+            },
+            {
+                "code": "050506071",
+                "name": "Bgy. 52 - Matanag"
+            },
+            {
+                "code": "050506047",
+                "name": "Bgy. 53 - Bonga"
+            },
+            {
+                "code": "050506058",
+                "name": "Bgy. 54 - Mabinit"
+            },
+            {
+                "code": "050506054",
+                "name": "Bgy. 55 - Estanza"
+            },
+            {
+                "code": "050506070",
+                "name": "Bgy. 56 - Taysan"
+            },
+            {
+                "code": "050506052",
+                "name": "Bgy. 57 - Dap-dap"
+            },
+            {
+                "code": "050506074",
+                "name": "Bgy. 58 - Buragwis"
+            },
+            {
+                "code": "050506063",
+                "name": "Bgy. 59 - Puro"
+            },
+            {
+                "code": "050506040",
+                "name": "Bgy. 6 - Bañadero Pob."
+            },
+            {
+                "code": "050506077",
+                "name": "Bgy. 60 - Lamba"
+            },
+            {
+                "code": "050506060",
+                "name": "Bgy. 61 - Maslog"
+            },
+            {
+                "code": "050506056",
+                "name": "Bgy. 62 - Homapon"
+            },
+            {
+                "code": "050506059",
+                "name": "Bgy. 63 - Mariawa"
+            },
+            {
+                "code": "050506002",
+                "name": "Bgy. 64 - Bagacay"
+            },
+            {
+                "code": "050506057",
+                "name": "Bgy. 65 - Imalnod"
+            },
+            {
+                "code": "050506004",
+                "name": "Bgy. 66 - Banquerohan"
+            },
+            {
+                "code": "050506044",
+                "name": "Bgy. 67 - Bariis"
+            },
+            {
+                "code": "050506065",
+                "name": "Bgy. 68 - San Francisco"
+            },
+            {
+                "code": "050506048",
+                "name": "Bgy. 69 - Buenavista"
+            },
+            {
+                "code": "050506041",
+                "name": "Bgy. 7 - Baño (Pob.)"
+            },
+            {
+                "code": "050506050",
+                "name": "Bgy. 70 - Cagbacong"
+            },
+            {
+                "code": "050506042",
+                "name": "Bgy. 8 - Bagumbayan (Pob.)"
+            },
+            {
+                "code": "050506043",
+                "name": "Bgy. 9 - Pinaric (Pob.)"
+            }
+        ],
+        "050508000": [
+            {
+                "code": "050508001",
+                "name": "Abella"
+            },
+            {
+                "code": "050508002",
+                "name": "Allang"
+            },
+            {
+                "code": "050508003",
+                "name": "Amtic"
+            },
+            {
+                "code": "050508004",
+                "name": "Bacong"
+            },
+            {
+                "code": "050508005",
+                "name": "Bagumbayan"
+            },
+            {
+                "code": "050508006",
+                "name": "Balanac"
+            },
+            {
+                "code": "050508007",
+                "name": "Baligang"
+            },
+            {
+                "code": "050508008",
+                "name": "Barayong"
+            },
+            {
+                "code": "050508009",
+                "name": "Basag"
+            },
+            {
+                "code": "050508010",
+                "name": "Batang"
+            },
+            {
+                "code": "050508011",
+                "name": "Bay"
+            },
+            {
+                "code": "050508012",
+                "name": "Binanowan"
+            },
+            {
+                "code": "050508013",
+                "name": "Binatagan (Pob.)"
+            },
+            {
+                "code": "050508014",
+                "name": "Bobonsuran"
+            },
+            {
+                "code": "050508015",
+                "name": "Bonga"
+            },
+            {
+                "code": "050508016",
+                "name": "Busac"
+            },
+            {
+                "code": "050508017",
+                "name": "Busay"
+            },
+            {
+                "code": "050508018",
+                "name": "Cabarian"
+            },
+            {
+                "code": "050508019",
+                "name": "Calzada (Pob.)"
+            },
+            {
+                "code": "050508020",
+                "name": "Catburawan"
+            },
+            {
+                "code": "050508021",
+                "name": "Cavasi"
+            },
+            {
+                "code": "050508022",
+                "name": "Culliat"
+            },
+            {
+                "code": "050508023",
+                "name": "Dunao"
+            },
+            {
+                "code": "050508024",
+                "name": "Francia"
+            },
+            {
+                "code": "050508025",
+                "name": "Guilid"
+            },
+            {
+                "code": "050508026",
+                "name": "Herrera"
+            },
+            {
+                "code": "050508027",
+                "name": "Layon"
+            },
+            {
+                "code": "050508028",
+                "name": "Macalidong"
+            },
+            {
+                "code": "050508029",
+                "name": "Mahaba"
+            },
+            {
+                "code": "050508030",
+                "name": "Malama"
+            },
+            {
+                "code": "050508031",
+                "name": "Maonon"
+            },
+            {
+                "code": "050508033",
+                "name": "Nabonton"
+            },
+            {
+                "code": "050508032",
+                "name": "Nasisi"
+            },
+            {
+                "code": "050508034",
+                "name": "Oma-oma"
+            },
+            {
+                "code": "050508035",
+                "name": "Palapas"
+            },
+            {
+                "code": "050508036",
+                "name": "Pandan"
+            },
+            {
+                "code": "050508037",
+                "name": "Paulba"
+            },
+            {
+                "code": "050508038",
+                "name": "Paulog"
+            },
+            {
+                "code": "050508039",
+                "name": "Pinamaniquian"
+            },
+            {
+                "code": "050508040",
+                "name": "Pinit"
+            },
+            {
+                "code": "050508042",
+                "name": "Ranao-ranao"
+            },
+            {
+                "code": "050508043",
+                "name": "San Vicente"
+            },
+            {
+                "code": "050508044",
+                "name": "Santa Cruz (Pob.)"
+            },
+            {
+                "code": "050508045",
+                "name": "Tagpo"
+            },
+            {
+                "code": "050508046",
+                "name": "Tambo"
+            },
+            {
+                "code": "050508047",
+                "name": "Tandarura"
+            },
+            {
+                "code": "050508048",
+                "name": "Tastas"
+            },
+            {
+                "code": "050508049",
+                "name": "Tinago"
+            },
+            {
+                "code": "050508050",
+                "name": "Tinampo"
+            },
+            {
+                "code": "050508051",
+                "name": "Tiongson"
+            },
+            {
+                "code": "050508052",
+                "name": "Tomolin"
+            },
+            {
+                "code": "050508053",
+                "name": "Tuburan"
+            },
+            {
+                "code": "050508054",
+                "name": "Tula-tula Grande"
+            },
+            {
+                "code": "050508055",
+                "name": "Tula-tula Pequeño"
+            },
+            {
+                "code": "050508056",
+                "name": "Tupas"
+            }
+        ],
+        "050517000": [
+            {
+                "code": "050517001",
+                "name": "Agnas"
+            },
+            {
+                "code": "050517002",
+                "name": "Bacolod"
+            },
+            {
+                "code": "050517003",
+                "name": "Bangkilingan"
+            },
+            {
+                "code": "050517004",
+                "name": "Bantayan"
+            },
+            {
+                "code": "050517005",
+                "name": "Baranghawon"
+            },
+            {
+                "code": "050517006",
+                "name": "Basagan"
+            },
+            {
+                "code": "050517007",
+                "name": "Basud (Pob.)"
+            },
+            {
+                "code": "050517008",
+                "name": "Bogñabong"
+            },
+            {
+                "code": "050517009",
+                "name": "Bombon (Pob.)"
+            },
+            {
+                "code": "050517010",
+                "name": "Bonot"
+            },
+            {
+                "code": "050517012",
+                "name": "Buang"
+            },
+            {
+                "code": "050517013",
+                "name": "Buhian"
+            },
+            {
+                "code": "050517014",
+                "name": "Cabagñan"
+            },
+            {
+                "code": "050517015",
+                "name": "Cobo"
+            },
+            {
+                "code": "050517016",
+                "name": "Comon"
+            },
+            {
+                "code": "050517017",
+                "name": "Cormidal"
+            },
+            {
+                "code": "050517018",
+                "name": "Divino Rostro (Pob.)"
+            },
+            {
+                "code": "050517019",
+                "name": "Fatima"
+            },
+            {
+                "code": "050517020",
+                "name": "Guinobat"
+            },
+            {
+                "code": "050517021",
+                "name": "Hacienda"
+            },
+            {
+                "code": "050517022",
+                "name": "Magapo"
+            },
+            {
+                "code": "050517023",
+                "name": "Mariroc"
+            },
+            {
+                "code": "050517024",
+                "name": "Matagbac"
+            },
+            {
+                "code": "050517025",
+                "name": "Oras"
+            },
+            {
+                "code": "050517026",
+                "name": "Oson"
+            },
+            {
+                "code": "050517027",
+                "name": "Panal"
+            },
+            {
+                "code": "050517029",
+                "name": "Pawa"
+            },
+            {
+                "code": "050517030",
+                "name": "Pinagbobong"
+            },
+            {
+                "code": "050517031",
+                "name": "Quinale Cabasan (Pob.)"
+            },
+            {
+                "code": "050517032",
+                "name": "Quinastillojan"
+            },
+            {
+                "code": "050517033",
+                "name": "Rawis"
+            },
+            {
+                "code": "050517034",
+                "name": "Sagurong"
+            },
+            {
+                "code": "050517035",
+                "name": "Salvacion"
+            },
+            {
+                "code": "050517036",
+                "name": "San Antonio"
+            },
+            {
+                "code": "050517037",
+                "name": "San Carlos"
+            },
+            {
+                "code": "050517011",
+                "name": "San Isidro"
+            },
+            {
+                "code": "050517038",
+                "name": "San Juan (Pob.)"
+            },
+            {
+                "code": "050517039",
+                "name": "San Lorenzo"
+            },
+            {
+                "code": "050517040",
+                "name": "San Ramon"
+            },
+            {
+                "code": "050517041",
+                "name": "San Roque"
+            },
+            {
+                "code": "050517042",
+                "name": "San Vicente"
+            },
+            {
+                "code": "050517044",
+                "name": "Santo Cristo (Pob.)"
+            },
+            {
+                "code": "050517045",
+                "name": "Sua-Igot"
+            },
+            {
+                "code": "050517046",
+                "name": "Tabiguian"
+            },
+            {
+                "code": "050517048",
+                "name": "Tagas"
+            },
+            {
+                "code": "050517049",
+                "name": "Tayhi (Pob.)"
+            },
+            {
+                "code": "050517050",
+                "name": "Visita"
+            }
+        ],
+        "050503000": [
+            {
+                "code": "050503001",
+                "name": "Alcala"
+            },
+            {
+                "code": "050503002",
+                "name": "Alobo"
+            },
+            {
+                "code": "050503003",
+                "name": "Anislag"
+            },
+            {
+                "code": "050503004",
+                "name": "Bagumbayan"
+            },
+            {
+                "code": "050503005",
+                "name": "Balinad"
+            },
+            {
+                "code": "050503008",
+                "name": "Bascaran"
+            },
+            {
+                "code": "050503006",
+                "name": "Bañadero"
+            },
+            {
+                "code": "050503007",
+                "name": "Bañag"
+            },
+            {
+                "code": "050503009",
+                "name": "Bigao"
+            },
+            {
+                "code": "050503010",
+                "name": "Binitayan"
+            },
+            {
+                "code": "050503011",
+                "name": "Bongalon"
+            },
+            {
+                "code": "050503012",
+                "name": "Budiao"
+            },
+            {
+                "code": "050503013",
+                "name": "Burgos"
+            },
+            {
+                "code": "050503014",
+                "name": "Busay"
+            },
+            {
+                "code": "050503016",
+                "name": "Canarom"
+            },
+            {
+                "code": "050503015",
+                "name": "Cullat"
+            },
+            {
+                "code": "050503017",
+                "name": "Dela Paz"
+            },
+            {
+                "code": "050503018",
+                "name": "Dinoronan"
+            },
+            {
+                "code": "050503019",
+                "name": "Gabawan"
+            },
+            {
+                "code": "050503020",
+                "name": "Gapo"
+            },
+            {
+                "code": "050503021",
+                "name": "Ibaugan"
+            },
+            {
+                "code": "050503022",
+                "name": "Ilawod Area Pob."
+            },
+            {
+                "code": "050503023",
+                "name": "Inarado"
+            },
+            {
+                "code": "050503024",
+                "name": "Kidaco"
+            },
+            {
+                "code": "050503025",
+                "name": "Kilicao"
+            },
+            {
+                "code": "050503026",
+                "name": "Kimantong"
+            },
+            {
+                "code": "050503027",
+                "name": "Kinawitan"
+            },
+            {
+                "code": "050503028",
+                "name": "Kiwalo"
+            },
+            {
+                "code": "050503029",
+                "name": "Lacag"
+            },
+            {
+                "code": "050503030",
+                "name": "Mabini"
+            },
+            {
+                "code": "050503031",
+                "name": "Malabog"
+            },
+            {
+                "code": "050503032",
+                "name": "Malobago"
+            },
+            {
+                "code": "050503033",
+                "name": "Maopi"
+            },
+            {
+                "code": "050503034",
+                "name": "Market Area Pob."
+            },
+            {
+                "code": "050503035",
+                "name": "Maroroy"
+            },
+            {
+                "code": "050503036",
+                "name": "Matnog"
+            },
+            {
+                "code": "050503037",
+                "name": "Mayon"
+            },
+            {
+                "code": "050503038",
+                "name": "Mi-isi"
+            },
+            {
+                "code": "050503039",
+                "name": "Nabasan"
+            },
+            {
+                "code": "050503040",
+                "name": "Namantao"
+            },
+            {
+                "code": "050503041",
+                "name": "Pandan"
+            },
+            {
+                "code": "050503042",
+                "name": "Peñafrancia"
+            },
+            {
+                "code": "050503044",
+                "name": "Sagpon"
+            },
+            {
+                "code": "050503045",
+                "name": "Salvacion"
+            },
+            {
+                "code": "050503046",
+                "name": "San Rafael"
+            },
+            {
+                "code": "050503047",
+                "name": "San Ramon"
+            },
+            {
+                "code": "050503048",
+                "name": "San Roque"
+            },
+            {
+                "code": "050503049",
+                "name": "San Vicente Grande"
+            },
+            {
+                "code": "050503050",
+                "name": "San Vicente Pequeño"
+            },
+            {
+                "code": "050503051",
+                "name": "Sipi"
+            },
+            {
+                "code": "050503052",
+                "name": "Tabon-tabon"
+            },
+            {
+                "code": "050503053",
+                "name": "Tagas"
+            },
+            {
+                "code": "050503054",
+                "name": "Talahib"
+            },
+            {
+                "code": "050503055",
+                "name": "Villahermosa"
+            }
+        ],
+        "050504000": [
+            {
+                "code": "050504001",
+                "name": "Agpay"
+            },
+            {
+                "code": "050504002",
+                "name": "Balite"
+            },
+            {
+                "code": "050504003",
+                "name": "Banao"
+            },
+            {
+                "code": "050504004",
+                "name": "Batbat"
+            },
+            {
+                "code": "050504005",
+                "name": "Binogsacan Lower"
+            },
+            {
+                "code": "050504049",
+                "name": "Binogsacan Upper"
+            },
+            {
+                "code": "050504006",
+                "name": "Bololo"
+            },
+            {
+                "code": "050504007",
+                "name": "Bubulusan"
+            },
+            {
+                "code": "050504009",
+                "name": "Calzada"
+            },
+            {
+                "code": "050504010",
+                "name": "Catomag"
+            },
+            {
+                "code": "050504011",
+                "name": "Doña Mercedes"
+            },
+            {
+                "code": "050504012",
+                "name": "Doña Tomasa"
+            },
+            {
+                "code": "050504013",
+                "name": "Ilawod"
+            },
+            {
+                "code": "050504015",
+                "name": "Inamnan Grande"
+            },
+            {
+                "code": "050504014",
+                "name": "Inamnan Pequeño"
+            },
+            {
+                "code": "050504016",
+                "name": "Inascan"
+            },
+            {
+                "code": "050504017",
+                "name": "Iraya"
+            },
+            {
+                "code": "050504018",
+                "name": "Lomacao"
+            },
+            {
+                "code": "050504021",
+                "name": "Maguiron"
+            },
+            {
+                "code": "050504022",
+                "name": "Maipon"
+            },
+            {
+                "code": "050504023",
+                "name": "Malabnig"
+            },
+            {
+                "code": "050504024",
+                "name": "Malipo"
+            },
+            {
+                "code": "050504025",
+                "name": "Malobago"
+            },
+            {
+                "code": "050504026",
+                "name": "Maninila"
+            },
+            {
+                "code": "050504027",
+                "name": "Mapaco"
+            },
+            {
+                "code": "050504008",
+                "name": "Marcial O. Rañola"
+            },
+            {
+                "code": "050504029",
+                "name": "Masarawag"
+            },
+            {
+                "code": "050504030",
+                "name": "Mauraro"
+            },
+            {
+                "code": "050504031",
+                "name": "Minto"
+            },
+            {
+                "code": "050504032",
+                "name": "Morera"
+            },
+            {
+                "code": "050504034",
+                "name": "Muladbucad Grande"
+            },
+            {
+                "code": "050504033",
+                "name": "Muladbucad Pequeño"
+            },
+            {
+                "code": "050504035",
+                "name": "Ongo"
+            },
+            {
+                "code": "050504036",
+                "name": "Palanas"
+            },
+            {
+                "code": "050504038",
+                "name": "Poblacion"
+            },
+            {
+                "code": "050504040",
+                "name": "Pood"
+            },
+            {
+                "code": "050504042",
+                "name": "Quibongbongan"
+            },
+            {
+                "code": "050504041",
+                "name": "Quitago"
+            },
+            {
+                "code": "050504043",
+                "name": "San Francisco"
+            },
+            {
+                "code": "050504044",
+                "name": "San Jose"
+            },
+            {
+                "code": "050504045",
+                "name": "San Rafael"
+            },
+            {
+                "code": "050504046",
+                "name": "Sinungtan"
+            },
+            {
+                "code": "050504047",
+                "name": "Tandarora"
+            },
+            {
+                "code": "050504048",
+                "name": "Travesia"
+            }
+        ],
+        "050505000": [
+            {
+                "code": "050505025",
+                "name": "Aurora Pob."
+            },
+            {
+                "code": "050505003",
+                "name": "Bagacay"
+            },
+            {
+                "code": "050505011",
+                "name": "Bautista"
+            },
+            {
+                "code": "050505012",
+                "name": "Cabraran"
+            },
+            {
+                "code": "050505008",
+                "name": "Calzada Pob."
+            },
+            {
+                "code": "050505013",
+                "name": "Del Rosario"
+            },
+            {
+                "code": "050505014",
+                "name": "Estrella"
+            },
+            {
+                "code": "050505015",
+                "name": "Florista"
+            },
+            {
+                "code": "050505005",
+                "name": "Mabini Pob."
+            },
+            {
+                "code": "050505007",
+                "name": "Magsaysay Pob"
+            },
+            {
+                "code": "050505016",
+                "name": "Mamlad"
+            },
+            {
+                "code": "050505017",
+                "name": "Maogog"
+            },
+            {
+                "code": "050505018",
+                "name": "Mercado Pob."
+            },
+            {
+                "code": "050505006",
+                "name": "Plaza Pob."
+            },
+            {
+                "code": "050505009",
+                "name": "Quitinday Pob."
+            },
+            {
+                "code": "050505004",
+                "name": "Rizal Pob."
+            },
+            {
+                "code": "050505019",
+                "name": "Salvacion"
+            },
+            {
+                "code": "050505020",
+                "name": "San Isidro"
+            },
+            {
+                "code": "050505021",
+                "name": "San Roque"
+            },
+            {
+                "code": "050505022",
+                "name": "San Vicente"
+            },
+            {
+                "code": "050505023",
+                "name": "Sinagaran"
+            },
+            {
+                "code": "050505024",
+                "name": "Villa Paz"
+            },
+            {
+                "code": "050505010",
+                "name": "White Deer Pob."
+            }
+        ],
+        "050507000": [
+            {
+                "code": "050507001",
+                "name": "Alongong"
+            },
+            {
+                "code": "050507002",
+                "name": "Apud"
+            },
+            {
+                "code": "050507003",
+                "name": "Bacolod"
+            },
+            {
+                "code": "050507011",
+                "name": "Bariw"
+            },
+            {
+                "code": "050507012",
+                "name": "Bonbon"
+            },
+            {
+                "code": "050507013",
+                "name": "Buga"
+            },
+            {
+                "code": "050507014",
+                "name": "Bulusan"
+            },
+            {
+                "code": "050507015",
+                "name": "Burabod"
+            },
+            {
+                "code": "050507016",
+                "name": "Caguscos"
+            },
+            {
+                "code": "050507017",
+                "name": "East Carisac"
+            },
+            {
+                "code": "050507019",
+                "name": "Harigue"
+            },
+            {
+                "code": "050507020",
+                "name": "Libtong"
+            },
+            {
+                "code": "050507021",
+                "name": "Linao"
+            },
+            {
+                "code": "050507022",
+                "name": "Mabayawas"
+            },
+            {
+                "code": "050507023",
+                "name": "Macabugos"
+            },
+            {
+                "code": "050507024",
+                "name": "Magallang"
+            },
+            {
+                "code": "050507025",
+                "name": "Malabiga"
+            },
+            {
+                "code": "050507026",
+                "name": "Marayag"
+            },
+            {
+                "code": "050507027",
+                "name": "Matara"
+            },
+            {
+                "code": "050507028",
+                "name": "Molosbolos"
+            },
+            {
+                "code": "050507029",
+                "name": "Natasan"
+            },
+            {
+                "code": "050507045",
+                "name": "Niño Jesus"
+            },
+            {
+                "code": "050507030",
+                "name": "Nogpo"
+            },
+            {
+                "code": "050507031",
+                "name": "Pantao"
+            },
+            {
+                "code": "050507033",
+                "name": "Rawis"
+            },
+            {
+                "code": "050507034",
+                "name": "Sagrada Familia"
+            },
+            {
+                "code": "050507035",
+                "name": "Salvacion"
+            },
+            {
+                "code": "050507036",
+                "name": "Sampongan"
+            },
+            {
+                "code": "050507037",
+                "name": "San Agustin"
+            },
+            {
+                "code": "050507038",
+                "name": "San Antonio"
+            },
+            {
+                "code": "050507039",
+                "name": "San Isidro"
+            },
+            {
+                "code": "050507040",
+                "name": "San Jose"
+            },
+            {
+                "code": "050507041",
+                "name": "San Pascual"
+            },
+            {
+                "code": "050507042",
+                "name": "San Ramon"
+            },
+            {
+                "code": "050507043",
+                "name": "San Vicente"
+            },
+            {
+                "code": "050507044",
+                "name": "Santa Cruz"
+            },
+            {
+                "code": "050507046",
+                "name": "Talin-talin"
+            },
+            {
+                "code": "050507047",
+                "name": "Tambo"
+            },
+            {
+                "code": "050507049",
+                "name": "Villa Petrona"
+            },
+            {
+                "code": "050507018",
+                "name": "West Carisac"
+            },
+            {
+                "code": "050507004",
+                "name": "Zone I (Pob.)"
+            },
+            {
+                "code": "050507005",
+                "name": "Zone II (Pob.)"
+            },
+            {
+                "code": "050507006",
+                "name": "Zone III (Pob.)"
+            },
+            {
+                "code": "050507007",
+                "name": "Zone IV (Pob.)"
+            },
+            {
+                "code": "050507008",
+                "name": "Zone V (Pob.)"
+            },
+            {
+                "code": "050507009",
+                "name": "Zone VI (Pob.)"
+            },
+            {
+                "code": "050507010",
+                "name": "Zone VII (Pob.)"
+            }
+        ],
+        "050509000": [
+            {
+                "code": "050509004",
+                "name": "Barangay I (Pob.)"
+            },
+            {
+                "code": "050509005",
+                "name": "Barangay II (Pob.)"
+            },
+            {
+                "code": "050509006",
+                "name": "Barangay III (Pob.)"
+            },
+            {
+                "code": "050509007",
+                "name": "Barangay IV (Pob.)"
+            },
+            {
+                "code": "050509008",
+                "name": "Barangay V (Pob.)"
+            },
+            {
+                "code": "050509001",
+                "name": "Binitayan"
+            },
+            {
+                "code": "050509002",
+                "name": "Calbayog"
+            },
+            {
+                "code": "050509003",
+                "name": "Canaway"
+            },
+            {
+                "code": "050509009",
+                "name": "Salvacion"
+            },
+            {
+                "code": "050509010",
+                "name": "San Antonio Santicon (Pob.)"
+            },
+            {
+                "code": "050509011",
+                "name": "San Antonio Sulong"
+            },
+            {
+                "code": "050509012",
+                "name": "San Francisco"
+            },
+            {
+                "code": "050509013",
+                "name": "San Isidro Ilawod"
+            },
+            {
+                "code": "050509014",
+                "name": "San Isidro Iraya"
+            },
+            {
+                "code": "050509015",
+                "name": "San Jose"
+            },
+            {
+                "code": "050509016",
+                "name": "San Roque"
+            },
+            {
+                "code": "050509017",
+                "name": "Santa Cruz"
+            },
+            {
+                "code": "050509018",
+                "name": "Santa Teresa"
+            }
+        ],
+        "050510000": [
+            {
+                "code": "050510001",
+                "name": "Awang"
+            },
+            {
+                "code": "050510002",
+                "name": "Bagatangki"
+            },
+            {
+                "code": "050510022",
+                "name": "Bagumbayan"
+            },
+            {
+                "code": "050510003",
+                "name": "Balading"
+            },
+            {
+                "code": "050510004",
+                "name": "Balza"
+            },
+            {
+                "code": "050510005",
+                "name": "Bariw"
+            },
+            {
+                "code": "050510006",
+                "name": "Baybay"
+            },
+            {
+                "code": "050510007",
+                "name": "Bulang"
+            },
+            {
+                "code": "050510008",
+                "name": "Burabod"
+            },
+            {
+                "code": "050510009",
+                "name": "Cabunturan"
+            },
+            {
+                "code": "050510010",
+                "name": "Comun"
+            },
+            {
+                "code": "050510011",
+                "name": "Diaro"
+            },
+            {
+                "code": "050510012",
+                "name": "Estancia"
+            },
+            {
+                "code": "050510013",
+                "name": "Jonop"
+            },
+            {
+                "code": "050510014",
+                "name": "Labnig"
+            },
+            {
+                "code": "050510015",
+                "name": "Libod"
+            },
+            {
+                "code": "050510016",
+                "name": "Malolos"
+            },
+            {
+                "code": "050510017",
+                "name": "Matalipni"
+            },
+            {
+                "code": "050510018",
+                "name": "Ogob"
+            },
+            {
+                "code": "050510019",
+                "name": "Pawa"
+            },
+            {
+                "code": "050510020",
+                "name": "Payahan"
+            },
+            {
+                "code": "050510021",
+                "name": "Poblacion"
+            },
+            {
+                "code": "050510023",
+                "name": "Quinarabasahan"
+            },
+            {
+                "code": "050510024",
+                "name": "Santa Elena"
+            },
+            {
+                "code": "050510025",
+                "name": "Soa"
+            },
+            {
+                "code": "050510026",
+                "name": "Sugcad"
+            },
+            {
+                "code": "050510027",
+                "name": "Tagoytoy"
+            },
+            {
+                "code": "050510028",
+                "name": "Tanawan"
+            },
+            {
+                "code": "050510029",
+                "name": "Tuliw"
+            }
+        ],
+        "050511000": [
+            {
+                "code": "050511001",
+                "name": "Balabagon"
+            },
+            {
+                "code": "050511002",
+                "name": "Balasbas"
+            },
+            {
+                "code": "050511003",
+                "name": "Bamban"
+            },
+            {
+                "code": "050511004",
+                "name": "Buyo"
+            },
+            {
+                "code": "050511005",
+                "name": "Cabacongan"
+            },
+            {
+                "code": "050511006",
+                "name": "Cabit"
+            },
+            {
+                "code": "050511007",
+                "name": "Cawayan"
+            },
+            {
+                "code": "050511008",
+                "name": "Cawit"
+            },
+            {
+                "code": "050511009",
+                "name": "Holugan"
+            },
+            {
+                "code": "050511010",
+                "name": "It-Ba (Pob.)"
+            },
+            {
+                "code": "050511011",
+                "name": "Malobago"
+            },
+            {
+                "code": "050511012",
+                "name": "Manumbalay"
+            },
+            {
+                "code": "050511013",
+                "name": "Nagotgot"
+            },
+            {
+                "code": "050511015",
+                "name": "Pawa"
+            },
+            {
+                "code": "050511018",
+                "name": "Tinapian"
+            }
+        ],
+        "050512000": [
+            {
+                "code": "050512001",
+                "name": "Badbad"
+            },
+            {
+                "code": "050512002",
+                "name": "Badian"
+            },
+            {
+                "code": "050512003",
+                "name": "Bagsa"
+            },
+            {
+                "code": "050512004",
+                "name": "Bagumbayan"
+            },
+            {
+                "code": "050512005",
+                "name": "Balogo"
+            },
+            {
+                "code": "050512008",
+                "name": "Banao"
+            },
+            {
+                "code": "050512009",
+                "name": "Bangiawon"
+            },
+            {
+                "code": "050512011",
+                "name": "Bogtong"
+            },
+            {
+                "code": "050512010",
+                "name": "Bongoran"
+            },
+            {
+                "code": "050512012",
+                "name": "Busac"
+            },
+            {
+                "code": "050512013",
+                "name": "Cadawag"
+            },
+            {
+                "code": "050512014",
+                "name": "Cagmanaba"
+            },
+            {
+                "code": "050512015",
+                "name": "Calaguimit"
+            },
+            {
+                "code": "050512016",
+                "name": "Calpi"
+            },
+            {
+                "code": "050512017",
+                "name": "Calzada"
+            },
+            {
+                "code": "050512018",
+                "name": "Camagong"
+            },
+            {
+                "code": "050512019",
+                "name": "Casinagan"
+            },
+            {
+                "code": "050512020",
+                "name": "Centro Poblacion"
+            },
+            {
+                "code": "050512021",
+                "name": "Coliat"
+            },
+            {
+                "code": "050512022",
+                "name": "Del Rosario"
+            },
+            {
+                "code": "050512023",
+                "name": "Gumabao"
+            },
+            {
+                "code": "050512024",
+                "name": "Ilaor Norte"
+            },
+            {
+                "code": "050512025",
+                "name": "Ilaor Sur"
+            },
+            {
+                "code": "050512026",
+                "name": "Iraya Norte"
+            },
+            {
+                "code": "050512027",
+                "name": "Iraya Sur"
+            },
+            {
+                "code": "050512028",
+                "name": "Manga"
+            },
+            {
+                "code": "050512029",
+                "name": "Maporong"
+            },
+            {
+                "code": "050512030",
+                "name": "Maramba"
+            },
+            {
+                "code": "050512032",
+                "name": "Matambo"
+            },
+            {
+                "code": "050512033",
+                "name": "Mayag"
+            },
+            {
+                "code": "050512034",
+                "name": "Mayao"
+            },
+            {
+                "code": "050512031",
+                "name": "Moroponros"
+            },
+            {
+                "code": "050512035",
+                "name": "Nagas"
+            },
+            {
+                "code": "050512037",
+                "name": "Obaliw-Rinas"
+            },
+            {
+                "code": "050512038",
+                "name": "Pistola"
+            },
+            {
+                "code": "050512039",
+                "name": "Ramay"
+            },
+            {
+                "code": "050512040",
+                "name": "Rizal"
+            },
+            {
+                "code": "050512041",
+                "name": "Saban"
+            },
+            {
+                "code": "050512042",
+                "name": "San Agustin"
+            },
+            {
+                "code": "050512043",
+                "name": "San Antonio"
+            },
+            {
+                "code": "050512044",
+                "name": "San Isidro"
+            },
+            {
+                "code": "050512045",
+                "name": "San Jose"
+            },
+            {
+                "code": "050512046",
+                "name": "San Juan"
+            },
+            {
+                "code": "050512047",
+                "name": "San Miguel"
+            },
+            {
+                "code": "050512036",
+                "name": "San Pascual"
+            },
+            {
+                "code": "050512049",
+                "name": "San Ramon"
+            },
+            {
+                "code": "050512050",
+                "name": "San Vicente"
+            },
+            {
+                "code": "050512056",
+                "name": "Tablon"
+            },
+            {
+                "code": "050512051",
+                "name": "Talisay"
+            },
+            {
+                "code": "050512052",
+                "name": "Talongog"
+            },
+            {
+                "code": "050512053",
+                "name": "Tapel"
+            },
+            {
+                "code": "050512054",
+                "name": "Tobgon"
+            },
+            {
+                "code": "050512055",
+                "name": "Tobog"
+            }
+        ],
+        "050513000": [
+            {
+                "code": "050513001",
+                "name": "Agol"
+            },
+            {
+                "code": "050513002",
+                "name": "Alabangpuro"
+            },
+            {
+                "code": "050513005",
+                "name": "Banawan"
+            },
+            {
+                "code": "050513023",
+                "name": "Barangay I (Pob.)"
+            },
+            {
+                "code": "050513024",
+                "name": "Barangay II (Pob.)"
+            },
+            {
+                "code": "050513025",
+                "name": "Barangay III (Pob.)"
+            },
+            {
+                "code": "050513026",
+                "name": "Barangay IV (Pob.)"
+            },
+            {
+                "code": "050513027",
+                "name": "Barangay V (Pob.)"
+            },
+            {
+                "code": "050513003",
+                "name": "Basicao Coastal"
+            },
+            {
+                "code": "050513004",
+                "name": "Basicao Interior"
+            },
+            {
+                "code": "050513006",
+                "name": "Binodegahan"
+            },
+            {
+                "code": "050513007",
+                "name": "Buenavista"
+            },
+            {
+                "code": "050513008",
+                "name": "Buyo"
+            },
+            {
+                "code": "050513009",
+                "name": "Caratagan"
+            },
+            {
+                "code": "050513010",
+                "name": "Cuyaoyao"
+            },
+            {
+                "code": "050513011",
+                "name": "Flores"
+            },
+            {
+                "code": "050513033",
+                "name": "La Medalla"
+            },
+            {
+                "code": "050513012",
+                "name": "Lawinon"
+            },
+            {
+                "code": "050513013",
+                "name": "Macasitas"
+            },
+            {
+                "code": "050513014",
+                "name": "Malapay"
+            },
+            {
+                "code": "050513015",
+                "name": "Malidong"
+            },
+            {
+                "code": "050513016",
+                "name": "Mamlad"
+            },
+            {
+                "code": "050513017",
+                "name": "Marigondon"
+            },
+            {
+                "code": "050513018",
+                "name": "Matanglad"
+            },
+            {
+                "code": "050513019",
+                "name": "Nablangbulod"
+            },
+            {
+                "code": "050513020",
+                "name": "Oringon"
+            },
+            {
+                "code": "050513021",
+                "name": "Palapas"
+            },
+            {
+                "code": "050513022",
+                "name": "Panganiran"
+            },
+            {
+                "code": "050513028",
+                "name": "Rawis"
+            },
+            {
+                "code": "050513029",
+                "name": "Salvacion"
+            },
+            {
+                "code": "050513030",
+                "name": "Santo Cristo"
+            },
+            {
+                "code": "050513031",
+                "name": "Sukip"
+            },
+            {
+                "code": "050513032",
+                "name": "Tibabo"
+            }
+        ],
+        "050514000": [
+            {
+                "code": "050514001",
+                "name": "Agos"
+            },
+            {
+                "code": "050514002",
+                "name": "Alnay"
+            },
+            {
+                "code": "050514003",
+                "name": "Alomon"
+            },
+            {
+                "code": "050514004",
+                "name": "Amoguis"
+            },
+            {
+                "code": "050514005",
+                "name": "Anopol"
+            },
+            {
+                "code": "050514006",
+                "name": "Apad"
+            },
+            {
+                "code": "050514007",
+                "name": "Balaba"
+            },
+            {
+                "code": "050514008",
+                "name": "Balangibang"
+            },
+            {
+                "code": "050514009",
+                "name": "Balinad"
+            },
+            {
+                "code": "050514010",
+                "name": "Basud"
+            },
+            {
+                "code": "050514011",
+                "name": "Binagbangan"
+            },
+            {
+                "code": "050514012",
+                "name": "Buyo"
+            },
+            {
+                "code": "050514013",
+                "name": "Centro Occidental (Pob.)"
+            },
+            {
+                "code": "050514014",
+                "name": "Centro Oriental (Pob.)"
+            },
+            {
+                "code": "050514015",
+                "name": "Cepres"
+            },
+            {
+                "code": "050514016",
+                "name": "Cotmon"
+            },
+            {
+                "code": "050514017",
+                "name": "Cotnogan"
+            },
+            {
+                "code": "050514018",
+                "name": "Danao"
+            },
+            {
+                "code": "050514019",
+                "name": "Gabon"
+            },
+            {
+                "code": "050514020",
+                "name": "Gamot"
+            },
+            {
+                "code": "050514022",
+                "name": "Itaran"
+            },
+            {
+                "code": "050514023",
+                "name": "Kinale"
+            },
+            {
+                "code": "050514024",
+                "name": "Kinuartilan"
+            },
+            {
+                "code": "050514025",
+                "name": "La Medalla"
+            },
+            {
+                "code": "050514026",
+                "name": "La Purisima"
+            },
+            {
+                "code": "050514027",
+                "name": "Lanigay"
+            },
+            {
+                "code": "050514028",
+                "name": "Lidong"
+            },
+            {
+                "code": "050514029",
+                "name": "Lourdes"
+            },
+            {
+                "code": "050514030",
+                "name": "Magpanambo"
+            },
+            {
+                "code": "050514031",
+                "name": "Magurang"
+            },
+            {
+                "code": "050514032",
+                "name": "Matacon"
+            },
+            {
+                "code": "050514033",
+                "name": "Maynaga"
+            },
+            {
+                "code": "050514034",
+                "name": "Maysua"
+            },
+            {
+                "code": "050514035",
+                "name": "Mendez"
+            },
+            {
+                "code": "050514036",
+                "name": "Napo"
+            },
+            {
+                "code": "050514037",
+                "name": "Pinagdapugan"
+            },
+            {
+                "code": "050514039",
+                "name": "Ponso"
+            },
+            {
+                "code": "050514040",
+                "name": "Salvacion"
+            },
+            {
+                "code": "050514041",
+                "name": "San Roque"
+            },
+            {
+                "code": "050514043",
+                "name": "Santa Cruz"
+            },
+            {
+                "code": "050514044",
+                "name": "Santa Teresita"
+            },
+            {
+                "code": "050514042",
+                "name": "Santicon"
+            },
+            {
+                "code": "050514045",
+                "name": "Sugcad"
+            },
+            {
+                "code": "050514046",
+                "name": "Ubaliw"
+            }
+        ],
+        "050515000": [
+            {
+                "code": "050515003",
+                "name": "Bagaobawan"
+            },
+            {
+                "code": "050515004",
+                "name": "Batan"
+            },
+            {
+                "code": "050515005",
+                "name": "Bilbao"
+            },
+            {
+                "code": "050515006",
+                "name": "Binosawan"
+            },
+            {
+                "code": "050515007",
+                "name": "Bogtong"
+            },
+            {
+                "code": "050515008",
+                "name": "Buenavista"
+            },
+            {
+                "code": "050515009",
+                "name": "Buhatan"
+            },
+            {
+                "code": "050515010",
+                "name": "Calanaga"
+            },
+            {
+                "code": "050515011",
+                "name": "Caracaran"
+            },
+            {
+                "code": "050515012",
+                "name": "Carogcog"
+            },
+            {
+                "code": "050515013",
+                "name": "Dap-dap"
+            },
+            {
+                "code": "050515014",
+                "name": "Gaba"
+            },
+            {
+                "code": "050515015",
+                "name": "Galicia"
+            },
+            {
+                "code": "050515016",
+                "name": "Guadalupe"
+            },
+            {
+                "code": "050515017",
+                "name": "Hamorawon"
+            },
+            {
+                "code": "050515018",
+                "name": "Lagundi"
+            },
+            {
+                "code": "050515019",
+                "name": "Liguan"
+            },
+            {
+                "code": "050515020",
+                "name": "Linao"
+            },
+            {
+                "code": "050515021",
+                "name": "Malobago"
+            },
+            {
+                "code": "050515022",
+                "name": "Mananao"
+            },
+            {
+                "code": "050515023",
+                "name": "Mancao"
+            },
+            {
+                "code": "050515024",
+                "name": "Manila"
+            },
+            {
+                "code": "050515025",
+                "name": "Masaga"
+            },
+            {
+                "code": "050515026",
+                "name": "Morocborocan"
+            },
+            {
+                "code": "050515027",
+                "name": "Nagcalsot"
+            },
+            {
+                "code": "050515028",
+                "name": "Pagcolbon"
+            },
+            {
+                "code": "050515029",
+                "name": "Poblacion"
+            },
+            {
+                "code": "050515030",
+                "name": "Sagrada"
+            },
+            {
+                "code": "050515031",
+                "name": "San Ramon"
+            },
+            {
+                "code": "050515032",
+                "name": "Santa Barbara"
+            },
+            {
+                "code": "050515033",
+                "name": "Tinocawan"
+            },
+            {
+                "code": "050515034",
+                "name": "Tinopan"
+            },
+            {
+                "code": "050515035",
+                "name": "Viga"
+            },
+            {
+                "code": "050515036",
+                "name": "Villahermosa"
+            }
+        ],
+        "050516000": [
+            {
+                "code": "050516001",
+                "name": "Alimsog"
+            },
+            {
+                "code": "050516006",
+                "name": "Bagong San Roque"
+            },
+            {
+                "code": "050516002",
+                "name": "Buhatan"
+            },
+            {
+                "code": "050516003",
+                "name": "Calayucay"
+            },
+            {
+                "code": "050516013",
+                "name": "Del Rosario Pob."
+            },
+            {
+                "code": "050516004",
+                "name": "Fidel Surtida"
+            },
+            {
+                "code": "050516005",
+                "name": "Lidong"
+            },
+            {
+                "code": "050516025",
+                "name": "Market Site Pob."
+            },
+            {
+                "code": "050516017",
+                "name": "Nagsiya Pob."
+            },
+            {
+                "code": "050516026",
+                "name": "Pandayan Pob."
+            },
+            {
+                "code": "050516018",
+                "name": "Salvacion"
+            },
+            {
+                "code": "050516019",
+                "name": "San Andres"
+            },
+            {
+                "code": "050516020",
+                "name": "San Fernando"
+            },
+            {
+                "code": "050516015",
+                "name": "San Francisco Pob."
+            },
+            {
+                "code": "050516021",
+                "name": "San Isidro"
+            },
+            {
+                "code": "050516008",
+                "name": "San Juan Pob."
+            },
+            {
+                "code": "050516010",
+                "name": "San Pedro Pob."
+            },
+            {
+                "code": "050516012",
+                "name": "San Rafael Pob."
+            },
+            {
+                "code": "050516022",
+                "name": "San Roque"
+            },
+            {
+                "code": "050516011",
+                "name": "San Vicente Pob."
+            },
+            {
+                "code": "050516023",
+                "name": "Santa Misericordia"
+            },
+            {
+                "code": "050516009",
+                "name": "Santo Domingo Pob."
+            },
+            {
+                "code": "050516024",
+                "name": "Santo Niño"
+            }
+        ],
+        "050518000": [
+            {
+                "code": "050518001",
+                "name": "Bagumbayan"
+            },
+            {
+                "code": "050518002",
+                "name": "Bariis"
+            },
+            {
+                "code": "050518003",
+                "name": "Baybay"
+            },
+            {
+                "code": "050518004",
+                "name": "Belen"
+            },
+            {
+                "code": "050518005",
+                "name": "Biyong"
+            },
+            {
+                "code": "050518006",
+                "name": "Bolo"
+            },
+            {
+                "code": "050518007",
+                "name": "Cale"
+            },
+            {
+                "code": "050518008",
+                "name": "Cararayan"
+            },
+            {
+                "code": "050518009",
+                "name": "Coro-coro"
+            },
+            {
+                "code": "050518010",
+                "name": "Dap-dap"
+            },
+            {
+                "code": "050518011",
+                "name": "Gajo"
+            },
+            {
+                "code": "050518012",
+                "name": "Joroan"
+            },
+            {
+                "code": "050518013",
+                "name": "Libjo"
+            },
+            {
+                "code": "050518014",
+                "name": "Libtong"
+            },
+            {
+                "code": "050518017",
+                "name": "Matalibong"
+            },
+            {
+                "code": "050518018",
+                "name": "Maynonong"
+            },
+            {
+                "code": "050518019",
+                "name": "Mayong"
+            },
+            {
+                "code": "050518020",
+                "name": "Misibis"
+            },
+            {
+                "code": "050518021",
+                "name": "Naga"
+            },
+            {
+                "code": "050518023",
+                "name": "Nagas"
+            },
+            {
+                "code": "050518024",
+                "name": "Oyama"
+            },
+            {
+                "code": "050518025",
+                "name": "Putsan"
+            },
+            {
+                "code": "050518026",
+                "name": "San Bernardo"
+            },
+            {
+                "code": "050518027",
+                "name": "Sogod"
+            },
+            {
+                "code": "050518028",
+                "name": "Tigbi (Pob.)"
+            }
+        ]
+    }
+}

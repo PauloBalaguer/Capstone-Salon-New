@@ -81,6 +81,7 @@ function customerHomeServiceMixin() {
     },
 
     openHomeServiceModal() {
+      AddressForms.defaultService();
       this.homeServiceForm.preferredDate = getLocalISODate();
       this.isHomeServiceSuccess = false;
       this.isHomeServiceModalOpen = true;
@@ -91,6 +92,8 @@ function customerHomeServiceMixin() {
     },
 
     submitHomeServiceRequest() {
+      const formData = new FormData();
+      if (!AddressForms.prepare('service-address', formData)) return;
       if (!BookingFormValidation.fields([
         ['[x-model="homeServiceForm.address"]', 'address'],
         ['[x-model="homeServiceForm.clients"]', 'quantity'],
@@ -112,7 +115,6 @@ function customerHomeServiceMixin() {
       if (!Number.isFinite(new Date(this.homeServiceForm.preferredDate + 'T' + this.homeServiceForm.preferredTime + ':00+08:00').getTime()) || new Date(this.homeServiceForm.preferredDate + 'T' + this.homeServiceForm.preferredTime + ':00+08:00').getTime() <= Date.now()) return this.pushToast('error', 'Please choose a future date and time.');
       this.isSubmittingHomeService = true;
 
-      const formData = new FormData();
       formData.append('address', this.homeServiceForm.address);
       formData.append('eventType', eventType);
       formData.append('preferredDate', this.homeServiceForm.preferredDate);
@@ -132,6 +134,7 @@ function customerHomeServiceMixin() {
           this.isSubmittingHomeService = false;
 
           if (!body.success) {
+            AddressForms.errors('service-address', body.errors);
             this.pushToast('error', body.message || 'Could not submit your home service request.');
             return;
           }

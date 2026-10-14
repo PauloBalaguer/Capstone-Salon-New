@@ -53,6 +53,7 @@ function customerApp() {
             }
 
             this.customerProfile = body.profile;
+            if (window.AddressForms) AddressForms.setSaved(body.profile);
             this.loadServerNotifications(body.notifications);
             this.appointments = body.appointments;
             this.allBookings = body.allBookings;

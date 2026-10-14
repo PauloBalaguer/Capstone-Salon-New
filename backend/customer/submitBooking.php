@@ -14,6 +14,7 @@ require_once '../config/session.php';
 require_once '../config/database.php';
 require_once '../config/AuditLog.php';
 require_once '../config/Scheduling.php';
+require_once '../config/ServiceDuration.php';
 require_once '../config/ReservationPayment.php';
 require_once '../config/CustomerNotifier.php';
 require_once '../config/PayMongo.php';
@@ -324,6 +325,8 @@ try {
             'status' => 'Pending',
             'paymentStatus' => $paymentStatus,
             'reminderSent' => false,
+            'durationMinutes' => $durationMinutes,
+            'endTime' => ServiceDuration::end($appointmentDateTime, $durationMinutes)->format('g:i A'),
         ],
         'loyaltyPoints' => (int) $customer['loyalty_points'] - $pointsUsed,
     ]);

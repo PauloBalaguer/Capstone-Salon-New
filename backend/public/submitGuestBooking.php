@@ -15,6 +15,7 @@ require_once '../config/database.php';
 require_once '../config/AuditLog.php';
 require_once '../config/RateLimiter.php';
 require_once '../config/Scheduling.php';
+require_once '../config/ServiceDuration.php';
 require_once '../config/ReservationPayment.php';
 require_once '../config/PayMongo.php';
 require_once '../config/url.php';
@@ -353,6 +354,8 @@ try {
         'reference' => $referenceCode,
         'payment' => $quote,
         'checkoutUrl' => $checkoutUrl,
+        'durationMinutes' => $durationMinutes,
+        'endTime' => ServiceDuration::end($appointmentDateTime, $durationMinutes)->format('g:i A'),
     ]);
 } catch (PDOException | InvalidArgumentException | RuntimeException $e) {
     if (isset($pdo) && $pdo->inTransaction()) {

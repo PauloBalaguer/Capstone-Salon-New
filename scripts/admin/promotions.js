@@ -87,6 +87,10 @@ function adminPromotionsApp() {
     },
 
     async saveService() {
+      if (!Number.isInteger(Number(this.serviceForm.durationMinutes)) || Number(this.serviceForm.durationMinutes) <= 0 || Number(this.serviceForm.durationMinutes) > 2147483647) {
+        alert('Estimated duration must be a positive whole number of minutes.');
+        return;
+      }
       const store = Alpine.store('admin');
       this.savingService = true;
       const result = await store.post('saveService.php', {

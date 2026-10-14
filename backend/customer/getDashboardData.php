@@ -14,6 +14,7 @@ require_once '../config/session.php';
 require_once '../config/database.php';
 require_once '../config/LoyaltyTier.php';
 require_once '../config/HomeServiceRequest.php';
+require_once '../config/ServiceDuration.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -30,7 +31,7 @@ try {
 
     $stmt = $pdo->prepare('
         SELECT c.id AS customer_id, c.first_name, c.last_name, c.phone_number,
-               c.loyalty_points, c.notify_email, c.notify_sms, c.profile_picture, c.created_at,
+               c.loyalty_points, c.notify_email, c.notify_sms, c.profile_picture, c.created_at, c.address, c.structured_address,
                u.email
         FROM customers c
         JOIN users u ON u.id = c.user_id
@@ -49,6 +50,8 @@ try {
     $customerId = (int) $customer['customer_id'];
 
     $profile = [
+        'address' => $customer['address'],
+        'structuredAddress' => json_decode($customer['structured_address'] ?? 'null', true),
         'name' => trim($customer['first_name'] . ' ' . $customer['last_name']),
         'email' => $customer['email'],
         'phone' => $customer['phone_number'],
@@ -101,6 +104,7 @@ try {
         $row['depositVerified'] = (bool) $row['depositVerified'];
         $row['reminderSent'] = (bool) $row['reminderSent'];
         $row['durationMinutes'] = (int) $row['durationMinutes'];
+        $row['endTime'] = ServiceDuration::end($row['date'] . ' ' . $row['time'], $row['durationMinutes'])->format('g:i A');
         return $row;
     }, $stmt->fetchAll());
 
@@ -223,6 +227,7 @@ try {
         $row['id'] = (string) $row['id'];
         $row['price'] = (float) $row['price'];
         $row['durationMinutes'] = (int) $row['durationMinutes'];
+        $row['duration'] = ServiceDuration::format($row['durationMinutes']);
         $services[$branchKey][] = $row;
     }
 

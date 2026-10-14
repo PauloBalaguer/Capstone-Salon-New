@@ -214,6 +214,7 @@
   closeBooking?.addEventListener('click', closeBookingModal);
 
   function bookService(name, price, branch, lockNote) {
+    closeServicesPopup();
     openBookingModal();
     const banner = document.getElementById('bookingService');
     if (name) {
@@ -574,6 +575,7 @@
   ['daraga', 'yashano', 'cabangan'].forEach(b => SERVICE_DATA[b].menus.push(GROUP_WIDE_MENU));
 
   const SERVICE_GROUPS = [
+    { k:'all', label:'All' },
     { k:'deals', label:'Deals' },
     { k:'hair', label:'Hair' },
     { k:'nails', label:'Nails' },
@@ -584,6 +586,31 @@
   let currentSvcBranch = 'daraga';
   let activeSvcGroup = 'all';
   let svcAllOpen = true;
+  const SVC_PAGE_SIZE = 8;
+  let currentSvcPage = 1;
+  const svcDurationCatalog = {};
+
+  function loadServiceMenuDurations(branch, refresh = false) {
+    if (svcDurationCatalog[branch]?.loading || (!refresh && svcDurationCatalog[branch])) return;
+    svcDurationCatalog[branch] = { loading: true, services: [] };
+    fetch('backend/public/getBranchServices.php?branch=' + encodeURIComponent(BRANCH_ID_BY_KEY[branch]))
+      .then(response => response.json().then(body => {
+        if (!response.ok || !body.success || !Array.isArray(body.services)) throw new Error('Could not load durations.');
+        svcDurationCatalog[branch] = { loading: false, services: body.services };
+      }))
+      .catch(() => { svcDurationCatalog[branch] = { loading: false, services: [] }; })
+      .finally(() => { if (currentSvcBranch === branch) renderServices(); });
+  }
+
+  function serviceMenuDuration(branch, menu, category, name, price) {
+    const catalog = svcDurationCatalog[branch];
+    if (!catalog || catalog.loading) return 'Loading…';
+    const matches = catalog.services.filter(service => service.name === name && Number(service.price) === Number(String(price).replace(/,/g, '')));
+    const exact = matches.filter(service => service.category === menu + ' / ' + category);
+    const candidates = exact.length ? exact : matches;
+    const minutes = [...new Set(candidates.map(service => Number(service.durationMinutes)).filter(value => Number.isInteger(value) && value > 0))];
+    return minutes.length === 1 ? ServiceDuration.format(minutes[0]) : 'On request';
+  }
 
   function renderServices() {
     const svcMenus = document.getElementById('svcMenus');
@@ -601,6 +628,8 @@
     // Tell the customer which branch the prices below belong to
     const svcBranchNow = document.getElementById('svcBranchNow');
     if (svcBranchNow) svcBranchNow.textContent = branchLabel;
+    const svcPopupBranch = document.getElementById('svcPopupBranch');
+    if (svcPopupBranch) svcPopupBranch.textContent = branchLabel;
     const svcPromoBranch = document.getElementById('svcPromoBranch');
     if (svcPromoBranch) svcPromoBranch.textContent = branchLabel;
 
@@ -619,23 +648,37 @@
     const q = (document.getElementById('svcFilter')?.value || '').trim().toLowerCase();
     document.getElementById('svcFilterClear')?.classList.toggle('hidden', !q);
 
+    // Filter first, then paginate across categories (not eight per accordion).
+    const filtered = [];
+    bData.menus.forEach(m => m.cats.forEach(c => {
+      if (activeSvcGroup !== 'all' && c.g !== activeSvcGroup) return;
+      c.items.forEach(item => {
+        if (!q || item[0].toLowerCase().includes(q)) filtered.push({ category: c, item });
+      });
+    }));
+    const shown = filtered.length;
+    const pageCount = Math.max(1, Math.ceil(shown / SVC_PAGE_SIZE));
+    currentSvcPage = Math.min(Math.max(1, currentSvcPage), pageCount);
+    const offset = (currentSvcPage - 1) * SVC_PAGE_SIZE;
+    const pageItems = filtered.slice(offset, offset + SVC_PAGE_SIZE);
     let html = '';
-    let shown = 0;
 
     bData.menus.forEach(m => {
       m.cats.forEach(c => {
-        if (activeSvcGroup !== 'all' && c.g !== activeSvcGroup) return;
-        const items = q ? c.items.filter(i => i[0].toLowerCase().includes(q)) : c.items;
+        const items = pageItems.filter(entry => entry.category === c).map(entry => entry.item);
         if (!items.length) return;
-        shown += items.length;
 
         const rows = items.map(i => {
           const name = i[0], price = i[1], tag = i[2];
           return `
             <button type="button" class="svc-row w-full flex items-center py-2.5 text-left border-b border-bronze/10 last:border-0"
                     data-svc="${escAttr(name)}" data-price="${escAttr(price)}">
-              <span class="text-xs font-semibold text-ink">${name}</span>
-              ${tag ? `<span class="ml-2 text-[9px] font-bold uppercase tracking-widest text-copper-dark bg-copper/15 rounded-full px-2 py-0.5 shrink-0">${tag}</span>` : ''}
+              <span class="min-w-0">
+                <span class="flex flex-wrap items-center gap-2"><span class="text-xs font-semibold text-ink">${name}</span>
+                  ${tag ? `<span class="text-[9px] font-bold uppercase tracking-widest text-copper-dark bg-copper/15 rounded-full px-2 py-0.5">${tag}</span>` : ''}
+                </span>
+                <span class="block text-xs text-ink/60 mt-1">Estimated Duration: ${escAttr(serviceMenuDuration(currentSvcBranch, m.title, c.name, name, price))}</span>
+              </span>
               <span class="svc-lead"></span>
               <span class="svc-book mr-2">Book</span>
               <span class="text-xs font-bold text-ink whitespace-nowrap">₱${price}</span>
@@ -660,11 +703,32 @@
 
     svcMenus.innerHTML = html;
     if (svcEmpty) svcEmpty.classList.toggle('hidden', shown > 0);
-    if (svcCount) svcCount.textContent = shown
-      ? `${shown} service${shown > 1 ? 's' : ''} · ${branchLabel}`
-      : '';
+    const categoryLabel = activeSvcGroup === 'all' ? '' : SERVICE_GROUPS.find(g => g.k === activeSvcGroup)?.label + ' ';
+    if (svcCount) svcCount.textContent = `Showing ${shown ? offset + 1 : 0}–${Math.min(offset + SVC_PAGE_SIZE, shown)} of ${shown} ${categoryLabel}service${shown === 1 ? '' : 's'}`;
+    renderServicePagination(pageCount);
     const expandBtn = document.getElementById('svcExpandAll');
     if (expandBtn) expandBtn.textContent = svcAllOpen ? 'Close all' : 'Open all';
+  }
+
+  function renderServicePagination(pageCount) {
+    const pagination = document.getElementById('svcPagination');
+    if (!pagination) return;
+    pagination.classList.toggle('hidden', pageCount <= 1);
+    if (pageCount <= 1) { pagination.innerHTML = ''; return; }
+    const button = (page, label, disabled = false, active = false) =>
+      `<button type="button" data-svc-page="${page}" ${disabled ? 'disabled' : ''} ${active ? 'aria-current="page"' : ''}
+        aria-label="${label === 'Previous' || label === 'Next' ? label + ' page' : 'Page ' + page}"
+        class="min-w-[40px] min-h-[40px] px-3 py-2 rounded-xl border text-xs font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-plum disabled:opacity-40 disabled:cursor-not-allowed ${active ? 'bg-plum text-white border-plum' : 'bg-panel text-plum border-bronze/40 hover:border-plum'}">${label}</button>`;
+    const pages = [];
+    for (let page = 1; page <= pageCount; page++) {
+      if (page === 1 || page === pageCount || Math.abs(page - currentSvcPage) <= 1 || (currentSvcPage <= 2 && page <= 3) || (currentSvcPage >= pageCount - 1 && page >= pageCount - 2)) pages.push(page);
+    }
+    let html = button(currentSvcPage - 1, 'Previous', currentSvcPage === 1);
+    pages.forEach((page, index) => {
+      if (index && page - pages[index - 1] > 1) html += '<span class="px-1 text-ink/40" aria-hidden="true">…</span>';
+      html += button(page, String(page), false, page === currentSvcPage);
+    });
+    pagination.innerHTML = html + button(currentSvcPage + 1, 'Next', currentSvcPage === pageCount);
   }
 
   /* Services menu interactions — delegated so they survive re-renders. */
@@ -683,11 +747,13 @@
     let t = null;
     filter?.addEventListener('input', () => {
       clearTimeout(t);
+      currentSvcPage = 1;
       t = setTimeout(renderServices, 140);
     });
 
     document.getElementById('svcFilterClear')?.addEventListener('click', () => {
       filter.value = '';
+      currentSvcPage = 1;
       renderServices();
       filter.focus();
     });
@@ -696,11 +762,20 @@
       svcAllOpen = !svcAllOpen;
       renderServices();
     });
+    document.getElementById('svcPagination')?.addEventListener('click', e => {
+      const button = e.target.closest('[data-svc-page]');
+      if (!button || button.disabled) return;
+      currentSvcPage = Number(button.dataset.svcPage);
+      renderServices();
+      svcMenus.focus({ preventScroll: true });
+      svcMenus.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    });
   })();
 
   function setSvcGroup(g) {
     // Tapping the active category again clears the filter and shows every service.
     activeSvcGroup = (activeSvcGroup === g) ? 'all' : g;
+    currentSvcPage = 1;
     renderServices();
   }
 
@@ -710,9 +785,39 @@
   document.querySelectorAll('.svc-tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       currentSvcBranch = btn.dataset.s;
+      activeSvcGroup = 'all';
+      const filter = document.getElementById('svcFilter');
+      if (filter) filter.value = '';
+      currentSvcPage = 1;
       highlightSvcBranch();
       renderServices();
+      openServicesPopup();
     });
+  });
+
+  let servicesPopupBodyOverflow = '';
+  function openServicesPopup() {
+    const popup = document.getElementById('servicesPopup');
+    if (!popup || popup.open) return;
+    loadServiceMenuDurations(currentSvcBranch, true);
+    servicesPopupBodyOverflow = document.body.style.overflow;
+    popup.showModal();
+    popup.scrollTop = 0;
+    document.body.style.overflow = 'hidden';
+  }
+  function closeServicesPopup() {
+    const popup = document.getElementById('servicesPopup');
+    if (popup?.open) {
+      popup.close();
+      document.body.style.overflow = servicesPopupBodyOverflow;
+    }
+  }
+  document.getElementById('closeServicesPopup')?.addEventListener('click', closeServicesPopup);
+  document.getElementById('servicesPopup')?.addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeServicesPopup();
+  });
+  document.getElementById('servicesPopup')?.addEventListener('close', () => {
+    document.body.style.overflow = servicesPopupBodyOverflow;
   });
 
   function highlightSvcBranch() {
@@ -910,7 +1015,7 @@
       tag: 'Flagship Hub',
       name: 'Leo Mejillano Salon & Make-Up Studio',
       addr: '2nd Floor, Luna Building, Regidor Street, Daraga, Albay',
-      spec: "Step into the Leo Mejillano beauty experience at our flagship Daraga branch, where professional beauty services, personalized care, and expertise come together. From hair, nails, skin, brows, and make-up to academy training, our team is dedicated to making every visit comfortable, memorable, and uniquely yours. Whether you're refreshing your look, preparing for a special occasion, or simply taking time for yourself, we're ready to help you look and feel your best.",
+      spec: "Hair, nails, skin, brows and make-up services at our Daraga flagship.",
       hours: '8:00 AM – 8:00 PM', hoursNote: 'Open Daily',
       phone: '0918 536 8016', tel: '+639185368016', email: 'leomejillano88@yahoo.com',
       phone2: '0907 869 6035', tel2: '+639078696035', phone2Label: 'Aesthetics line — Nurse Jemar',
@@ -921,7 +1026,7 @@
       name: 'Skin Brows by Leo Mejillano',
       addr: '2nd Floor, Yashano Mall, Legazpi City, Albay',
       landmark: "Beside Angel's Pizza",
-      spec: "Discover a beauty experience designed to help you feel confident, refreshed, and beautifully cared for at Skin Brows by Leo Mejillano. Conveniently located on the 2nd Floor of Yashano Mall beside Angel's Pizza, our branch provides a comfortable and professional space where you can take time for yourself and enjoy personalized beauty care. From skin and brow enhancement to other beauty treatments, our team is committed to giving every client attentive service and an experience tailored to their individual needs. Whether you're preparing for a special occasion, maintaining your beauty routine, or simply treating yourself to some well-deserved self-care, we're here to help you look and feel your best.",
+      spec: "Skin, brow and beauty treatments at Yashano Mall, beside Angel's Pizza.",
       hours: '9:30 AM – 8:00 PM', hoursNote: 'Open Daily',
       phone: '0918 536 8016', tel: '+639185368016', email: '',
       phone2: '0907 869 6035', tel2: '+639078696035', phone2Label: 'Aesthetics line — Nurse Jemar',
@@ -931,46 +1036,55 @@
       tag: 'Lash & Brow Hub',
       name: 'Lash & Brows by Leo Mejillano',
       addr: 'Brgy. 18, Rizal Street, Cabangan, Legazpi City, Albay',
-      spec: "Discover personalized beauty care at Lash & Brows by Leo Mejillano in Cabangan, where professional service and attention to detail come together to create a beauty experience made for you. From fresh haircuts and hair treatments to rebonding, hair color, lash, and brow services, our team is dedicated to helping you achieve a look that feels confident, beautiful, and uniquely yours. Whether you're looking for a simple refresh, a complete hair transformation, or beauty enhancements for a special occasion, take a moment to relax, enjoy professional care, and let our team bring your desired look to life.",
+      spec: "Haircuts, colour, rebonding, lash and brow services in Cabangan.",
       hours: '8:00 AM – 8:00 PM', hoursNote: 'Open Daily',
       phone: '0918 536 8016', tel: '+639185368016', email: 'mejillanoleo@gmail.com',
       img: 'assets/image/Cabangan.jpg'
     }
   };
 
-  document.querySelectorAll('.branch-tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.branch-tab-btn').forEach(b => b.classList.remove('bg-white/10'));
-      btn.classList.add('bg-white/10');
-      const b = branchMap[btn.dataset.b];
-      document.getElementById('bTag').textContent = b.tag;
-      document.getElementById('bName').textContent = b.name;
-      document.getElementById('bAddr').textContent = b.addr;
-      const lm = document.getElementById('bLandmark');
-      lm.textContent = b.landmark || '';
-      lm.classList.toggle('hidden', !b.landmark);
-      document.getElementById('bSpec').textContent = b.spec;
-      document.getElementById('bHours').textContent = b.hours;
-      document.getElementById('bHoursNote').textContent = b.hoursNote;
-      document.getElementById('bPhoneText').textContent = b.phone;
-      document.getElementById('bPhone').href = 'tel:' + b.tel;
-      const em = document.getElementById('bEmail');
-      em.classList.toggle('hidden', !b.email);
-      em.classList.toggle('flex', !!b.email);
-      document.getElementById('bEmailText').textContent = b.email || '';
-      em.href = b.email ? 'mailto:' + b.email : '#';
-      const p2 = document.getElementById('bPhone2');
-      p2.classList.toggle('hidden', !b.phone2);
-      p2.classList.toggle('flex', !!b.phone2);
-      if (b.phone2) {
-        document.getElementById('bPhone2Text').textContent = b.phone2;
-        document.getElementById('bPhone2Label').textContent = b.phone2Label || '';
-        p2.href = 'tel:' + b.tel2;
-      }
-      document.getElementById('bImg').src = b.img;
+  function renderBranchDetails(key) {
+    const b = branchMap[key];
+    if (!b) return;
+    document.querySelectorAll('.branch-tab-btn').forEach(button => {
+      const active = button.dataset.b === key;
+      button.setAttribute('aria-pressed', String(active));
+      button.classList.toggle('active', active);
     });
+    document.getElementById('bTag').textContent = BRANCH_LABEL[key];
+    document.getElementById('bName').textContent = b.name;
+    document.getElementById('bAddr').textContent = b.addr;
+    const lm = document.getElementById('bLandmark');
+    lm.textContent = b.landmark || '';
+    lm.classList.toggle('hidden', !b.landmark);
+    document.getElementById('bSpec').textContent = b.spec;
+    document.getElementById('bHours').textContent = b.hours;
+    document.getElementById('bHoursNote').textContent = b.hoursNote;
+    document.getElementById('bPhoneText').textContent = b.phone;
+    document.getElementById('bPhone').href = 'tel:' + b.tel;
+    const email = document.getElementById('bEmail');
+    email.classList.toggle('hidden', !b.email);
+    document.getElementById('bEmailText').textContent = b.email || '';
+    if (b.email) email.href = 'mailto:' + b.email;
+    else email.removeAttribute('href');
+    const phone2 = document.getElementById('bPhone2');
+    phone2.classList.toggle('hidden', !b.phone2);
+    phone2.classList.toggle('flex', !!b.phone2);
+    document.getElementById('bPhone2Text').textContent = b.phone2 || '';
+    document.getElementById('bPhone2Label').textContent = b.phone2Label || '';
+    if (b.phone2) phone2.href = 'tel:' + b.tel2;
+    else phone2.removeAttribute('href');
+    const image = document.getElementById('bImg');
+    image.src = b.img;
+    image.alt = b.name + ' — ' + BRANCH_LABEL[key] + ' branch';
+    const groups = new Set(SERVICE_DATA[key].menus.flatMap(menu => menu.cats.map(category => category.g)));
+    document.getElementById('bServiceCategories').innerHTML = SERVICE_GROUPS
+      .filter(group => group.k !== 'all' && group.k !== 'deals' && groups.has(group.k))
+      .map(group => `<span class="rounded-full border border-plum/20 bg-plum/5 px-3 py-1 text-sm font-semibold text-plum">${escAttr(group.label)}</span>`).join('');
+  }
+  document.querySelectorAll('.branch-tab-btn').forEach(button => {
+    button.addEventListener('click', () => renderBranchDetails(button.dataset.b));
   });
-
   // Status vocabulary matches the `home_service_requests.status` ENUM in
   // the database exactly (see trackBooking.php) — 'Cancelled' is a
   // terminal state handled separately, not a step in this progression.
@@ -1180,6 +1294,7 @@
   }
 
   function hsNext(from) {
+    if (from === 2 && !AddressForms.prepare('guest-service-address')) return;
     if (from === 1 && !BookingFormValidation.fields([['#hsName', 'text'], ['#hsPhone', 'mobile'], ['#hsEmail', 'email']])) return;
     if (from === 2 && !BookingFormValidation.fields([['#hsClients', 'quantity'], ['#hsVenue', 'address'], ['#hsDate', 'date'], ['#hsTime', 'time']])) return;
     if (from === 1) {
@@ -1278,6 +1393,8 @@
   }
 
   function hsSubmit() {
+    const formData = new FormData();
+    if (!AddressForms.prepare('guest-service-address', formData)) return;
     if (!BookingFormValidation.fields([['#hsName', 'text'], ['#hsPhone', 'mobile'], ['#hsEmail', 'email'], ['#hsClients', 'quantity'], ['#hsVenue', 'address'], ['#hsDate', 'date'], ['#hsTime', 'time']])) return;
     if (!hsValidateSchedule()) return;
     const name = document.getElementById('hsName').value.trim();
@@ -1296,7 +1413,6 @@
     const btn = document.getElementById('hsSubmitBtn');
     if (btn) { btn.disabled = true; btn.textContent = 'Submitting…'; }
 
-    const formData = new FormData();
     formData.append('fullname', name);
     formData.append('contact', phone);
     formData.append('email', email);
@@ -1318,7 +1434,11 @@
       .then(r => r.json())
       .then(res => {
         if (btn) { btn.disabled = false; btn.textContent = 'Submit Home Service Request'; }
-        if (!res.success) { showToast(res.message); return; }
+        if (!res.success) {
+          AddressForms.errors('guest-service-address', res.errors);
+          if (res.errors && Object.keys(res.errors).some(key => ['address', 'province', 'city', 'barangay', 'house', 'street', 'subdivision', 'landmark'].includes(key))) hsGo(2);
+          showToast(res.message); return;
+        }
 
         const ref = res.reference;
         document.getElementById('hsRef').textContent = ref;
@@ -1346,6 +1466,7 @@
   }
 
   function hsReset() {
+    AddressForms.resetGuest();
     ['hsName','hsPhone','hsEmail','hsClients','hsDate','hsTime','hsVenue','hsVenueDetails','hsNotes','hsOtherEvent'].forEach(id => {
       const el = document.getElementById(id); if (el) el.value = '';
     });
@@ -1900,7 +2021,7 @@
             '<label class="book-service-row flex items-center justify-between gap-3 py-1.5 cursor-pointer border-t border-bronze/15 first:border-t-0" data-search="' + escAttr(s.name.toLowerCase()) + '">' +
               '<span class="flex items-center gap-2 text-ink text-sm">' +
                 '<input type="checkbox" class="book-service-check accent-plum" value="' + s.id + '" data-name="' + escAttr(s.name) + '" data-price="' + Number(s.price) + '" data-minutes="' + Number(s.durationMinutes || 30) + '"> ' +
-                escAttr(s.name) + ' <small class="text-ink/45">' + escAttr(s.duration || (s.durationMinutes ? s.durationMinutes + ' min' : '')) + '</small>' +
+                escAttr(s.name) + ' <small class="text-ink/45">Estimated Duration: ' + escAttr(ServiceDuration.format(s.durationMinutes)) + '</small>' +
               '</span>' +
               '<span class="text-ink/60 whitespace-nowrap text-sm">₱' + Number(s.price).toFixed(0) + '</span>' +
             '</label>').join('') +
@@ -1944,8 +2065,10 @@
     }
     const minutes = checked.reduce((sum, c) => sum + Number(c.dataset.minutes || 30), 0);
     const price = checked.reduce((sum, c) => sum + Number(c.dataset.price || 0), 0);
-    const duration = (minutes >= 60 ? Math.floor(minutes / 60) + ' hr ' : '') + (minutes % 60 ? (minutes % 60) + ' min' : '');
-    summary.innerHTML = '<b class="text-plum">' + checked.length + ' selected</b> · ' + duration.trim() + ' total · ₱' + price.toLocaleString('en-PH')
+    const duration = ServiceDuration.format(minutes);
+    const end = ServiceDuration.endTime(document.getElementById('bookDate').value, selectedSlotLabel, minutes);
+    summary.innerHTML = '<b class="text-plum">' + checked.length + ' selected</b> · Estimated Duration: ' + duration + ' total · ₱' + price.toLocaleString('en-PH')
+      + (end ? ' · Estimated End Time: ' + escAttr(end) : '')
       + (checked.length > 1 ? ' · <span class="text-ink/50">done back-to-back, a stylist for each</span>' : '');
   }
 
@@ -2088,6 +2211,7 @@
     document.getElementById('bookDepositGate').classList.add('hidden');
     slotGridRequestId++;
     selectedSlotLabel = '';
+    updateServiceSummary();
     resetStaffList();
     const box = document.getElementById('bookSlotGrid');
     box.className = 'rounded-xl border border-bronze/50 bg-sand-100 p-3 text-[13px] text-ink/50';
@@ -2098,6 +2222,7 @@
   function loadSlotGrid(branchId, date) {
     document.getElementById('bookDepositGate').classList.add('hidden');
     selectedSlotLabel = '';
+    updateServiceSummary();
     resetStaffList();
     const box = document.getElementById('bookSlotGrid');
     box.className = 'rounded-xl border border-bronze/50 bg-sand-100 p-3 text-[13px] text-ink/50';
@@ -2129,6 +2254,7 @@
             box.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('bg-plum', 'text-white', 'border-plum'));
             btn.classList.add('bg-plum', 'text-white', 'border-plum');
             selectedSlotLabel = btn.dataset.slot;
+            updateServiceSummary();
             refreshStaffListIfReady();
           });
         });
@@ -2319,14 +2445,17 @@
       serviceStaff: Object.fromEntries(Object.entries(selectedServiceStaff).map(([svc, s]) => [svc, s.id])),
       depositAmount: bookDepositInfo.amount, depositMethod: bookDepositInfo.method, depositReference: bookDepositInfo.reference,
       paymentPlan: selectedPaymentPlan(),
-      serviceIds, serviceNames, notify: bookNotifyChoice, quoteToken: bookReservationQuote.quoteToken
+      serviceIds, serviceNames, notify: bookNotifyChoice, quoteToken: bookReservationQuote.quoteToken,
+      durationMinutes: Array.from(document.querySelectorAll('.book-service-check:checked')).reduce((sum, input) => sum + Number(input.dataset.minutes || 30), 0)
     };
 
     const total = computeSelectedServicesSubtotal();
     document.getElementById('bookingReviewSummary').innerHTML = [
       ['Branch', BRANCH_LABEL_BY_ID[branchId] || branchId],
       ['Services', serviceNames.join(', ')],
-      ['Date', fmtApptDate(date)], ['Time', selectedSlotLabel],
+      ['Date', fmtApptDate(date)], ['Start Time', selectedSlotLabel],
+      ['Estimated Duration', ServiceDuration.format(pendingBooking.durationMinutes)],
+      ['Estimated End Time', ServiceDuration.endTime(date, selectedSlotLabel, pendingBooking.durationMinutes)],
       ['Staff', selectedStaffName],
       ['Name', name], ['Mobile', phone],
       ...(email ? [['Email', email]] : []),
@@ -2533,7 +2662,9 @@
           ['Branch', branchLabel],
           ['Services', booking.serviceNames.join(', ')],
           ['Date', fmtApptDate(booking.date)],
-          ['Time', booking.time],
+          ['Start Time', booking.time],
+          ['Estimated Duration', ServiceDuration.format(res.durationMinutes)],
+          ['Estimated End Time', res.endTime],
           ['Staff', booking.staffName],
           ['Booked for', booking.name + ' · ' + booking.phone],
           ['Service Total', formatReservationMoney(res.payment.serviceTotal)],
@@ -2749,6 +2880,7 @@
     refreshLiveStatus();
     setInterval(refreshLiveStatus, 60000);
     highlightSvcBranch();
+    renderBranchDetails('daraga');
     renderServices();
     renderStaff();
     renderProducts();

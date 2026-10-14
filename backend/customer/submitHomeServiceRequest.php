@@ -36,6 +36,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 require_once __DIR__ . '/../config/BookingValidation.php';
+require_once __DIR__ . '/../config/Address.php';
+$structuredAddress = Address::fromPost(true);
+$_POST['address'] = $structuredAddress['formatted'];
 BookingValidation::enforce($_POST, [
     'address' => ['address', true, 'an address (5 to 500 characters)'],
     'preferredDate' => ['date', true, 'an appointment date'],
@@ -109,13 +112,13 @@ try {
 
     $ins = $pdo->prepare('
         INSERT INTO home_service_requests (
-            customer_id, contact_email, address, event_type, wedding_package, preferred_date, preferred_time,
+            customer_id, contact_email, address, structured_address, event_type, wedding_package, preferred_date, preferred_time,
             requests, number_of_clients, terms_accepted_at
         )
-        VALUES (?, (SELECT email FROM users WHERE id = ?), ?, ?, ?, ?, ?, ?, ?, NOW())
+        VALUES (?, (SELECT email FROM users WHERE id = ?), ?, ?, ?, ?, ?, ?, ?, ?, NOW())
     ');
     $ins->execute([
-        $customerId, $_SESSION['user_id'], $address, $eventType, $eventType === 'Wedding' ? $weddingPackage : null, $preferredDate, $preferredTime, $fullRequests, (int) $clients,
+        $customerId, $_SESSION['user_id'], $address, json_encode($structuredAddress), $eventType, $eventType === 'Wedding' ? $weddingPackage : null, $preferredDate, $preferredTime, $fullRequests, (int) $clients,
     ]);
     $requestId = $pdo->lastInsertId();
     $refStmt = $pdo->prepare('SELECT reference_code FROM home_service_requests WHERE id = ?');

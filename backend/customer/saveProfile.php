@@ -50,6 +50,11 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 
 [$firstName, $lastName] = array_pad(explode(' ', $name, 2), 2, '');
 
+require_once __DIR__ . '/../config/Address.php';
+// Omitted address means preserve the legacy value (older clients).
+$updatesAddress = array_key_exists('structuredAddress', $_POST);
+$structuredAddress = $updatesAddress ? Address::fromPost(false) : null;
+
 try {
     $pdo = Database::getInstance();
     $userId = $_SESSION['user_id'];
@@ -69,6 +74,11 @@ try {
 
     $params = [$firstName, $lastName, $phone, $notifyEmail ? 1 : 0, $notifySms ? 1 : 0];
     $sql = 'UPDATE customers SET first_name = ?, last_name = ?, phone_number = ?, notify_email = ?, notify_sms = ?';
+    if ($updatesAddress) {
+        $sql .= ', address = ?, structured_address = ?';
+        $params[] = $structuredAddress['formatted'] ?? null;
+        $params[] = $structuredAddress ? json_encode($structuredAddress) : null;
+    }
     if ($profilePicture !== null && $profilePicture !== '') {
         $sql .= ', profile_picture = ?';
         $params[] = $profilePicture;

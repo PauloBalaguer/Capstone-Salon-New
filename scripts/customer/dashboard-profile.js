@@ -16,6 +16,7 @@ function customerProfileMixin() {
 
     saveProfile() {
       const formData = new FormData();
+      if (!AddressForms.prepare('profile-address', formData)) return;
       formData.append('name', this.customerProfile.name);
       formData.append('email', this.customerProfile.email);
       formData.append('phone', this.customerProfile.phone);
@@ -29,6 +30,7 @@ function customerProfileMixin() {
         .then(response => response.json().then(body => ({ status: response.status, body })))
         .then(({ body }) => {
           if (!body.success) {
+            AddressForms.errors('profile-address', body.errors);
             this.pushToast('error', body.message || 'Could not save your profile.');
             return;
           }

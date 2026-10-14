@@ -199,11 +199,11 @@
                       <span class="font-bold text-emerald-400 block" x-text="$store.admin.formatCurrency(booking.price)"></span>
                     </div>
                     <div>
-                      <span class="text-xs text-slate-500 block uppercase font-semibold">Duration</span>
-                      <span class="font-semibold text-slate-300 block" x-text="booking.durationMinutes ? booking.durationMinutes + ' min' : '—'"></span>
+                      <span class="text-xs text-slate-500 block uppercase font-semibold">Estimated Duration</span>
+                      <span class="font-semibold text-slate-300 block" x-text="ServiceDuration.format(booking.durationMinutes)"></span>
                     </div>
                     <div>
-                      <span class="text-xs text-slate-500 block uppercase font-semibold">End Time</span>
+                      <span class="text-xs text-slate-500 block uppercase font-semibold">Estimated End Time</span>
                       <span class="font-semibold text-slate-300 block" x-text="booking.endTime || '—'"></span>
                     </div>
                     <div>
@@ -552,6 +552,7 @@
   </div>
 
   <script src="../../scripts/admin/shared-data.js"></script>
+  <script src="../../scripts/service-duration.js"></script>
   <script src="../../scripts/admin/appointments.js"></script>
 </body>
 </html>

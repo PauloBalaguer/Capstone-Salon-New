@@ -37,6 +37,9 @@ if ($request_limiter->isExceeded()) {
 }
 
 require_once __DIR__ . '/../config/BookingValidation.php';
+require_once __DIR__ . '/../config/Address.php';
+$structuredAddress = Address::fromPost(true);
+$_POST['address'] = $structuredAddress['formatted'];
 BookingValidation::enforce($_POST, [
     'fullname' => ['text', true, 'your full name'],
     'contact' => ['mobile', true, 'a mobile number (09XXXXXXXXX)'],
@@ -148,13 +151,13 @@ try {
     // (see backend/admin/updateBookingStatus.php).
     $ins = $pdo->prepare('
         INSERT INTO home_service_requests (
-            reference_code, customer_id, contact_email, address, event_type, wedding_package, preferred_date, preferred_time,
+            reference_code, customer_id, contact_email, address, structured_address, event_type, wedding_package, preferred_date, preferred_time,
             requests, number_of_clients, terms_accepted_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
     ');
     $ins->execute([
-        $referenceCode, $customerId, $email, $address, $eventType, $eventType === 'Wedding' ? $weddingPackage : null, $date, $time, $fullRequests, (int) $clients,
+        $referenceCode, $customerId, $email, $address, json_encode($structuredAddress), $eventType, $eventType === 'Wedding' ? $weddingPackage : null, $date, $time, $fullRequests, (int) $clients,
     ]);
     // Guest updates (quote, payment link, reschedules) go out by email.
     $pdo->prepare('UPDATE customers SET email = ? WHERE id = ? AND user_id IS NULL AND (email IS NULL OR email = "")')->execute([$email, $customerId]);

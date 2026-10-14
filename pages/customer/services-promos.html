@@ -336,12 +336,14 @@
                           <p class="font-medium text-white mb-2">Selected Services:</p>
                           <ul class="list-disc list-inside text-slate-300 space-y-1" x-show="selectedServicesForBooking.length > 0">
                             <template x-for="service in selectedServicesForBooking" :key="service.id">
-                              <li x-text="service.name + ' (' + formatPeso(service.price) + ')'"></li>
+                              <li x-text="service.name + ' (' + formatPeso(service.price) + ') — ' + formatServiceDuration(service)"></li>
                             </template>
                           </ul>
                         </div>
                         <div class="bg-slate-800 p-4 rounded-lg space-y-3">
                           <p class="font-medium text-white">Date &amp; Time</p>
+                          <p class="text-slate-300">Estimated Duration: <span x-text="ServiceDuration.format(bookingDurationMinutes())"></span></p>
+                          <p class="text-slate-300" x-show="bookingForm.time">Estimated End Time: <span x-text="bookingEstimatedEndTime()"></span></p>
                           <div>
                             <label class="block text-slate-400 mb-1">Date</label>
                             <input type="date" x-model="bookingForm.date" @change="bookingForm.time = ''; refreshAvailableSlots()" :min="getLocalISODate()" required class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
@@ -401,6 +403,8 @@
                         <div class="flex justify-between"><span class="text-slate-500">Branch:</span><span class="text-white" x-text="selectedBranchForServices.charAt(0).toUpperCase() + selectedBranchForServices.slice(1)"></span></div>
                         <div class="flex justify-between"><span class="text-slate-500">Service(s):</span><span class="text-white text-right" x-text="selectedServicesForBooking.map(s => s.name).join(', ')"></span></div>
                         <div class="flex justify-between"><span class="text-slate-500">Date &amp; Time:</span><span class="text-white" x-text="formatApptDateLong(bookingForm.date) + ' @ ' + bookingForm.time"></span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Estimated Duration:</span><span class="text-white" x-text="ServiceDuration.format(bookingDurationMinutes())"></span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Estimated End Time:</span><span class="text-white" x-text="bookingEstimatedEndTime()"></span></div>
                         <div class="flex justify-between" x-show="bookingForm.staffId"><span class="text-slate-500">Stylist:</span><span class="text-white" x-text="(getAvailableStaffForBranch().find(s => String(s.id) === String(bookingForm.staffId)) || {}).name"></span></div>
                         <div class="flex justify-between pt-2 border-t border-slate-700"><span class="text-slate-500">Subtotal:</span><span class="text-white font-bold" x-text="formatPeso(bookingSubtotal())"></span></div>
 
@@ -557,6 +561,8 @@
                     <div class="flex justify-between items-center"><strong class="text-slate-500">Branch:</strong><span class="text-white text-right" x-text="bookingSuccessDetails?.branchName"></span></div>
                     <div class="flex justify-between items-center"><strong class="text-slate-500">Service(s):</strong><span class="text-white text-right" x-text="bookingSuccessDetails?.serviceName"></span></div>
                     <div class="flex justify-between items-center"><strong class="text-slate-500">Date & Time:</strong><span class="text-white text-right" x-text="bookingSuccessDetails?.date + ' @ ' + bookingSuccessDetails?.time"></span></div>
+                    <div class="flex justify-between items-center"><strong class="text-slate-500">Estimated Duration:</strong><span class="text-white" x-text="ServiceDuration.format(bookingSuccessDetails?.durationMinutes)"></span></div>
+                    <div class="flex justify-between items-center"><strong class="text-slate-500">Estimated End Time:</strong><span class="text-white" x-text="bookingSuccessDetails?.endTime"></span></div>
                     <div class="flex justify-between items-center"><strong class="text-slate-500">Staff:</strong><span class="text-white text-right" x-text="bookingSuccessDetails?.staffName"></span></div>
                     <div class="flex justify-between items-center"><strong class="text-slate-500">Pay Now:</strong><span class="text-white text-right" x-text="formatPeso(bookingSuccessDetails?.depositAmount) + ' via ' + bookingSuccessDetails?.paymentMethod + (bookingSuccessDetails?.depositReference ? ' (Ref: ' + bookingSuccessDetails.depositReference + ')' : '')"></span></div>
                     <div class="flex justify-between items-center"><strong class="text-slate-500">Balance to Pay Later:</strong><span class="text-white" x-text="formatPeso(bookingSuccessDetails?.remainingBalance)"></span></div>
@@ -605,6 +611,7 @@
   <!-- App logic, split by concern. Only what this page's markup uses:
        browsing services/promos and the booking flow. Appointments,
        reviews, home service, and profile mixins live on their own pages. -->
+  <script src="../../scripts/service-duration.js"></script>
   <script src="../../scripts/customer/dashboard-helpers.js"></script>
   <script src="../../scripts/customer/dashboard-state.js"></script>
   <script src="../../scripts/customer/dashboard-notifications.js"></script>

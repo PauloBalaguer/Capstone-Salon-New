@@ -253,6 +253,11 @@
                   <label class="block text-slate-400 mb-1">Phone Number</label>
                   <input type="tel" x-model="customerProfile.phone" class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
                 </div>
+                <div>
+                  <h4 class="text-slate-300 mb-2">Permanent / Profile Address</h4>
+                  <input id="profileAddressText" type="hidden">
+                  <div id="profile-address" data-address-target="profileAddressText" data-address-optional="true"></div>
+                </div>
                 <div class="pt-2 flex justify-end">
                   <button type="submit" class="px-5 py-2 bg-gradient-to-r from-luxury-600 to-luxury-800 text-white font-bold rounded-lg hover:shadow-lg hover:shadow-luxury-600/20 transition active:scale-95">Save Changes</button>
                 </div>
@@ -375,6 +380,7 @@
   <script src="../../scripts/customer/dashboard-helpers.js"></script>
   <script src="../../scripts/customer/dashboard-state.js"></script>
   <script src="../../scripts/customer/dashboard-notifications.js"></script>
+  <script src="../../scripts/address-form.js"></script>
   <script src="../../scripts/customer/dashboard-profile.js"></script>
   <script src="../../scripts/customer/dashboard.js"></script>
 </body>

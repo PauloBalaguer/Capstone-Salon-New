@@ -5,14 +5,14 @@
  * promotions which just discount an existing service).
  *
  * duration_label isn't part of the admin form -- it's derived from
- * durationMinutes so it always matches (e.g. 90 -> "1 hr 30 min").
+ * durationMinutes so it always matches (e.g. 90 -> "1 hour 30 minutes").
  */
 
 require_once '../config/cors.php';
 require_once '../config/session.php';
 require_once '../config/database.php';
 require_once '../config/AuditLog.php';
-require_once '../config/Scheduling.php';
+require_once '../config/ServiceDuration.php';
 
 sendCorsHeaders();
 AuditLog::captureRequest();
@@ -30,26 +30,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-function formatDurationLabel(int $minutes): string
-{
-    $hours = intdiv($minutes, 60);
-    $mins = $minutes % 60;
-    if ($hours === 0) {
-        return "{$mins} min";
-    }
-    $label = $hours . ' hr' . ($hours > 1 ? 's' : '');
-    if ($mins > 0) {
-        $label .= " {$mins} min";
-    }
-    return $label;
-}
-
 $serviceId = (int) ($_POST['id'] ?? 0);
 $branchKey = trim($_POST['branchId'] ?? '');
 $name = trim($_POST['name'] ?? '');
 $description = trim($_POST['description'] ?? '');
 $category = trim($_POST['category'] ?? '');
-$durationMinutes = (int) ($_POST['durationMinutes'] ?? 0);
+$durationProvided = array_key_exists('durationMinutes', $_POST);
+$durationMinutes = $durationProvided ? ServiceDuration::parse($_POST['durationMinutes']) : null;
 $price = filter_var(trim($_POST['price'] ?? ''), FILTER_VALIDATE_FLOAT);
 $active = filter_var($_POST['active'] ?? true, FILTER_VALIDATE_BOOLEAN);
 
@@ -74,20 +61,18 @@ if (!in_array($paymentRequirementInput, $allowedPaymentRequirements, true)) {
     exit();
 }
 
-if ($durationMinutes > 0 && $durationMinutes < Scheduling::MIN_SERVICE_MINUTES) {
+if (($durationProvided && $durationMinutes === null) || (!$durationProvided && $serviceId <= 0)) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'A service must be at least ' . Scheduling::MIN_SERVICE_MINUTES . ' minutes long.']);
+    echo json_encode(['success' => false, 'message' => 'Estimated duration must be a positive whole number of minutes.', 'errors' => ['durationMinutes' => 'Enter a whole number greater than zero.']]);
     exit();
 }
 
-if ($branchKey === '' || $name === '' || $durationMinutes <= 0 || $price === false || $price < 0
+if ($branchKey === '' || $name === '' || $price === false || $price < 0
     || $loyaltyMultiplier === false || $loyaltyMultiplier <= 0 || $loyaltyMultiplier > 10) {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Branch, name, a valid duration (in minutes), price, and a loyalty weight between 0.01 and 10 are required.']);
     exit();
 }
-
-$durationLabel = formatDurationLabel($durationMinutes);
 
 try {
     $pdo = Database::getInstance();
@@ -102,14 +87,17 @@ try {
     }
 
     if ($serviceId > 0) {
-        $stmt = $pdo->prepare('SELECT id FROM services WHERE id = ?');
+        $stmt = $pdo->prepare('SELECT id, duration_minutes FROM services WHERE id = ?');
         $stmt->execute([$serviceId]);
-        if (!$stmt->fetchColumn()) {
+        $existingService = $stmt->fetch();
+        if (!$existingService) {
             http_response_code(404);
             echo json_encode(['success' => false, 'message' => 'Service not found.']);
             exit();
         }
 
+        if (!$durationProvided) $durationMinutes = (int) $existingService['duration_minutes'];
+        $durationLabel = ServiceDuration::format($durationMinutes);
         $pdo->prepare('
             UPDATE services SET branch_id = ?, service_name = ?, description = ?, category = ?,
                 duration_minutes = ?, duration_label = ?, price = ?, loyalty_multiplier = ?, payment_requirement = ?, is_active = ?
@@ -123,6 +111,7 @@ try {
         exit();
     }
 
+    $durationLabel = ServiceDuration::format($durationMinutes);
     $pdo->prepare('
         INSERT INTO services (branch_id, service_name, description, category, duration_minutes, duration_label, price, loyalty_multiplier, payment_requirement, is_active)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)

@@ -92,28 +92,32 @@
     const empty = document.getElementById('prodEmpty');
     if (!catBox || !grid) return;
 
-    catBox.innerHTML = PRODUCT_CATEGORIES.map(c => {
-      const on = activeProdCat === c;
-      const stateClass = on ? 'border-copper bg-copper/12 text-copper-dark' : 'border-bronze/30 bg-sand-100 text-ink hover:border-plum';
-      const labelClass = on ? 'text-copper-dark/70' : 'text-ink/35';
-      return '<button onclick="setProdCat(\'' + c.replace(/'/g, "\\'") + '\')" class="rounded-2xl p-3 text-left border transition ' +
-        stateClass + '">' +
-        '<span class="block text-xs font-bold leading-snug">' + c + '</span>' +
-        '<span class="block text-[10px] font-bold uppercase tracking-widest mt-1 ' + labelClass + '">' +
-        'In stock at branch</span></button>';
-    }).join('');
-
-    const list = activeProdCat === 'all' ? PRODUCT_DATA : PRODUCT_DATA.filter(p => p.cat === activeProdCat);
+    const primary = ['all', 'Hair Care', 'Hair Color & Chemical', 'Nail Care', 'Skin Care', 'Lash'];
+    const extra = PRODUCT_CATEGORIES.filter(c => !primary.includes(c));
+    const button = c => {
+      const label = c === 'all' ? 'All' : c === 'Hair Color & Chemical' ? 'Hair Color' : c === 'Skin Care' ? 'Skin' : c;
+      return `<button type="button" class="product-filter" aria-pressed="${activeProdCat === c}" onclick="setProdCat('${c}')">${label}</button>`;
+    };
+    catBox.innerHTML = primary.map(button).join('') +
+      `<select id="prodMoreCats" class="product-filter product-more-select" aria-label="More product categories" data-active="${extra.includes(activeProdCat)}" onchange="setProdCat(this.value)">
+        <option value="" disabled ${extra.includes(activeProdCat) ? '' : 'selected'}>More</option>
+        ${extra.map(c => `<option value="${c}" ${activeProdCat === c ? 'selected' : ''}>${c}</option>`).join('')}
+      </select>`;
+    const query = (document.getElementById('prodSearch').value || '').trim().toLowerCase();
+    const list = PRODUCT_DATA.filter(p => (activeProdCat === 'all' || p.cat === activeProdCat) && (p.name + ' ' + p.cat).toLowerCase().includes(query));
+    document.getElementById('prodCount').textContent = list.length + (list.length === 1 ? ' product' : ' products');
     grid.innerHTML = list.map(p => {
       const visual = p.img
         ? '<img src="' + p.img + '" class="w-3/4 max-h-full object-contain" alt="' + p.name + '">'
-        : '<div class="w-20 h-20 rounded-full bg-copper/10 text-copper-dark flex items-center justify-center font-display text-3xl" aria-hidden="true">' + p.name.charAt(0) + '</div>';
-      return '<div class="group text-center" data-product="' + p.name + '">' +
-        '<div class="bg-sand-100 rounded-3xl p-6 aspect-square flex items-center justify-center border border-bronze/30 shadow-sm mb-4 group-hover:-translate-y-2 transition-all duration-300">' +
+        : '<span class="text-xs text-ink/45">Photo coming soon</span>';
+      return '<div class="product-card group text-center" data-product="' + p.name + '">' +
+        '<div class="product-image bg-sand-100 flex items-center justify-center border-b border-bronze/30 mb-4">' +
           visual +
         '</div>' +
         '<span class="text-[10px] font-bold uppercase tracking-widest text-copper">' + p.cat + '</span>' +
         '<h4 class="font-bold text-sm text-ink mt-1">' + p.name + '</h4>' +
+        (Number.isFinite(p.price) ? '<p class="text-sm font-bold mt-2">' + new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(p.price) + '</p>' : '') +
+        '<p class="text-xs text-ink/60 mt-2">' + (Number.isFinite(p.stock) ? (p.stock <= 0 ? 'Out of stock' : p.stock <= 5 ? 'Low stock' : 'In stock') : 'Check branch availability') + '</p>' +
       '</div>';
     }).join('');
 
@@ -121,15 +125,12 @@
     grid.classList.toggle('hidden', isEmpty);
     empty.classList.toggle('hidden', !isEmpty);
     if (isEmpty) {
-      document.getElementById('prodEmptyLead').textContent = activeProdCat === 'all'
-        ? 'Our retail line-up is being updated.'
-        : 'No items listed under ' + activeProdCat + ' yet.';
+      document.getElementById('prodEmptyLead').textContent = 'No products found. Try another category or search term.';
     }
   }
 
   function setProdCat(c) {
-    // Tapping the active category again clears the filter and shows every product.
-    activeProdCat = (activeProdCat === c) ? 'all' : c;
+    activeProdCat = c;
     renderProducts();
   }
 

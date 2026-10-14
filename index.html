@@ -1567,13 +1567,16 @@
               Professional Products
             </h2>
             <p class="text-ink/60 text-base mt-4">
-              Explore our wide selection of professional hair, nail, skin, make-up, and salon care products.
+              Explore salon-grade products available at our branches.
             </p>
           </div>
 
-          <div id="prodCats" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-10"></div>
+          <label for="prodSearch" class="sr-only">Search products</label>
+          <input id="prodSearch" type="search" placeholder="Search products..." class="product-search" oninput="renderProducts()" aria-controls="prodGrid">
+          <div id="prodCats" class="product-filters" role="group" aria-label="Product categories"></div>
+          <p id="prodCount" class="text-sm text-ink/60 mb-5" role="status" aria-live="polite"></p>
 
-          <div id="prodGrid" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
+          <div id="prodGrid" class="product-grid"></div>
 
           <div id="prodEmpty" class="hidden text-center py-16">
             <span
@@ -1607,8 +1610,7 @@
             </p>
           </div>
 
-          <p id="branchSelectorLabel" class="text-center font-semibold text-white/80 mb-4">Choose a Branch</p>
-          <div class="flex justify-center gap-3 flex-wrap mb-8" id="branchTabs" role="group" aria-labelledby="branchSelectorLabel">
+          <div class="flex justify-center gap-3 flex-wrap mb-8" id="branchTabs" role="group" aria-label="Branches">
             <button type="button" data-b="daraga" aria-pressed="true" aria-controls="branchInfo"
               class="branch-tab-btn active px-5 sm:px-6 py-3 rounded-full text-base font-bold border border-white/20">
               Daraga Main

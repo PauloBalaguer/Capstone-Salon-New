@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leo Mejillano Salon - Services & Promotions</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <link rel="stylesheet" href="../../assets/css/fonts-inter-playfair.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            serif: ['Playfair Display', 'serif'],
+          },
+          colors: {
+            luxury: {
+              50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff', 500: '#a855f7',
+              600: '#9333ea', 700: '#7e22ce', 800: '#6b21a8', 900: '#581c87', 950: '#1e112c',
+            },
+            gold: {
+              100: '#fef08a', 400: '#facc15', 500: '#eab308', 600: '#ca8a04',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    [x-cloak] { display: none !important; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #1e112c; }
+    ::-webkit-scrollbar-thumb { background: #7e22ce; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #9333ea; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .stagger-item { animation: fadeUp .45s cubic-bezier(.16,1,.3,1) both; }
+
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    .skeleton { background: linear-gradient(90deg, #1e112c 25%, #2a1740 37%, #1e112c 63%); background-size: 400% 100%; animation: shimmer 1.4s ease infinite; }
+
+    @keyframes gentlePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+    .pulse-badge { animation: gentlePulse 1.6s ease-in-out infinite; }
+
+    @keyframes topbarShine { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+    .topbar-shine { background-size: 200% 100%; animation: topbarShine 7s linear infinite; }
+
+    .card-lift { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+    .card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(126, 34, 206, 0.35); }
+  </style>
+  <link rel="stylesheet" href="../../assets/css/customer-theme.css">
+  <script src="../../scripts/customer/theme-config.js"></script>
+</head>
+<body class="bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
+      x-data="customerApp()" x-init="init()" x-cloak>
+
+  <div class="h-1.5 w-full bg-gradient-to-r from-luxury-600 via-gold-500 to-luxury-800 topbar-shine"></div>
+
+  <div class="fixed top-24 right-4 left-4 sm:left-auto z-[9999] sm:w-80 space-y-2" aria-live="polite">
+    <template x-for="toast in toasts" :key="toast.id">
+      <div x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-6"
+           x-transition:enter-end="opacity-100 translate-x-0" x-transition:leave="transition ease-in duration-200"
+           x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+           :class="{
+             'border-[#86EFAC] bg-[#F0FDF4] text-[#14532D]': toast.type === 'success',
+             'border-[#FDA4AF] bg-[#FFF1F2] text-[#881337]': toast.type === 'error',
+             'border-[#99D5D6] bg-[#F0FAFA] text-[#06464A]': toast.type === 'info' || toast.type === 'system'
+           }"
+           class="border-2 rounded-xl px-4 py-3 shadow-2xl flex items-start gap-2 text-[13px] font-semibold">
+        <span x-text="toast.message" class="flex-1 leading-relaxed"></span>
+        <button @click="dismissToast(toast.id)" class="opacity-60 hover:opacity-100 shrink-0 leading-none text-lg" aria-label="Dismiss">&times;</button>
+      </div>
+    </template>
+  </div>
+
+  <div class="flex h-screen overflow-hidden flex-col md:flex-row">
+
+    <aside id="customer-sidebar" class="hidden md:flex md:w-64 bg-slate-900 border-r border-luxury-900 flex-col shrink-0 h-full z-20">
+      <div class="p-4 flex flex-col flex-1">
+        <div class="relative mb-6" @click.outside="isProfileMenuOpen = false">
+          <button @click="isProfileMenuOpen = !isProfileMenuOpen" class="w-full flex items-center space-x-3 text-left p-2 rounded-lg hover:bg-slate-800/50 transition focus:outline-none focus:ring-2 focus:ring-purple-500">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-luxury-600 to-gold-500 flex items-center justify-center font-serif text-white font-bold text-lg shadow-lg shadow-luxury-500/20 overflow-hidden shrink-0">
+              <template x-if="customerProfile.profilePicture">
+                <img :src="customerProfile.profilePicture" alt="Profile" class="w-full h-full object-cover">
+              </template>
+              <template x-if="!customerProfile.profilePicture">
+                <span x-text="customerProfile.name.split(' ').map(n => n[0]).join('')"></span>
+              </template>
+            </div>
+            <div>
+              <h1 class="text-sm font-bold tracking-wider text-gold-400 font-serif" x-text="customerProfile.name"></h1>
+              <p class="text-[10px] text-slate-400 uppercase tracking-widest font-sans">Customer Portal</p>
+            </div>
+          </button>
+
+          <div x-show="isProfileMenuOpen" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-75" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="absolute top-full mt-2 w-56 bg-slate-800 border border-luxury-800 rounded-lg shadow-lg z-30 py-1 left-0" style="display: none;">
+            <a href="profile.html" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 text-xs transition duration-150 text-slate-300 hover:bg-luxury-900/60 hover:text-white">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+              <span>My Profile</span>
+            </a>
+            <a href="../../backend/auth/logout.php?portal=customer" class="md:hidden w-full text-left flex items-center space-x-3 px-3.5 py-2.5 text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4"></path></svg>
+              <span>Sign Out</span>
+            </a>
+          </div>
+        </div>
+
+        <nav class="space-y-1.5 flex-1">
+          <a href="dashboard.html" data-nav-page="dashboard.html" class="text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition-all duration-200">
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z"></path></svg>
+            <span>Dashboard</span>
+          </a>
+
+          <a href="appointments.html" data-nav-page="appointments.html" class="text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition-all duration-200">
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            <span>My Appointments</span>
+          </a>
+
+          <a href="services-promos.html" data-nav-page="services-promos.html" class="bg-luxury-900/60 text-white font-medium border-l-4 border-gold-400 w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition-all duration-200">
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+            <span>Services & Promos</span>
+          </a>
+
+          <a href="reviews.html" data-nav-page="reviews.html" class="text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition-all duration-200">
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+            <span>My Reviews</span>
+          </a>
+
+          <a href="home-service.html" data-nav-page="home-service.html" class="text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition-all duration-200">
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+            <span>Home Service</span>
+          </a>
+        </nav>
+      </div>
+      <div class="p-4 border-t border-slate-800">
+        <a href="../../backend/auth/logout.php?portal=customer" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 013-3V7a3 3 0 013-3h4"></path></svg><span>Sign Out</span></a>
+      </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col bg-slate-950 overflow-y-auto">
+
+      <header class="bg-slate-900 border-b border-luxury-900 px-6 py-4 shrink-0 flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+          <div class="relative md:hidden" @click.outside="isProfileMenuOpen = false">
+            <button @click="isProfileMenuOpen = !isProfileMenuOpen" class="flex items-center space-x-3 text-left p-1 rounded-full hover:bg-slate-800/50 transition focus:outline-none focus:ring-2 focus:ring-purple-500">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-luxury-600 to-gold-500 flex items-center justify-center font-serif text-white font-bold text-lg shadow-lg shadow-luxury-500/20 overflow-hidden shrink-0">
+                <template x-if="customerProfile.profilePicture">
+                  <img :src="customerProfile.profilePicture" alt="Profile" class="w-full h-full object-cover">
+                </template>
+                <template x-if="!customerProfile.profilePicture">
+                  <span class="text-sm" x-text="customerProfile.name.split(' ').map(n => n[0]).join('')"></span>
+                </template>
+              </div>
+            </button>
+            <div x-show="isProfileMenuOpen" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-75" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="absolute top-full mt-2 w-56 bg-slate-800 border border-luxury-800 rounded-lg shadow-lg z-30 py-1 left-0" style="display: none;">
+              <a href="profile.html" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 text-xs transition duration-150 text-slate-300 hover:bg-luxury-900/60 hover:text-white">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                <span>My Profile</span>
+              </a>
+              <a href="../../backend/auth/logout.php?portal=customer" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4"></path></svg>
+                <span>Sign Out</span>
+              </a>
+            </div>
+          </div>
+          <h2 class="text-lg font-serif font-bold text-white">Services & Promotions</h2>
+        </div>
+        <div class="relative" @click.outside="isNotificationPanelOpen = false">
+          <button @click="toggleNotificationPanel()" class="relative text-slate-400 hover:text-white transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+            <template x-if="unreadNotificationCount > 0">
+              <span class="pulse-badge absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white" x-text="unreadNotificationCount"></span>
+            </template>
+          </button>
+          <div x-show="isNotificationPanelOpen" x-transition class="absolute top-full right-0 mt-2 w-80 bg-slate-800 border border-luxury-800 rounded-lg shadow-lg z-30 flex flex-col max-h-96" style="display: none;">
+            <div class="p-3 border-b border-slate-700 shrink-0">
+              <h4 class="text-sm font-bold text-white">Notifications</h4>
+            </div>
+            <div class="divide-y divide-slate-700 overflow-y-auto flex-1">
+              <template x-if="notifications.length === 0">
+                <p class="text-xs text-slate-400 text-center p-8">You have no new notifications.</p>
+              </template>
+              <template x-for="notif in notifications" :key="notif.time + notif.message">
+                <div class="p-3 flex items-start space-x-3 hover:bg-slate-700/50">
+                  <div class="w-5 h-5 text-slate-400 mt-0.5 shrink-0">
+                    <svg class="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="notif.icon"></path></svg>
+                  </div>
+                  <div>
+                    <p class="text-xs text-slate-200" x-text="notif.message"></p>
+                    <p class="text-[10px] text-slate-500" x-text="notif.time"></p>
+                  </div>
+                </div>
+              </template>
+            </div>
+            <div x-show="notifications.length > 0" class="p-2 border-t border-slate-700 shrink-0">
+              <button @click="clearAllNotifications()" class="w-full text-center text-xs text-purple-400 hover:bg-slate-700 rounded p-1.5 transition font-semibold">Clear All</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div x-show="isBooting" class="p-6 space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="h-28 rounded-2xl skeleton"></div>
+          <div class="h-28 rounded-2xl skeleton"></div>
+          <div class="h-28 rounded-2xl skeleton"></div>
+        </div>
+        <div class="h-64 rounded-2xl skeleton"></div>
+      </div>
+
+      <div x-show="!isBooting" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+
+        <div class="p-6 space-y-6 pb-24 md:pb-6">
+          <div class="max-w-4xl mx-auto">
+
+            <div class="flex items-center justify-center gap-1.5 sm:gap-3 mb-4 flex-wrap" x-show="showBookingForm || showBookingSuccess || selectedServicesForBooking.length > 0">
+              <template x-for="(label, i) in bookingProgressLabels()" :key="label">
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                  <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-full border flex items-center justify-center text-[10px] sm:text-[11px] font-bold transition-all duration-300"
+                       :class="i === bookingProgressIndex() ? 'bg-gold-500 text-slate-950 border-gold-500 scale-110' : (i < bookingProgressIndex() ? 'bg-luxury-700 text-white border-luxury-700' : 'bg-slate-800 text-slate-500 border-slate-700')"
+                       x-text="i + 1"></div>
+                  <span class="text-[10px] sm:text-[11px] hidden sm:inline transition-colors duration-300" :class="i === bookingProgressIndex() ? 'text-white font-semibold' : 'text-slate-500'" x-text="label"></span>
+                  <div x-show="i < bookingProgressLabels().length - 1" class="w-3 sm:w-8 h-px bg-slate-700"></div>
+                </div>
+              </template>
+            </div>
+
+            <div class="bg-slate-900 border border-luxury-900 rounded-2xl p-5 space-y-4">
+              <h3 class="font-serif text-sm font-bold text-white">Explore Our Offerings</h3>
+              <div class="flex items-center space-x-3">
+                <label for="branch-select-services" class="text-xs text-slate-400">Select Branch:</label>
+                <select id="branch-select-services" x-model="selectedBranchForServices" @change="clearBookingSelection(); prefillBookingForm()" class="bg-slate-950 text-slate-200 rounded-lg p-2 border border-slate-800 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500">
+                  <option value="daraga">Leo Mejillano Salon (Daraga)</option>
+                  <option value="yashano">Skin Brows (Yashano)</option>
+                  <option value="cabangan">Lash & Brows (Cabangan)</option>
+                </select>
+              </div>
+
+              <template x-if="!showBookingForm && !showBookingSuccess">
+                <div>
+                  <div class="space-y-3">
+                    <h4 class="font-serif text-sm font-bold text-gold-400 mt-6">Services at <span x-text="selectedBranchForServices.charAt(0).toUpperCase() + selectedBranchForServices.slice(1)"></span></h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <template x-for="(service, i) in getFilteredServices()" :key="service.id">
+                        <div @click="toggleServiceSelection(service)" :class="isSelectedForBooking(service) ? 'border-gold-500 ring-1 ring-gold-500' : 'border-luxury-900'" class="card-lift stagger-item bg-slate-800 rounded-lg p-4 space-y-2 cursor-pointer relative" :style="'animation-delay:' + (i * 50) + 'ms'">
+                          <template x-if="getPromoForService(service)">
+                            <div class="absolute top-0 right-0 bg-gold-500 text-slate-950 text-[9px] font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg">PROMO AVAILABLE</div>
+                          </template>
+                          <div class="flex justify-between items-start gap-3">
+                            <div class="flex items-start gap-2 min-w-0">
+                              <span :class="isSelectedForBooking(service) ? 'border-gold-500 bg-gold-500' : 'border-slate-500'" class="mt-0.5 shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center">
+                                <span x-show="isSelectedForBooking(service)" class="w-1.5 h-1.5 rounded-full bg-slate-950"></span>
+                              </span>
+                              <div class="min-w-0">
+                                <p class="text-sm font-medium text-white" x-text="service.name"></p>
+                                <p class="text-xs text-slate-400" x-text="service.category"></p>
+                              </div>
+                            </div>
+                            <p class="text-sm font-bold text-gold-400 shrink-0" x-text="formatPeso(service.price)"></p>
+                          </div>
+                          <p class="text-xs text-slate-400" x-text="formatServiceDuration(service)"></p>
+                          <p class="text-xs text-slate-300">
+                            <span class="text-slate-500">Reservation:</span>
+                            <span class="font-semibold text-gold-400" x-text="getReservationLabel(service.paymentRequirement)"></span>
+                          </p>
+                          <button @click.stop="bookNowService(service)" class="w-full mt-1 bg-luxury-600 hover:bg-luxury-700 text-white text-xs font-bold py-1.5 rounded-lg transition active:scale-95">Book Now</button>
+                        </div>
+                      </template>
+                      <template x-if="getFilteredServices().length === 0">
+                        <p class="text-slate-400 text-xs italic col-span-2">No services listed for this branch.</p>
+                      </template>
+                    </div>
+                  </div>
+
+                  <div class="space-y-3">
+                    <h4 class="font-serif text-sm font-bold text-gold-400 mt-6">Active Promotions at <span x-text="selectedBranchForServices.charAt(0).toUpperCase() + selectedBranchForServices.slice(1)"></span></h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <template x-for="(promo, i) in getFilteredPromotions()" :key="promo.id">
+                        <div class="card-lift stagger-item bg-gradient-to-br from-luxury-800 to-luxury-900 border border-gold-500 rounded-lg p-4 space-y-2 relative overflow-hidden" :style="'animation-delay:' + (i * 50) + 'ms'">
+                          <div class="absolute top-0 right-0 bg-gold-500 text-slate-950 text-[9px] font-bold px-2 py-1 rounded-bl-lg">PROMO</div>
+                          <p class="text-sm font-bold text-white" x-text="promo.title"></p>
+                          <p class="text-xs text-slate-300" x-text="promo.description"></p>
+                          <div class="flex items-baseline space-x-2">
+                            <p class="text-lg font-bold text-gold-400" x-text="formatPeso(promo.price)"></p>
+                            <p class="text-xs text-slate-400 line-through" x-text="formatPeso(promo.originalPrice)"></p>
+                          </div>
+                          <button @click="openBookingSection(promo)" class="mt-2 w-full bg-gold-500 hover:bg-gold-600 text-slate-950 text-xs font-bold py-2 rounded-lg transition active:scale-95">Book Now</button>
+                        </div>
+                      </template>
+                      <template x-if="getFilteredPromotions().length === 0">
+                        <p class="text-slate-400 text-xs italic col-span-2">No active promotions for this branch.</p>
+                      </template>
+                    </div>
+                  </div>
+
+                  <div x-show="selectedServicesForBooking.length > 0" x-transition class="pt-6 border-t border-slate-800 mt-6 space-y-4">
+                    <h4 class="font-serif text-sm font-bold text-white">Your Selection</h4>
+                    <ul class="space-y-2">
+                      <template x-for="service in selectedServicesForBooking" :key="service.id">
+                        <li class="flex justify-between items-center text-xs bg-slate-800 p-3 rounded-lg">
+                          <div>
+                            <p class="font-medium text-white" x-text="service.name"></p>
+                            <p class="text-slate-400" x-text="formatServiceDuration(service)"></p>
+                          </div>
+                          <div class="flex items-center space-x-2">
+                            <p class="font-bold text-gold-400" x-text="formatPeso(service.price)"></p>
+                            <button @click="toggleServiceSelection(service)" class="text-rose-400 hover:text-rose-300 text-sm">&times;</button>
+                          </div>
+                        </li>
+                      </template>
+                    </ul>
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-800">
+                      <p class="text-sm font-bold text-white" x-text="'Total: ' + formatPeso(selectedServicesForBooking.reduce((sum, s) => sum + s.price, 0))"></p>
+                      <button @click="openBookingSection()" class="px-5 py-2 bg-gradient-to-r from-luxury-600 to-luxury-800 text-white font-bold rounded-lg hover:shadow-lg hover:shadow-luxury-600/20 transition active:scale-95">Proceed to Booking</button>
+                    </div>
+                  </div>
+
+                  <div class="pt-6 border-t border-slate-800 mt-6">
+                    <p class="text-xs text-slate-500 italic">
+                      Note: Prices and availability are subject to change. For detailed inquiries or to book a service, please contact the salon directly.
+                    </p>
+                  </div>
+                </div>
+              </template>
+
+              <template x-if="showBookingForm">
+                <div class="pt-6 border-t border-slate-800 mt-6 space-y-4" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
+                  <h4 class="font-serif text-sm font-bold text-white" x-text="bookingStepTitle(bookingStep)"></h4>
+                  <form @submit.prevent="" class="space-y-4 text-xs">
+
+                    <!-- STEP: Choose Your Schedule -->
+                    <template x-if="bookingStep === 'schedule'">
+                      <div class="space-y-4">
+                        <div class="bg-slate-800 p-4 rounded-lg">
+                          <p class="font-medium text-white mb-2">Selected Services:</p>
+                          <ul class="list-disc list-inside text-slate-300 space-y-1" x-show="selectedServicesForBooking.length > 0">
+                            <template x-for="service in selectedServicesForBooking" :key="service.id">
+                              <li x-text="service.name + ' (' + formatPeso(service.price) + ')'"></li>
+                            </template>
+                          </ul>
+                        </div>
+                        <div class="bg-slate-800 p-4 rounded-lg space-y-3">
+                          <p class="font-medium text-white">Date &amp; Time</p>
+                          <div>
+                            <label class="block text-slate-400 mb-1">Date</label>
+                            <input type="date" x-model="bookingForm.date" @change="bookingForm.time = ''; refreshAvailableSlots()" :min="getLocalISODate()" required class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                          </div>
+                          <div>
+                            <label class="block text-slate-400 mb-1">Time</label>
+                            <p x-show="slotsLoading" class="text-slate-500 mb-2">Checking availability...</p>
+                            <div x-show="!slotsLoading" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-40 overflow-y-auto p-2 border border-slate-700 rounded-lg bg-slate-950">
+                              <template x-for="slot in getScheduleSlots()" :key="slot">
+                                <button type="button"
+                                        @click="bookingForm.time = slot"
+                                        :class="bookingForm.time === slot ? 'bg-gold-500 text-slate-950 font-bold' : 'bg-slate-700 hover:bg-slate-600 text-slate-200'"
+                                        class="px-3 py-1.5 rounded-md transition-all duration-150 text-xs">
+                                  <span x-text="slot"></span>
+                                </button>
+                              </template>
+                              <template x-if="getScheduleSlots().length === 0">
+                                <p class="text-slate-500 italic col-span-full py-2">No open times left for this date. Please choose another date.</p>
+                              </template>
+                            </div>
+                            <p class="text-slate-500 mt-2">Only times that are still open for this branch are shown here.</p>
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+
+                    <!-- STEP: Choose Your Stylist (skipped automatically when nobody qualifies) -->
+                    <template x-if="bookingStep === 'stylist'">
+                      <div class="bg-slate-800 p-4 rounded-lg space-y-3">
+                        <p class="font-medium text-white">Preferred Stylist</p>
+                        <p class="text-slate-400">Only stylists free at <strong class="text-white" x-text="bookingForm.time"></strong> on <strong class="text-white" x-text="formatApptDateLong(bookingForm.date)"></strong> are listed.</p>
+                        <select x-model="bookingForm.staffId" class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                          <option value="">Any Available Staff</option>
+                          <template x-for="staff in getAvailableStaffForBranch()" :key="staff.id">
+                            <option :value="staff.id" x-text="staff.name + ' (' + staff.role + ')'"></option>
+                          </template>
+                        </select>
+                        <div x-show="getBusyStaffForBranch().length > 0" class="border border-dashed border-slate-600 rounded-lg p-3 space-y-2">
+                          <p class="text-slate-400"><strong class="text-white">Preferred stylist booked at this time?</strong> We'll email you if they have an opening on this date.</p>
+                          <div class="flex gap-2">
+                            <select x-model="waitlistStaffId" class="flex-1 bg-slate-950 text-slate-200 rounded-lg p-2 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                              <option value="">Choose stylist…</option>
+                              <template x-for="staff in getBusyStaffForBranch()" :key="staff.id">
+                                <option :value="staff.id" x-text="staff.name"></option>
+                              </template>
+                            </select>
+                            <button type="button" @click="joinStylistWaitlist()" :disabled="isJoiningWaitlist" class="px-3 py-2 border border-gold-500 text-gold-400 font-bold rounded-lg hover:bg-gold-500 hover:text-slate-900 transition disabled:opacity-50">Notify me</button>
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+
+                    <!-- STEP: Review Your Appointment -->
+                    <template x-if="bookingStep === 'review'">
+                      <div class="bg-slate-800 p-4 rounded-lg space-y-2">
+                        <p class="font-medium text-white mb-1">Please review your appointment</p>
+                        <div class="flex justify-between"><span class="text-slate-500">Branch:</span><span class="text-white" x-text="selectedBranchForServices.charAt(0).toUpperCase() + selectedBranchForServices.slice(1)"></span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Service(s):</span><span class="text-white text-right" x-text="selectedServicesForBooking.map(s => s.name).join(', ')"></span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Date &amp; Time:</span><span class="text-white" x-text="formatApptDateLong(bookingForm.date) + ' @ ' + bookingForm.time"></span></div>
+                        <div class="flex justify-between" x-show="bookingForm.staffId"><span class="text-slate-500">Stylist:</span><span class="text-white" x-text="(getAvailableStaffForBranch().find(s => String(s.id) === String(bookingForm.staffId)) || {}).name"></span></div>
+                        <div class="flex justify-between pt-2 border-t border-slate-700"><span class="text-slate-500">Subtotal:</span><span class="text-white font-bold" x-text="formatPeso(bookingSubtotal())"></span></div>
+
+                        <div class="pt-3 border-t border-slate-700" x-show="customerProfile.loyaltyPoints > 0 && bookingSubtotal() > 0">
+                          <div class="flex items-center justify-between">
+                            <p class="text-slate-300">Redeem loyalty points (<span x-text="customerProfile.loyaltyPoints"></span> available)</p>
+                            <button type="button" @click="bookingForm.useLoyaltyPoints = !bookingForm.useLoyaltyPoints"
+                                    :class="bookingForm.useLoyaltyPoints ? 'bg-gold-500' : 'bg-slate-700'"
+                                    class="relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-gold-500">
+                              <span :class="bookingForm.useLoyaltyPoints ? 'translate-x-6' : 'translate-x-1'" class="inline-block w-4 h-4 transform bg-white rounded-full transition-transform"></span>
+                            </button>
+                          </div>
+                          <div class="flex justify-between text-slate-300 mt-1" x-show="bookingForm.useLoyaltyPoints">
+                            <span>Discount Applied:</span>
+                            <span class="font-bold text-emerald-400" x-text="'- ' + formatPeso(maxRedeemableDiscount())"></span>
+                          </div>
+                        </div>
+
+                        <div class="flex justify-between items-center pt-3 border-t border-slate-700">
+                          <span class="text-sm font-bold text-white">Final Total:</span>
+                          <span class="text-lg font-bold text-gold-400" x-text="formatPeso(finalBookingTotal())"></span>
+                        </div>
+
+                        <div class="pt-3 border-t border-slate-700 space-y-2">
+                          <p class="font-medium text-white">Your Details</p>
+                          <div>
+                            <label class="block text-slate-400 mb-1">Full Name</label>
+                            <input type="text" x-model="bookingForm.customerName" required class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                          </div>
+                          <div>
+                            <label class="block text-slate-400 mb-1">Phone Number</label>
+                            <input type="tel" x-model="bookingForm.customerPhone" pattern="09[0-9]{9}" placeholder="09XXXXXXXXX" required class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+
+                    <!-- STEP: Secure Your Appointment (Reservation Payment) -->
+                    <template x-if="bookingStep === 'payment'">
+                      <div class="bg-slate-800 border border-luxury-700 p-4 rounded-lg space-y-3">
+                        <p class="font-medium text-white">SECURE YOUR APPOINTMENT</p>
+                        <p class="text-slate-400">Your selected schedule is available. Complete the required reservation payment below to continue.</p>
+                        <p class="text-slate-400">Pay a deposit (50% of the total, minimum ₱100 — some services require full payment) or pay the full amount now.</p>
+                        <p class="text-slate-400">Your booking will remain Waiting for Confirmation until the branch verifies your payment.</p>
+                        <dl class="space-y-2 border-y border-slate-700 py-3">
+                          <div><dt class="text-slate-400">Selected Service</dt><dd class="text-white" x-text="reservationQuote?.items.map(s => s.name).join(', ')"></dd></div>
+                          <div class="flex justify-between gap-3"><dt>Service Total</dt><dd class="text-white" x-text="formatPeso(reservationQuote?.serviceTotal ?? 0)"></dd></div>
+                          <div class="flex justify-between gap-3"><dt>Reservation Requirement</dt><dd class="text-white text-right" x-text="reservationQuote?.reservationRequirement"></dd></div>
+                          <div class="flex justify-between gap-3 font-bold text-gold-400"><dt>Pay Now</dt><dd x-text="formatPeso(requiredDeposit())"></dd></div>
+                          <div class="flex justify-between gap-3"><dt>Balance to Pay Later</dt><dd class="text-white" x-text="formatPeso(reservationQuote?.remainingBalance ?? 0)"></dd></div>
+                        </dl>
+
+                        <template x-if="!depositLocked">
+                          <div class="space-y-3">
+                            <div x-show="reservationQuote?.canChoosePlan">
+                              <label class="block text-slate-400 mb-1">How much to pay now</label>
+                              <div class="grid grid-cols-2 gap-2">
+                                <label class="flex items-center gap-2 bg-slate-950 border rounded-lg p-2.5 cursor-pointer" :class="bookingForm.paymentPlan === 'deposit' ? 'border-gold-500 text-white' : 'border-slate-800 text-slate-300'">
+                                  <input type="radio" value="deposit" x-model="bookingForm.paymentPlan" @change="loadReservationQuote()" class="accent-amber-500"> Deposit (min ₱100)
+                                </label>
+                                <label class="flex items-center gap-2 bg-slate-950 border rounded-lg p-2.5 cursor-pointer" :class="bookingForm.paymentPlan === 'full' ? 'border-gold-500 text-white' : 'border-slate-800 text-slate-300'">
+                                  <input type="radio" value="full" x-model="bookingForm.paymentPlan" @change="loadReservationQuote()" class="accent-amber-500"> Full amount
+                                </label>
+                              </div>
+                            </div>
+                            <div>
+                              <label class="block text-slate-400 mb-1">Payment Method</label>
+                              <select x-model="bookingForm.paymentMethod" class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                                <option value="" disabled>Choose a payment method...</option>
+                                <option value="PayMongo">Pay Online — GCash, Maya or Card</option>
+                                <option value="Cash">Cash — pay at the branch</option>
+                              </select>
+                            </div>
+                            <p x-show="bookingForm.paymentMethod === 'PayMongo'" class="text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3">After you confirm, you'll be taken to PayMongo's secure checkout to pay with GCash, Maya or card. Your slot is held for 30 minutes while you pay — no reference number needed.</p>
+                            <p x-show="bookingForm.paymentMethod === 'Cash'" class="text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3">Cash deposits can't be verified remotely — bring the deposit amount to the branch. Your booking remains Waiting for Confirmation until you pay in person and staff verify payment.</p>                          </div>
+                        </template>
+
+                        <div x-show="depositLocked" class="flex items-center justify-between gap-3">
+                          <span class="text-white" x-show="reservationQuote?.reservationRequirement === 'No Online Reservation'">No online reservation payment required — confirmed after review.</span>
+                          <span class="text-white" x-show="reservationQuote?.reservationRequirement !== 'No Online Reservation'">Reservation payment: <strong x-text="formatPeso(requiredDeposit()) + ' via ' + bookingForm.paymentMethod + (bookingForm.depositReference ? ' (Ref: ' + bookingForm.depositReference + ')' : '')"></strong></span>
+                          <button type="button" @click="changeDeposit()" x-show="reservationQuote?.reservationRequirement !== 'No Online Reservation'" class="text-gold-400 font-bold hover:underline shrink-0">Change</button>
+                        </div>
+                      </div>
+                    </template>
+
+                    <!-- STEP: Choose How to Receive Updates -->
+                    <template x-if="bookingStep === 'notifications'">
+                      <div class="bg-slate-800 p-4 rounded-lg space-y-3">
+                        <p class="font-medium text-white">How should we notify you about this booking?</p>
+                        <p class="text-slate-400">We'll send updates on your reservation status (confirmed, schedule changes, reminders) through the channels you enable here.</p>
+                        <label class="flex items-center justify-between gap-3 bg-slate-900 border border-slate-700 rounded-lg p-3 cursor-pointer">
+                          <span class="text-slate-200">Email updates</span>
+                          <input type="checkbox" x-model="customerProfile.notificationPrefs.email" class="w-4 h-4 accent-gold-500">
+                        </label>
+                        <label class="flex items-center justify-between gap-3 bg-slate-900 border border-slate-700 rounded-lg p-3 cursor-pointer">
+                          <span class="text-slate-200">SMS updates</span>
+                          <input type="checkbox" x-model="customerProfile.notificationPrefs.sms" class="w-4 h-4 accent-gold-500">
+                        </label>
+                        <p class="text-slate-500">You can change these anytime from My Profile.</p>
+                      </div>
+                    </template>
+
+                    <!-- STEP: Review Terms & Conditions -->
+                    <template x-if="bookingStep === 'terms'">
+                      <div class="bg-slate-800 p-4 rounded-lg space-y-2">
+                        <p class="font-medium text-white">Terms &amp; Conditions</p>
+                        <div class="max-h-24 overflow-y-auto text-slate-400 leading-relaxed pr-1">
+                          <ul class="list-disc list-inside space-y-1">
+                            <li><strong class="text-slate-300">Reservation payment:</strong> A reservation payment is required to hold your appointment slot.</li>
+                            <li><strong class="text-slate-300">50% or full payment:</strong> Depending on the service selected, you must pay either a 50% down payment or the full amount upfront — the required amount is shown before you book.</li>
+                            <li><strong class="text-slate-300">Payment verification:</strong> Online payments (GCash, Maya or card) are processed securely by PayMongo; Cash must be settled in person. Your payment stays "Payment Being Verified" until staff confirm it — you can never verify your own payment.</li>
+                            <li><strong class="text-slate-300">Confirmation rules:</strong> Your requested time is held as Waiting for Confirmation until the branch verifies your payment and confirms it — it is not guaranteed until confirmed.</li>
+                            <li><strong class="text-slate-300">Deposit &amp; rescheduling policy:</strong> Reservation deposits are <u>non-refundable</u>. Need a different time? Reschedule instead (online up to 24 hours before, or by contacting the branch) and your deposit carries over. If you cancel or miss your appointment, the deposit is kept, but that booking can still be rescheduled later using the deposit.</li>
+                            <li><strong class="text-slate-300">Rescheduling:</strong> You may request to reschedule; please do so as early as possible, subject to availability.</li>
+                            <li><strong class="text-slate-300">No-show:</strong> Please arrive on time. Repeated no-shows or late cancellations may affect future bookings.</li>
+                            <li>Prices and staff availability are confirmed by the branch and may change.</li>
+                          </ul>
+                        </div>
+                        <label class="flex items-start gap-2 pt-1 text-slate-300 cursor-pointer">
+                          <input type="checkbox" x-model="bookingForm.agreedToTerms" class="mt-0.5 accent-gold-500">
+                          <span>I have read and agree to the Terms &amp; Conditions.</span>
+                        </label>
+                      </div>
+                    </template>
+
+                    <div class="pt-2 flex justify-between border-t border-slate-800">
+                      <button type="button" @click="bookingStep === 'schedule' ? cancelBookingForm() : goToPreviousBookingStep()" :disabled="isSubmittingBooking" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 transition disabled:opacity-50" x-text="bookingStep === 'schedule' ? 'Cancel' : 'Back'"></button>
+
+                      <button type="button" x-show="bookingStep === 'schedule'" @click="proceedFromSchedule()" class="px-5 py-2 bg-gradient-to-r from-luxury-600 to-luxury-800 text-white font-bold rounded-lg transition active:scale-95">Continue</button>
+                      <button type="button" x-show="bookingStep === 'stylist'" @click="proceedFromStylist()" class="px-5 py-2 bg-gradient-to-r from-luxury-600 to-luxury-800 text-white font-bold rounded-lg transition active:scale-95">Continue</button>
+                      <button type="button" x-show="bookingStep === 'review'" @click="proceedFromReview()" :disabled="!bookingForm.customerName || !bookingForm.customerPhone" class="px-5 py-2 bg-gradient-to-r from-luxury-600 to-luxury-800 text-white font-bold rounded-lg transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">Continue to Payment</button>
+                      <button type="button" x-show="bookingStep === 'payment' && !depositLocked" @click="proceedFromPayment()" class="px-5 py-2 bg-luxury-600 hover:bg-luxury-700 text-white font-bold rounded-lg transition active:scale-95">Submit Deposit &amp; Continue</button>
+                      <button type="button" x-show="bookingStep === 'payment' && depositLocked" @click="bookingStep = 'notifications'" class="px-5 py-2 bg-gradient-to-r from-luxury-600 to-luxury-800 text-white font-bold rounded-lg transition active:scale-95">Continue</button>
+                      <button type="button" x-show="bookingStep === 'notifications'" @click="proceedFromNotifications()" class="px-5 py-2 bg-gradient-to-r from-luxury-600 to-luxury-800 text-white font-bold rounded-lg transition active:scale-95">Continue</button>
+                      <button type="button" x-show="bookingStep === 'terms'" @click="submitBooking()" :disabled="isSubmittingBooking || !bookingForm.agreedToTerms" class="px-5 py-2 bg-gradient-to-r from-gold-500 to-gold-600 text-slate-900 font-bold rounded-lg transition disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2">
+                        <svg x-show="isSubmittingBooking" class="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                        <span x-text="isSubmittingBooking ? 'Processing...' : 'Confirm Booking Request'"></span>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </template>
+
+              <template x-if="showBookingSuccess">
+                <div class="pt-6 border-t border-slate-800 mt-6 space-y-4 text-center" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
+                  <div class="w-16 h-16 bg-emerald-950 border-4 border-emerald-800 rounded-full flex items-center justify-center mx-auto">
+                    <svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                  </div>
+                  <h4 class="font-serif text-lg font-bold text-white">Booking Request Received</h4>
+                  <p class="text-slate-400 text-sm">Your appointment request has been sent. You will receive a confirmation message shortly.</p>
+
+                  <div x-show="bookingSuccessDetails" class="bg-slate-800 rounded-lg p-4 text-left text-xs my-4 space-y-2">
+                    <p class="text-center font-bold text-gold-400 mb-3">Booking Reference: <span class="font-mono bg-slate-900 px-2 py-1 rounded" x-text="bookingSuccessDetails?.id"></span></p>
+                    <div class="flex justify-between items-center"><strong class="text-slate-500">Branch:</strong><span class="text-white text-right" x-text="bookingSuccessDetails?.branchName"></span></div>
+                    <div class="flex justify-between items-center"><strong class="text-slate-500">Service(s):</strong><span class="text-white text-right" x-text="bookingSuccessDetails?.serviceName"></span></div>
+                    <div class="flex justify-between items-center"><strong class="text-slate-500">Date & Time:</strong><span class="text-white text-right" x-text="bookingSuccessDetails?.date + ' @ ' + bookingSuccessDetails?.time"></span></div>
+                    <div class="flex justify-between items-center"><strong class="text-slate-500">Staff:</strong><span class="text-white text-right" x-text="bookingSuccessDetails?.staffName"></span></div>
+                    <div class="flex justify-between items-center"><strong class="text-slate-500">Pay Now:</strong><span class="text-white text-right" x-text="formatPeso(bookingSuccessDetails?.depositAmount) + ' via ' + bookingSuccessDetails?.paymentMethod + (bookingSuccessDetails?.depositReference ? ' (Ref: ' + bookingSuccessDetails.depositReference + ')' : '')"></span></div>
+                    <div class="flex justify-between items-center"><strong class="text-slate-500">Balance to Pay Later:</strong><span class="text-white" x-text="formatPeso(bookingSuccessDetails?.remainingBalance)"></span></div>
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-700"><strong class="text-slate-500">Service Total:</strong><span class="font-bold text-gold-400" x-text="formatPeso(bookingSuccessDetails?.price)"></span></div>
+                  </div>
+
+                  <div class="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3">
+                    <button @click="closeBookingSection()" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 transition active:scale-95">Book Another Service</button>
+                    <a href="appointments.html" class="px-5 py-2 bg-gradient-to-r from-luxury-600 to-luxury-800 text-white font-bold rounded-lg hover:shadow-lg hover:shadow-luxury-600/20 transition active:scale-95">View My Appointments</a>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <div id="customer-mobile-nav" class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-luxury-900 z-30">
+    <nav class="flex justify-around">
+      <a href="dashboard.html" data-nav-page="dashboard.html" class="text-slate-400 flex flex-col items-center justify-center p-2 w-full hover:bg-slate-800/50 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z"></path></svg>
+        <span class="text-[9px] mt-1">Dashboard</span>
+      </a>
+      <a href="appointments.html" data-nav-page="appointments.html" class="text-slate-400 flex flex-col items-center justify-center p-2 w-full hover:bg-slate-800/50 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+        <span class="text-[9px] mt-1">Bookings</span>
+      </a>
+      <a href="services-promos.html" data-nav-page="services-promos.html" class="text-gold-400 flex flex-col items-center justify-center p-2 w-full hover:bg-slate-800/50 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+        <span class="text-[9px] mt-1">Services</span>
+      </a>
+      <a href="reviews.html" data-nav-page="reviews.html" class="text-slate-400 flex flex-col items-center justify-center p-2 w-full hover:bg-slate-800/50 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+        <span class="text-[9px] mt-1">Reviews</span>
+      </a>
+      <a href="home-service.html" data-nav-page="home-service.html" class="text-slate-400 flex flex-col items-center justify-center p-2 w-full hover:bg-slate-800/50 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+        <span class="text-[9px] mt-1">Home</span>
+      </a>
+    </nav>
+  </div>
+
+  <!-- App logic, split by concern. Only what this page's markup uses:
+       browsing services/promos and the booking flow. Appointments,
+       reviews, home service, and profile mixins live on their own pages. -->
+  <script src="../../scripts/customer/dashboard-helpers.js"></script>
+  <script src="../../scripts/customer/dashboard-state.js"></script>
+  <script src="../../scripts/customer/dashboard-notifications.js"></script>
+  <script src="../../scripts/customer/dashboard-booking.js"></script>
+  <script src="../../scripts/customer/dashboard.js"></script>
+</body>
+</html>

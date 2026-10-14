@@ -1,0 +1,77 @@
+    .welcome-cover { position: relative; z-index: 1; flex: 1; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 28px; text-align: center; }
+    .welcome-entry { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 6px; text-decoration: none; border-radius: 12px; }
+    .welcome-circle { position: relative; width: 112px; height: 112px; border: 1px solid var(--sand); border-radius: 50%; display: grid; place-items: center; }
+    .welcome-circle::before { content: ''; position: absolute; inset: 9px; border: 1px solid var(--gold); border-radius: 50%; transition: inset .3s; }
+    .welcome-core { width: 54px; height: 54px; display: grid; place-items: center; border-radius: 50%; background: var(--teal); color: white; box-shadow: 0 12px 26px -14px rgba(0,109,111,.9); transition: transform .3s; }
+    .welcome-label { font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--teal-dark); }
+    .welcome-entry:hover .welcome-circle::before { inset: 3px; }
+    .welcome-entry:hover .welcome-core { transform: scale(1.08); }
+    .welcome-entry:focus-visible { outline: 3px solid var(--teal); outline-offset: 8px; }
+    @media(max-width:560px) { .welcome-circle { width: 94px; height: 94px; } .welcome-core { width: 46px; height: 46px; } }
+    @media(prefers-reduced-motion:reduce) { .welcome-core,.welcome-circle::before { transition: none; } }
+
+    /* Iris reveal: pressing the aperture button clip-path-expands the login
+       card outward from the button's own position, over the same page
+       background (dots + glow orbs), instead of navigating to a new page. */
+    #cover { transition: opacity .3s ease; }
+    .page.reveal-active #cover { opacity: 0; pointer-events: none; }
+    .reveal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      pointer-events: none;
+    }
+    .reveal-overlay.is-open { pointer-events: auto; }
+    .reveal-overlay .card {
+      clip-path: circle(0% at var(--reveal-x, 50%) var(--reveal-y, 50%));
+      transition: clip-path .6s cubic-bezier(.22,1,.36,1);
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+    }
+    .reveal-overlay.is-open .card {
+      clip-path: circle(150% at var(--reveal-x, 50%) var(--reveal-y, 50%));
+    }
+    @media(prefers-reduced-motion:reduce) {
+      #cover, .reveal-overlay .card { transition: none; }
+    }
+
+    /* A real photo of the salon instead of the flat cream background, tinted
+       with the site's own teal/cream palette rather than a plain dark dim so
+       it still reads as this brand, not a generic template. Sits behind the
+       existing .page-dots/.page::before/::after decoration, which stays for
+       the soft glow accents but no longer needs to carry the whole backdrop
+       on its own -- so the dot texture (barely visible over a photo anyway)
+       is hidden here. */
+    .photo-backdrop { position: fixed; inset: 0; z-index: 0; overflow: hidden; }
+    .photo-backdrop::before {
+      content: '';
+      position: absolute;
+      inset: -20px;
+      background: url('../../assets/image/studio.jpg') center 38% / cover no-repeat;
+      filter: blur(7px) brightness(.94);
+      transform: scale(1.03);
+    }
+    .photo-backdrop::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(165deg, rgba(255,248,238,.86) 0%, rgba(255,248,238,.72) 45%, rgba(6,70,74,.4) 100%);
+    }
+    .page { position: relative; z-index: 1; }
+    .page-dots { display: none; }
+
+    /* .page-note's default color (dark charcoal at 45%) assumes a plain
+       cream background -- against the photo's darker teal-tinted corner it
+       loses too much contrast, so give it its own small backdrop here. */
+    .page-note {
+      color: rgba(34, 34, 34, 0.72);
+      background: rgba(255, 253, 249, 0.72);
+      backdrop-filter: blur(6px);
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-top: 8px;
+    }

@@ -1,0 +1,70 @@
+/* Customer portal treatment aligned with the public site and admin workspace. */
+@import url("./admin-theme.css");
+
+#customer-mobile-nav {
+  color: var(--admin-charcoal);
+  background: rgb(255 253 249 / 0.96) !important;
+  border-color: rgb(217 201 180 / 0.7) !important;
+  box-shadow: 0 -8px 28px -22px rgb(6 70 74 / 0.6);
+  backdrop-filter: blur(14px);
+}
+
+#customer-mobile-nav a {
+  color: rgb(34 34 34 / 0.62) !important;
+}
+
+#customer-mobile-nav a.text-gold-400,
+#customer-mobile-nav a[class*="bg-luxury-900"] {
+  color: var(--admin-deep-teal) !important;
+  background: rgb(0 109 111 / 0.08) !important;
+}
+
+/* The profile flyout is a light card inside the dark sidebar, so it needs its
+   own foreground colors instead of inheriting the sidebar's cream text. */
+aside [class*="absolute"][class*="top-full"][class*="bg-slate-800"] {
+  color: var(--admin-charcoal) !important;
+  background: var(--admin-panel) !important;
+  border-color: var(--admin-bronze) !important;
+  box-shadow: 0 18px 42px -24px rgb(6 70 74 / 0.65);
+}
+
+aside [class*="absolute"][class*="top-full"][class*="bg-slate-800"] a {
+  color: var(--admin-charcoal) !important;
+}
+
+aside [class*="absolute"][class*="top-full"][class*="bg-slate-800"] a:hover {
+  color: var(--admin-dark-teal) !important;
+  background: var(--admin-warm-surface) !important;
+}
+
+aside [class*="absolute"][class*="top-full"][class*="bg-slate-800"] a[href*="logout"] {
+  color: #9F2D2D !important;
+}
+
+aside [class*="absolute"][class*="top-full"][class*="bg-slate-800"] a[href*="logout"]:hover {
+  color: #7F1D1D !important;
+  background: #FFF0F0 !important;
+}
+
+/* Profile menus, notifications, and dialogs sit outside <main> on some pages. */
+body > [class*="fixed"][class*="inset-0"] > [class*="bg-slate-900"] {
+  color: var(--admin-charcoal);
+  background: var(--admin-panel) !important;
+  border-color: var(--admin-bronze) !important;
+  box-shadow: 0 28px 70px -35px rgb(6 70 74 / 0.55);
+}
+
+body > [class*="fixed"][class*="inset-0"] input:not([type="checkbox"]):not([type="radio"]),
+body > [class*="fixed"][class*="inset-0"] select,
+body > [class*="fixed"][class*="inset-0"] textarea {
+  color: var(--admin-charcoal) !important;
+  background: var(--admin-cream) !important;
+  border-color: rgb(217 201 180 / 0.75) !important;
+  color-scheme: light;
+}
+
+@media (max-width: 767px) {
+  aside#customer-sidebar {
+    box-shadow: none;
+  }
+}

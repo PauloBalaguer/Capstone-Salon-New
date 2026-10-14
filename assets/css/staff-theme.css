@@ -1,0 +1,159 @@
+/* Staff portal treatment aligned with the public site and other portals. */
+@import url("./admin-theme.css");
+
+/* Translate the staff portal's emerald accent language into brand teal. */
+.text-emerald-300,
+.text-emerald-400,
+.text-emerald-500 { color: var(--admin-deep-teal) !important; }
+
+.bg-emerald-500,
+.bg-emerald-600,
+.bg-emerald-700 { background-color: var(--admin-deep-teal) !important; }
+
+.from-emerald-600 { --tw-gradient-from: var(--admin-deep-teal) var(--tw-gradient-from-position) !important; }
+.via-teal-500 { --tw-gradient-via: var(--admin-gold) var(--tw-gradient-via-position) !important; }
+.to-emerald-800 { --tw-gradient-to: var(--admin-dark-teal) var(--tw-gradient-to-position) !important; }
+
+.border-emerald-800,
+[class*="border-emerald-900"] { border-color: rgb(0 109 111 / 0.24) !important; }
+
+.ring-emerald-500,
+.focus\:ring-emerald-500:focus { --tw-ring-color: rgb(0 109 111 / 0.28) !important; }
+
+aside a[data-nav-page] { color: rgb(255 248 238 / 0.72) !important; }
+aside a[data-nav-page]:hover { color: var(--admin-cream) !important; background: rgb(255 248 238 / 0.08) !important; }
+aside a[data-nav-page][class*="bg-emerald-950"] {
+  color: var(--admin-cream) !important;
+  background: var(--admin-deep-teal) !important;
+  border-left-color: var(--admin-gold) !important;
+}
+
+aside a[data-nav-page] .text-emerald-400,
+aside h1.text-emerald-400 { color: var(--admin-gold) !important; }
+
+/* Floating mobile navigation becomes a warm-white pill with a teal slider. */
+nav.md\:hidden > div[class*="bg-slate-900"] {
+  background: rgb(255 253 249 / 0.96) !important;
+  border-color: rgb(217 201 180 / 0.72) !important;
+  box-shadow: 0 16px 40px -24px rgb(6 70 74 / 0.65);
+}
+
+#mobile-nav-slider { background: var(--admin-deep-teal) !important; }
+nav.md\:hidden a[data-mobile-nav-page] { color: rgb(34 34 34 / 0.55) !important; }
+nav.md\:hidden a[data-mobile-nav-page].text-white { color: var(--admin-panel) !important; }
+
+/* Staff dialogs are outside main on several pages. */
+body > [class*="fixed"][class*="inset-0"] > div.relative[class*="bg-slate-900"] {
+  color: var(--admin-charcoal);
+  background: var(--admin-panel) !important;
+  border-color: var(--admin-bronze) !important;
+  box-shadow: 0 28px 70px -35px rgb(6 70 74 / 0.55);
+}
+
+body > [class*="fixed"][class*="inset-0"] input:not([type="checkbox"]):not([type="radio"]),
+body > [class*="fixed"][class*="inset-0"] select,
+body > [class*="fixed"][class*="inset-0"] textarea {
+  color: var(--admin-charcoal) !important;
+  background: var(--admin-cream) !important;
+  border-color: rgb(217 201 180 / 0.75) !important;
+  color-scheme: light;
+}
+
+.card-lift:hover { box-shadow: 0 16px 32px -22px rgb(0 109 111 / 0.42) !important; }
+
+
+/* ==================================================================
+   Light, high-contrast staff workspace.
+   The staff markup was written for a dark theme (slate-900/950 panels,
+   near-white slate text, *-950 chips, 9-11px labels). These rules turn
+   every surface inside <main> and the staff dialogs light, darken the
+   text to readable greys, give chips pastel fills with dark text, and
+   bump the tiny label sizes. Scoped away from the sidebar (aside), which
+   keeps its dark teal treatment, and from the dashboard's photo-style
+   hero card, which keeps white text on its dark gradient.
+   ================================================================== */
+:root {
+  --staff-text: #1F2937;
+  --staff-muted: #4B5563;
+  --staff-subtle: #5B6472;
+  --staff-surface: #F7F1E6;
+  --staff-surface-2: #EFE6D6;
+  --staff-line: #E4D7C0;
+}
+
+/* --- Panels & cards -------------------------------------------------- */
+:is(main, body > [class*="fixed"][class*="inset-0"]) :is(.bg-slate-900, [class*="from-slate-900"]):not(.absolute) {
+  background-color: var(--admin-panel) !important;
+  background-image: none !important;
+  border-color: var(--staff-line) !important;
+  box-shadow: 0 12px 30px -24px rgb(6 70 74 / 0.5);
+}
+
+/* Inner wells, table headers, list rows, progress tracks. */
+:is(main, body > [class*="fixed"][class*="inset-0"]) .bg-slate-950 {
+  background-color: var(--staff-surface) !important;
+}
+:is(main, body > [class*="fixed"][class*="inset-0"]) .bg-slate-800 {
+  background-color: var(--staff-surface-2) !important;
+}
+main table thead.bg-slate-950 { background-color: var(--admin-warm-surface) !important; }
+
+/* Borders & dividers */
+:is(main, body > [class*="fixed"][class*="inset-0"]) :is([class*="border-slate-7"], [class*="border-slate-8"], .border-slate-950) {
+  border-color: var(--staff-line) !important;
+}
+:is(main, body > [class*="fixed"][class*="inset-0"]) [class*="divide-slate"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--staff-line) !important;
+}
+
+/* Row hovers that used to darken now warm up instead. */
+:is(main, body > [class*="fixed"][class*="inset-0"]) :is([class*="hover:bg-slate-8"], [class*="hover:bg-slate-7"]):hover {
+  background-color: rgb(243 233 214 / 0.75) !important;
+}
+
+/* --- Text -------------------------------------------------------------- */
+:is(main, body > [class*="fixed"][class*="inset-0"]) :is(.text-slate-100, .text-slate-200, .text-slate-300):not(#mobile-hero-card *) {
+  color: var(--staff-text) !important;
+}
+:is(main, body > [class*="fixed"][class*="inset-0"]) .text-slate-400:not(#mobile-hero-card *) {
+  color: var(--staff-muted) !important;
+}
+:is(main, body > [class*="fixed"][class*="inset-0"]) .text-slate-500:not(#mobile-hero-card *) {
+  color: var(--staff-subtle) !important;
+}
+:is(main, body > [class*="fixed"][class*="inset-0"]) [class*="hover:text-slate-2"]:hover {
+  color: var(--admin-deep-teal) !important;
+}
+
+/* Accent text written for dark backgrounds -> darker shades. */
+:not(aside *):not(#mobile-hero-card *):is(.text-emerald-200, .text-teal-400) { color: var(--admin-dark-teal) !important; }
+:not(aside *):not(#mobile-hero-card *):is(.text-rose-200, .text-rose-300, .text-rose-400) { color: #B91C1C !important; }
+:not(aside *):not(#mobile-hero-card *):is(.text-amber-300, .text-amber-400):not(svg) { color: #B45309 !important; }
+:not(aside *):not(#mobile-hero-card *).text-indigo-400 { color: #4338CA !important; }
+:not(aside *)[class*="hover:text-rose-3"]:hover { color: #991B1B !important; }
+
+/* --- Chips, icon tiles & toasts: pastel fill + dark text ---------------- */
+:not(aside *):is([class*="bg-emerald-950"], [class*="bg-emerald-900"]) {
+  background-color: #D5F0EC !important;
+  border-color: #8FD3CB !important;
+  color: var(--admin-dark-teal);
+}
+:not(aside *)[class*="bg-teal-950"]  { background-color: #CCFBF1 !important; border-color: #5EEAD4 !important; color: #115E59; }
+:not(aside *)[class*="bg-amber-950"] { background-color: #FEF3C7 !important; border-color: #FCD34D !important; color: #92400E; }
+:not(aside *)[class*="bg-rose-950"]  { background-color: #FFE4E6 !important; border-color: #FDA4AF !important; color: #9F1239; }
+:not(aside *):is([class*="border-rose-8"], [class*="border-rose-9"]) { border-color: #FDA4AF !important; }
+:not(aside *)[class*="hover:bg-rose-9"]:hover { background-color: #FFE4E6 !important; }
+/* Chip text classes pick up the dark shade of their own fill. */
+:not(aside *)[class*="bg-emerald-950"].text-emerald-300 { color: var(--admin-dark-teal) !important; }
+
+/* --- Readable sizes ---------------------------------------------------- */
+:is(main, body > [class*="fixed"][class*="inset-0"]) .text-\[9px\]  { font-size: 11px !important; }
+:is(main, body > [class*="fixed"][class*="inset-0"]) .text-\[10px\] { font-size: 11.5px !important; }
+:is(main, body > [class*="fixed"][class*="inset-0"]) .text-\[11px\] { font-size: 12.5px !important; }
+main { line-height: 1.5; }
+
+/* --- Dashboard hero card keeps white text on its dark gradient --------- */
+#mobile-hero-card .text-white,
+#mobile-hero-card p.text-white,
+#mobile-hero-card span.text-white { color: #fff !important; }
+#mobile-hero-card .text-emerald-200 { color: #A7F3D0 !important; }

@@ -1,0 +1,399 @@
+:root {
+  --admin-deep-teal: #006D6F;
+  --admin-gold: #E0B84C;
+  --admin-gold-dark: #B8933A;
+  --admin-gold-ink: #805B0B;
+  --admin-dark-teal: #06464A;
+  --admin-cream: #FFF8EE;
+  --admin-panel: #FFFDF9;
+  --admin-warm-surface: #F3E9D6;
+  --admin-bronze: #D9C9B4;
+  --admin-sand: #E8DCC8;
+  --admin-charcoal: #222222;
+}
+
+[x-cloak] {
+  display: none !important;
+}
+
+html {
+  color-scheme: light;
+  background: var(--admin-cream);
+}
+
+body {
+  background:
+    radial-gradient(circle at 92% 4%, rgb(224 184 76 / 0.13), transparent 25rem),
+    radial-gradient(circle at 8% 96%, rgb(0 109 111 / 0.08), transparent 30rem),
+    var(--admin-cream) !important;
+  color: var(--admin-charcoal);
+}
+
+::selection {
+  color: var(--admin-charcoal);
+  background: var(--admin-gold);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--admin-warm-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background: var(--admin-deep-teal);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--admin-gold);
+}
+
+input,
+select,
+textarea {
+  accent-color: var(--admin-deep-teal);
+}
+
+:focus-visible {
+  outline: 2px solid var(--admin-deep-teal);
+  outline-offset: 2px;
+}
+
+/* Sidebar: the one strong brand surface, like the landing page's teal bands. */
+aside {
+  color: var(--admin-cream);
+  background: linear-gradient(180deg, var(--admin-dark-teal), #05383B) !important;
+  border-color: rgb(232 220 200 / 0.2) !important;
+  box-shadow: 10px 0 34px -28px rgb(6 70 74 / 0.9);
+}
+
+aside h1,
+aside .text-gold-400,
+aside .text-luxury-400,
+aside svg.text-purple-400 {
+  color: var(--admin-gold) !important;
+}
+
+aside .text-slate-100,
+aside .text-slate-200,
+aside .text-slate-300 {
+  color: var(--admin-cream) !important;
+}
+
+aside .text-slate-400,
+aside .text-slate-500 {
+  color: rgb(255 248 238 / 0.68) !important;
+}
+
+aside .border-slate-800,
+aside .border-slate-800\/80 {
+  border-color: rgb(232 220 200 / 0.18) !important;
+}
+
+aside .bg-slate-950 {
+  background-color: rgb(34 34 34 / 0.2) !important;
+}
+
+aside a[data-nav-page] {
+  color: rgb(255 248 238 / 0.72) !important;
+}
+
+aside a[data-nav-page]:hover {
+  color: var(--admin-cream) !important;
+  background: rgb(255 248 238 / 0.08) !important;
+}
+
+aside a[data-nav-page].admin-nav-active,
+aside a[data-nav-page][class*="bg-luxury-900"] {
+  color: var(--admin-cream) !important;
+  background: var(--admin-deep-teal) !important;
+  border-left-color: var(--admin-gold) !important;
+  box-shadow: 0 12px 26px -18px rgb(0 0 0 / 0.75);
+}
+
+aside :focus-visible {
+  outline-color: var(--admin-gold);
+}
+
+/* Light workspace hierarchy taken directly from the public landing page. */
+main {
+  color: var(--admin-charcoal);
+  background:
+    radial-gradient(circle at 100% 0%, rgb(224 184 76 / 0.08), transparent 22rem),
+    var(--admin-cream) !important;
+}
+
+main > header {
+  /* Keep header popovers (especially the notification log) above dashboard
+     cards. A child's z-index cannot escape its parent's stacking context. */
+  position: relative;
+  z-index: 100;
+  overflow: visible;
+  background: rgb(255 253 249 / 0.94) !important;
+  border-color: rgb(217 201 180 / 0.55) !important;
+  box-shadow: 0 6px 24px -18px rgb(34 34 34 / 0.28);
+  backdrop-filter: blur(14px);
+}
+
+main > header + * {
+  position: relative;
+  z-index: 0;
+}
+
+main > header h2 {
+  font-size: clamp(1.35rem, 2vw, 1.7rem);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+main h1,
+main h2,
+main h3,
+main h4,
+main h5,
+main h6,
+main p.text-white,
+main td.text-white,
+main div.text-white,
+main span.text-white,
+main strong.text-white {
+  color: var(--admin-charcoal) !important;
+}
+
+/* Gold remains an accent fill; a darker gold is used for small text so links,
+   values, and labels stay legible on cream and warm-white surfaces. */
+main .text-gold-400,
+main .text-gold-400\/80,
+main .text-gold-500,
+main .text-gold-600 {
+  color: var(--admin-gold-ink) !important;
+}
+
+main button[class*="hover:text-white"]:hover {
+  color: var(--admin-deep-teal) !important;
+}
+
+main .bg-slate-900,
+main [class*="from-slate-900"] {
+  background-color: var(--admin-panel);
+}
+
+/* The admin and customer portals remap slate-900 to cream in their
+   theme-config.js, so their "from-slate-900" gradient panels are light and
+   keep the charcoal text above. Only the staff portal keeps a real dark
+   gradient; its white-text rule lives in staff-theme.css. */
+
+main .shadow-xl,
+main .shadow-2xl {
+  box-shadow: 0 18px 44px -34px rgb(0 109 111 / 0.42);
+}
+
+main input:not([type="checkbox"]):not([type="radio"]),
+main select,
+main textarea {
+  color: var(--admin-charcoal) !important;
+  background-color: var(--admin-cream) !important;
+  border-color: rgb(217 201 180 / 0.75) !important;
+  border-radius: 12px;
+  color-scheme: light;
+}
+
+main input::placeholder,
+main textarea::placeholder {
+  color: rgb(34 34 34 / 0.42);
+}
+
+main input:not([type="checkbox"]):not([type="radio"]):focus,
+main select:focus,
+main textarea:focus {
+  border-color: var(--admin-deep-teal) !important;
+  box-shadow: 0 0 0 3px rgb(0 109 111 / 0.13) !important;
+}
+
+main button[class*="bg-luxury-600"],
+main a[class*="bg-luxury-600"] {
+  color: var(--admin-panel) !important;
+  border-radius: 999px;
+  box-shadow: 0 12px 24px -18px rgb(0 109 111 / 0.78);
+}
+
+main button[class*="bg-luxury-600"]:hover,
+main a[class*="bg-luxury-600"]:hover {
+  background-color: var(--admin-dark-teal) !important;
+}
+
+main table thead {
+  background-color: var(--admin-warm-surface);
+}
+
+main table tbody tr {
+  transition: background-color 0.18s ease;
+}
+
+main table tbody tr:hover {
+  background-color: rgb(243 233 214 / 0.72) !important;
+}
+
+main [class*="border-luxury-900"] {
+  border-color: rgb(0 109 111 / 0.16) !important;
+}
+
+main [class*="hover:border-luxury-500"]:hover {
+  border-color: rgb(0 109 111 / 0.55) !important;
+}
+
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  width: max-content;
+  border: 1px solid transparent;
+  border-radius: 999px !important;
+  padding: 0.2rem 0.55rem !important;
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.admin-badge--pending {
+  color: #7A5200 !important;
+  background: #FFF7E2 !important;
+  border-color: #ECD184 !important;
+}
+
+.admin-badge--confirmed {
+  color: var(--admin-dark-teal) !important;
+  background: #E5F2F0 !important;
+  border-color: #B9D8D5 !important;
+}
+
+.admin-badge--info {
+  color: #245A73 !important;
+  background: #EDF7FB !important;
+  border-color: #C5DEE9 !important;
+}
+
+.admin-badge--success {
+  color: #17603A !important;
+  background: #EDF8F1 !important;
+  border-color: #B7DFC6 !important;
+}
+
+.admin-badge--danger {
+  color: #9F2D2D !important;
+  background: #FFF0F0 !important;
+  border-color: #F0C5C5 !important;
+}
+
+.admin-badge--neutral {
+  color: var(--admin-charcoal) !important;
+  background: var(--admin-warm-surface) !important;
+  border-color: var(--admin-bronze) !important;
+}
+
+.admin-tier--vip {
+  color: var(--admin-cream) !important;
+  background: var(--admin-dark-teal) !important;
+  border-color: var(--admin-gold) !important;
+}
+
+.admin-tier--gold {
+  color: #725000 !important;
+  background: #FAF2DC !important;
+  border-color: var(--admin-gold) !important;
+}
+
+.admin-tier--silver {
+  color: #4D5555 !important;
+  background: #F1F3F2 !important;
+  border-color: #C9D0CE !important;
+}
+
+.admin-tier--bronze {
+  color: #824A25 !important;
+  background: #F8EEE5 !important;
+  border-color: #E2C2A8 !important;
+}
+
+/* Page-local Alpine states still use these Tailwind utilities. Re-surface
+   them as light semantic chips so no dark-theme islands remain. */
+main .bg-amber-950,
+main .bg-amber-950\/40 {
+  background-color: #FFF7E2 !important;
+}
+
+main .text-amber-300,
+main .text-amber-400,
+main .text-amber-400\/80,
+main .text-amber-500 {
+  color: #7A5200 !important;
+}
+
+main .border-amber-900\/60 {
+  border-color: #ECD184 !important;
+}
+
+main .bg-emerald-950,
+main .bg-emerald-950\/20,
+main .bg-emerald-950\/40 {
+  background-color: #EDF8F1 !important;
+}
+
+main .text-emerald-300,
+main .text-emerald-400 {
+  color: #17603A !important;
+}
+
+main .border-emerald-800,
+main .border-emerald-900\/40,
+main .border-emerald-900\/60,
+main .border-emerald-950\/40 {
+  border-color: #B7DFC6 !important;
+}
+
+main .bg-emerald-950.hover\:bg-emerald-900:hover {
+  background-color: #D8F0E1 !important;
+}
+
+main .bg-rose-950,
+main .bg-rose-950\/40 {
+  background-color: #FFF0F0 !important;
+}
+
+main .text-rose-300,
+main .text-rose-400,
+main .text-rose-500 {
+  color: #9F2D2D !important;
+}
+
+main .border-rose-900\/40,
+main .border-rose-950\/40 {
+  border-color: #F0C5C5 !important;
+}
+
+main .bg-indigo-950,
+main .bg-indigo-950\/80 {
+  background-color: #EDF7FB !important;
+}
+
+main .text-indigo-300 {
+  color: #245A73 !important;
+}
+
+main .border-indigo-800,
+main .border-indigo-900\/60 {
+  border-color: #C5DEE9 !important;
+}
+
+main .bg-indigo-950\/80.hover\:bg-indigo-900:hover {
+  background-color: #DDEEF5 !important;
+}
+
+@media (max-width: 767px) {
+  aside {
+    box-shadow: 0 10px 30px -24px rgb(6 70 74 / 0.9);
+  }
+}

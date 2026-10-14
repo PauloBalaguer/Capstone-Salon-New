@@ -1,0 +1,13 @@
+# This project is still under active development, so CSS/JS/HTML
+# edits need to show up on the next reload instead of getting stuck
+# behind the browser's own cache (no Cache-Control header here means
+# Chrome falls back to guessing how long a file is "fresh", which can
+# easily hide an edit for many minutes). Turn caching off for the
+# assets that change during a dev/demo session.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(css|js|html)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires 0
+  </FilesMatch>
+</IfModule>

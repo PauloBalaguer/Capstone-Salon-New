@@ -1,0 +1,104 @@
+:root {
+  --cashier-teal: #006D6F;
+  --cashier-dark-teal: #06464A;
+  --cashier-gold: #E0B84C;
+  --cashier-gold-dark: #B8933A;
+  --cashier-cream: #FFF8EE;
+  --cashier-panel: #FFFDF9;
+  --cashier-warm: #F3E9D6;
+  --cashier-border: #D9C9B4;
+  --cashier-ink: #222222;
+}
+
+html { color-scheme: light; background: var(--cashier-cream); }
+
+body {
+  color: var(--cashier-ink);
+  background:
+    radial-gradient(circle at 92% 4%, rgb(224 184 76 / 0.13), transparent 25rem),
+    radial-gradient(circle at 8% 96%, rgb(0 109 111 / 0.08), transparent 30rem),
+    var(--cashier-cream) !important;
+}
+
+::selection { color: var(--cashier-ink); background: var(--cashier-gold); }
+
+::-webkit-scrollbar-track { background: var(--cashier-warm) !important; }
+::-webkit-scrollbar-thumb { background: var(--cashier-teal) !important; }
+::-webkit-scrollbar-thumb:hover { background: var(--cashier-gold) !important; }
+
+aside {
+  color: var(--cashier-cream) !important;
+  background: linear-gradient(180deg, var(--cashier-dark-teal), #05383B) !important;
+  box-shadow: 10px 0 34px -28px rgb(6 70 74 / 0.9) !important;
+}
+
+aside > div > div:first-child,
+aside > div:last-child > div:last-child {
+  background: rgb(34 34 34 / 0.18) !important;
+  border-color: rgb(232 220 200 / 0.18) !important;
+}
+
+aside h1,
+aside .text-amber-400 { color: var(--cashier-gold) !important; }
+
+aside .text-slate-300,
+aside .text-slate-400,
+aside .text-slate-500 { color: rgb(255 248 238 / 0.76) !important; }
+
+aside .bg-slate-800\/50 {
+  background: rgb(255 248 238 / 0.08) !important;
+  border-color: rgb(232 220 200 / 0.2) !important;
+}
+
+#sidebarNav .nav-item { color: rgb(255 248 238 / 0.76) !important; }
+#sidebarNav .nav-item:hover { color: var(--cashier-cream) !important; background: rgb(255 248 238 / 0.08) !important; }
+#sidebarNav .nav-item.bg-slate-800,
+#sidebarNav .nav-item[aria-current="page"] {
+  color: var(--cashier-cream) !important;
+  background: var(--cashier-teal) !important;
+  box-shadow: 0 12px 26px -18px rgb(0 0 0 / 0.75);
+}
+
+main, body > header, body > .flex-1 { background-color: transparent !important; }
+main > header, body > header {
+  background: rgb(255 253 249 / 0.94) !important;
+  border-color: rgb(217 201 180 / 0.65) !important;
+  box-shadow: 0 6px 24px -18px rgb(34 34 34 / 0.28);
+  backdrop-filter: blur(14px);
+}
+
+.bg-white { background-color: var(--cashier-panel) !important; }
+.bg-gray-50, .bg-gray-50\/60 { background-color: var(--cashier-cream) !important; }
+.border-gray-200, .border-gray-300 { border-color: var(--cashier-border) !important; }
+
+input, select, textarea {
+  accent-color: var(--cashier-teal);
+  color: var(--cashier-ink) !important;
+  background-color: var(--cashier-cream) !important;
+  border-color: var(--cashier-border) !important;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--cashier-teal) !important;
+  --tw-ring-color: rgb(0 109 111 / 0.2) !important;
+}
+
+button.bg-slate-900,
+a.bg-slate-900 {
+  color: var(--cashier-panel) !important;
+  background: var(--cashier-teal) !important;
+}
+
+button.bg-slate-900:hover,
+a.bg-slate-900:hover { background: var(--cashier-dark-teal) !important; }
+
+.bg-amber-500 { background-color: var(--cashier-gold) !important; }
+.text-amber-400, .text-amber-500 { color: #805B0B !important; }
+.ring-amber-500, .focus\:ring-amber-500:focus { --tw-ring-color: var(--cashier-teal) !important; }
+
+table tbody tr:hover { background-color: rgb(243 233 214 / 0.72) !important; }
+
+@media print {
+  body { background: #fff !important; }
+  #receiptCard { background: #fff !important; }
+}

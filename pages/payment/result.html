@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reservation Payment | Leo Mejillano Salon &amp; Beauty</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bronze: 'rgb(var(--c-bronze) / <alpha-value>)',
+            ink: 'rgb(var(--c-ink) / <alpha-value>)',
+            panel: 'rgb(var(--c-panel) / <alpha-value>)',
+            plum: 'rgb(var(--c-plum) / <alpha-value>)',
+            sand: { 100: 'rgb(var(--c-sand-100) / <alpha-value>)', 200: 'rgb(var(--c-sand-200) / <alpha-value>)' }
+          },
+          fontFamily: {
+            body: ['Segoe UI', 'Tahoma', 'Verdana', 'Arial', 'sans-serif'],
+            display: ['Georgia', 'Cambria', 'Times New Roman', 'serif']
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="../../assets/css/home-theme.css" />
+</head>
+
+<body class="bg-sand-100 text-ink font-body min-h-screen flex items-center justify-center p-4">
+  <main class="w-full max-w-md bg-panel border border-bronze/50 rounded-2xl p-6 sm:p-8 shadow-sm text-center">
+    <p class="text-[11px] font-bold tracking-widest uppercase text-ink/50">Reservation payment</p>
+    <h1 id="resultTitle" class="font-display text-2xl mt-2">Checking your payment…</h1>
+    <p id="resultMessage" class="text-sm text-ink/60 mt-3">This only takes a moment.</p>
+    <dl id="resultDetails" class="hidden text-sm text-left border-y border-bronze/40 py-3 mt-5 space-y-1">
+      <div class="flex justify-between gap-3"><dt class="text-ink/50">Reference</dt><dd id="resultRef" class="font-bold"></dd></div>
+      <div class="flex justify-between gap-3"><dt class="text-ink/50" id="resultAmountLabel">Amount</dt><dd id="resultAmount" class="font-bold"></dd></div>
+    </dl>
+    <div class="mt-6 flex flex-col gap-2">
+      <a id="resultRetry" href="#" class="hidden rounded-full bg-plum text-white font-bold text-sm py-3 hover:brightness-110 transition">Try payment again</a>
+      <a id="resultBack" href="../../index.html" class="rounded-full border border-bronze/60 font-bold text-sm py-3 hover:bg-sand-200 transition">Back to home</a>
+    </div>
+  </main>
+  <script src="../../scripts/payment/result.js"></script>
+</body>
+
+</html>

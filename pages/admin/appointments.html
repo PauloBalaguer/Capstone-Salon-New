@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leo Mejillano Salon - Booking & Queue Desk</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <link rel="stylesheet" href="../../assets/css/fonts-inter-playfair.css">
+  <link rel="stylesheet" href="../../assets/css/admin-theme.css">
+  <script src="../../scripts/admin/theme-config.js"></script>
+</head>
+<body class="bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
+      x-data="adminBookingsApp()" x-init="init()" x-cloak>
+
+  <div class="h-1.5 w-full bg-gradient-to-r from-luxury-600 via-gold-500 to-luxury-800"></div>
+
+  <div class="flex h-screen overflow-hidden flex-col md:flex-row">
+
+    <aside class="w-full md:w-64 bg-slate-900 border-r border-luxury-900 flex flex-col justify-between shrink-0 h-auto md:h-full z-20">
+      <div class="p-5">
+        <div class="flex items-center space-x-3 mb-8">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-luxury-600 to-gold-500 flex items-center justify-center font-serif text-white font-bold text-lg shadow-lg shadow-luxury-500/20">LM</div>
+          <div>
+            <h1 class="text-sm font-bold tracking-wider uppercase text-gold-400 font-serif">Leo Mejillano</h1>
+            <p class="text-[10px] text-slate-400 uppercase tracking-widest font-sans">Multi-Branch Platform</p>
+          </div>
+        </div>
+
+        <nav class="space-y-1.5">
+          <a href="dashboard.html" data-nav-page="dashboard.html" class="text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150">
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z"></path></svg>
+            <span>Centralized Dashboard</span>
+          </a>
+          <a href="appointments.html" data-nav-page="appointments.html" class="bg-luxury-900/60 text-white font-medium border-l-4 border-gold-400 w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150">
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            <span>Booking & Queue Desk</span>
+          </a>
+          <a href="employees.html" data-nav-page="employees.html" class="text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150">
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            <span>Staff & Performance Hub</span>
+          </a>
+          <a href="inventory.html" data-nav-page="inventory.html" class="text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150">
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 11m8 4V4m0 11V18"></path></svg>
+            <span>Multi-Branch Inventory</span>
+          </a>
+          <a href="promotions.html" data-nav-page="promotions.html" class="text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150">
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+            <span>Service Menu & Promos</span>
+          </a>
+          <a href="reports.html" data-nav-page="reports.html" class="text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150">
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <span>Reports & Analytics</span>
+          </a>
+          <a href="customers.html" data-nav-page="customers.html" class="text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150">
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            <span>Customer Directory</span>
+          </a>
+          <a href="feedback.html" data-nav-page="feedback.html" class="text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150">
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l1.586-1.586z"></path></svg>
+            <span>Guest Feedback</span>
+          </a>
+          <a href="settings.html" data-nav-page="settings.html" class="text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150">
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <span>Platform Settings</span>
+          </a>
+        </nav>
+      </div>
+
+      <div>
+        <div class="p-4 border-t border-slate-800">
+          <a href="../../backend/auth/logout.php?portal=admin" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4"></path></svg>
+            <span>Sign Out</span>
+          </a>
+        </div>
+        <div class="p-4 bg-slate-950 border-t border-slate-800/80 text-[10px] text-slate-400 space-y-1">
+          <p class="font-bold text-slate-300">STI College Legazpi</p>
+          <p>Capstone Project Proposal &copy; 2026</p>
+          <p class="text-[9px] text-luxury-400 italic">Centralized Digital Multi-Branch Solution</p>
+        </div>
+      </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full bg-slate-950 overflow-y-auto">
+
+      <header class="bg-slate-900 border-b border-luxury-900 px-6 py-4 shrink-0 flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h2 class="text-lg font-serif font-bold text-white">Appointment Desk & Digital Register</h2>
+          <p class="text-[11px] text-slate-400">Manage bookings, check-ins, and staff assignment across branches.</p>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <div class="relative" x-data="{ open: false }">
+            <button @click="open = !open" class="p-2 bg-slate-800/80 hover:bg-slate-700/80 rounded-lg text-slate-300 transition relative">
+              <svg class="w-5 h-5 text-luxury-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+              <span class="absolute top-0 right-0 w-2.5 h-2.5 bg-rose-500 rounded-full border border-slate-900" x-show="$store.admin.notifications.length > 0"></span>
+            </button>
+
+            <div x-show="open" @click.outside="open = false" x-cloak class="absolute right-0 mt-2 w-80 bg-slate-900 border border-luxury-800 rounded-xl shadow-xl z-50 p-4 space-y-3">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                <span class="text-xs font-semibold text-white">System Notification Log (SMS/E-Mail Simulation)</span>
+                <button @click="$store.admin.notifications = []" class="text-[10px] text-rose-400 hover:underline">Clear</button>
+              </div>
+              <div class="max-h-60 overflow-y-auto space-y-2 text-xs">
+                <template x-if="$store.admin.notifications.length === 0">
+                  <p class="text-slate-500 italic text-center py-4">No events logged yet.</p>
+                </template>
+                <template x-for="item in $store.admin.notifications">
+                  <div class="p-2 rounded bg-slate-950 border-l-2 border-luxury-500">
+                    <div class="flex justify-between text-[10px] text-slate-400 mb-1">
+                      <span x-text="item.type" class="font-bold text-purple-400"></span>
+                      <span x-text="item.time"></span>
+                    </div>
+                    <p class="text-slate-200" x-text="item.message"></p>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </header>
+
+      <div class="p-6 space-y-6">
+
+        <div class="bg-slate-900 border border-luxury-900 rounded-xl p-4 flex flex-wrap justify-between items-center gap-4">
+          <div class="flex items-center space-x-3 flex-wrap gap-2">
+            <span class="text-xs text-slate-400 font-semibold">Filter Branch:</span>
+            <select x-model="bookingFilterBranch" class="bg-slate-950 text-slate-300 text-xs rounded-lg p-2 border border-slate-800 focus:ring-purple-500 focus:outline-none">
+              <option value="all">All Albay Branches</option>
+              <template x-for="branch in $store.admin.branches" :key="branch.id">
+                <option :value="branch.id" x-text="branch.name"></option>
+              </template>
+            </select>
+
+            <span class="text-xs text-slate-400 font-semibold ml-2">Status:</span>
+            <select x-model="bookingFilterStatus" class="bg-slate-950 text-slate-300 text-xs rounded-lg p-2 border border-slate-800 focus:ring-purple-500 focus:outline-none">
+              <option value="all">All Booking Statuses</option>
+              <option value="refunds">⚠ Refunds to Process</option>
+              <option value="Pending">Pending Validation</option>
+              <option value="Pending Review">Home Service: Under Review</option>
+              <option value="Quote Ready">Home Service: Quote Ready</option>
+              <option value="Payment Required">Home Service: Payment Required</option>
+              <option value="Payment Being Verified">Home Service: Payment Being Verified</option>
+              <option value="Confirmed">Confirmed</option>
+              <option value="Staff Assigned">Home Service: Staff Assigned</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Service in Progress">Home Service: In Progress</option>
+              <option value="Completed">Completed / Paid</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+
+            <div class="border-l border-slate-800 h-6 mx-2"></div>
+
+            <span class="text-xs text-slate-400 font-semibold">Slot Limit:</span>
+            <span class="bg-slate-950 text-gold-400 text-xs font-bold rounded-lg px-3 py-2 border border-slate-800" x-text="getCurrentSlotLimitLabel()"></span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button @click="exportBookingsToCSV()" class="bg-emerald-900 hover:bg-emerald-800 text-white font-semibold text-xs px-4 py-2 rounded-lg transition duration-150 flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              <span>Export CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <template x-for="booking in getFilteredBookings()" :key="booking.id">
+            <div class="bg-slate-900 border border-luxury-900 hover:border-luxury-500 rounded-2xl p-5 shadow-xl transition space-y-4 flex flex-col justify-between">
+
+              <div class="space-y-2">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <span class="text-[10px] text-slate-400 uppercase tracking-wider block" x-text="booking.isHomeService ? 'Off-Site / Home Service' : $store.admin.getBranchName(booking.branchId)"></span>
+                    <span class="text-xs font-bold text-gold-400" x-text="booking.id"></span>
+                  </div>
+                  <span :class="$store.admin.getStatusBadgeClass(booking.status)" class="px-2 py-0.5 rounded text-[10px] font-bold" x-text="booking.status"></span>
+                </div>
+                <template x-if="!booking.isHomeService && booking.status === 'Pending' && booking.hasConflict">
+                  <div class="text-[9px] font-bold text-rose-400">⚠ Conflicts with a confirmed booking for this stylist/time</div>
+                </template>
+
+                <div class="border-t border-slate-800 pt-2">
+                  <span class="text-[10px] text-slate-400 block">Customer</span>
+                  <div class="font-serif text-sm font-bold text-white" x-text="booking.clientName"></div>
+                  <div class="text-xs text-slate-400" x-text="booking.clientPhone"></div>
+                </div>
+
+                <template x-if="!booking.isHomeService">
+                  <div class="grid grid-cols-2 gap-2 bg-slate-950/80 p-2.5 rounded-lg border border-slate-800/80 text-xs">
+                    <div class="col-span-2">
+                      <span class="text-[9px] text-slate-500 block uppercase font-semibold">Service(s)</span>
+                      <span class="font-semibold text-slate-300 block truncate" x-text="booking.serviceName" :title="booking.serviceName"></span>
+                    </div>
+                    <div>
+                      <span class="text-[9px] text-slate-500 block uppercase font-semibold">Cost</span>
+                      <span class="font-bold text-emerald-400 block" x-text="$store.admin.formatCurrency(booking.price)"></span>
+                    </div>
+                    <div>
+                      <span class="text-[9px] text-slate-500 block uppercase font-semibold">Duration</span>
+                      <span class="font-semibold text-slate-300 block" x-text="booking.durationMinutes ? booking.durationMinutes + ' min' : '—'"></span>
+                    </div>
+                    <div>
+                      <span class="text-[9px] text-slate-500 block uppercase font-semibold">End Time</span>
+                      <span class="font-semibold text-slate-300 block" x-text="booking.endTime || '—'"></span>
+                    </div>
+                    <div>
+                      <span class="text-[9px] text-slate-500 block uppercase font-semibold">Payment Status</span>
+                      <span class="font-semibold text-slate-300 block" x-text="booking.paymentStatus || '—'"></span>
+                      <button type="button" x-show="booking.paymentStatus === 'Refund Due' || booking.paymentStatus === 'Refund Processing'" @click="refundDeposit(booking)" class="mt-1.5 w-full px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-[#B45309] hover:bg-[#92400E] text-white shadow-sm" x-text="refundButtonLabel(booking)"></button>
+                    </div>
+                  </div>
+                </template>
+                <template x-if="booking.isHomeService">
+                  <div class="bg-slate-950/80 p-2.5 rounded-lg border border-slate-800/80 text-xs space-y-2">
+                    <div class="grid grid-cols-2 gap-2">
+                      <div>
+                        <span class="text-[9px] text-slate-500 block uppercase font-semibold">Event Type</span>
+                        <span class="font-semibold text-slate-300 block truncate" x-text="booking.eventType" :title="booking.eventType"></span>
+                      </div>
+                      <template x-if="booking.weddingPackage">
+                        <div>
+                          <span class="text-[9px] text-slate-500 block uppercase font-semibold">Wedding Package</span>
+                          <span class="font-semibold text-slate-300 block" x-text="'Package ' + booking.weddingPackage"></span>
+                        </div>
+                      </template>
+                      <div class="col-span-2">
+                        <span class="text-[9px] text-slate-500 block uppercase font-semibold">Venue</span>
+                        <span class="font-semibold text-slate-300 block" x-text="booking.venue"></span>
+                      </div>
+                      <div>
+                        <span class="text-[9px] text-slate-500 block uppercase font-semibold">Preferred Time</span>
+                        <span class="font-semibold text-slate-300 block" x-text="booking.time || '—'"></span>
+                      </div>
+                      <div>
+                        <span class="text-[9px] text-slate-500 block uppercase font-semibold">Payment Status</span>
+                        <span class="font-semibold text-slate-300 block" x-text="booking.paymentStatus || '—'"></span>
+                        <button type="button" x-show="booking.paymentStatus === 'Refund Due' || booking.paymentStatus === 'Refund Processing'" @click="refundDeposit(booking)" class="mt-1.5 w-full px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-[#B45309] hover:bg-[#92400E] text-white shadow-sm" x-text="refundButtonLabel(booking)"></button>
+                      </div>
+                    </div>
+
+                    <template x-if="booking.quotePrice">
+                      <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80">
+                        <div>
+                          <span class="text-[9px] text-slate-500 block uppercase font-semibold">Final Quote</span>
+                          <span class="font-bold text-emerald-400 block" x-text="$store.admin.formatCurrency(booking.quotePrice)"></span>
+                        </div>
+                        <div>
+                          <span class="text-[9px] text-slate-500 block uppercase font-semibold">Remaining Balance</span>
+                          <span class="font-bold text-gold-400 block" x-text="$store.admin.formatCurrency(booking.remainingBalance)"></span>
+                        </div>
+                      </div>
+                    </template>
+
+                    <template x-if="booking.requests">
+                      <div>
+                        <span class="text-[9px] text-slate-500 block uppercase font-semibold">Client Requests</span>
+                        <span class="text-slate-400 block whitespace-pre-line" x-text="booking.requests"></span>
+                      </div>
+                    </template>
+                    <template x-if="booking.depositAmount">
+                      <div class="pt-1 border-t border-slate-800/80">
+                        <span class="text-[9px] text-slate-500 block uppercase font-semibold">Reservation Payment</span>
+                        <span class="text-slate-300 block">
+                          <span x-text="$store.admin.formatCurrency(booking.depositAmount) + (booking.paymentMethod ? ' via ' + booking.paymentMethod : ' required')"></span>
+                          <span :class="booking.depositVerified ? 'text-emerald-400' : 'text-amber-400'" class="font-bold ml-1" x-text="booking.depositVerified ? '(Verified)' : booking.paymentMethod ? '(Unverified)' : '(Pending)'"></span>
+                        </span>
+                        <span x-show="booking.depositReference" class="text-[10px] text-slate-500 block">Ref: <span x-text="booking.depositReference" class="text-slate-400"></span></span>
+                      </div>
+                    </template>
+
+                    <!-- Remaining balance (after the DP / quote) -->
+                    <template x-if="homeServiceBalanceOpen(booking)">
+                      <div class="rounded-lg p-2.5 border space-y-2"
+                           :class="booking.remainingBalance > 0 ? 'bg-[#FEF3C7] border-[#FCD34D]' : 'bg-[#DCFCE7] border-[#86EFAC]'">
+                        <div class="flex items-center justify-between gap-2">
+                          <span class="text-[10px] font-bold uppercase" :class="booking.remainingBalance > 0 ? 'text-[#92400E]' : 'text-[#166534]'">Remaining Balance</span>
+                          <span class="text-[10px] text-[#4B5563]" x-text="'Paid ' + $store.admin.formatCurrency(booking.amountPaid) + ' of ' + $store.admin.formatCurrency(booking.quotePrice)"></span>
+                        </div>
+                        <p class="text-sm font-bold" :class="booking.remainingBalance > 0 ? 'text-[#78350F]' : 'text-[#166534]'"
+                           x-text="booking.remainingBalance > 0 ? $store.admin.formatCurrency(booking.remainingBalance) + ' due' : 'Fully Paid ✓'"></p>
+                        <template x-if="booking.remainingBalance > 0">
+                          <div class="space-y-1.5">
+                            <div class="grid grid-cols-2 gap-1.5">
+                              <button @click="openCollectBalance(booking)" class="bg-[#15803D] hover:bg-[#166534] text-white text-[11px] font-bold py-1.5 rounded-md">Collect Balance</button>
+                              <button @click="sendBalanceLink(booking)" class="bg-[#006D6F] hover:bg-[#06464A] text-white text-[11px] font-bold py-1.5 rounded-md" x-text="booking.balancePayUrl ? 'Resend Pay Link' : 'Send Pay Link'"></button>
+                            </div>
+                            <p x-show="booking.balancePayUrl" class="text-[10px] text-[#4B5563]">Online pay link sent — it's recorded automatically once the customer pays.</p>
+                          </div>
+                        </template>
+                        <button @click="editHomeServiceQuote(booking)" class="text-[10px] font-semibold text-[#006D6F] hover:underline">Edit final quote</button>
+                      </div>
+                    </template>
+                  </div>
+                </template>
+
+                <div class="flex justify-between items-center text-xs text-slate-400">
+                  <div class="flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span x-text="booking.isHomeService ? booking.date : booking.date + ' @ ' + booking.time"></span>
+                  </div>
+                  <span :class="booking.isHomeService ? 'text-indigo-400 font-bold' : booking.bookingType === 'Walk-In' ? 'text-amber-400 font-bold' : 'text-slate-500 font-semibold'" x-text="booking.bookingType"></span>
+                </div>
+
+                <div class="pt-2">
+                  <span class="text-[10px] text-slate-400 block mb-1">Assigned Beautician / Stylist</span>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold text-purple-300" x-text="booking.staffName || 'No Staff Assigned'"></span>
+                    <button @click="openStaffAssign(booking)" class="text-[10px] text-gold-400 hover:underline">Change Staff</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between gap-2">
+                <template x-if="!booking.isHomeService && booking.status === 'Pending'">
+                  <button @click="openConfirmDeposit(booking)" class="w-full bg-[#006D6F] hover:bg-[#06464A] text-white text-xs font-bold py-2 rounded-lg shadow-sm transition duration-150">Confirm Slot</button>
+                </template>
+                <template x-if="!booking.isHomeService && booking.status === 'Confirmed'">
+                  <button @click="updateBookingStatus(booking.id, 'In Progress')" class="w-full bg-[#006D6F] hover:bg-[#06464A] text-white text-xs font-bold py-2 rounded-lg shadow-sm transition duration-150">Check In Client</button>
+                </template>
+                <template x-if="!booking.isHomeService && booking.status === 'In Progress'">
+                  <button @click="openCheckoutModal(booking)" class="w-full bg-[#15803D] hover:bg-[#166534] text-white text-xs font-bold py-2 rounded-lg shadow-sm transition duration-150">Complete & Pay</button>
+                </template>
+                <template x-if="!booking.isHomeService && booking.status === 'Completed'">
+                  <div class="w-full text-center text-xs text-[#15803D] font-bold flex items-center justify-center gap-1 bg-[#DCFCE7] py-2 rounded-lg border border-[#86EFAC]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>Transaction Complete</span>
+                  </div>
+                </template>
+
+                <template x-if="booking.isHomeService && booking.status === 'Pending Review'">
+                  <button @click="openHomeServiceQuote(booking)" class="w-full bg-[#006D6F] hover:bg-[#06464A] text-white text-xs font-bold py-2 rounded-lg shadow-sm transition duration-150">Set Quote</button>
+                </template>
+                <template x-if="booking.isHomeService && booking.status === 'Quote Ready'">
+                  <button @click="updateBookingStatus(booking.id, 'Confirmed')" class="w-full bg-[#006D6F] hover:bg-[#06464A] text-white text-xs font-bold py-2 rounded-lg shadow-sm transition duration-150">Confirm (No Payment Due)</button>
+                </template>
+                <template x-if="booking.isHomeService && booking.status === 'Payment Required'">
+                  <div class="w-full space-y-1.5">
+                    <p class="text-[10px] leading-snug text-[#92400E] bg-[#FEF3C7] border border-[#FCD34D] rounded-md px-2 py-1">Waiting for the customer's DP — it confirms automatically when paid online (PayMongo).</p>
+                    <button @click="openConfirmDeposit(booking)" class="w-full bg-[#B45309] hover:bg-[#92400E] text-white text-xs font-bold py-2 rounded-lg shadow-sm transition duration-150">Record Cash / Manual Payment</button>
+                    <button @click="openHomeServiceQuote(booking)" class="w-full text-[11px] font-semibold text-[#006D6F] hover:underline">Change Quote</button>
+                  </div>
+                </template>
+                <template x-if="booking.isHomeService && booking.status === 'Payment Being Verified'">
+                  <button @click="updateBookingStatus(booking.id, 'Confirmed')" class="w-full bg-[#006D6F] hover:bg-[#06464A] text-white text-xs font-bold py-2 rounded-lg shadow-sm transition duration-150">Verify & Confirm</button>
+                </template>
+                <template x-if="booking.isHomeService && booking.status === 'Confirmed'">
+                  <button @click="openStaffAssign(booking)" class="w-full bg-[#006D6F] hover:bg-[#06464A] text-white text-xs font-bold py-2 rounded-lg shadow-sm transition duration-150">Assign Staff</button>
+                </template>
+                <template x-if="booking.isHomeService && booking.status === 'Staff Assigned'">
+                  <button @click="updateBookingStatus(booking.id, 'Service in Progress')" class="w-full bg-[#006D6F] hover:bg-[#06464A] text-white text-xs font-bold py-2 rounded-lg shadow-sm transition duration-150">Start Service</button>
+                </template>
+                <template x-if="booking.isHomeService && booking.status === 'Service in Progress'">
+                  <button @click="completeHomeService(booking)" class="w-full bg-[#15803D] hover:bg-[#166534] text-white text-xs font-bold py-2 rounded-lg shadow-sm transition duration-150">Mark Completed</button>
+                </template>
+                <template x-if="booking.isHomeService && booking.status === 'Completed'">
+                  <div class="w-full text-center text-xs text-[#15803D] font-bold flex items-center justify-center gap-1 bg-[#DCFCE7] py-2 rounded-lg border border-[#86EFAC]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>Service Completed</span>
+                  </div>
+                </template>
+                <template x-if="booking.isHomeService && booking.status === 'Cancelled'">
+                  <div class="w-full text-center text-xs text-slate-500 font-semibold py-1.5">Request cancelled</div>
+                </template>
+                <template x-if="booking.isHomeService && !['Completed', 'Cancelled'].includes(booking.status)">
+                  <div class="flex items-center gap-2 ml-2 shrink-0">
+                    <button @click="requestHomeServiceScheduleChange(booking)" title="Request schedule change" class="text-[10px] text-slate-400 hover:text-gold-400 hover:underline whitespace-nowrap">Reschedule</button>
+                    <button @click="rejectHomeService(booking)" title="Reject request" class="text-[10px] text-rose-400 hover:underline whitespace-nowrap">Reject</button>
+                  </div>
+                </template>
+              </div>
+
+            </div>
+          </template>
+
+          <template x-if="getFilteredBookings().length === 0">
+            <div class="md:col-span-2 lg:col-span-3 text-center py-12 bg-slate-900 border border-dashed border-luxury-900 rounded-2xl">
+              <p class="text-slate-500 text-sm">No bookings match the current filters.</p>
+            </div>
+          </template>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Collect a home service's remaining balance (cash / GCash / Maya) -->
+  <div x-show="collectBalanceBooking" x-cloak class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" @keydown.escape.window="collectBalanceBooking = null">
+    <div @click.outside="collectBalanceBooking = null" class="bg-slate-900 border border-luxury-800 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-serif text-lg font-bold text-white">Collect Remaining Balance</h3>
+        <button @click="collectBalanceBooking = null" class="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
+      </div>
+      <template x-if="collectBalanceBooking">
+        <div class="space-y-3 text-xs">
+          <div class="rounded-lg bg-slate-950 border border-slate-800 p-3 grid grid-cols-3 gap-2">
+            <div><span class="block text-[9px] uppercase text-slate-500 font-semibold">Quote</span><span class="font-bold text-slate-200" x-text="$store.admin.formatCurrency(collectBalanceBooking.quotePrice)"></span></div>
+            <div><span class="block text-[9px] uppercase text-slate-500 font-semibold">Paid</span><span class="font-bold text-slate-200" x-text="$store.admin.formatCurrency(collectBalanceBooking.amountPaid)"></span></div>
+            <div><span class="block text-[9px] uppercase text-slate-500 font-semibold">Due</span><span class="font-bold text-gold-400" x-text="$store.admin.formatCurrency(collectBalanceBooking.remainingBalance)"></span></div>
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-1">Amount received (₱)</label>
+            <input type="number" min="1" step="0.01" x-model="collectBalanceAmount" :max="collectBalanceBooking.remainingBalance" class="w-full bg-slate-950 text-slate-300 text-xs rounded-lg p-2.5 border border-slate-800 focus:outline-none">
+            <p class="text-[10px] text-slate-500 mt-1">Enter less than the full amount for a partial payment.</p>
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-1">Payment method</label>
+            <select x-model="collectBalanceMethod" class="w-full bg-slate-950 text-slate-300 text-xs rounded-lg p-2.5 border border-slate-800 focus:outline-none">
+              <option value="Cash">Cash</option>
+              <option value="GCash">GCash</option>
+              <option value="Maya">Maya</option>
+            </select>
+          </div>
+          <div x-show="collectBalanceMethod !== 'Cash'">
+            <label class="block text-[10px] text-slate-400 mb-1">Reference number (optional)</label>
+            <input type="text" x-model="collectBalanceReference" placeholder="e.g. GCash ref 1234567890" class="w-full bg-slate-950 text-slate-300 text-xs rounded-lg p-2.5 border border-slate-800 focus:outline-none">
+          </div>
+          <button @click="submitCollectBalance()" :disabled="!collectBalanceAmount || collectBalanceAmount <= 0" class="w-full bg-[#15803D] hover:bg-[#166534] disabled:opacity-40 text-white font-bold text-xs py-2.5 rounded-lg">Record Payment</button>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <div x-show="openStaffAssignModal" x-cloak class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" @keydown.escape.window="openStaffAssignModal = false">
+    <div @click.outside="openStaffAssignModal = false" class="bg-slate-900 border border-luxury-800 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-serif text-lg font-bold text-white">Assign Staff</h3>
+        <button @click="openStaffAssignModal = false" class="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
+      </div>
+      <p class="text-xs text-slate-400" x-text="'Booking ' + (staffAssignBooking ? staffAssignBooking.id : '') + ' — ' + (staffAssignBooking ? staffAssignBooking.serviceName : '')"></p>
+      <!-- Home service: pick a whole team -->
+      <div x-show="staffAssignBooking?.isHomeService" class="rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-[11px] text-slate-300 flex items-center justify-between gap-2">
+        <span x-text="'Select one or more stylists' + (homeServiceClientCount(staffAssignBooking) ? ' for ' + homeServiceClientCount(staffAssignBooking) + ' client' + (homeServiceClientCount(staffAssignBooking) === 1 ? '' : 's') : '') + '. The first one you tick is the team lead.'"></span>
+        <span class="shrink-0 font-bold text-gold-400" x-text="selectedStaffIds.length + ' selected'"></span>
+      </div>
+      <p x-show="staffAssignBooking?.isHomeService" class="text-[10px] text-slate-500">"On Shift / Off Shift" is only today's status -- conflicts on the event date are checked when you confirm.</p>
+
+      <div class="space-y-2 max-h-64 overflow-y-auto">
+        <template x-for="staff in getAssignableStaff()" :key="staff.id">
+          <label class="flex items-center justify-between p-2.5 bg-slate-950 border border-slate-800 rounded-lg cursor-pointer hover:border-luxury-600 transition"
+                 :class="staffAssignBooking?.isHomeService && selectedStaffIds.includes(String(staff.id)) ? 'border-luxury-600' : ''">
+            <div class="flex items-center gap-2">
+              <input x-show="!staffAssignBooking?.isHomeService" type="radio" name="staff-assign" :value="staff.id" x-model="selectedStaffId" class="text-luxury-600 focus:ring-purple-500">
+              <input x-show="staffAssignBooking?.isHomeService" type="checkbox" :value="String(staff.id)" x-model="selectedStaffIds" class="rounded text-luxury-600 focus:ring-purple-500">
+              <div>
+                <span class="text-xs font-semibold text-slate-100 block" x-text="staff.name"></span>
+                <span class="text-[10px] text-slate-400" x-text="staff.role"></span>
+              </div>
+            </div>
+            <span class="text-[10px] font-bold uppercase" :class="staff.status === 'On Duty' ? 'text-emerald-400' : staff.status === 'With Client' ? 'text-amber-400' : 'text-rose-400'" x-text="staff.status"></span>
+          </label>
+        </template>
+        <template x-if="getAssignableStaff().length === 0">
+          <p class="text-slate-500 text-xs italic text-center py-4">No staff available at this branch.</p>
+        </template>
+      </div>
+
+      <button @click="assignStaff()" :disabled="!canConfirmStaffAssignment()" class="w-full bg-luxury-600 hover:bg-luxury-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs py-2.5 rounded-lg transition duration-150"
+              x-text="staffAssignBooking?.isHomeService && selectedStaffIds.length > 1 ? 'Assign ' + selectedStaffIds.length + ' Staff' : 'Confirm Assignment'"></button>
+    </div>
+  </div>
+
+  <div x-show="openHomeServiceQuoteModal" x-cloak class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" @keydown.escape.window="openHomeServiceQuoteModal = false">
+    <div @click.outside="openHomeServiceQuoteModal = false" class="bg-slate-900 border border-luxury-800 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-serif text-lg font-bold text-white">Set Final Quote</h3>
+        <button @click="openHomeServiceQuoteModal = false" class="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
+      </div>
+      <p class="text-xs text-slate-400" x-text="'Request ' + (quoteBooking ? quoteBooking.id : '') + ' — ' + (quoteBooking ? quoteBooking.eventType : '')"></p>
+      <template x-if="quoteBooking && quoteBooking.weddingPackage">
+        <p class="text-[11px] text-indigo-300 bg-indigo-950/40 border border-indigo-900/60 rounded-lg px-3 py-2">Wedding Package <span x-text="quoteBooking.weddingPackage" class="font-bold"></span> selected — check Service Menu &amp; Promos for its configured price/reservation fee.</p>
+      </template>
+
+      <div>
+        <label class="block text-[10px] text-slate-400 mb-1">Final Quote Price (PHP)</label>
+        <input type="number" step="0.01" min="0.01" x-model="quotePrice" class="w-full bg-slate-950 text-slate-300 text-xs rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+      </div>
+      <div>
+        <label class="block text-[10px] text-slate-400 mb-1">Required Reservation Fee (PHP) — leave 0 if none</label>
+        <input type="number" step="0.01" min="0" x-model="reservationFee" class="w-full bg-slate-950 text-slate-300 text-xs rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+        <p class="text-[10px] text-slate-500 mt-1">Not auto-applied — Wedding Package D's ₱2,000 fee (or any other amount) must be entered here explicitly.</p>
+      </div>
+
+      <button @click="submitHomeServiceQuote()" :disabled="!quotePrice" class="w-full bg-luxury-600 hover:bg-luxury-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs py-2.5 rounded-lg transition duration-150">Save Quote</button>
+    </div>
+  </div>
+
+  <div x-show="openDepositModal" x-cloak class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" @keydown.escape.window="openDepositModal = false">
+    <div @click.outside="openDepositModal = false" class="bg-slate-900 border border-luxury-800 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-serif text-lg font-bold text-white" x-text="depositBooking && depositBooking.isHomeService ? 'Record Reservation Payment' : 'Record Deposit & Confirm'"></h3>
+        <button @click="openDepositModal = false" class="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
+      </div>
+      <p class="text-xs text-slate-400" x-show="!depositBooking || !depositBooking.isHomeService">A deposit locks this reservation and gives it priority over any conflicting unpaid booking for the same stylist and time.</p>
+      <p class="text-xs text-slate-400" x-show="depositBooking && depositBooking.isHomeService">Record the reservation payment the customer reported paying. This moves the request to Payment Being Verified — use Verify &amp; Confirm afterward once checked.</p>
+
+      <template x-if="depositBooking && depositBooking.depositAmount && !depositBooking.depositVerified">
+        <div class="text-xs text-amber-300 bg-amber-950/40 border border-amber-900/60 rounded-lg px-3 py-2.5 space-y-1">
+          <p class="font-bold uppercase tracking-wide text-[10px]">Self-reported by customer — not yet verified</p>
+          <p>Amount: <strong class="text-white" x-text="formatCurrency(depositBooking.depositAmount)"></strong> via <strong class="text-white" x-text="depositBooking.paymentMethod"></strong></p>
+          <p x-show="depositBooking.depositReference">Reference: <strong class="text-white" x-text="depositBooking.depositReference"></strong></p>
+          <p x-show="!depositBooking.depositReference" class="italic">No reference given — Cash deposit, verify in person before confirming.</p>
+          <p class="text-amber-400/80">Check this against your GCash/Maya account (or that Cash was actually received) before confirming.</p>
+        </div>
+      </template>
+      <template x-if="depositBooking && depositBooking.depositVerified">
+        <p class="text-xs text-emerald-400 bg-emerald-950/40 border border-emerald-900/60 rounded-lg px-3 py-2">This deposit was already verified.</p>
+      </template>
+
+      <div>
+        <label class="block text-[10px] text-slate-400 mb-1">Deposit Amount</label>
+        <input type="number" step="0.01" min="0.01" x-model="depositAmount" class="w-full bg-slate-950 text-slate-300 text-xs rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+      </div>
+      <div>
+        <label class="block text-[10px] text-slate-400 mb-1">Payment Method</label>
+        <select x-model="depositMethod" class="w-full bg-slate-950 text-slate-300 text-xs rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+          <option value="" disabled>-- Select --</option>
+          <option value="Cash">Cash</option>
+          <option value="GCash">GCash</option>
+          <option value="Maya">Maya</option>
+          <option value="PayMongo">PayMongo (online)</option>
+        </select>
+      </div>
+
+      <button @click="confirmWithDeposit()" :disabled="!depositAmount || !depositMethod" class="w-full bg-luxury-600 hover:bg-luxury-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs py-2.5 rounded-lg transition duration-150" x-text="depositBooking && depositBooking.depositAmount && !depositBooking.depositVerified ? 'Verify & Confirm Booking' : 'Confirm Booking'"></button>
+    </div>
+  </div>
+
+  <div x-show="openCheckoutModalFlag" x-cloak class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" @keydown.escape.window="openCheckoutModalFlag = false">
+    <div @click.outside="openCheckoutModalFlag = false" class="bg-slate-900 border border-luxury-800 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-serif text-lg font-bold text-white">Complete & Pay</h3>
+        <button @click="openCheckoutModalFlag = false" class="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
+      </div>
+
+      <template x-if="checkoutBooking">
+        <div class="space-y-3 text-xs">
+          <div class="flex justify-between"><span class="text-slate-400">Client</span><span class="font-semibold text-slate-100" x-text="checkoutBooking.clientName"></span></div>
+          <div class="flex justify-between"><span class="text-slate-400">Service</span><span class="font-semibold text-slate-100" x-text="checkoutBooking.serviceName"></span></div>
+          <div class="flex justify-between"><span class="text-slate-400">Stylist</span><span class="font-semibold text-purple-300" x-text="checkoutBooking.staffName || 'Unassigned'"></span></div>
+          <div class="flex justify-between border-t border-slate-800 pt-3">
+            <span class="text-slate-300 font-semibold">Total Due</span>
+            <span class="font-bold text-emerald-400 text-sm" x-text="$store.admin.formatCurrency(checkoutBooking.price)"></span>
+          </div>
+        </div>
+      </template>
+
+      <button @click="completeCheckout()" class="w-full bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs py-2.5 rounded-lg transition duration-150">Mark as Paid & Complete</button>
+    </div>
+  </div>
+
+  <script src="../../scripts/admin/shared-data.js"></script>
+  <script src="../../scripts/admin/appointments.js"></script>
+</body>
+</html>

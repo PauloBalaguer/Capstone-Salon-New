@@ -8,12 +8,14 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-  <link rel="stylesheet" href="../../assets/css/admin-theme.css?v=type16-20261020-1">
+  <link rel="stylesheet" href="../../assets/css/admin-theme.css?v=balanced-type-20261020-1">
   <script src="../../scripts/admin/theme-config.js"></script>
 <script src="../../scripts/booking-validation.js"></script>
-  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=type16-20261020-1" />
+  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=balanced-type-20261020-1" />
+  <link rel="stylesheet" href="../../assets/css/portal-colors.css?v=balanced-type-20261020-1" />
+  <script src="../../scripts/portal-presentation.js"></script>
 </head>
-<body class="admin-bookings bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
+<body class="salon-portal admin-bookings bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="adminBookingsApp()" x-init="init()" x-cloak>
 
   <div class="h-1.5 w-full bg-gradient-to-r from-luxury-600 via-gold-500 to-luxury-800"></div>
@@ -100,9 +102,9 @@
               <span class="absolute top-0 right-0 w-2.5 h-2.5 bg-rose-500 rounded-full border border-slate-900" x-show="$store.admin.notifications.length > 0"></span>
             </button>
 
-            <div x-show="open" @click.outside="open = false" x-cloak class="absolute right-0 mt-2 w-80 bg-slate-900 border border-luxury-800 rounded-xl shadow-xl z-50 p-4 space-y-3">
+            <div x-show="open" @click.outside="open = false" x-cloak class="portal-notification-panel absolute right-0 mt-2 w-80 bg-slate-900 border border-luxury-800 rounded-xl shadow-xl z-50 p-4 space-y-3">
               <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                <span class="text-xs font-semibold text-white">System Notification Log (SMS/E-Mail Simulation)</span>
+                <span class="text-xs font-semibold text-white">Notifications</span>
                 <button @click="$store.admin.notifications = []" class="text-xs text-rose-400 hover:underline">Clear</button>
               </div>
               <div class="max-h-60 overflow-y-auto space-y-2 text-xs">
@@ -112,10 +114,10 @@
                 <template x-for="item in $store.admin.notifications">
                   <div class="p-2 rounded bg-slate-950 border-l-2 border-luxury-500">
                     <div class="flex justify-between text-xs text-slate-400 mb-1">
-                      <span x-text="item.type" class="font-bold text-purple-400"></span>
+                      <span x-text="PortalPresentation.notificationTitle(item.type)" class="font-bold text-purple-400"></span>
                       <span x-text="item.time"></span>
                     </div>
-                    <p class="text-slate-200" x-text="item.message"></p>
+                    <p class="portal-notification-message text-slate-200" x-text="item.message"></p>
                   </div>
                 </template>
               </div>
@@ -175,7 +177,7 @@
                   <td><span class="booking-truncate" x-text="booking.staffName || 'Unassigned'" :title="booking.staffName"></span></td>
                   <td><span x-text="booking.date || 'Not scheduled'"></span><small x-text="booking.time || 'Time not specified'"></small></td>
                   <td><span :class="$store.admin.getStatusBadgeClass(booking.status)" x-text="booking.status"></span></td>
-                  <td><span class="booking-payment-status" x-text="booking.paymentStatus || 'Not recorded'"></span></td>
+                  <td><span class="booking-payment-status" x-text="PortalPresentation.paymentStatus(booking.paymentStatus) || 'Not recorded'"></span></td>
                   <td><button @click="openBookingDetails(booking)" :aria-label="'View details and actions for ' + booking.id" class="booking-button booking-button-primary">View Details</button></td>
                 </tr></template></tbody>
               </table>
@@ -183,7 +185,7 @@
             <div class="booking-mobile-list"><template x-for="booking in getFilteredBookings()" :key="booking.id"><article class="booking-mobile-card">
               <div class="booking-toolbar"><span class="booking-reference" x-text="booking.id"></span><span :class="$store.admin.getStatusBadgeClass(booking.status)" x-text="booking.status"></span></div>
               <h3 x-text="booking.clientName"></h3><p x-text="booking.eventType || booking.serviceName || 'Not specified'"></p>
-              <dl><div><dt>Branch</dt><dd x-text="booking.isHomeService ? 'Off-site' : $store.admin.getBranchName(booking.branchId)"></dd></div><div><dt>Staff</dt><dd x-text="booking.staffName || 'Unassigned'"></dd></div><div><dt>Appointment</dt><dd x-text="(booking.date || 'Not scheduled') + ' ' + (booking.time || '')"></dd></div><div><dt>Payment</dt><dd x-text="booking.paymentStatus || 'Not recorded'"></dd></div></dl>
+              <dl><div><dt>Branch</dt><dd x-text="booking.isHomeService ? 'Off-site' : $store.admin.getBranchName(booking.branchId)"></dd></div><div><dt>Staff</dt><dd x-text="booking.staffName || 'Unassigned'"></dd></div><div><dt>Appointment</dt><dd x-text="(booking.date || 'Not scheduled') + ' ' + (booking.time || '')"></dd></div><div><dt>Payment</dt><dd x-text="PortalPresentation.paymentStatus(booking.paymentStatus) || 'Not recorded'"></dd></div></dl>
               <button @click="openBookingDetails(booking)" :aria-label="'View details and actions for ' + booking.id" class="booking-button booking-button-primary">View Details & Actions</button>
             </article></template></div>
             <div x-show="getFilteredBookings().length === 0" class="booking-empty"><h3>No bookings match these filters</h3><p>Try another name, reference, date range or status.</p><button @click="resetFilters()" class="booking-button">Clear filters</button></div>
@@ -208,7 +210,7 @@
 
               <div class="space-y-2">
                 <div class="booking-detail-metadata"><p>Submitted: <span x-text="booking.createdAt"></span></p><p x-show="booking.clientEmail">Email: <span x-text="booking.clientEmail"></span></p></div>
-                <template x-if="!booking.isHomeService"><dl class="booking-detail-finances"><div><dt>Total service price</dt><dd x-text="$store.admin.formatCurrency(booking.price)"></dd></div><div><dt>Verified reservation payment</dt><dd x-text="$store.admin.formatCurrency(booking.depositPaid && booking.depositVerified ? booking.depositAmount || 0 : 0)"></dd></div><div><dt>Remaining balance</dt><dd x-text="$store.admin.formatCurrency(booking.remainingBalance)"></dd></div><div><dt>Method</dt><dd x-text="booking.depositMethod || booking.paymentMethod || 'Not selected'"></dd></div><div><dt>Payment reference</dt><dd x-text="booking.depositReference || 'Not recorded'"></dd></div></dl></template>
+                <template x-if="!booking.isHomeService"><dl class="booking-detail-finances"><div><dt>Service price</dt><dd x-text="$store.admin.formatCurrency(booking.price)"></dd></div><div><dt>Deposit paid</dt><dd x-text="$store.admin.formatCurrency(booking.depositPaid && booking.depositVerified ? booking.depositAmount || 0 : 0)"></dd></div><div><dt>Remaining balance</dt><dd x-text="$store.admin.formatCurrency(booking.remainingBalance)"></dd></div><div><dt>Payment method</dt><dd x-text="booking.depositMethod || booking.paymentMethod || 'Not selected'"></dd></div><div><dt>Payment reference</dt><dd x-text="booking.depositReference || 'Not recorded'"></dd></div></dl></template>
                 <p x-show="booking.notes" class="text-sm whitespace-pre-line break-words" x-text="booking.notes"></p>
                 <div class="flex justify-between items-start">
                   <div>
@@ -247,7 +249,7 @@
                     </div>
                     <div>
                       <span class="text-xs text-slate-500 block uppercase font-semibold">Payment Status</span>
-                      <span class="font-semibold text-slate-300 block" x-text="booking.paymentStatus || '—'"></span>
+                      <span class="font-semibold text-slate-300 block" x-text="PortalPresentation.paymentStatus(booking.paymentStatus) || '—'"></span>
                       <button type="button" x-show="booking.paymentStatus === 'Refund Due' || booking.paymentStatus === 'Refund Processing'" @click="refundDeposit(booking)" class="mt-1.5 w-full px-2.5 py-1.5 rounded-lg text-xs font-bold bg-[#B45309] hover:bg-[#92400E] text-white shadow-sm" x-text="refundButtonLabel(booking)"></button>
                     </div>
                   </div>
@@ -275,7 +277,7 @@
                       </div>
                       <div>
                         <span class="text-xs text-slate-500 block uppercase font-semibold">Payment Status</span>
-                        <span class="font-semibold text-slate-300 block" x-text="booking.paymentStatus || '—'"></span>
+                        <span class="font-semibold text-slate-300 block" x-text="PortalPresentation.paymentStatus(booking.paymentStatus) || '—'"></span>
                         <button type="button" x-show="booking.paymentStatus === 'Refund Due' || booking.paymentStatus === 'Refund Processing'" @click="refundDeposit(booking)" class="mt-1.5 w-full px-2.5 py-1.5 rounded-lg text-xs font-bold bg-[#B45309] hover:bg-[#92400E] text-white shadow-sm" x-text="refundButtonLabel(booking)"></button>
                       </div>
                     </div>

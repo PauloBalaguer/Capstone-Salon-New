@@ -85,6 +85,7 @@ try {
         $homeServiceId = $homeService['id'];
         $pdo->beginTransaction();
         $homeService = HomeServiceRequest::lock($pdo, (int) $homeServiceId);
+        if ($status === 'Completed') HomeServiceRequest::validateCompletion($homeService);
         if (in_array($status, ['Confirmed','Staff Assigned','Service in Progress'], true)) {
             if (in_array($homeService['status'], ['Cancelled','Completed'], true)) throw new RuntimeException('This closed request cannot be confirmed.');
             $team = HomeServiceRequest::team($pdo, $homeService);

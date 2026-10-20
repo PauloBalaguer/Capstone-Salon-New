@@ -10,6 +10,7 @@
 require_once '../config/cors.php';
 require_once '../config/database.php';
 require_once '../config/ServiceDuration.php';
+require_once '../config/ReservationPayment.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -38,6 +39,9 @@ try {
         $row['price'] = (float) $row['price'];
         $row['durationMinutes'] = (int) $row['durationMinutes'];
         $row['duration'] = ServiceDuration::format($row['durationMinutes']);
+        $preview = ReservationPayment::quote([['id'=>$row['id'], 'service_name'=>$row['name'], 'price'=>$row['price'], 'payment_requirement'=>$row['paymentRequirement']]]);
+        $row['reservationAmount'] = $preview['amountDue'];
+        $row['reservationLabel'] = $preview['reservationRequirement'];
         return $row;
     }, $stmt->fetchAll());
 

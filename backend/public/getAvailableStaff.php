@@ -22,7 +22,7 @@ sendCorsHeaders();
 header('Content-Type: application/json');
 require_once __DIR__ . '/../config/BookingValidation.php';
 BookingValidation::enforce($_GET, [
-    'branch' => ['id', true, 'a staff or branch selection'],
+    'branch' => ['id', false, 'a staff or branch selection'],
     'date' => ['date', true, 'an appointment date'],
     'time' => ['time', true, 'an appointment time'],
     'services' => ['ids', true, 'service or staff selections'],
@@ -31,6 +31,7 @@ BookingValidation::enforce($_GET, [
 
 
 $branchId = (int) ($_GET['branch'] ?? 0);
+$branchKey = trim($_GET['branchKey'] ?? '');
 $date = trim($_GET['date'] ?? '');
 $time = trim($_GET['time'] ?? '');
 $serviceIds = $_GET['services'] ?? [];
@@ -39,7 +40,7 @@ if (!is_array($serviceIds)) {
 }
 $serviceIds = array_values(array_unique(array_filter(array_map('intval', $serviceIds), fn($id) => $id > 0)));
 
-if ($branchId <= 0 || $date === '' || $time === '' || empty($serviceIds)) {
+if (($branchId <= 0 && $branchKey === '') || $date === '' || $time === '' || empty($serviceIds)) {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'A branch, date, time, and at least one service are required.']);
     exit();
@@ -56,6 +57,11 @@ $appointmentDateTime = date('Y-m-d H:i:s', $appointmentTimestamp);
 try {
     $pdo = Database::getInstance();
     PayMongo::releaseExpiredHolds($pdo);
+    if ($branchId <= 0 && $branchKey !== '') {
+        $branchLookup = $pdo->prepare('SELECT id FROM branches WHERE branch_key = ? LIMIT 1');
+        $branchLookup->execute([$branchKey]);
+        $branchId = (int) $branchLookup->fetchColumn();
+    }
 
     $stmt = $pdo->prepare('SELECT id FROM branches WHERE id = ?');
     $stmt->execute([$branchId]);

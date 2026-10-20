@@ -10,6 +10,29 @@ const HS_WEDDING_PACKAGES = { A: { price: 5000, fee: null }, B: { price: 8000, f
 function customerHomeServiceMixin() {
   return {
     homeServiceError: '',
+    homeServiceDetails(request) {
+      const text = request.requests || '';
+      const value = label => text.split('\n').find(line => line.toLowerCase().startsWith(label.toLowerCase() + ':'))?.slice(label.length + 1).trim() || '';
+      const originalPrice = value('Package Price').replace(/[^0-9.]/g, '');
+      const other = text.split('\n').filter(line => !/^(Number of clients:|Wedding Package |Package Price:|Reservation Fee:|Remaining Balance:|Remaining balance shown|Requested services:|Venue details:|Additional requirements:|Email:)/i.test(line)).join('\n').trim();
+      return { clients:value('Number of clients'), services:value('Requested services'), venue:value('Venue details'), notes:[value('Additional requirements'),other].filter(Boolean).join('\n'), originalPrice:originalPrice ? Number(originalPrice) : null };
+    },
+    homeServiceQuoteChanged(request) {
+      const original = this.homeServiceDetails(request).originalPrice;
+      return original !== null && request.quotePrice != null && Math.abs(Number(request.quotePrice) - original) > .01;
+    },
+    homeServiceSchedule(request) {
+      if (!request.preferredDate) return 'Not scheduled';
+      const date = new Date(request.preferredDate + 'T' + (request.preferredTime || '00:00:00') + '+08:00');
+      if (Number.isNaN(date.getTime())) return request.preferredDate;
+      return new Intl.DateTimeFormat('en-US', {timeZone:'Asia/Manila',month:'short',day:'numeric',year:'numeric',...(request.preferredTime ? {hour:'numeric',minute:'2-digit'} : {})}).format(date) + ' (PH)';
+    },
+    homeServiceFutureCompleted(request) {
+      return request.status === 'Completed' && new Date(request.preferredDate + 'T' + (request.preferredTime || '00:00:00') + '+08:00').getTime() > Date.now();
+    },
+    homeServicePaymentLabel(request) {
+      return request.paymentStatus === 'Down Payment Verified' ? 'Deposit verified' : request.paymentStatus || 'Not recorded';
+    },
     eventAvailabilityLoading: false,
     homeServiceAvailability: null,
     eventAvailabilityMessage: '',

@@ -3,6 +3,46 @@
 function customerBookingMixin() {
   return {
     bookingError: '',
+    serviceSearch: '',
+    serviceCategory: '',
+    servicePage: 1,
+    servicePageSize: 6,
+    resetServiceFilters() {
+      this.serviceSearch = '';
+      this.serviceCategory = '';
+      this.servicePage = 1;
+    },
+    serviceCategories() {
+      return [...new Set((this.servicesCatalog[this.selectedBranchForServices] || []).map(s => s.category).filter(Boolean))].sort();
+    },
+    serviceCategoryLabel(category) {
+      return (category || 'Service').split('/').pop().trim();
+    },
+    servicePageCount() {
+      return Math.max(1, Math.ceil(this.getFilteredServices().length / this.servicePageSize));
+    },
+    pagedServices() {
+      const page = Math.min(Math.max(1, this.servicePage), this.servicePageCount());
+      return this.getFilteredServices().slice((page - 1) * this.servicePageSize, page * this.servicePageSize);
+    },
+    serviceResultLabel() {
+      const total = this.getFilteredServices().length;
+      if (!total) return 'No matching services';
+      const start = (Math.min(this.servicePage, this.servicePageCount()) - 1) * this.servicePageSize;
+      return 'Showing ' + (start + 1) + '-' + Math.min(start + this.servicePageSize, total) + ' of ' + total + ' services';
+    },
+    changeServicePage(direction) {
+      this.servicePage = Math.min(this.servicePageCount(), Math.max(1, this.servicePage + direction));
+      this.$nextTick(() => document.getElementById('service-catalog-heading')?.scrollIntoView({ block: 'start', behavior: 'smooth' }));
+    },
+    serviceReservationLabel(service) {
+      if (service.paymentRequirement === 'No Online Reservation') return 'No online payment required';
+      if (service.reservationAmount == null) return 'Calculated before confirmation';
+      const amount = this.formatPeso ? this.formatPeso(service.reservationAmount) : formatPeso(service.reservationAmount);
+      if (service.reservationLabel === 'Full Payment') return amount + ' (full payment)';
+      if (service.reservationLabel === '50% Down Payment') return amount + ' (50%)';
+      return amount + ' (minimum deposit)';
+    },
     reservationQuote: null,
     reservationQuoteLoading: false,
     reservationQuoteRequest: 0,
@@ -49,47 +89,50 @@ function customerBookingMixin() {
     // moment another customer books). Called whenever the date or selected
     // services change so the schedule step only ever shows real openings.
     slotAvailabilityRequest: 0,
+    slotsReady: false,
+    slotsError: '',
     async refreshAvailableSlots() {
-      if (!this.bookingForm.date || !this.selectedBranchForServices) {
-        this.slotAvailabilityMap = {};
-        return;
-      }
       const request = ++this.slotAvailabilityRequest;
+      this.slotsReady = false;
+      this.slotsError = '';
+      this.slotAvailabilityMap = {};
+      if (!this.bookingForm.date || !this.selectedBranchForServices || !this.selectedServicesForBooking.length) {
+        this.slotsLoading = false;
+        return false;
+      }
       this.slotsLoading = true;
-      const params = new URLSearchParams({ branchKey: this.selectedBranchForServices, date: this.bookingForm.date });
+      const params = new URLSearchParams({ branchKey: this.selectedBranchForServices, date: this.bookingForm.date, assignment: 'single' });
       this.selectedServicesForBooking.forEach(s => params.append('services[]', s.id));
       try {
         const response = await fetch('../../backend/public/getAvailableSlots.php?' + params);
         const body = await response.json();
-        if (request !== this.slotAvailabilityRequest) return;
-        if (body.success) {
-          const map = {};
-          body.slots.forEach(s => { map[s.time] = s.available; });
-          this.availableTimeSlots = body.slots.map(s => s.time);
-          this.slotAvailabilityMap = map;
-        }
+        if (request !== this.slotAvailabilityRequest) return false;
+        if (response.ok === false || !body.success || !Array.isArray(body.slots)) throw new Error(body.message || 'Could not check available times.');
+        const map = {};
+        body.slots.forEach(s => { map[s.time] = s.available === true; });
+        this.availableTimeSlots = body.slots.map(s => s.time);
+        this.slotAvailabilityMap = map;
+        this.slotsReady = true;
+        return true;
       } catch (error) {
-        // Silently fall back to the client-side estimate (getScheduleSlots())
-        // if the live check can't be reached.
+        if (request === this.slotAvailabilityRequest) this.slotsError = 'Could not check available times. Please try again.';
+        return false;
       } finally {
         if (request === this.slotAvailabilityRequest) this.slotsLoading = false;
       }
     },
-
-    // Slots shown to the customer: the live backend result when available,
-    // falling back to the client-side preview only for slots the live check
-    // hasn't covered yet (e.g. while the request is still in flight).
     getScheduleSlots() {
-      return this.availableTimeSlots.filter(slot => this.isSlotAvailableNow(slot));
+      if (!this.slotsReady || this.slotsLoading || this.slotsError) return [];
+      return this.availableTimeSlots.filter(slot => this.slotAvailabilityMap[slot] === true);
     },
-
-    // Prefers the live backend result for this slot; falls back to the
-    // client-side preview only when the live check hasn't covered it yet.
     isSlotAvailableNow(slot) {
-      if (Object.prototype.hasOwnProperty.call(this.slotAvailabilityMap, slot)) {
-        return this.slotAvailabilityMap[slot];
-      }
-      return this.isSlotAvailable(slot);
+      return this.slotsReady && !this.slotsLoading && !this.slotsError && this.slotAvailabilityMap[slot] === true;
+    },
+    canContinueSchedule() {
+      return !!(this.bookingForm.date && this.bookingForm.time && this.selectedServicesForBooking.length && !this.staffAvailabilityLoading && this.isSlotAvailableNow(this.bookingForm.time));
+    },
+    scrollBookingToTop() {
+      this.$nextTick(() => { const main = document.querySelector('.services-page main'); if (main) main.scrollTop = 0; });
     },
 
     toggleServiceSelection(service) {
@@ -126,6 +169,7 @@ function customerBookingMixin() {
       this.showBookingForm = true;
       this.showBookingSuccess = false;
       this.bookingStep = 'schedule';
+      this.scrollBookingToTop();
       this.prefillBookingForm();
       this.refreshAvailableSlots();
     },
@@ -139,6 +183,7 @@ function customerBookingMixin() {
       this.showBookingForm = true;
       this.showBookingSuccess = false;
       this.bookingStep = 'schedule';
+      this.scrollBookingToTop();
       this.prefillBookingForm();
       this.refreshAvailableSlots();
     },
@@ -170,17 +215,29 @@ function customerBookingMixin() {
       const index = order.indexOf(this.bookingStep);
       if (index > 0) this.bookingStep = order[index - 1];
     },
-    proceedFromSchedule() {
+    async proceedFromSchedule() {
       if (!this.bookingForm.date || !this.bookingForm.time) {
         return this.pushToast('error', 'Please select a date and time for your appointment.');
       }
+      if (this.slotsLoading) return;
+      if (!await this.refreshAvailableSlots()) return;
       if (!this.isSlotAvailableNow(this.bookingForm.time)) {
-        return this.pushToast('error', 'That schedule is no longer available. Please choose another date or time.');
+        this.bookingForm.time = '';
+        return this.pushToast('error', 'Selected time slot is unavailable. Please choose another schedule.');
       }
-      const order = this.bookingStepOrder();
-      this.bookingStep = order[order.indexOf('schedule') + 1];
+      if (!await this.refreshAvailableStaff()) return this.pushToast('error', this.staffAvailabilityError);
+      if (!this.liveAvailableStaff.length) {
+        this.bookingForm.time = '';
+        return this.pushToast('error', 'No qualified stylist is available. Please choose another schedule.');
+      }
+      this.bookingStep = 'stylist';
     },
-    proceedFromStylist() {
+    async proceedFromStylist() {
+      if (this.staffAvailabilityLoading) return;
+      const preferredStaff = this.bookingForm.staffId;
+      if (!await this.refreshAvailableStaff()) return;
+      if (preferredStaff && !this.bookingForm.staffId) return this.pushToast('error', 'Your selected stylist is no longer available. Please choose another stylist.');
+      if (!this.liveAvailableStaff.length) { this.bookingStep = 'schedule'; this.bookingForm.time = ''; return this.pushToast('error', 'Selected time slot is unavailable. Please choose another schedule.'); }
       // The chosen date/time might have just become unavailable for this
       // stylist while the customer was deciding — re-check before moving on.
       if (!this.isSlotAvailableNow(this.bookingForm.time)) {
@@ -238,7 +295,11 @@ function customerBookingMixin() {
     },
 
     getFilteredServices() {
-      return this.servicesCatalog[this.selectedBranchForServices] || [];
+      const query = this.serviceSearch.trim().toLowerCase();
+      return (this.servicesCatalog[this.selectedBranchForServices] || []).filter(service =>
+        (!this.serviceCategory || service.category === this.serviceCategory) &&
+        (!query || [service.name, service.category].some(value => String(value || '').toLowerCase().includes(query)))
+      );
     },
     getFilteredPromotions() {
       return this.promotionsCatalog[this.selectedBranchForServices] || [];
@@ -340,6 +401,15 @@ function customerBookingMixin() {
       this.bookingForm.agreedToTerms = false;
       this.bookingStep = 'schedule';
       this.slotAvailabilityMap = {};
+      this.slotAvailabilityRequest++;
+      this.staffAvailabilityRequest++;
+      this.slotsReady = false;
+      this.slotsLoading = false;
+      this.slotsError = '';
+      this.liveAvailableStaff = [];
+      this.liveBusyStaff = [];
+      this.staffAvailabilityLoading = false;
+      this.staffAvailabilityError = '';
       this.prefillBookingForm();
     },
 
@@ -348,43 +418,37 @@ function customerBookingMixin() {
     // already booked across that window by any other appointment. This is
     // what stops a customer from picking a stylist who's actually busy at
     // the schedule they just chose.
-    getAvailableStaffForBranch() {
-      const selectedIds = this.selectedServicesForBooking.map(s => String(s.id));
-      const qualified = this.staffList.filter(staff =>
-        staff.branch === this.selectedBranchForServices &&
-        (selectedIds.length === 0 || selectedIds.every(id => (staff.serviceIds || []).includes(id)))
-      );
-
-      if (!this.bookingForm.date || !this.bookingForm.time) return qualified;
-
-      const durationMinutes = this.selectedServicesForBooking.reduce((sum, s) => sum + (s.durationMinutes || 30), 0) || 30;
-      const newStart = parseApptDateTime(this.bookingForm.date, this.bookingForm.time);
-      const newEnd = new Date(newStart.getTime() + durationMinutes * 60000);
-
-      return qualified.filter(staff => {
-        const staffIsBusy = this.allBookings.some(booking => {
-          if (booking.date !== this.bookingForm.date || booking.status === 'Cancelled') return false;
-          if (String(booking.staffId) !== String(staff.id)) return false;
-          const bStart = parseApptDateTime(booking.date, booking.time);
-          const bEnd = new Date(bStart.getTime() + (booking.durationMinutes || 30) * 60000);
-          return windowsOverlap(newStart, newEnd, bStart, bEnd);
-        });
-        return !staffIsBusy;
-      });
+    liveAvailableStaff: [],
+    liveBusyStaff: [],
+    staffAvailabilityLoading: false,
+    staffAvailabilityError: '',
+    staffAvailabilityRequest: 0,
+    async refreshAvailableStaff() {
+      const request = ++this.staffAvailabilityRequest;
+      this.staffAvailabilityLoading = true;
+      this.staffAvailabilityError = '';
+      this.liveAvailableStaff = [];
+      this.liveBusyStaff = [];
+      const params = new URLSearchParams({branchKey:this.selectedBranchForServices, date:this.bookingForm.date, time:this.bookingForm.time});
+      this.selectedServicesForBooking.forEach(s => params.append('services[]',s.id));
+      try {
+        const response = await fetch('../../backend/public/getAvailableStaff.php?' + params);
+        const body = await response.json();
+        if (request !== this.staffAvailabilityRequest) return false;
+        if (response.ok === false || !body.success || !Array.isArray(body.staff)) throw new Error('Unavailable');
+        this.liveAvailableStaff = body.staff;
+        this.liveBusyStaff = body.busy || [];
+        if (this.bookingForm.staffId && !body.staff.some(s => String(s.id) === String(this.bookingForm.staffId))) this.bookingForm.staffId = '';
+        return true;
+      } catch {
+        if (request === this.staffAvailabilityRequest) this.staffAvailabilityError = 'Could not check available stylists. Please try again.';
+        return false;
+      } finally {
+        if (request === this.staffAvailabilityRequest) this.staffAvailabilityLoading = false;
+      }
     },
-
-    // Stylists who qualify for the selected services but are booked at the
-    // chosen time -- offered on the stylist step for the waitlist.
-    getBusyStaffForBranch() {
-      if (!this.bookingForm.date || !this.bookingForm.time) return [];
-      const selectedIds = this.selectedServicesForBooking.map(s => String(s.id));
-      const availableIds = this.getAvailableStaffForBranch().map(s => String(s.id));
-      return this.staffList.filter(staff =>
-        staff.branch === this.selectedBranchForServices &&
-        (selectedIds.length === 0 || selectedIds.every(id => (staff.serviceIds || []).includes(id))) &&
-        !availableIds.includes(String(staff.id))
-      );
-    },
+    getAvailableStaffForBranch() { return this.liveAvailableStaff; },
+    getBusyStaffForBranch() { return this.liveBusyStaff; },
 
     waitlistStaffId: '',
     isJoiningWaitlist: false,

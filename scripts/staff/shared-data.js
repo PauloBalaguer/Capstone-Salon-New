@@ -204,12 +204,16 @@ document.addEventListener('alpine:init', () => {
       return this.notifications.filter(n => !n.isRead).length;
     },
 
-    async toggleNotificationPanel() {
+    toggleNotificationPanel() {
       this.isNotificationPanelOpen = !this.isNotificationPanelOpen;
-      if (this.isNotificationPanelOpen && this.unreadNotificationCount() > 0) {
-        await this.post('employee/markNotificationsRead.php', {});
+    },
+    async markAllNotificationsAsRead() {
+      if (!this.unreadNotificationCount()) return;
+      try {
+        const result = await this.post('employee/markNotificationsRead.php', {});
+        if (!result.success) throw new Error('Could not update notifications');
         this.notifications = this.notifications.map(n => ({ ...n, isRead: true }));
-      }
+      } catch { this.toast('Could not mark notifications as read. Please try again.', 'error'); }
     },
 
     getLowStockItems() {

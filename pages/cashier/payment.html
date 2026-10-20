@@ -37,11 +37,13 @@
         .chip-btn { @apply rounded-lg border border-[#D9C9B4] bg-white py-2 text-base font-semibold text-slate-700 hover:border-[#006D6F]; }
         .chip-btn.is-active { @apply border-[#006D6F] bg-[#006D6F]/10 text-[#06464A] ring-1 ring-[#006D6F]; }
     </style>
-    <link rel="stylesheet" href="../../assets/css/cashier-theme.css?v=type16-20261020-1">
+    <link rel="stylesheet" href="../../assets/css/cashier-theme.css?v=balanced-type-20261020-1">
 <script src="../../scripts/booking-validation.js"></script>
-  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=type16-20261020-1" />
+  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=balanced-type-20261020-1" />
+  <link rel="stylesheet" href="../../assets/css/portal-colors.css?v=balanced-type-20261020-1" />
+  <script src="../../scripts/portal-presentation.js"></script>
 </head>
-<body class="bg-gray-100 font-sans antialiased flex h-screen overflow-hidden text-slate-800">
+<body class="salon-portal bg-gray-100 font-sans antialiased flex h-screen overflow-hidden text-slate-800">
 
     <div id="notificationContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none w-80"></div>
 
@@ -207,8 +209,8 @@
 
                         <!-- Service progress: Confirmed -> In Progress -> Completed -->
                         <dl class="text-sm space-y-1 text-slate-600">
-                            <div class="flex flex-wrap justify-between gap-2"><dt>Payment status</dt><dd id="ticketPaymentStatus" class="font-semibold">—</dd></div>
-                            <div class="flex flex-wrap justify-between gap-2"><dt>Reservation payment method</dt><dd id="ticketPaymentMethod" class="font-semibold">—</dd></div>
+                            <div class="flex flex-wrap justify-between gap-2"><dt class="font-bold">Payment status</dt><dd id="ticketPaymentStatus" class="font-semibold">—</dd></div>
+                            <div class="flex flex-wrap justify-between gap-2"><dt class="font-bold">Payment method</dt><dd id="ticketPaymentMethod" class="font-semibold">—</dd></div>
                         </dl>
                         <div id="workflowActionBlock" class="rounded-xl border border-gray-200 bg-slate-50 p-4">
                             <p class="section-label mb-3">Service progress</p>
@@ -293,7 +295,7 @@
                                 <span id="reservationReceivedDisplay" class="font-medium">&minus; ₱0.00</span>
                             </div>
                             <div id="productsChargeRow" class="hidden flex justify-between text-slate-600">
-                                <span>Remaining service balance</span>
+                                <span>Remaining balance</span>
                                 <span id="remainingServiceDisplay" class="font-medium">₱0.00</span>
                             </div>
                             <div id="productsTotalRow" class="hidden flex justify-between text-slate-600">

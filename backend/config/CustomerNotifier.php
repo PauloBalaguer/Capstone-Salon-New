@@ -33,6 +33,7 @@ final class CustomerNotifier
         'WAITLIST_OPENING' => 'Your preferred stylist has an opening',
         'QUOTE_READY' => 'Your home service quote is ready',
         'REMINDER' => 'Appointment reminder',
+        'PAYMENT_REMINDER' => 'Complete your booking payment before it expires',
         'PAYMENT_RECEIVED' => 'Your payment was received',
     ];
 

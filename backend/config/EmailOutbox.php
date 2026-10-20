@@ -79,6 +79,14 @@ final class EmailOutbox
                         continue;
                     }
                 }
+                if (str_starts_with($row['subject'], 'Complete your booking payment before it expires') && $row['reference_code']) {
+                    $current = $pdo->prepare("SELECT id FROM appointments WHERE reference_code = ? AND status = 'Pending' AND deposit_paid = 0 AND preferred_payment_method = 'PayMongo' AND created_at > NOW() - INTERVAL 30 MINUTE");
+                    $current->execute([$row['reference_code']]);
+                    if (!$current->fetchColumn()) {
+                        $pdo->prepare("UPDATE email_outbox SET status = 'Failed', last_error = 'Payment reminder superseded by payment, cancellation or expiry' WHERE id = ?")->execute([$row['id']]);
+                        continue;
+                    }
+                }
                 $groups[strtolower($row['to_email'])][] = $row;
             }
 

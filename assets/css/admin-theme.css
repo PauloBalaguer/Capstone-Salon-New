@@ -1,5 +1,5 @@
 @import url("./brand-palette.css");
-@import url("./responsive-base.css?v=type16-20261020-1");
+@import url("./responsive-base.css?v=balanced-type-20261020-1");
 
 :root {
   --admin-deep-teal: var(--brand-teal);
@@ -440,7 +440,7 @@ textarea {
 /* Readable text and controls across screen sizes. */
 .text-xs,
 .admin-badge {
-  font-size: 1rem !important;
+  font-size: .875rem !important;
   line-height: 1.5;
 }
 .text-base { font-size: 1rem; line-height: 1.5; }
@@ -532,7 +532,7 @@ body.admin-bookings .booking-table tbody tr:hover { background:var(--admin-warm-
 .booking-reference { color:var(--admin-gold-ink); font-family:ui-monospace,monospace; font-weight:600; font-size: 1rem; overflow-wrap:anywhere; }
 .booking-truncate { display:block; max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .booking-payment-status { display:inline-block; max-width:125px; line-height:1.4; font-size: 1rem; color:var(--brand-muted); }
-.booking-table .admin-badge { font-size: 1rem !important; }
+.booking-table .admin-badge { font-size: .875rem !important; }
 .booking-pagination { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:.4rem; padding-top:.5rem; }
 .booking-pagination [aria-current=page] { background:#006D6F; border-color:#41b6b8; color:white; }
 .booking-empty { padding:2.5rem 1rem; text-align:center; color:var(--brand-muted); border:1px dashed var(--admin-bronze); border-radius:12px; }

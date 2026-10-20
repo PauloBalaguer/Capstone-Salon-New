@@ -15,6 +15,7 @@ require_once '../config/database.php';
 require_once '../config/LoyaltyTier.php';
 require_once '../config/HomeServiceRequest.php';
 require_once '../config/ServiceDuration.php';
+require_once '../config/ReservationPayment.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -85,6 +86,7 @@ try {
             DATE_FORMAT(a.appointment_datetime, '%h:%i %p') AS time,
             a.status AS status,
             a.payment_status AS paymentStatus,
+            EXISTS (SELECT 1 FROM payment_transactions pt WHERE pt.appointment_id = a.id AND pt.event = 'checkout_expired' AND pt.created_at >= COALESCE(a.cancelled_at, a.created_at)) AS paymentExpired,
             a.reminder_sent AS reminderSent,
             COALESCE(SUM(s.duration_minutes), 30) AS durationMinutes
         FROM appointments a
@@ -101,6 +103,8 @@ try {
         $row['price'] = (float) $row['price'];
         $row['amountDue'] = $row['amountDue'] !== null ? (float) $row['amountDue'] : null;
         $row['remainingBalance'] = (float) $row['remainingBalance'];
+        $row['amountPaid'] = max(0, (float) $row['price'] - $row['remainingBalance']);
+        $row['paymentExpired'] = $row['status'] === 'Cancelled' && (bool) $row['paymentExpired'];
         $row['depositAmount'] = $row['depositAmount'] !== null ? (float) $row['depositAmount'] : null;
         $row['depositVerified'] = (bool) $row['depositVerified'];
         $row['reminderSent'] = (bool) $row['reminderSent'];
@@ -229,6 +233,12 @@ try {
         $row['price'] = (float) $row['price'];
         $row['durationMinutes'] = (int) $row['durationMinutes'];
         $row['duration'] = ServiceDuration::format($row['durationMinutes']);
+        $preview = ReservationPayment::quote([[
+            'id' => $row['id'], 'service_name' => $row['name'], 'price' => $row['price'],
+            'payment_requirement' => $row['paymentRequirement'],
+        ]]);
+        $row['reservationAmount'] = $preview['amountDue'];
+        $row['reservationLabel'] = $preview['reservationRequirement'];
         $services[$branchKey][] = $row;
     }
 
@@ -272,7 +282,7 @@ try {
     // verified, confirmed, etc. -- see backend/config/CustomerNotifier.php)
     // for this customer's own account, newest first.
     $stmt = $pdo->prepare("
-        SELECT id, type, message, is_read AS isRead, DATE_FORMAT(created_at, '%Y-%m-%d %h:%i %p') AS time
+        SELECT id, type, message, is_read AS isRead, DATE_FORMAT(created_at, '%Y-%m-%dT%H:%i:%s+08:00') AS createdAt, DATE_FORMAT(created_at, '%Y-%m-%d %h:%i %p') AS time
         FROM notifications
         WHERE user_id = ?
         ORDER BY created_at DESC

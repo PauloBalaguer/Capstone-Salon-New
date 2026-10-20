@@ -1,6 +1,6 @@
 
 /* Staff portal treatment aligned with the public site and other portals. */
-@import url("./admin-theme.css?v=type16-20261020-1");
+@import url("./admin-theme.css?v=balanced-type-20261020-1");
 
 /* Translate the staff portal's emerald accent language into brand teal. */
 .text-emerald-300,
@@ -195,7 +195,7 @@ textarea {
 /* Readable text and controls across screen sizes. */
 .text-xs,
 .admin-badge {
-  font-size: 1rem !important;
+  font-size: .875rem !important;
   line-height: 1.5;
 }
 .text-base { font-size: 1rem; line-height: 1.5; }

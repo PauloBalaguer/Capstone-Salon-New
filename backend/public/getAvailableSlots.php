@@ -91,16 +91,31 @@ try {
     $durationMinutes = Scheduling::totalDurationMinutes($pdo, $serviceIds);
     $allSlots = Scheduling::timeSlots($branchKey, $date);
 
-    $slots = array_map(function ($slot) use ($pdo, $branchId, $branchKey, $date, $durationMinutes, $serviceIds) {
+    // Customer booking assigns one stylist to the complete selection; guest booking may assign per service.
+    $singleStaff = ($_GET['assignment'] ?? '') === 'single';
+    $singleCandidates = [];
+    if ($singleStaff && $serviceIds) {
+        $marks = implode(',', array_fill(0, count($serviceIds), '?'));
+        $qualified = $pdo->prepare("SELECT e.id FROM employees e WHERE e.branch_id = ? AND e.is_active = 1 AND (SELECT COUNT(DISTINCT ss.service_id) FROM staff_services ss WHERE ss.employee_id = e.id AND ss.service_id IN ($marks)) = ?");
+        $qualified->execute([$branchId, ...$serviceIds, count($serviceIds)]);
+        $singleCandidates = $qualified->fetchAll(PDO::FETCH_COLUMN);
+    }
+    $slots = array_map(function ($slot) use ($pdo, $branchId, $branchKey, $date, $durationMinutes, $serviceIds, $singleStaff, $singleCandidates) {
         $slotTimestamp = strtotime("$date $slot");
         $slotDateTime = date('Y-m-d H:i:s', $slotTimestamp);
         $available = $slotTimestamp > time()
             && !Scheduling::isOutsideOperatingHours($slotDateTime, $durationMinutes, $branchKey)
             && !Scheduling::branchWindowIsFull($pdo, $branchId, $slotDateTime, $durationMinutes);
+        if ($available && $singleStaff) {
+            $available = false;
+            foreach ($singleCandidates as $employeeId) {
+                if (!Scheduling::staffHasConflict($pdo, (int) $employeeId, $slotDateTime, $durationMinutes)) { $available = true; break; }
+            }
+        }
         // Each service needs a qualified free stylist for its own segment,
         // matching the guest form's per-service assignment.
         $cursor = new DateTime($slotDateTime);
-        foreach ($serviceIds as $serviceId) {
+        foreach ($singleStaff ? [] : $serviceIds as $serviceId) {
             if (!$available) break;
             $minutes = Scheduling::totalDurationMinutes($pdo, [$serviceId]);
             $staff = $pdo->prepare('SELECT e.id FROM employees e JOIN staff_services ss ON ss.employee_id = e.id WHERE ss.service_id = ? AND e.branch_id = ? AND e.is_active = 1');

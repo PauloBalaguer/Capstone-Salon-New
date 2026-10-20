@@ -48,12 +48,13 @@
     .card-lift { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
     .card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(126, 34, 206, 0.35); }
   </style>
-  <link rel="stylesheet" href="../../assets/css/customer-theme.css?v=type16-20261020-1">
+  <link rel="stylesheet" href="../../assets/css/customer-theme.css?v=balanced-type-20261020-1">
   <script src="../../scripts/customer/theme-config.js"></script>
 <script src="../../scripts/booking-validation.js"></script>
-  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=type16-20261020-1" />
+  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=balanced-type-20261020-1" />
+  <link rel="stylesheet" href="../../assets/css/portal-colors.css?v=balanced-type-20261020-1" />
 </head>
-<body class="bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
+<body class="salon-portal bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
 
   <div class="h-1.5 w-full bg-gradient-to-r from-luxury-600 via-gold-500 to-luxury-800 topbar-shine"></div>
@@ -91,7 +92,7 @@
             </div>
             <div>
               <h1 class="text-base font-bold tracking-wider text-gold-400 font-serif" x-text="customerProfile.name"></h1>
-              <p class="text-xs text-slate-400 uppercase tracking-widest font-sans">Customer Portal</p>
+              <p class="customer-portal-label text-xs text-slate-400 uppercase tracking-widest font-sans">Customer Portal</p>
             </div>
           </button>
 
@@ -179,30 +180,32 @@
                 <span class="pulse-badge absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white" x-text="unreadNotificationCount"></span>
               </template>
             </button>
-            <div x-show="isNotificationPanelOpen" x-transition class="absolute top-full right-0 mt-2 w-80 bg-slate-800 border border-luxury-800 rounded-lg shadow-lg z-30 flex flex-col max-h-96" style="display: none;">
-              <div class="p-3 border-b border-slate-700 shrink-0">
-                <h4 class="text-base font-bold text-white">Notifications</h4>
-              </div>
-              <div class="divide-y divide-slate-700 overflow-y-auto flex-1">
-                <template x-if="notifications.length === 0">
-                  <p class="text-xs text-slate-400 text-center p-8">You have no new notifications.</p>
-                </template>
-                <template x-for="notif in notifications" :key="notif.time + notif.message">
-                  <div class="p-3 flex items-start space-x-3 hover:bg-slate-700/50">
-                    <div class="w-5 h-5 text-slate-400 mt-0.5 shrink-0">
-                      <svg class="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="notif.icon"></path></svg>
-                    </div>
-                    <div>
-                      <p class="text-xs text-slate-200" x-text="notif.message"></p>
-                      <p class="text-xs text-slate-500" x-text="notif.time"></p>
-                    </div>
-                  </div>
-                </template>
-              </div>
-              <div x-show="notifications.length > 0" class="p-2 border-t border-slate-700 shrink-0">
-                <button @click="clearAllNotifications()" class="w-full text-center text-xs text-purple-400 hover:bg-slate-700 rounded p-1.5 transition font-semibold">Clear All</button>
-              </div>
+            <div x-show="isNotificationPanelOpen" x-transition class="customer-notification-panel absolute top-full right-0 mt-2 w-80 bg-slate-800 border border-luxury-800 rounded-lg shadow-lg z-30 flex flex-col" style="display: none;">
+            <div class="p-3 border-b border-slate-700 shrink-0 flex items-center justify-between">
+              <h4 class="text-base font-bold text-white">Notifications</h4>
+              <button type="button" @click="isNotificationPanelOpen = false" aria-label="Close notifications" class="notification-close">&times;</button>
             </div>
+            <div class="notification-list overflow-y-auto flex-1" aria-live="polite">
+              <template x-if="notifications.length === 0"><p class="text-xs text-slate-400 text-center p-8">You're all caught up. Booking updates will appear here.</p></template>
+              <template x-for="notif in notifications" :key="notif.id || notif.time + notif.message">
+                <article class="notification-card" :class="{ 'notification-unread': !notif.read }">
+                  <div class="notification-status" :class="{ 'notification-status-cancelled': notif.type === 'CANCELLED' }" aria-hidden="true">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="notif.icon"></path></svg>
+                  </div>
+                  <div class="notification-copy">
+                    <div class="notification-title-row"><p class="notification-title" x-text="notificationDetails(notif).title"></p><span x-show="!notif.read" class="notification-dot" aria-label="Unread"></span></div>
+                    <p class="notification-summary" x-text="notificationDetails(notif).summary"></p>
+                    <p class="notification-service" x-show="notificationDetails(notif).service" x-text="notificationDetails(notif).service"></p>
+                    <p class="notification-schedule" x-show="notificationDetails(notif).schedule" x-text="notificationDetails(notif).schedule"></p>
+                    <time class="notification-time" :datetime="notif.createdAt || ''" :title="notif.time" x-text="notificationTime(notif)"></time>
+                  </div>
+                </article>
+              </template>
+            </div>
+            <div x-show="notifications.length > 0" class="p-2 border-t border-slate-700 shrink-0">
+              <button type="button" @click="markAllNotificationsAsRead()" :disabled="unreadNotificationCount === 0" class="notification-read-all w-full text-center font-semibold">Mark all as read</button>
+            </div>
+          </div>
           </div>
         </div>
       </header>
@@ -240,8 +243,8 @@
                 <p class="text-xs text-slate-500 mt-1">Need us to come to you? Make a request now!</p>
               </div>
             </template>
-            <template x-for="(request, i) in homeServiceRequests.sort((a, b) => new Date(b.submittedDate) - new Date(a.submittedDate))" :key="request.id">
-              <div class="card-lift stagger-item bg-slate-900 border border-luxury-900 rounded-2xl p-5 space-y-3 flex flex-col" :style="'animation-delay:' + (i * 70) + 'ms'">
+            <template x-for="(request, i) in [...homeServiceRequests].sort((a, b) => new Date(b.submittedDate) - new Date(a.submittedDate))" :key="request.id">
+              <div :id="'request-' + request.id" class="card-lift stagger-item bg-slate-900 border border-luxury-900 rounded-2xl p-5 space-y-3 flex flex-col" :style="'animation-delay:' + (i * 70) + 'ms'">
                 <div class="flex justify-between items-start">
                   <div>
                     <p class="font-serif font-bold text-white" x-text="request.eventType"></p>
@@ -249,15 +252,32 @@
                   </div>
                   <span :class="getHomeServiceStatusBadgeClass(request.status)" class="px-2 py-0.5 rounded text-xs font-bold" x-text="getHomeServiceStatusLabel(request.status)"></span>
                 </div>
-                <div class="text-xs text-slate-300 mt-3 space-y-1 border-t border-slate-800 pt-3">
-                  <p x-show="request.weddingPackage"><strong class="text-slate-500 w-24 inline-block">Package:</strong> <span x-text="'Package ' + request.weddingPackage"></span></p>
-                  <p><strong class="text-slate-500 w-24 inline-block">Preferred Date:</strong> <span x-text="new Date(request.preferredDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })"></span></p>
-                  <p x-show="request.preferredTime"><strong class="text-slate-500 w-24 inline-block">Preferred Time:</strong> <span x-text="request.preferredTime"></span></p>
-                  <p><strong class="text-slate-500 w-24 inline-block">Submitted:</strong> <span x-text="new Date(request.submittedDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })"></span></p>
-                  <p class="flex items-start"><strong class="text-slate-500 w-24 inline-block shrink-0">Details:</strong> <span class="text-slate-400 italic" x-text="request.requests || 'No special requests provided.'"></span></p>
-                  <p x-show="request.quotePrice"><strong class="text-slate-500 w-24 inline-block">Quote:</strong> <span class="font-semibold" x-text="formatPeso(request.quotePrice)"></span></p>
-                  <p x-show="request.depositAmount && request.paymentMethod"><strong class="text-slate-500 w-24 inline-block">Payment:</strong> <span x-text="formatPeso(request.depositAmount) + ' via ' + request.paymentMethod"></span> <span :class="request.depositVerified ? 'text-emerald-400' : 'text-amber-400'" class="font-bold" x-text="request.depositVerified ? '(Verified)' : '(Being Verified)'"></span></p>
-                </div>
+                <dl class="home-request-fields text-xs border-t border-slate-800 pt-3">
+                  <div x-show="request.weddingPackage"><dt>Package</dt><dd x-text="'Package ' + request.weddingPackage"></dd></div>
+                  <div><dt x-text="['Confirmed','Staff Assigned','Service in Progress','Completed'].includes(request.status) ? 'Event schedule' : 'Preferred schedule'"></dt><dd x-text="homeServiceSchedule(request)"></dd></div>
+                  <div x-show="homeServiceDetails(request).clients"><dt>Clients</dt><dd x-text="homeServiceDetails(request).clients"></dd></div>
+                </dl>
+                <p x-show="homeServiceFutureCompleted(request)" class="text-xs rounded-lg p-3 bg-[#FEF3C7] text-[#78350F]">This booking is marked completed before its scheduled event. Please contact the branch to confirm the record.</p>
+                <details class="home-request-details border border-slate-700 rounded-lg p-3 text-xs">
+                  <summary class="font-bold cursor-pointer">Request details</summary>
+                  <dl class="home-request-fields mt-3">
+                    <div><dt>Submitted</dt><dd x-text="formatApptDateLong(request.submittedDate)"></dd></div>
+                    <div x-show="homeServiceDetails(request).services"><dt>Services</dt><dd x-text="homeServiceDetails(request).services"></dd></div>
+                    <div x-show="homeServiceDetails(request).venue"><dt>Venue</dt><dd x-text="homeServiceDetails(request).venue"></dd></div>
+                    <div><dt>Additional requests</dt><dd class="whitespace-pre-line" x-text="homeServiceDetails(request).notes || 'No additional requests.'"></dd></div>
+                  </dl>
+                </details>
+                <section class="rounded-lg bg-slate-800 p-3 text-xs space-y-3" aria-label="Current quote and payments">
+                  <h4 class="font-bold">Payment summary</h4>
+                  <dl class="home-request-fields">
+                    <div><dt>Current quote</dt><dd class="font-bold" x-text="request.quotePrice != null ? formatPeso(request.quotePrice) : 'Awaiting quote'"></dd></div>
+                    <div><dt>Amount paid</dt><dd x-text="formatPeso(request.amountPaid || 0)"></dd></div>
+                    <div x-show="request.quotePrice != null && request.status !== 'Cancelled'"><dt>Remaining balance</dt><dd class="font-bold" x-text="formatPeso(request.balanceDue || 0)"></dd></div>
+                    <div x-show="request.paymentMethod"><dt>Deposit method</dt><dd x-text="request.paymentMethod"></dd></div>
+                    <div><dt>Payment status</dt><dd x-text="homeServicePaymentLabel(request)"></dd></div>
+                  </dl>
+                  <p x-show="homeServiceQuoteChanged(request)" class="text-xs text-amber-800" x-text="'The current quote differs from the original package estimate of ' + formatPeso(homeServiceDetails(request).originalPrice) + '. Please confirm the quote with the branch if this is unexpected.'"></p>
+                </section>
                 <!-- Reservation fee (down payment) set with the quote, paid online through PayMongo. -->
                 <div x-show="request.status === 'Payment Required' && request.depositAmount && !request.paymentMethod" class="rounded-xl p-3 bg-[#FEF3C7] border border-[#FCD34D] text-[#78350F] text-xs space-y-2">
                   <p><strong x-text="'Reservation fee due: ' + formatPeso(request.depositAmount)"></strong> — pay it to confirm your booking. The remaining balance is paid on the event day.</p>
@@ -266,13 +286,11 @@
                   <p x-show="!request.payUrl" class="text-xs">Online payment isn't available for this request — please contact the branch to pay in person.</p>
                 </div>
                 <!-- Remaining balance after the DP -->
-                <div x-show="request.quotePrice && request.amountPaid > 0 && request.status !== 'Cancelled'" class="rounded-xl p-3 text-xs space-y-2 border"
+                <div x-show="request.quotePrice != null && request.amountPaid > 0 && request.balanceDue > 0 && request.status !== 'Cancelled'" class="rounded-xl p-3 text-xs space-y-2 border"
                      :class="request.balanceDue > 0 ? 'bg-[#FEF3C7] border-[#FCD34D] text-[#78350F]' : 'bg-[#DCFCE7] border-[#86EFAC] text-[#166534]'">
-                  <p><strong x-text="request.balanceDue > 0 ? 'Remaining balance: ' + formatPeso(request.balanceDue) : 'Fully paid ✓'"></strong>
-                     <span class="opacity-80" x-text="' (paid ' + formatPeso(request.amountPaid) + ' of ' + formatPeso(request.quotePrice) + ')'"></span></p>
                   <a x-show="request.balancePayUrl" :href="request.balancePayUrl" class="inline-flex items-center justify-center w-full rounded-lg bg-[#006D6F] hover:bg-[#06464A] text-white font-bold py-2 transition"
                      x-text="'Pay ' + formatPeso(request.balanceDue) + ' now (GCash, Maya or card)'"></a>
-                  <p x-show="request.balanceDue > 0 && !request.balancePayUrl" class="text-xs">Pay it in cash on the event day, or ask the salon for an online payment link.</p>
+                  <p x-show="request.balanceDue > 0 && !request.balancePayUrl" class="text-xs">Pay the remaining balance at the branch. If an online payment link is available, it will appear here.</p>
                 </div>
                 <!-- Online reschedule -->
                 <div x-show="!['Completed', 'Cancelled'].includes(request.status)" class="pt-3 border-t border-slate-800 text-xs space-y-2">

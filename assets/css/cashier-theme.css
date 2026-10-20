@@ -1,5 +1,5 @@
 @import url("./brand-palette.css");
-@import url("./responsive-base.css?v=type16-20261020-1");
+@import url("./responsive-base.css?v=balanced-type-20261020-1");
 
 :root {
   --cashier-teal: var(--brand-teal);
@@ -145,7 +145,7 @@ textarea {
 /* Readable text and controls across screen sizes. */
 .text-xs,
 .admin-badge {
-  font-size: 1rem !important;
+  font-size: .875rem !important;
   line-height: 1.5;
 }
 .text-base { font-size: 1rem; line-height: 1.5; }

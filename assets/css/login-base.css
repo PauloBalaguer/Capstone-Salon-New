@@ -1,5 +1,5 @@
 @import url("./brand-palette.css");
-@import url("./responsive-base.css?v=type16-20261020-1");
+@import url("./responsive-base.css?v=balanced-type-20261020-1");
 /* Shared styles for the login pages (login, register, forgot/reset/set
    password, verify OTP). Replaces the old compiled tailwind.build.css —
    these pages only use the component classes below, not Tailwind utilities. */
@@ -362,3 +362,15 @@ button { cursor: pointer; }
 .eye-btn { min-width: 2.75rem; min-height: 2.75rem; align-items: center; justify-content: center; }
 .checkbox { min-height: 2.75rem; }
 .otp-digit { min-height: 2.75rem; aspect-ratio: auto; padding-block: .5rem; }
+/* Visible input edges and keyboard focus throughout authentication. */
+.field-box, .otp-digit { border-color: #8B8174; }
+.field-box.is-wrong, .otp-digit.is-wrong { border-color: #B91C1C; }
+.field-error { color: #B91C1C; }
+:focus-visible { outline: 3px solid var(--teal); outline-offset: 3px; }
+.field-box input:focus-visible { outline: none; }
+.divider { color: var(--brand-muted); }
+.btn-main:disabled { background: #E8DCC8; color: #475569; opacity: 1; }
+
+/* Keep supporting information quieter than form inputs and primary actions. */
+.card-foot, .page-note, .card-eyebrow, .field label, .field-error,
+.link-back, .close-link, .form-row, .toast { font-size: .875rem; line-height: 1.5; }

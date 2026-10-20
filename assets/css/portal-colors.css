@@ -1,0 +1,191 @@
+@import url("./brand-palette.css");
+
+/* Final color rules for the four light portal workspaces. */
+body.salon-portal { color: var(--brand-ink); color-scheme: light; }
+body.salon-portal :is(main, dialog, [role="dialog"]) { color: var(--brand-ink); }
+body.salon-portal :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  color: var(--brand-ink) !important;
+  background-color: var(--brand-cream) !important;
+  border-color: #8B8174 !important;
+  accent-color: var(--brand-teal);
+  color-scheme: light;
+}
+body.salon-portal :is(input, textarea)::placeholder { color: var(--brand-muted) !important; opacity: 1; }
+body.salon-portal :focus-visible { outline: 3px solid var(--brand-teal); outline-offset: 3px; }
+body.salon-portal aside :focus-visible { outline-color: var(--brand-gold); }
+body.salon-portal ::selection { background: var(--brand-gold); color: var(--brand-ink); }
+
+/* Neutral foregrounds and surfaces, excluding intentional dark areas. */
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.text-slate-50, .text-slate-100, .text-slate-200, .text-slate-300, .text-slate-700, .text-slate-800, .text-slate-900, .text-slate-950, .text-gray-50, .text-gray-100, .text-gray-200, .text-gray-300, .text-gray-700, .text-gray-800, .text-gray-900, .text-gray-950, .text-white) { color: var(--brand-ink) !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.text-slate-400, .text-slate-500, .text-slate-600, .text-gray-400, .text-gray-500, .text-gray-600) { color: var(--brand-muted) !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.text-gold-300, .text-gold-400, .text-gold-500, .text-gold-600) { color: var(--brand-gold-ink) !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is([class~="bg-slate-700"], [class~="bg-slate-700/20"], [class~="bg-slate-700/30"], [class~="bg-slate-700/40"], [class~="bg-slate-700/50"], [class~="bg-slate-700/60"], [class~="bg-slate-700/70"], [class~="bg-slate-700/80"], [class~="bg-slate-700/90"], [class~="bg-slate-800"], [class~="bg-slate-800/20"], [class~="bg-slate-800/30"], [class~="bg-slate-800/40"], [class~="bg-slate-800/50"], [class~="bg-slate-800/60"], [class~="bg-slate-800/70"], [class~="bg-slate-800/80"], [class~="bg-slate-800/90"]) { background-color: #F3E9D6 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is([class~="bg-slate-900"], [class~="bg-slate-900/20"], [class~="bg-slate-900/30"], [class~="bg-slate-900/40"], [class~="bg-slate-900/50"], [class~="bg-slate-900/60"], [class~="bg-slate-900/70"], [class~="bg-slate-900/80"], [class~="bg-slate-900/90"], [class~="bg-slate-950"], [class~="bg-slate-950/20"], [class~="bg-slate-950/30"], [class~="bg-slate-950/40"], [class~="bg-slate-950/50"], [class~="bg-slate-950/60"], [class~="bg-slate-950/70"], [class~="bg-slate-950/80"], [class~="bg-slate-950/90"]) { background-color: var(--brand-panel) !important; }
+
+/* emerald: status text, soft chips and solid actions. */
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.text-emerald-200, .text-emerald-300, .text-emerald-400, .text-emerald-500) { color: #17603A !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is([class~="bg-emerald-50"], [class~="bg-emerald-50/20"], [class~="bg-emerald-50/30"], [class~="bg-emerald-50/40"], [class~="bg-emerald-50/50"], [class~="bg-emerald-50/60"], [class~="bg-emerald-50/80"], [class~="bg-emerald-100"], [class~="bg-emerald-100/20"], [class~="bg-emerald-100/30"], [class~="bg-emerald-100/40"], [class~="bg-emerald-100/50"], [class~="bg-emerald-100/60"], [class~="bg-emerald-100/80"], [class~="bg-emerald-900"], [class~="bg-emerald-900/20"], [class~="bg-emerald-900/30"], [class~="bg-emerald-900/40"], [class~="bg-emerald-900/50"], [class~="bg-emerald-900/60"], [class~="bg-emerald-900/80"], [class~="bg-emerald-950"], [class~="bg-emerald-950/20"], [class~="bg-emerald-950/30"], [class~="bg-emerald-950/40"], [class~="bg-emerald-950/50"], [class~="bg-emerald-950/60"], [class~="bg-emerald-950/80"]) { color: #17603A !important; background-color: #EDF8F1 !important; border-color: #B7DFC6 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-emerald-500, .bg-emerald-600, .bg-emerald-700) { background-color: #166534 !important; color: #FFFDF9 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-emerald-500, .bg-emerald-600, .bg-emerald-700) :is(span,i,svg,strong) { color: inherit !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-emerald-500, .bg-emerald-600, .bg-emerald-700):hover:not(:disabled) { background-color: var(--brand-teal-dark) !important; color: #FFFDF9 !important; }
+
+/* green: status text, soft chips and solid actions. */
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.text-green-200, .text-green-300, .text-green-400, .text-green-500) { color: #17603A !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is([class~="bg-green-50"], [class~="bg-green-50/20"], [class~="bg-green-50/30"], [class~="bg-green-50/40"], [class~="bg-green-50/50"], [class~="bg-green-50/60"], [class~="bg-green-50/80"], [class~="bg-green-100"], [class~="bg-green-100/20"], [class~="bg-green-100/30"], [class~="bg-green-100/40"], [class~="bg-green-100/50"], [class~="bg-green-100/60"], [class~="bg-green-100/80"], [class~="bg-green-900"], [class~="bg-green-900/20"], [class~="bg-green-900/30"], [class~="bg-green-900/40"], [class~="bg-green-900/50"], [class~="bg-green-900/60"], [class~="bg-green-900/80"], [class~="bg-green-950"], [class~="bg-green-950/20"], [class~="bg-green-950/30"], [class~="bg-green-950/40"], [class~="bg-green-950/50"], [class~="bg-green-950/60"], [class~="bg-green-950/80"]) { color: #17603A !important; background-color: #EDF8F1 !important; border-color: #B7DFC6 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-green-500, .bg-green-600, .bg-green-700) { background-color: #166534 !important; color: #FFFDF9 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-green-500, .bg-green-600, .bg-green-700) :is(span,i,svg,strong) { color: inherit !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-green-500, .bg-green-600, .bg-green-700):hover:not(:disabled) { background-color: var(--brand-teal-dark) !important; color: #FFFDF9 !important; }
+
+/* rose: status text, soft chips and solid actions. */
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.text-rose-200, .text-rose-300, .text-rose-400, .text-rose-500) { color: #9F2D2D !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is([class~="bg-rose-50"], [class~="bg-rose-50/20"], [class~="bg-rose-50/30"], [class~="bg-rose-50/40"], [class~="bg-rose-50/50"], [class~="bg-rose-50/60"], [class~="bg-rose-50/80"], [class~="bg-rose-100"], [class~="bg-rose-100/20"], [class~="bg-rose-100/30"], [class~="bg-rose-100/40"], [class~="bg-rose-100/50"], [class~="bg-rose-100/60"], [class~="bg-rose-100/80"], [class~="bg-rose-900"], [class~="bg-rose-900/20"], [class~="bg-rose-900/30"], [class~="bg-rose-900/40"], [class~="bg-rose-900/50"], [class~="bg-rose-900/60"], [class~="bg-rose-900/80"], [class~="bg-rose-950"], [class~="bg-rose-950/20"], [class~="bg-rose-950/30"], [class~="bg-rose-950/40"], [class~="bg-rose-950/50"], [class~="bg-rose-950/60"], [class~="bg-rose-950/80"]) { color: #9F2D2D !important; background-color: #FFF0F0 !important; border-color: #E3A6A6 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-rose-500, .bg-rose-600, .bg-rose-700) { background-color: #B91C1C !important; color: #FFFDF9 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-rose-500, .bg-rose-600, .bg-rose-700) :is(span,i,svg,strong) { color: inherit !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-rose-500, .bg-rose-600, .bg-rose-700):hover:not(:disabled) { background-color: var(--brand-teal-dark) !important; color: #FFFDF9 !important; }
+
+/* red: status text, soft chips and solid actions. */
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.text-red-200, .text-red-300, .text-red-400, .text-red-500) { color: #9F2D2D !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is([class~="bg-red-50"], [class~="bg-red-50/20"], [class~="bg-red-50/30"], [class~="bg-red-50/40"], [class~="bg-red-50/50"], [class~="bg-red-50/60"], [class~="bg-red-50/80"], [class~="bg-red-100"], [class~="bg-red-100/20"], [class~="bg-red-100/30"], [class~="bg-red-100/40"], [class~="bg-red-100/50"], [class~="bg-red-100/60"], [class~="bg-red-100/80"], [class~="bg-red-900"], [class~="bg-red-900/20"], [class~="bg-red-900/30"], [class~="bg-red-900/40"], [class~="bg-red-900/50"], [class~="bg-red-900/60"], [class~="bg-red-900/80"], [class~="bg-red-950"], [class~="bg-red-950/20"], [class~="bg-red-950/30"], [class~="bg-red-950/40"], [class~="bg-red-950/50"], [class~="bg-red-950/60"], [class~="bg-red-950/80"]) { color: #9F2D2D !important; background-color: #FFF0F0 !important; border-color: #E3A6A6 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-red-500, .bg-red-600, .bg-red-700) { background-color: #B91C1C !important; color: #FFFDF9 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-red-500, .bg-red-600, .bg-red-700) :is(span,i,svg,strong) { color: inherit !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-red-500, .bg-red-600, .bg-red-700):hover:not(:disabled) { background-color: var(--brand-teal-dark) !important; color: #FFFDF9 !important; }
+
+/* amber: status text, soft chips and solid actions. */
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.text-amber-200, .text-amber-300, .text-amber-400, .text-amber-500) { color: #7A5200 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is([class~="bg-amber-50"], [class~="bg-amber-50/20"], [class~="bg-amber-50/30"], [class~="bg-amber-50/40"], [class~="bg-amber-50/50"], [class~="bg-amber-50/60"], [class~="bg-amber-50/80"], [class~="bg-amber-100"], [class~="bg-amber-100/20"], [class~="bg-amber-100/30"], [class~="bg-amber-100/40"], [class~="bg-amber-100/50"], [class~="bg-amber-100/60"], [class~="bg-amber-100/80"], [class~="bg-amber-900"], [class~="bg-amber-900/20"], [class~="bg-amber-900/30"], [class~="bg-amber-900/40"], [class~="bg-amber-900/50"], [class~="bg-amber-900/60"], [class~="bg-amber-900/80"], [class~="bg-amber-950"], [class~="bg-amber-950/20"], [class~="bg-amber-950/30"], [class~="bg-amber-950/40"], [class~="bg-amber-950/50"], [class~="bg-amber-950/60"], [class~="bg-amber-950/80"]) { color: #7A5200 !important; background-color: #FFF7E2 !important; border-color: #D9BB69 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-amber-500, .bg-amber-600, .bg-amber-700) { background-color: #805B0B !important; color: #FFFDF9 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-amber-500, .bg-amber-600, .bg-amber-700) :is(span,i,svg,strong) { color: inherit !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-amber-500, .bg-amber-600, .bg-amber-700):hover:not(:disabled) { background-color: var(--brand-teal-dark) !important; color: #FFFDF9 !important; }
+
+/* yellow: status text, soft chips and solid actions. */
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.text-yellow-200, .text-yellow-300, .text-yellow-400, .text-yellow-500) { color: #7A5200 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is([class~="bg-yellow-50"], [class~="bg-yellow-50/20"], [class~="bg-yellow-50/30"], [class~="bg-yellow-50/40"], [class~="bg-yellow-50/50"], [class~="bg-yellow-50/60"], [class~="bg-yellow-50/80"], [class~="bg-yellow-100"], [class~="bg-yellow-100/20"], [class~="bg-yellow-100/30"], [class~="bg-yellow-100/40"], [class~="bg-yellow-100/50"], [class~="bg-yellow-100/60"], [class~="bg-yellow-100/80"], [class~="bg-yellow-900"], [class~="bg-yellow-900/20"], [class~="bg-yellow-900/30"], [class~="bg-yellow-900/40"], [class~="bg-yellow-900/50"], [class~="bg-yellow-900/60"], [class~="bg-yellow-900/80"], [class~="bg-yellow-950"], [class~="bg-yellow-950/20"], [class~="bg-yellow-950/30"], [class~="bg-yellow-950/40"], [class~="bg-yellow-950/50"], [class~="bg-yellow-950/60"], [class~="bg-yellow-950/80"]) { color: #7A5200 !important; background-color: #FFF7E2 !important; border-color: #D9BB69 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-yellow-500, .bg-yellow-600, .bg-yellow-700) { background-color: #805B0B !important; color: #FFFDF9 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-yellow-500, .bg-yellow-600, .bg-yellow-700) :is(span,i,svg,strong) { color: inherit !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-yellow-500, .bg-yellow-600, .bg-yellow-700):hover:not(:disabled) { background-color: var(--brand-teal-dark) !important; color: #FFFDF9 !important; }
+
+/* orange: status text, soft chips and solid actions. */
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.text-orange-200, .text-orange-300, .text-orange-400, .text-orange-500) { color: #9A3412 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is([class~="bg-orange-50"], [class~="bg-orange-50/20"], [class~="bg-orange-50/30"], [class~="bg-orange-50/40"], [class~="bg-orange-50/50"], [class~="bg-orange-50/60"], [class~="bg-orange-50/80"], [class~="bg-orange-100"], [class~="bg-orange-100/20"], [class~="bg-orange-100/30"], [class~="bg-orange-100/40"], [class~="bg-orange-100/50"], [class~="bg-orange-100/60"], [class~="bg-orange-100/80"], [class~="bg-orange-900"], [class~="bg-orange-900/20"], [class~="bg-orange-900/30"], [class~="bg-orange-900/40"], [class~="bg-orange-900/50"], [class~="bg-orange-900/60"], [class~="bg-orange-900/80"], [class~="bg-orange-950"], [class~="bg-orange-950/20"], [class~="bg-orange-950/30"], [class~="bg-orange-950/40"], [class~="bg-orange-950/50"], [class~="bg-orange-950/60"], [class~="bg-orange-950/80"]) { color: #9A3412 !important; background-color: #FFF3EB !important; border-color: #E5BEA6 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-orange-500, .bg-orange-600, .bg-orange-700) { background-color: #9A3412 !important; color: #FFFDF9 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-orange-500, .bg-orange-600, .bg-orange-700) :is(span,i,svg,strong) { color: inherit !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-orange-500, .bg-orange-600, .bg-orange-700):hover:not(:disabled) { background-color: var(--brand-teal-dark) !important; color: #FFFDF9 !important; }
+
+/* blue: status text, soft chips and solid actions. */
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.text-blue-200, .text-blue-300, .text-blue-400, .text-blue-500) { color: #245A73 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is([class~="bg-blue-50"], [class~="bg-blue-50/20"], [class~="bg-blue-50/30"], [class~="bg-blue-50/40"], [class~="bg-blue-50/50"], [class~="bg-blue-50/60"], [class~="bg-blue-50/80"], [class~="bg-blue-100"], [class~="bg-blue-100/20"], [class~="bg-blue-100/30"], [class~="bg-blue-100/40"], [class~="bg-blue-100/50"], [class~="bg-blue-100/60"], [class~="bg-blue-100/80"], [class~="bg-blue-900"], [class~="bg-blue-900/20"], [class~="bg-blue-900/30"], [class~="bg-blue-900/40"], [class~="bg-blue-900/50"], [class~="bg-blue-900/60"], [class~="bg-blue-900/80"], [class~="bg-blue-950"], [class~="bg-blue-950/20"], [class~="bg-blue-950/30"], [class~="bg-blue-950/40"], [class~="bg-blue-950/50"], [class~="bg-blue-950/60"], [class~="bg-blue-950/80"]) { color: #245A73 !important; background-color: #EDF7FB !important; border-color: #A5C7D8 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-blue-500, .bg-blue-600, .bg-blue-700) { background-color: #075985 !important; color: #FFFDF9 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-blue-500, .bg-blue-600, .bg-blue-700) :is(span,i,svg,strong) { color: inherit !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-blue-500, .bg-blue-600, .bg-blue-700):hover:not(:disabled) { background-color: var(--brand-teal-dark) !important; color: #FFFDF9 !important; }
+
+/* sky: status text, soft chips and solid actions. */
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.text-sky-200, .text-sky-300, .text-sky-400, .text-sky-500) { color: #245A73 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is([class~="bg-sky-50"], [class~="bg-sky-50/20"], [class~="bg-sky-50/30"], [class~="bg-sky-50/40"], [class~="bg-sky-50/50"], [class~="bg-sky-50/60"], [class~="bg-sky-50/80"], [class~="bg-sky-100"], [class~="bg-sky-100/20"], [class~="bg-sky-100/30"], [class~="bg-sky-100/40"], [class~="bg-sky-100/50"], [class~="bg-sky-100/60"], [class~="bg-sky-100/80"], [class~="bg-sky-900"], [class~="bg-sky-900/20"], [class~="bg-sky-900/30"], [class~="bg-sky-900/40"], [class~="bg-sky-900/50"], [class~="bg-sky-900/60"], [class~="bg-sky-900/80"], [class~="bg-sky-950"], [class~="bg-sky-950/20"], [class~="bg-sky-950/30"], [class~="bg-sky-950/40"], [class~="bg-sky-950/50"], [class~="bg-sky-950/60"], [class~="bg-sky-950/80"]) { color: #245A73 !important; background-color: #EDF7FB !important; border-color: #A5C7D8 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-sky-500, .bg-sky-600, .bg-sky-700) { background-color: #075985 !important; color: #FFFDF9 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-sky-500, .bg-sky-600, .bg-sky-700) :is(span,i,svg,strong) { color: inherit !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-sky-500, .bg-sky-600, .bg-sky-700):hover:not(:disabled) { background-color: var(--brand-teal-dark) !important; color: #FFFDF9 !important; }
+
+/* cyan: status text, soft chips and solid actions. */
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.text-cyan-200, .text-cyan-300, .text-cyan-400, .text-cyan-500) { color: #245A73 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is([class~="bg-cyan-50"], [class~="bg-cyan-50/20"], [class~="bg-cyan-50/30"], [class~="bg-cyan-50/40"], [class~="bg-cyan-50/50"], [class~="bg-cyan-50/60"], [class~="bg-cyan-50/80"], [class~="bg-cyan-100"], [class~="bg-cyan-100/20"], [class~="bg-cyan-100/30"], [class~="bg-cyan-100/40"], [class~="bg-cyan-100/50"], [class~="bg-cyan-100/60"], [class~="bg-cyan-100/80"], [class~="bg-cyan-900"], [class~="bg-cyan-900/20"], [class~="bg-cyan-900/30"], [class~="bg-cyan-900/40"], [class~="bg-cyan-900/50"], [class~="bg-cyan-900/60"], [class~="bg-cyan-900/80"], [class~="bg-cyan-950"], [class~="bg-cyan-950/20"], [class~="bg-cyan-950/30"], [class~="bg-cyan-950/40"], [class~="bg-cyan-950/50"], [class~="bg-cyan-950/60"], [class~="bg-cyan-950/80"]) { color: #245A73 !important; background-color: #EDF7FB !important; border-color: #A5C7D8 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-cyan-500, .bg-cyan-600, .bg-cyan-700) { background-color: #075985 !important; color: #FFFDF9 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-cyan-500, .bg-cyan-600, .bg-cyan-700) :is(span,i,svg,strong) { color: inherit !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-cyan-500, .bg-cyan-600, .bg-cyan-700):hover:not(:disabled) { background-color: var(--brand-teal-dark) !important; color: #FFFDF9 !important; }
+
+/* indigo: status text, soft chips and solid actions. */
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.text-indigo-200, .text-indigo-300, .text-indigo-400, .text-indigo-500) { color: #245A73 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is([class~="bg-indigo-50"], [class~="bg-indigo-50/20"], [class~="bg-indigo-50/30"], [class~="bg-indigo-50/40"], [class~="bg-indigo-50/50"], [class~="bg-indigo-50/60"], [class~="bg-indigo-50/80"], [class~="bg-indigo-100"], [class~="bg-indigo-100/20"], [class~="bg-indigo-100/30"], [class~="bg-indigo-100/40"], [class~="bg-indigo-100/50"], [class~="bg-indigo-100/60"], [class~="bg-indigo-100/80"], [class~="bg-indigo-900"], [class~="bg-indigo-900/20"], [class~="bg-indigo-900/30"], [class~="bg-indigo-900/40"], [class~="bg-indigo-900/50"], [class~="bg-indigo-900/60"], [class~="bg-indigo-900/80"], [class~="bg-indigo-950"], [class~="bg-indigo-950/20"], [class~="bg-indigo-950/30"], [class~="bg-indigo-950/40"], [class~="bg-indigo-950/50"], [class~="bg-indigo-950/60"], [class~="bg-indigo-950/80"]) { color: #245A73 !important; background-color: #EDF7FB !important; border-color: #A5C7D8 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-indigo-500, .bg-indigo-600, .bg-indigo-700) { background-color: #075985 !important; color: #FFFDF9 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-indigo-500, .bg-indigo-600, .bg-indigo-700) :is(span,i,svg,strong) { color: inherit !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-indigo-500, .bg-indigo-600, .bg-indigo-700):hover:not(:disabled) { background-color: var(--brand-teal-dark) !important; color: #FFFDF9 !important; }
+
+/* purple: status text, soft chips and solid actions. */
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.text-purple-200, .text-purple-300, .text-purple-400, .text-purple-500) { color: #06464A !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is([class~="bg-purple-50"], [class~="bg-purple-50/20"], [class~="bg-purple-50/30"], [class~="bg-purple-50/40"], [class~="bg-purple-50/50"], [class~="bg-purple-50/60"], [class~="bg-purple-50/80"], [class~="bg-purple-100"], [class~="bg-purple-100/20"], [class~="bg-purple-100/30"], [class~="bg-purple-100/40"], [class~="bg-purple-100/50"], [class~="bg-purple-100/60"], [class~="bg-purple-100/80"], [class~="bg-purple-900"], [class~="bg-purple-900/20"], [class~="bg-purple-900/30"], [class~="bg-purple-900/40"], [class~="bg-purple-900/50"], [class~="bg-purple-900/60"], [class~="bg-purple-900/80"], [class~="bg-purple-950"], [class~="bg-purple-950/20"], [class~="bg-purple-950/30"], [class~="bg-purple-950/40"], [class~="bg-purple-950/50"], [class~="bg-purple-950/60"], [class~="bg-purple-950/80"]) { color: #06464A !important; background-color: #E5F2F0 !important; border-color: #A3C9C6 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-purple-500, .bg-purple-600, .bg-purple-700) { background-color: #006D6F !important; color: #FFFDF9 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-purple-500, .bg-purple-600, .bg-purple-700) :is(span,i,svg,strong) { color: inherit !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-purple-500, .bg-purple-600, .bg-purple-700):hover:not(:disabled) { background-color: var(--brand-teal-dark) !important; color: #FFFDF9 !important; }
+
+/* violet: status text, soft chips and solid actions. */
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.text-violet-200, .text-violet-300, .text-violet-400, .text-violet-500) { color: #06464A !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is([class~="bg-violet-50"], [class~="bg-violet-50/20"], [class~="bg-violet-50/30"], [class~="bg-violet-50/40"], [class~="bg-violet-50/50"], [class~="bg-violet-50/60"], [class~="bg-violet-50/80"], [class~="bg-violet-100"], [class~="bg-violet-100/20"], [class~="bg-violet-100/30"], [class~="bg-violet-100/40"], [class~="bg-violet-100/50"], [class~="bg-violet-100/60"], [class~="bg-violet-100/80"], [class~="bg-violet-900"], [class~="bg-violet-900/20"], [class~="bg-violet-900/30"], [class~="bg-violet-900/40"], [class~="bg-violet-900/50"], [class~="bg-violet-900/60"], [class~="bg-violet-900/80"], [class~="bg-violet-950"], [class~="bg-violet-950/20"], [class~="bg-violet-950/30"], [class~="bg-violet-950/40"], [class~="bg-violet-950/50"], [class~="bg-violet-950/60"], [class~="bg-violet-950/80"]) { color: #06464A !important; background-color: #E5F2F0 !important; border-color: #A3C9C6 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-violet-500, .bg-violet-600, .bg-violet-700) { background-color: #006D6F !important; color: #FFFDF9 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-violet-500, .bg-violet-600, .bg-violet-700) :is(span,i,svg,strong) { color: inherit !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-violet-500, .bg-violet-600, .bg-violet-700):hover:not(:disabled) { background-color: var(--brand-teal-dark) !important; color: #FFFDF9 !important; }
+
+/* teal: status text, soft chips and solid actions. */
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.text-teal-200, .text-teal-300, .text-teal-400, .text-teal-500) { color: #06464A !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is([class~="bg-teal-50"], [class~="bg-teal-50/20"], [class~="bg-teal-50/30"], [class~="bg-teal-50/40"], [class~="bg-teal-50/50"], [class~="bg-teal-50/60"], [class~="bg-teal-50/80"], [class~="bg-teal-100"], [class~="bg-teal-100/20"], [class~="bg-teal-100/30"], [class~="bg-teal-100/40"], [class~="bg-teal-100/50"], [class~="bg-teal-100/60"], [class~="bg-teal-100/80"], [class~="bg-teal-900"], [class~="bg-teal-900/20"], [class~="bg-teal-900/30"], [class~="bg-teal-900/40"], [class~="bg-teal-900/50"], [class~="bg-teal-900/60"], [class~="bg-teal-900/80"], [class~="bg-teal-950"], [class~="bg-teal-950/20"], [class~="bg-teal-950/30"], [class~="bg-teal-950/40"], [class~="bg-teal-950/50"], [class~="bg-teal-950/60"], [class~="bg-teal-950/80"]) { color: #06464A !important; background-color: #E5F2F0 !important; border-color: #A3C9C6 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-teal-500, .bg-teal-600, .bg-teal-700) { background-color: #006D6F !important; color: #FFFDF9 !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-teal-500, .bg-teal-600, .bg-teal-700) :is(span,i,svg,strong) { color: inherit !important; }
+body.salon-portal :where(:not(aside):not(aside *):not(#mobile-hero-card):not(#mobile-hero-card *)):is(.bg-teal-500, .bg-teal-600, .bg-teal-700):hover:not(:disabled) { background-color: var(--brand-teal-dark) !important; color: #FFFDF9 !important; }
+
+/* Brand actions and gold accents need an explicit contrasting foreground. */
+body.salon-portal :is(.bg-luxury-500, .bg-luxury-600, .bg-luxury-700, .bg-luxury-800, .booking-button-primary) {
+  background-color: var(--brand-teal) !important; color: #FFFDF9 !important;
+}
+body.salon-portal :is(.bg-luxury-500, .bg-luxury-600, .bg-luxury-700, .bg-luxury-800, .booking-button-primary) :is(span, i, svg, strong) { color: inherit !important; }
+body.salon-portal :is(button, a):is(.bg-luxury-500, .bg-luxury-600, .bg-luxury-700, .booking-button-primary):hover:not(:disabled) { background-color: var(--brand-teal-dark) !important; color: #FFFDF9 !important; }
+body.salon-portal :is(.bg-gold-400, .bg-gold-500, .bg-amber-400) { background-color: var(--brand-gold) !important; color: var(--brand-ink) !important; }
+body.salon-portal :is(.bg-gold-400, .bg-gold-500, .bg-amber-400) :is(span, i, svg, strong) { color: inherit !important; }
+/* Letter avatars formerly crossed teal and gold behind white lettering. */
+body.salon-portal .from-luxury-600.to-gold-500 { background-image: linear-gradient(135deg, #006D6F, #06464A) !important; color: #FFFDF9 !important; }
+body.salon-portal :is(button,a).bg-slate-900 { background-color: var(--brand-teal) !important; color: #FFFDF9 !important; }
+body.salon-portal :is(button,a).bg-slate-900:hover { background-color: var(--brand-teal-dark) !important; color: #FFFDF9 !important; }
+body.salon-portal :is(button,a)[class*="hover:text-white"]:hover:not([class*="bg-"]) { color: var(--brand-teal) !important; }
+body.salon-portal :is(button, input, select, textarea):disabled { cursor: not-allowed; }
+/* Preserve dark navigation, active mobile navigation and the photo hero. */
+body.salon-portal aside :is(.text-white,.text-slate-100,.text-slate-200,.text-slate-300) { color: #FFF8EE !important; }
+body.salon-portal aside :is(.text-slate-400,.text-slate-500) { color: #D4E3DF !important; }
+body.salon-portal aside a[data-nav-page]:is(:hover,[aria-current="page"]) { color: #FFF8EE !important; }
+body.salon-portal aside :is(h1,.text-gold-400) { color: #E0B84C !important; }
+body.salon-portal #mobile-hero-card :is(.text-white,.text-slate-100,.text-slate-200,.text-slate-300) { color: #FFFDF9 !important; }
+body.salon-portal #mobile-hero-card :is(.text-slate-400,.text-slate-500) { color: #E5F2F0 !important; }
+body.salon-portal nav a[data-mobile-nav-page].text-white { color: #FFFDF9 !important; }
+/* A light profile flyout is nested inside the dark customer sidebar. */
+body.salon-portal aside [class*="absolute"][class*="top-full"][class*="bg-slate-800"] :is(a,.text-white,.text-slate-200,.text-slate-300) { color: var(--brand-ink) !important; }
+body.salon-portal aside [class*="absolute"][class*="top-full"][class*="bg-slate-800"] a[href*="logout"] { color: #9F2D2D !important; }
+
+/* Explicit hex action fills used by payment and appointment controls. */
+body.salon-portal [class~="bg-[#B45309]"] { color: #FFFDF9 !important; }
+body.salon-portal [class~="bg-[#B45309]"] :is(span,i,svg,strong) { color: inherit !important; }
+body.salon-portal [class~="bg-[#92400E]"] { color: #FFFDF9 !important; }
+body.salon-portal [class~="bg-[#92400E]"] :is(span,i,svg,strong) { color: inherit !important; }
+body.salon-portal [class~="bg-[#15803D]"] { color: #FFFDF9 !important; }
+body.salon-portal [class~="bg-[#15803D]"] :is(span,i,svg,strong) { color: inherit !important; }
+body.salon-portal [class~="bg-[#166534]"] { color: #FFFDF9 !important; }
+body.salon-portal [class~="bg-[#166534]"] :is(span,i,svg,strong) { color: inherit !important; }
+body.salon-portal [class~="bg-[#006D6F]"] { color: #FFFDF9 !important; }
+body.salon-portal [class~="bg-[#006D6F]"] :is(span,i,svg,strong) { color: inherit !important; }
+body.salon-portal [class~="bg-[#06464A]"] { color: #FFFDF9 !important; }
+body.salon-portal [class~="bg-[#06464A]"] :is(span,i,svg,strong) { color: inherit !important; }
+body.salon-portal [class~="bg-[#0B2F31]"] { color: #FFFDF9 !important; }
+body.salon-portal [class~="bg-[#0B2F31]"] :is(span,i,svg,strong) { color: inherit !important; }
+body.salon-portal [class~="bg-[#00585A]"] { color: #FFFDF9 !important; }
+body.salon-portal [class~="bg-[#00585A]"] :is(span,i,svg,strong) { color: inherit !important; }
+body.salon-portal [class~="bg-[#E11D48]"] { color: #FFFDF9 !important; }
+body.salon-portal [class~="bg-[#E11D48]"] :is(span,i,svg,strong) { color: inherit !important; }
+
+/* Keep disabled controls legible even when their normal action fill is teal. */
+body.salon-portal :is(button,input,select,textarea):disabled,
+body.salon-portal [aria-disabled="true"] {
+  background-color: #E8DCC8 !important; color: #475569 !important;
+  border-color: #8B8174 !important; opacity: 1 !important; box-shadow: none !important;
+}
+body.salon-portal :is(button,input,select,textarea):disabled :is(span,i,svg,strong) { color: inherit !important; }
+body.salon-portal :is(button,a,label)[class*="border-gold-"] { border-color: #805B0B !important; }
+body.salon-portal :focus-visible { outline: 3px solid var(--brand-teal) !important; outline-offset: 3px; }
+body.salon-portal aside :focus-visible { outline-color: var(--brand-gold) !important; }
+
+/* Backdrops remain translucent so the focused dialog is clearly separated. */
+body.salon-portal :is(.fixed,.absolute).inset-0[class*="bg-slate-"] { background-color: rgb(6 70 74 / .65) !important; }
+/* Text-bearing gradient actions use dark teal across their entire fill. */
+body.salon-portal :is(.from-luxury-500,.from-luxury-600,.from-emerald-500,.from-emerald-600).text-white {
+  background-image: linear-gradient(135deg, #006D6F, #06464A) !important; color: #FFFDF9 !important;
+}
+body.salon-portal :is(.from-luxury-500,.from-luxury-600,.from-emerald-500,.from-emerald-600).text-white :is(span,i,svg,strong) { color: inherit !important; }
+
+body.salon-portal :is(button,input,select,textarea):disabled:disabled {
+  background-image: none !important; background-color: #E8DCC8 !important;
+  color: #475569 !important; border-color: #8B8174 !important; opacity: 1 !important;
+}

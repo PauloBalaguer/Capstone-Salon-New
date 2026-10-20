@@ -38,10 +38,12 @@
     .detail-panel.is-open { grid-template-rows: 1fr; }
     .detail-panel > div { overflow: hidden; }
   </style>
-  <link rel="stylesheet" href="../../assets/css/staff-theme.css?v=type16-20261020-1">
-  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=type16-20261020-1" />
+  <link rel="stylesheet" href="../../assets/css/staff-theme.css?v=balanced-type-20261020-1">
+  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=balanced-type-20261020-1" />
+  <link rel="stylesheet" href="../../assets/css/portal-colors.css?v=balanced-type-20261020-1" />
+  <script src="../../scripts/portal-presentation.js"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-emerald-500 selection:text-white"
+<body class="salon-portal bg-slate-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-emerald-500 selection:text-white"
       x-data="staffInventoryApp()" x-init="init()" x-cloak>
 
   <div class="h-1.5 w-full bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-800 topbar-shine"></div>
@@ -140,17 +142,20 @@
                 <span class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white" x-text="$store.staff.unreadNotificationCount()"></span>
               </template>
             </button>
-            <div x-show="$store.staff.isNotificationPanelOpen" x-transition class="absolute top-full right-0 mt-2 w-80 bg-slate-800 border border-slate-700 rounded-lg shadow-lg z-30 flex flex-col max-h-96" style="display:none">
+            <div x-show="$store.staff.isNotificationPanelOpen" x-transition role="region" aria-label="Staff notifications" class="portal-notification-panel absolute top-full right-0 mt-2 w-80 bg-slate-800 border border-slate-700 rounded-lg shadow-lg z-30 flex flex-col max-h-96" style="display:none">
               <div class="p-3 border-b border-slate-700 shrink-0"><h4 class="text-base font-bold text-white">Notifications</h4></div>
               <div class="divide-y divide-slate-700 overflow-y-auto flex-1">
                 <template x-if="$store.staff.notifications.length === 0"><p class="text-xs text-slate-400 text-center p-8">No notifications yet.</p></template>
                 <template x-for="notif in $store.staff.notifications" :key="notif.id">
-                  <div class="p-3 hover:bg-slate-700/40">
-                    <p class="text-xs text-slate-200" x-text="notif.message"></p>
+                  <div class="portal-notification-card p-3 hover:bg-slate-700/40" :class="{ 'portal-notification-unread': !notif.isRead }">
+                    <p class="text-xs font-bold" x-text="PortalPresentation.notificationTitle(notif.type)"></p>
+                    <span x-show="!notif.isRead" class="text-xs font-semibold text-emerald-600">Unread</span>
+                    <p class="portal-notification-message text-xs text-slate-200" x-text="notif.message"></p>
                     <p class="text-xs text-slate-500 mt-0.5" x-text="notif.time"></p>
                   </div>
                 </template>
               </div>
+            <div class="p-2 border-t border-slate-700 shrink-0"><button type="button" @click="$store.staff.markAllNotificationsAsRead()" :disabled="$store.staff.unreadNotificationCount() === 0" class="portal-notification-read-all w-full text-xs font-semibold">Mark all as read</button></div>
             </div>
           </div>
         </div>

@@ -1,5 +1,5 @@
 @import url("./brand-palette.css");
-@import url("./responsive-base.css?v=type16-20261020-1");
+@import url("./responsive-base.css?v=balanced-type-20261020-1");
 
 /* Manual popover puts notifications above modal backdrops in the top layer. */
 #toast {
@@ -445,7 +445,7 @@ body, .font-body, button, input, select, textarea {
 }
 body { font-size: 1rem; line-height: 1.5; }
 .font-display { font-family: Georgia, Cambria, 'Times New Roman', serif !important; }
-.text-xs { font-size: 1rem !important; line-height: 1.5; }
+.text-xs { font-size: .875rem !important; line-height: 1.5; }
 .text-base { font-size: 1rem; line-height: 1.5; }
 button, input:not([type="checkbox"]):not([type="radio"]), select, textarea {
   font-size: 1rem !important;
@@ -560,4 +560,19 @@ button, input:not([type="checkbox"]):not([type="radio"]), select { min-height: 2
   #menuBtn { display: none; }
   .page-body { padding-top: 7.5rem; }
   .hero-fill { min-height: calc(100vh - 7.5rem); }
+}
+/* Balanced display sizes; oversized utility headings follow this scale. */
+.page-body h1.font-display {
+  font-size: clamp(2rem, 1.5rem + 2vw, 3rem);
+  line-height: 1.15;
+}
+.page-body h2.font-display {
+  font-size: clamp(1.5rem, 1.25rem + 1vw, 2rem);
+  line-height: 1.25;
+}
+.branch-detail-label, .staff-status-badge, .ba-chip, .branch-rate-sub,
+.branch-card-type, .branch-card-note, .branch-card-flag, .brand-tagline {
+  font-size: .875rem;
+  line-height: 1.5;
+  letter-spacing: .04em;
 }

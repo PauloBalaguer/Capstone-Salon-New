@@ -7,6 +7,16 @@ require_once __DIR__ . '/StaffNotifier.php';
 /** Shared validation, package details and rescheduling for guest and customer home service requests. */
 class HomeServiceRequest
 {
+    public static function validateCompletion(array $request, ?DateTimeImmutable $now = null): void
+    {
+        $now = $now ?? new DateTimeImmutable('now', new DateTimeZone('Asia/Manila'));
+        $scheduled = new DateTimeImmutable($request['preferred_date'] . ' ' . ($request['preferred_time'] ?: '00:00:00'), new DateTimeZone('Asia/Manila'));
+        if ($scheduled > $now) throw new RuntimeException('This event cannot be completed before its scheduled date and time.');
+        if (!in_array($request['status'], ['Service in Progress', 'Completed'], true)) {
+            throw new RuntimeException('Start the home service before marking it completed.');
+        }
+    }
+
     const PACKAGES = [
         'A' => ['price' => 5000, 'fee' => null],
         'B' => ['price' => 8000, 'fee' => null],

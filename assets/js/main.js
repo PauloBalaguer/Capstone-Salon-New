@@ -633,6 +633,16 @@
     return minutes.length === 1 ? ServiceDuration.format(minutes[0]) : 'On request';
   }
 
+  function serviceMenuReservation(branch, menu, category, name, price) {
+    const catalog = svcDurationCatalog[branch];
+    if (!catalog || catalog.loading) return 'Loading...';
+    const matches = catalog.services.filter(service => service.name === name && Number(service.price) === Number(String(price).replace(/,/g, '')));
+    const exact = matches.filter(service => service.category === menu + ' / ' + category);
+    const candidates = exact.length ? exact : matches;
+    const labels = [...new Set(candidates.map(service => PortalPresentation.reservationLabel(service, amount => '₱' + Number(amount).toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2}))))];
+    return labels.length === 1 ? labels[0] : 'Calculated before confirmation';
+  }
+
   function renderServices() {
     const svcMenus = document.getElementById('svcMenus');
     const svcGroups = document.getElementById('svcGroups');
@@ -698,7 +708,8 @@
                 <span class="flex flex-wrap items-center gap-2"><span class="text-xs font-semibold text-ink">${name}</span>
                   ${tag ? `<span class="text-[9px] font-bold uppercase tracking-widest text-copper-dark bg-copper/15 rounded-full px-2 py-0.5">${tag}</span>` : ''}
                 </span>
-                <span class="block text-xs text-ink/60 mt-1">Estimated Duration: ${escAttr(serviceMenuDuration(currentSvcBranch, m.title, c.name, name, price))}</span>
+                <span class="block text-xs text-ink/60 mt-1"><strong>Duration:</strong> ${escAttr(serviceMenuDuration(currentSvcBranch, m.title, c.name, name, price))}</span>
+                <span class="block text-xs text-ink/60 mt-1"><strong>Required payment:</strong> ${escAttr(serviceMenuReservation(currentSvcBranch, m.title, c.name, name, price))}</span>
               </span>
               <span class="svc-lead"></span>
               <span class="svc-book mr-2">Book</span>
@@ -2240,6 +2251,10 @@
     box.innerHTML = message || 'Choose a branch and date to see open times.';
   }
 
+  function renderSlotLoadError(box) {
+    box.innerHTML = '<p role="alert" class="text-copper-dark">Could not check available times. Please try again.</p><button type="button" class="mt-2 rounded-lg border border-bronze/50 px-3 py-2 font-bold">Try again</button>';
+    box.querySelector('button').addEventListener('click', refreshSlotGridIfReady);
+  }
   let slotGridRequestId = 0;
   function loadSlotGrid(branchId, date) {
     document.getElementById('bookDepositGate').classList.add('hidden');
@@ -2257,8 +2272,9 @@
       .then(r => r.json())
       .then(res => {
         if (requestId !== slotGridRequestId) return; // a newer branch/date selection superseded this response
-        if (!res.success || !res.slots.length) {
-          box.innerHTML = '<span class="text-copper-dark">No time slots configured for that date.</span>';
+        if (!res.success || !Array.isArray(res.slots)) { renderSlotLoadError(box); return; }
+        if (!res.slots.some(slot => slot.available)) {
+          box.innerHTML = '<p class="font-bold text-ink">No available times on this date.</p><p class="mt-1 text-ink/60">Please select another date.</p>';
           return;
         }
         box.className = 'rounded-xl border border-bronze/50 bg-sand-100 p-3';
@@ -2281,7 +2297,7 @@
           });
         });
       })
-      .catch(() => { if (requestId === slotGridRequestId) box.innerHTML = '<span class="text-copper-dark">Couldn\'t load time slots — please try again.</span>'; });
+      .catch(() => { if (requestId === slotGridRequestId) renderSlotLoadError(box); });
   }
 
   function refreshSlotGridIfReady() {

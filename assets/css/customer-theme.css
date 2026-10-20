@@ -1,6 +1,6 @@
 
 /* Customer portal treatment aligned with the public site and admin workspace. */
-@import url("./admin-theme.css?v=type16-20261020-1");
+@import url("./admin-theme.css?v=balanced-type-20261020-1");
 
 #customer-mobile-nav {
   color: var(--admin-charcoal);
@@ -109,7 +109,7 @@ textarea {
 /* Readable text and controls across screen sizes. */
 .text-xs,
 .admin-badge {
-  font-size: 1rem !important;
+  font-size: .875rem !important;
   line-height: 1.5;
 }
 .text-base { font-size: 1rem; line-height: 1.5; }
@@ -167,3 +167,86 @@ body > .fixed.inset-0 h4 {
   #customer-mobile-nav { padding-bottom: env(safe-area-inset-bottom, 0px); }
   main .pb-24 { padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px)) !important; }
 }
+
+/* Keep the sidebar role label on one line at the shared 16px size. */
+#customer-sidebar .customer-portal-label {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  letter-spacing: 0;
+}
+/* Compact customer notification cards. */
+.customer-notification-panel { width: 380px; max-height: min(32rem, 75dvh) !important; overflow: hidden; }
+.notification-list { min-height: 0; overscroll-behavior: contain; }
+.notification-card { display: flex; gap: 12px; padding: 16px; border-bottom: 1px solid #d9cfbc; }
+.notification-card:last-child { border-bottom: 0; }
+.notification-unread { background: rgba(0, 112, 115, .07); box-shadow: inset 3px 0 #00787b; }
+.notification-status { color: #00787b; flex-shrink: 0; margin-top: 2px; }
+.notification-status-cancelled { color: #a14237; }
+.notification-copy { min-width: 0; flex: 1; overflow-wrap: anywhere; }
+.notification-title-row { display: flex; align-items: center; gap: 8px; }
+.customer-notification-panel .notification-title { font-size: 14px !important; font-weight: 700; line-height: 1.4; }
+.notification-dot { width: 7px; height: 7px; background: #00787b; border-radius: 50%; flex-shrink: 0; }
+.customer-notification-panel .notification-summary { font-size: 13px !important; line-height: 1.5; margin-top: 4px; }
+.customer-notification-panel .notification-service { font-size: 13px !important; font-weight: 600; margin-top: 9px; }
+.customer-notification-panel .notification-schedule { font-size: 12px !important; line-height: 1.5; margin-top: 2px; }
+.notification-actions { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 9px; }
+.customer-notification-panel .notification-actions a { color: #006b70; font-size: 13px !important; font-weight: 700; text-decoration: none; }
+.customer-notification-panel .notification-time { display: block; font-size: 11px !important; color: #6b655c; margin-top: 8px; }
+.notification-close { font-size: 24px; line-height: 1; padding: 4px 8px; }
+.notification-read-all { font-size: 13px !important; padding: 10px; color: #006b70; border-radius: 5px; }
+.notification-read-all:disabled { opacity: .5; cursor: default; }
+.notification-read-all:hover:not(:disabled), .notification-close:hover { background: rgba(0,112,115,.08); }
+.customer-notification-panel a:focus-visible, .customer-notification-panel button:focus-visible { outline: 2px solid #00787b; outline-offset: 2px; }
+
+/* Services use one main scroll area; catalog, slots and terms flow naturally. */
+body.services-page { height: 100dvh; min-height: 0; overflow: hidden; }
+.services-page .services-shell { height: calc(100dvh - .375rem); }
+.services-page main { overflow-y: auto; overflow-x: hidden; overscroll-behavior-y: contain; }
+.services-page .services-content { width: 100%; max-width: 1200px; }
+.services-page .service-branch-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.services-page .service-branch-row select { max-width: 100%; min-width: 0; }
+.services-page .service-toolbar { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 16px; }
+.services-page .service-toolbar label { display: block; margin-bottom: 5px; }
+.services-page .service-toolbar input, .services-page .service-toolbar select { min-width: 0; }
+.service-catalog-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.service-catalog-card { display: flex; flex-direction: column; gap: 10px; min-width: 0; border: 1px solid transparent; }
+.service-card-selected { border-color: #00787b; box-shadow: 0 0 0 1px #00787b; }
+.service-card-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.service-card-heading h5 { min-width: 0; font-size: 1rem; }
+.service-card-heading > p { flex-shrink: 0; }
+.service-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.service-category-badge, .service-promo-badge { display: inline-block; border-radius: 999px; padding: 3px 9px; font-size: .75rem; line-height: 1.4; background: #fffdf9; color: #475569; }
+.service-promo-badge { background: #e0f1ef; color: #006b70; }
+.service-card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto; padding-top: 4px; }
+.service-add-button { padding: 8px 12px; border: 1px solid #a9c7c6; border-radius: 8px; color: #006b70; font-weight: 600; font-size: .875rem; background: transparent; }
+.service-add-button:hover:not(:disabled) { background: rgba(0,112,115,.07); }
+.service-add-button:disabled { opacity: .45; cursor: default; }
+.service-pagination { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 16px; padding-top: 12px; }
+.service-empty-state { padding: 24px 12px; text-align: center; }
+#service-catalog-heading { scroll-margin-top: 16px; }
+@media (min-width: 1440px) { .service-catalog-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 767px) {
+  .service-catalog-grid, .services-page .service-toolbar { grid-template-columns: minmax(0, 1fr); }
+  .services-page .service-branch-row { align-items: stretch; flex-direction: column; }
+}
+
+/* Keep the booking header visible as customers move from catalog to schedule. */
+.services-page main > header { position: sticky; top: 0; z-index: 30; flex-shrink: 0; }
+.services-page .services-content:has(form) { max-width: 960px; }
+
+/* Review empty states stay compact; eligible appointments use the existing review modal. */
+.reviews-empty-state { width: 100%; max-width: 40rem; justify-self: center; padding: 32px 24px; text-align: center; }
+.reviews-empty-icon { display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; margin: 0 auto 14px; border-radius: 50%; background: #e0f1ef; color: #006b70; }
+.reviews-empty-state > p { margin-top: 8px; }
+.reviews-primary-action { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 18px; border-radius: 8px; background: #007174; color: #fff !important; font-size: .875rem; font-weight: 700; text-decoration: none; flex-shrink: 0; }
+.reviews-primary-action:hover { background: #00575a; }
+.reviews-empty-state > a { margin-top: 20px; }
+.reviews-eligible-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.reviews-eligible-card { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+@media (max-width: 767px) { .reviews-eligible-grid { grid-template-columns: minmax(0, 1fr); } .reviews-empty-state { padding: 24px 16px; } }
+
+.home-request-fields { display: grid; gap: 9px; }
+.home-request-fields > div { display: grid; grid-template-columns: minmax(0, 9rem) minmax(0, 1fr); gap: 12px; align-items: start; }
+.home-request-fields dt { font-weight: 700; color: #475569; }
+.home-request-fields dd { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 480px) { .home-request-fields > div { grid-template-columns: minmax(0, 1fr); gap: 2px; } }

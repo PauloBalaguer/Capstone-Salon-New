@@ -2,6 +2,19 @@
 
 function customerAppointmentsMixin() {
   return {
+    appointmentScheduleLabel(appt) {
+      const date = new Date(appt.date + 'T00:00:00+08:00');
+      if (Number.isNaN(date.getTime())) return [appt.date, appt.time].filter(Boolean).join(' · ');
+      const label = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric' }).format(date);
+      return label + (appt.time ? ' · ' + appt.time + ' (PH)' : '');
+    },
+    appointmentPaymentLabel(appt) {
+      if (appt.paymentStatus === 'Down Payment Verified') return 'Deposit verified';
+      if (appt.status !== 'Cancelled') return appt.paymentStatus;
+      if (appt.paymentExpired && !appt.amountPaid) return 'Expired';
+      if (!appt.amountPaid && !appt.depositAmount && ['Payment Required', 'Pending', 'Unpaid', 'Not Paid'].includes(appt.paymentStatus)) return 'No payment collected';
+      return appt.paymentStatus;
+    },
     matchesAppointmentSearch(appt) {
       const query = (this.appointmentSearchQuery || '').toLowerCase().trim();
       return [appt.id, appt.serviceName, appt.branchName, appt.staffName]

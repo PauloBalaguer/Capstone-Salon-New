@@ -111,7 +111,7 @@ function renderAppointments() {
         <span class="text-xs font-bold px-2 py-0.5 rounded ${statusBadgeClass(b.status)}${b.status === 'In Progress' ? ' badge-live' : ''}">${escapeHtml(b.status)}</span>
         ${b.status === 'Pending' && b.hasConflict ? '<span class="ml-1 text-xs font-bold text-rose-600">⚠ Conflict</span>' : ''}
       </td>
-      <td class="p-2.5"><span class="text-xs font-bold px-2 py-0.5 rounded ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(b.paymentStatus)}</span></td>
+      <td class="p-2.5"><span class="text-xs font-bold px-2 py-0.5 rounded ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(PortalPresentation.paymentStatus(b.paymentStatus))}</span></td>
       <td class="p-2.5 space-x-1.5 whitespace-nowrap">${actionsFor(b)}</td>
     </tr>
   `).join('');
@@ -182,7 +182,7 @@ function showDetails(ref) {
       <div class="col-span-2"><span class="text-gray-400 block text-xs uppercase font-bold">Service(s)</span>${cellOrDash(b.serviceName)}</div>
       <div><span class="text-gray-400 block text-xs uppercase font-bold">Duration</span>${b.durationMinutes ? b.durationMinutes + ' min' : '—'}</div>
       <div><span class="text-gray-400 block text-xs uppercase font-bold">Staff</span>${cellOrDash(b.staffName)}</div>
-      <div><span class="text-gray-400 block text-xs uppercase font-bold">Payment Status</span>${cellOrDash(b.paymentStatus)}</div>
+      <div><span class="text-gray-400 block text-xs uppercase font-bold">Payment Status</span>${cellOrDash(PortalPresentation.paymentStatus(b.paymentStatus))}</div>
       <div><span class="text-gray-400 block text-xs uppercase font-bold">Total</span>${CashierApp.formatCurrency(b.price)}</div>
       ${b.depositAmount || b.depositReference ? `
       <div class="col-span-2 border-t border-gray-100 pt-2 mt-1">
@@ -316,7 +316,7 @@ function openRescheduleModal(ref) {
     ['Service(s)', cellOrDash(b.serviceName), true],
     ['Duration', b.durationMinutes ? b.durationMinutes + ' min' : '—'],
     ['Total', CashierApp.formatCurrency(b.price)],
-    ['Payment', `<span class="text-xs font-bold px-2 py-0.5 rounded ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(b.paymentStatus)}</span>`],
+    ['Payment', `<span class="text-xs font-bold px-2 py-0.5 rounded ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(PortalPresentation.paymentStatus(b.paymentStatus))}</span>`],
     ['Deposit', b.depositAmount ? CashierApp.formatCurrency(b.depositAmount) + (b.depositVerified ? ' (verified)' : ' (unverified)') : '—'],
   ];
   document.getElementById('rescheduleInfo').innerHTML = info.map(([label, value, wide]) => `

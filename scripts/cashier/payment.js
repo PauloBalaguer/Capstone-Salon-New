@@ -233,7 +233,7 @@ function renderTicketSummary(branch) {
   document.getElementById('ticketClientPhone').textContent = t.clientPhone;
   document.getElementById('ticketBranchName').textContent = branch ? branch.name : t.branchId;
   document.getElementById('ticketStaffName').textContent = t.staffName || 'Unassigned';
-  document.getElementById('ticketPaymentStatus').textContent = t.paymentStatus || 'Payment Required';
+  document.getElementById('ticketPaymentStatus').textContent = PortalPresentation.paymentStatus(t.paymentStatus || 'Payment Required');
   document.getElementById('ticketPaymentMethod').textContent = t.depositMethod || t.paymentMethod || 'Not selected';
 
   const servicesEl = document.getElementById('ticketServices');

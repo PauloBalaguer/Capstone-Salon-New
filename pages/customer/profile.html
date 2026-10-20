@@ -48,11 +48,12 @@
     .card-lift { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
     .card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(126, 34, 206, 0.35); }
   </style>
-  <link rel="stylesheet" href="../../assets/css/customer-theme.css?v=type16-20261020-1">
+  <link rel="stylesheet" href="../../assets/css/customer-theme.css?v=balanced-type-20261020-1">
   <script src="../../scripts/customer/theme-config.js"></script>
-  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=type16-20261020-1" />
+  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=balanced-type-20261020-1" />
+  <link rel="stylesheet" href="../../assets/css/portal-colors.css?v=balanced-type-20261020-1" />
 </head>
-<body class="bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
+<body class="salon-portal bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
 
   <div class="h-1.5 w-full bg-gradient-to-r from-luxury-600 via-gold-500 to-luxury-800 topbar-shine"></div>
@@ -90,7 +91,7 @@
             </div>
             <div>
               <h1 class="text-base font-bold tracking-wider text-gold-400 font-serif" x-text="customerProfile.name"></h1>
-              <p class="text-xs text-slate-400 uppercase tracking-widest font-sans">Customer Portal</p>
+              <p class="customer-portal-label text-xs text-slate-400 uppercase tracking-widest font-sans">Customer Portal</p>
             </div>
           </button>
 
@@ -173,28 +174,30 @@
               <span class="pulse-badge absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white" x-text="unreadNotificationCount"></span>
             </template>
           </button>
-          <div x-show="isNotificationPanelOpen" x-transition class="absolute top-full right-0 mt-2 w-80 bg-slate-800 border border-luxury-800 rounded-lg shadow-lg z-30 flex flex-col max-h-96" style="display: none;">
-            <div class="p-3 border-b border-slate-700 shrink-0">
+          <div x-show="isNotificationPanelOpen" x-transition class="customer-notification-panel absolute top-full right-0 mt-2 w-80 bg-slate-800 border border-luxury-800 rounded-lg shadow-lg z-30 flex flex-col" style="display: none;">
+            <div class="p-3 border-b border-slate-700 shrink-0 flex items-center justify-between">
               <h4 class="text-base font-bold text-white">Notifications</h4>
+              <button type="button" @click="isNotificationPanelOpen = false" aria-label="Close notifications" class="notification-close">&times;</button>
             </div>
-            <div class="divide-y divide-slate-700 overflow-y-auto flex-1">
-              <template x-if="notifications.length === 0">
-                <p class="text-xs text-slate-400 text-center p-8">You have no new notifications.</p>
-              </template>
-              <template x-for="notif in notifications" :key="notif.time + notif.message">
-                <div class="p-3 flex items-start space-x-3 hover:bg-slate-700/50">
-                  <div class="w-5 h-5 text-slate-400 mt-0.5 shrink-0">
-                    <svg class="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="notif.icon"></path></svg>
+            <div class="notification-list overflow-y-auto flex-1" aria-live="polite">
+              <template x-if="notifications.length === 0"><p class="text-xs text-slate-400 text-center p-8">You're all caught up. Booking updates will appear here.</p></template>
+              <template x-for="notif in notifications" :key="notif.id || notif.time + notif.message">
+                <article class="notification-card" :class="{ 'notification-unread': !notif.read }">
+                  <div class="notification-status" :class="{ 'notification-status-cancelled': notif.type === 'CANCELLED' }" aria-hidden="true">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="notif.icon"></path></svg>
                   </div>
-                  <div>
-                    <p class="text-xs text-slate-200" x-text="notif.message"></p>
-                    <p class="text-xs text-slate-500" x-text="notif.time"></p>
+                  <div class="notification-copy">
+                    <div class="notification-title-row"><p class="notification-title" x-text="notificationDetails(notif).title"></p><span x-show="!notif.read" class="notification-dot" aria-label="Unread"></span></div>
+                    <p class="notification-summary" x-text="notificationDetails(notif).summary"></p>
+                    <p class="notification-service" x-show="notificationDetails(notif).service" x-text="notificationDetails(notif).service"></p>
+                    <p class="notification-schedule" x-show="notificationDetails(notif).schedule" x-text="notificationDetails(notif).schedule"></p>
+                    <time class="notification-time" :datetime="notif.createdAt || ''" :title="notif.time" x-text="notificationTime(notif)"></time>
                   </div>
-                </div>
+                </article>
               </template>
             </div>
             <div x-show="notifications.length > 0" class="p-2 border-t border-slate-700 shrink-0">
-              <button @click="clearAllNotifications()" class="w-full text-center text-xs text-purple-400 hover:bg-slate-700 rounded p-1.5 transition font-semibold">Clear All</button>
+              <button type="button" @click="markAllNotificationsAsRead()" :disabled="unreadNotificationCount === 0" class="notification-read-all w-full text-center font-semibold">Mark all as read</button>
             </div>
           </div>
         </div>

@@ -25,12 +25,16 @@ function customerNotificationsMixin() {
 
     toggleNotificationPanel() {
       this.isNotificationPanelOpen = !this.isNotificationPanelOpen;
-      if (this.isNotificationPanelOpen) this.markAllNotificationsAsRead();
+
     },
-    markAllNotificationsAsRead() {
+    async markAllNotificationsAsRead() {
       if (!this.notifications.some(n => !n.read)) return;
-      this.notifications.forEach(n => n.read = true);
-      fetch('../../backend/customer/markNotificationsRead.php', { method: 'POST' }).catch(() => {});
+      try {
+        const response = await fetch('../../backend/customer/markNotificationsRead.php', { method: 'POST' });
+        const body = await response.json();
+        if (!response.ok || !body.success) throw new Error('read failed');
+        this.notifications.forEach(n => n.read = true);
+      } catch { this.pushToast('error', 'Could not mark notifications as read. Please try again.'); }
     },
     clearAllNotifications() {
       this.notifications = [];
@@ -38,6 +42,31 @@ function customerNotificationsMixin() {
 
     get unreadNotificationCount() {
       return this.notifications.filter(n => !n.read).length;
+    },
+
+    notificationDetails(notif) {
+      const message = notif.message || '';
+      const field = label => message.match(new RegExp('(?:^|\n)' + label + ': ([^\n]+)'))?.[1] || '';
+      const reference = message.match(/\bLM-(?:[A-Z]+-)+\d{4}-\d+\b/)?.[0] || '';
+      const titles = { CANCELLED: 'Booking cancelled', CONFIRMED: 'Booking confirmed', BOOKING_SUBMITTED: 'Booking request received', PAYMENT_RECEIVED: 'Payment received', PAYMENT_VERIFIED: 'Payment verified', PAYMENT_SUBMITTED: 'Payment submitted', PAYMENT_ATTENTION: 'Payment needs attention', PAYMENT_FORFEITED: 'Deposit forfeited', REFUND_DUE: 'Refund pending', PAYMENT_REFUNDED: 'Payment refunded', RESCHEDULE: 'Schedule updated', COMPLETED: 'Appointment completed', REMINDER: 'Appointment reminder', WAITLIST_OPENING: 'Stylist available', QUOTE_READY: 'Your quote is ready', PAYMENT_REMINDER: 'Payment reminder' };
+      let summary = message.split(/\n\s*\n|\nBooking reference:/)[0].replace(reference, '').replace(/\s+([.,:])/g, '$1').replace(/\s{2,}/g, ' ').trim();
+      if (notif.type === 'CANCELLED' && /within 30 minutes/i.test(message)) summary = 'Your payment wasn’t completed within 30 minutes.';
+      const scheduled = field('Scheduled time').match(/^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})/);
+      const date = scheduled ? new Date(scheduled[1] + 'T' + scheduled[2] + ':00+08:00') : null;
+      const schedule = date && !Number.isNaN(date.getTime()) ? new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }).format(date) + ' (PH)' : '';
+      const home = reference.startsWith('LM-HOM-');
+      return { title: titles[notif.type] || 'Booking update', summary: summary.split('\n')[0], service: field('Service / Event'), schedule, reference, href: (home ? 'home-service.html' : 'appointments.html') + '?reference=' + encodeURIComponent(reference), bookHref: home ? 'home-service.html' : 'services-promos.html' };
+    },
+    notificationTime(notif) {
+      if (!notif.createdAt) return notif.time;
+      const date = new Date(notif.createdAt);
+      if (Number.isNaN(date.getTime())) return notif.time;
+      const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
+      if (minutes < 0) return notif.time;
+      if (minutes < 1) return 'Just now';
+      if (minutes < 60) return minutes + (minutes === 1 ? ' minute ago' : ' minutes ago');
+      if (minutes < 1440) { const hours = Math.floor(minutes / 60); return hours + (hours === 1 ? ' hour ago' : ' hours ago'); }
+      return new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric' }).format(date);
     },
 
     notificationIcons: {
@@ -63,7 +92,7 @@ function customerNotificationsMixin() {
     serverNotificationIconFor(type) {
       const map = {
         BOOKING_SUBMITTED: 'success', PAYMENT_SUBMITTED: 'system', PAYMENT_RECEIVED: 'success', PAYMENT_VERIFIED: 'success',
-        PAYMENT_ATTENTION: 'error', CONFIRMED: 'success', REMINDER: 'reminder',
+        PAYMENT_REMINDER: 'reminder', PAYMENT_ATTENTION: 'error', CONFIRMED: 'success', REMINDER: 'reminder',
         RESCHEDULE: 'system', CANCELLED: 'error', COMPLETED: 'success',
         PAYMENT_FORFEITED: 'error', REFUND_DUE: 'system', PAYMENT_REFUNDED: 'success', WAITLIST_OPENING: 'reminder'
       };
@@ -81,6 +110,7 @@ function customerNotificationsMixin() {
         type: row.type,
         message: row.message,
         time: row.time,
+        createdAt: row.createdAt,
         read: row.isRead,
         icon: this.notificationIcons[this.serverNotificationIconFor(row.type)]
       }));

@@ -2,6 +2,10 @@
 
 function customerReviewsMixin() {
   return {
+    reviewableAppointments() {
+      const reviewed = new Set(this.myReviews.map(review => String(review.appointmentId)));
+      return this.appointments.filter(appointment => appointment.status === 'Completed' && !reviewed.has(String(appointment.id)));
+    },
     openReviewModal(appointment) {
       if (appointment.status === 'Reviewed') {
         const review = this.myReviews.find(r => r.appointmentId === appointment.id);

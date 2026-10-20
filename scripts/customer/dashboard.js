@@ -56,9 +56,18 @@ function customerApp() {
             if (window.AddressForms) AddressForms.setSaved(body.profile);
             this.loadServerNotifications(body.notifications);
             this.appointments = body.appointments;
+            const notificationReference = new URLSearchParams(window.location.search).get('reference');
+            if (notificationReference && /^LM-(?:[A-Z]+-)+\d{4}-\d+$/.test(notificationReference)) {
+              this.appointmentSearchQuery = notificationReference;
+              const linkedBooking = this.appointments.find(a => a.id === notificationReference);
+              if (linkedBooking && (['Cancelled', 'Completed', 'Reviewed'].includes(linkedBooking.status) || new Date(linkedBooking.date + 'T23:59:59+08:00') < new Date())) this.appointmentView = 'past';
+            }
             this.allBookings = body.allBookings;
             this.myReviews = body.reviews;
             this.homeServiceRequests = body.homeServiceRequests;
+            if (notificationReference?.startsWith('LM-HOM-')) {
+              this.$nextTick(() => document.getElementById('request-' + notificationReference)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+            }
             this.servicesCatalog = body.catalogs.services;
             this.promotionsCatalog = body.catalogs.promotions;
             this.staffList = body.catalogs.staff;

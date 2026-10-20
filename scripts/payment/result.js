@@ -49,7 +49,12 @@
       el('resultAmountLabel').textContent = data.paid ? 'Amount paid' : 'Reservation fee due';
       el('resultAmount').textContent = peso(data.paid ? data.amountPaid : data.amountDue);
       if (data.paid) {
-        show('Reservation fee received', 'Thank you! Your home service request is now confirmed. We\'ll notify you once a stylist is assigned — keep your reference number to track it.');
+        const confirmed = ['Confirmed', 'Staff Assigned', 'Service in Progress', 'Completed'].includes(data.status);
+        show('Reservation fee received', confirmed
+          ? 'Thank you! Your home service request is confirmed. Keep your reference number to track your schedule and assigned team.'
+          : (data.status === 'Cancelled'
+            ? 'Your payment was received. Your request remains cancelled. The branch will need to review the payment.'
+            : 'Your payment was received and preserved. Your request needs staff review before the schedule can be confirmed. It has not been moved automatically.'));
         return;
       }
       show('Payment not completed', 'Your reservation fee hasn\'t been paid yet. Your request is confirmed only after the fee is paid.');

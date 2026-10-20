@@ -4,6 +4,7 @@ require_once __DIR__ . '/CustomerNotifier.php';
 require_once __DIR__ . '/PaymentLog.php';
 require_once __DIR__ . '/Waitlist.php';
 require_once __DIR__ . '/url.php';
+require_once __DIR__ . '/Scheduling.php';
 
 /**
  * PayMongo online reservation payments (Checkout Sessions API).
@@ -129,46 +130,76 @@ final class PayMongo
      */
     public static function syncAppointment(PDO $pdo, array $appointment): bool
     {
-        if ((int) $appointment['deposit_paid'] === 1) return true;
         if (empty($appointment['paymongo_checkout_id']) || !self::isConfigured()) return false;
-
+        // Only a server-to-server API response can supply payment evidence.
         $session = self::request('GET', '/checkout_sessions/' . rawurlencode($appointment['paymongo_checkout_id']));
-        $paid = null;
+        $ownsTransaction = !$pdo->inTransaction();
+        if ($ownsTransaction) $pdo->beginTransaction();
+        try {
+            $current = Scheduling::lockAppointment($pdo, (int) $appointment['id']);
+            if ($current['paymongo_checkout_id'] !== $appointment['paymongo_checkout_id']) {
+                throw new RuntimeException('The online checkout changed. Refresh payment details.');
+            }
+            $appointment = $current;
+            $paid = self::validatedCheckoutPayment($session, $appointment['paymongo_checkout_id'], (float) ($appointment['reservation_amount_due'] ?? $appointment['deposit_amount'] ?? 0));
+            if (!$paid) {
+                if ($ownsTransaction) $pdo->commit();
+                return false;
+            }
+            if ((int) $appointment['deposit_paid'] === 1) {
+                $matches = $appointment['deposit_method'] === self::METHOD && $appointment['deposit_reference'] === $paid['id'];
+                if ($ownsTransaction) $pdo->commit();
+                return $matches;
+            }
+            $stmt = $pdo->prepare("
+                UPDATE appointments
+                SET deposit_paid = 1, deposit_amount = ?, deposit_method = ?, deposit_reference = ?,
+                    deposit_recorded_at = NOW(),
+                    -- A payment that lands after the hold was released is owed back.
+                    payment_status = IF(status = 'Cancelled', 'Refund Due', 'Awaiting Verification')
+                WHERE id = ? AND deposit_paid = 0
+            ");
+            $stmt->execute([$paid['attributes']['amount'] / 100, self::METHOD, $paid['id'], $appointment['id']]);
+
+            if ($stmt->rowCount() === 1) {
+                $reference = $appointment['reference_code'];
+                PaymentLog::record($pdo, 'payment_paid', (int) $appointment['id'], $reference, $paid['id'],
+                    $paid['attributes']['amount'] / 100, 'paid', [
+                        'checkout_id' => $appointment['paymongo_checkout_id'],
+                        'source' => $paid['attributes']['source']['type'] ?? null,
+                        'fee' => isset($paid['attributes']['fee']) ? $paid['attributes']['fee'] / 100 : null,
+                        'paid_after_cancellation' => ($appointment['status'] ?? '') === 'Cancelled',
+                    ]);
+                CustomerNotifier::notify($pdo, (int) $appointment['customer_id'], 'PAYMENT_SUBMITTED',
+                    "Your online reservation payment for {$reference} was received and is now Payment Being Verified.");
+                if (($appointment['status'] ?? '') === 'Cancelled') {
+                    // Paid after the hold expired -- flagged Refund Due above; staff refund it.
+                    error_log("PayMongo: payment {$paid['id']} arrived for already-cancelled booking {$reference}.");
+                }
+            }
+            if ($ownsTransaction) $pdo->commit();
+            return true;
+        } catch (Throwable $e) {
+            if ($ownsTransaction && $pdo->inTransaction()) $pdo->rollBack();
+            throw $e;
+        }
+    }
+
+    /** Validate the identity, currency and quoted amount of an API checkout response. */
+    public static function validatedCheckoutPayment(array $session, string $checkoutId, float $expectedAmount): ?array
+    {
+        if (($session['data']['id'] ?? '') !== $checkoutId) throw new RuntimeException('PayMongo checkout does not match this booking.');
         foreach ($session['data']['attributes']['payments'] ?? [] as $payment) {
-            if (($payment['attributes']['status'] ?? '') === 'paid') {
-                $paid = $payment;
-                break;
+            $attributes = $payment['attributes'] ?? [];
+            if (($attributes['status'] ?? '') !== 'paid') continue;
+            if (empty($payment['id']) || ($attributes['currency'] ?? '') !== 'PHP'
+                || !is_numeric($attributes['amount'] ?? null)
+                || (int) $attributes['amount'] !== (int) round($expectedAmount * 100)) {
+                throw new RuntimeException('PayMongo payment does not match the booking amount or currency.');
             }
+            return $payment;
         }
-        if (!$paid) return false;
-
-        $stmt = $pdo->prepare("
-            UPDATE appointments
-            SET deposit_paid = 1, deposit_amount = ?, deposit_method = ?, deposit_reference = ?,
-                deposit_recorded_at = NOW(),
-                -- A payment that lands after the hold was released is owed back.
-                payment_status = IF(status = 'Cancelled', 'Refund Due', 'Awaiting Verification')
-            WHERE id = ? AND deposit_paid = 0
-        ");
-        $stmt->execute([$paid['attributes']['amount'] / 100, self::METHOD, $paid['id'], $appointment['id']]);
-
-        if ($stmt->rowCount() === 1) {
-            $reference = $appointment['reference_code'];
-            PaymentLog::record($pdo, 'payment_paid', (int) $appointment['id'], $reference, $paid['id'],
-                $paid['attributes']['amount'] / 100, 'paid', [
-                    'checkout_id' => $appointment['paymongo_checkout_id'],
-                    'source' => $paid['attributes']['source']['type'] ?? null,
-                    'fee' => isset($paid['attributes']['fee']) ? $paid['attributes']['fee'] / 100 : null,
-                    'paid_after_cancellation' => ($appointment['status'] ?? '') === 'Cancelled',
-                ]);
-            CustomerNotifier::notify($pdo, (int) $appointment['customer_id'], 'PAYMENT_SUBMITTED',
-                "Your online reservation payment for {$reference} was received and is now Payment Being Verified.");
-            if (($appointment['status'] ?? '') === 'Cancelled') {
-                // Paid after the hold expired -- flagged Refund Due above; staff refund it.
-                error_log("PayMongo: payment {$paid['id']} arrived for already-cancelled booking {$reference}.");
-            }
-        }
-        return true;
+        return null;
     }
 
     /** The paid payment object of a checkout session, or null if it isn't paid yet. */
@@ -215,26 +246,31 @@ final class PayMongo
         if (empty($request['paymongo_checkout_id']) || !self::isConfigured()) return false;
 
         $session = self::request('GET', '/checkout_sessions/' . rawurlencode($request['paymongo_checkout_id']));
-        $paid = null;
-        foreach ($session['data']['attributes']['payments'] ?? [] as $payment) {
-            if (($payment['attributes']['status'] ?? '') === 'paid') {
-                $paid = $payment;
-                break;
-            }
+        require_once __DIR__ . '/HomeServiceRequest.php';
+        $ownsTransaction = !$pdo->inTransaction();
+        if ($ownsTransaction) $pdo->beginTransaction();
+        try {
+        $request = HomeServiceRequest::lock($pdo, (int) $request['id']);
+        $paid = self::validatedCheckoutPayment($session, (string) $request['paymongo_checkout_id'], (float) $request['deposit_amount']);
+        if (!$paid) { if ($ownsTransaction) $pdo->commit(); return false; }
+        if ((int) $request['deposit_paid'] === 1) { if ($ownsTransaction) $pdo->commit(); return true; }
+        $canConfirm = false;
+        if (!in_array($request['status'], ['Cancelled','Completed'], true)) {
+            $team = HomeServiceRequest::team($pdo, $request);
+            $canConfirm = HomeServiceRequest::availability($pdo, $request, $team ?: null)['available'];
         }
-        if (!$paid) return false;
 
         $cancelled = ($request['status'] ?? '') === 'Cancelled';
         $stmt = $pdo->prepare("
             UPDATE home_service_requests
             SET deposit_paid = 1, deposit_amount = ?, deposit_method = ?, deposit_reference = ?, deposit_recorded_at = NOW(),
-                -- Paid after the request was cancelled: money is owed back.
-                payment_status = IF(status = 'Cancelled', 'Refund Due', 'Down Payment Verified'),
-                status = IF(status IN ('Payment Required', 'Payment Being Verified', 'Quote Ready'), 'Confirmed', status)
+                -- Record the trusted payment even when a cancelled request needs staff review.
+                payment_status = 'Down Payment Verified',
+                status = IF(status IN ('Payment Required', 'Payment Being Verified', 'Quote Ready'), ?, status)
             WHERE id = ? AND deposit_paid = 0
         ");
         $amount = $paid['attributes']['amount'] / 100;
-        $stmt->execute([$amount, self::METHOD, $paid['id'], $request['id']]);
+        $stmt->execute([$amount, self::METHOD, $paid['id'], $canConfirm ? 'Confirmed' : 'Payment Being Verified', $request['id']]);
 
         if ($stmt->rowCount() === 1) {
             $reference = $request['reference_code'];
@@ -251,16 +287,22 @@ final class PayMongo
             $peso = '₱' . number_format($amount, 2);
             if ($cancelled) {
                 error_log("PayMongo: payment {$paid['id']} arrived for already-cancelled home service {$reference}.");
-            } else {
+            } elseif ($canConfirm) {
                 CustomerNotifier::notify($pdo, (int) $request['customer_id'], 'PAYMENT_VERIFIED',
                     "Your {$peso} reservation fee for home service {$reference} was received online. Status: Reservation Payment Received.");
                 CustomerNotifier::notify($pdo, (int) $request['customer_id'], 'CONFIRMED',
                     "Your home service request {$reference} is now Confirmed. We'll let you know once a stylist is assigned.");
             }
+            if (!$canConfirm && !$cancelled) CustomerNotifier::notify($pdo, (int) $request['customer_id'], 'PAYMENT_VERIFIED', 'Your payment was received. Your schedule needs staff review; your payment is preserved and your request has not been moved.');
             $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "PAYMENT", ?)')
-                ->execute(["Home service {$reference}: {$peso} reservation fee paid online via PayMongo" . ($cancelled ? ' AFTER it was cancelled — refund due.' : ' — request confirmed. Assign a stylist.')]);
+                ->execute(["Home service {$reference}: {$peso} reservation fee paid online via PayMongo" . ($cancelled ? ' after cancellation; payment preserved for review.' : ($canConfirm ? ' — request confirmed. Assign a stylist.' : ' — schedule requires review; payment preserved.'))]);
         }
+        if ($ownsTransaction) $pdo->commit();
         return true;
+        } catch (Throwable $e) {
+            if ($ownsTransaction && $pdo->inTransaction()) $pdo->rollBack();
+            throw $e;
+        }
     }
 
     /**
@@ -382,7 +424,10 @@ final class PayMongo
             $parts[$key] = $value;
         }
         $expected = hash_hmac('sha256', ($parts['t'] ?? '') . '.' . $rawBody, $secret);
-        $given = ($parts['li'] ?? '') !== '' ? $parts['li'] : ($parts['te'] ?? ''); // li = live mode, te = test mode
+        $payload = json_decode($rawBody, true);
+        $live = $payload['data']['attributes']['livemode'] ?? null;
+        if (!is_bool($live) || !ctype_digit($parts['t'] ?? '')) return false;
+        $given = $parts[$live ? 'li' : 'te'] ?? ''; // Use the event's mode.
         return $given !== '' && hash_equals($expected, $given);
     }
 }

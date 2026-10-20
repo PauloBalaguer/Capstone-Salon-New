@@ -76,6 +76,7 @@ try {
             COALESCE(SUM(s.duration_minutes), 0) AS durationMinutes,
             a.status AS status,
             a.payment_status AS paymentStatus,
+            EXISTS (SELECT 1 FROM payments p WHERE p.appointment_id = a.id AND p.status = 'Paid') AS checkoutPaid,
             a.total_price AS price,
             a.preferred_payment_method AS paymentMethod,
             a.reservation_requirement AS paymentRequirement,
@@ -109,6 +110,7 @@ try {
         $row['depositAmount'] = $row['depositAmount'] !== null ? (float) $row['depositAmount'] : null;
         $row['requiredAmount'] = $row['requiredAmount'] !== null ? (float) $row['requiredAmount'] : null;
         $row['depositPaid'] = (bool) $row['depositPaid'];
+        $row['checkoutPaid'] = (bool) $row['checkoutPaid'];
         $row['depositVerified'] = (bool) $row['depositVerified'];
         $row['hasConflict'] = (bool) $row['hasConflict'];
         $row['durationMinutes'] = (int) $row['durationMinutes'];

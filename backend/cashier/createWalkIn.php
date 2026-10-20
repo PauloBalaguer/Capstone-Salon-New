@@ -142,13 +142,14 @@ try {
     // Same duration-aware overlap check assignStaff.php uses -- a stylist
     // can't be walked in for a new client while already mid-service (or
     // scheduled) with someone else at this exact moment.
-    if (Scheduling::staffHasConflict($pdo, $stylistId, $now, $durationMinutes)) {
+    $pdo->beginTransaction();
+    if (Scheduling::branchWindowIsFull($pdo, $branchId, $now, $durationMinutes)
+        || Scheduling::staffHasConflict($pdo, $stylistId, $now, $durationMinutes)) {
+        $pdo->rollBack();
         http_response_code(409);
         echo json_encode(['success' => false, 'message' => 'Selected stylist already has an overlapping booking right now. Choose another stylist.']);
         exit();
     }
-
-    $pdo->beginTransaction();
 
     $stmt = $pdo->prepare('SELECT id FROM customers WHERE phone_number = ?');
     $stmt->execute([$clientPhone]);

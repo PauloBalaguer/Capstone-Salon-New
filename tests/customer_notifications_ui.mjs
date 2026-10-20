@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+const source=fs.readFileSync(new URL('../scripts/customer/dashboard-notifications.js',import.meta.url),'utf8');
+let ready,styles='';const panel={attrs:{},setAttribute(k,v){this.attrs[k]=v;}};
+const ctx=vm.createContext({document:{addEventListener:(_,f)=>ready=f,createElement:()=>({}),head:{appendChild:s=>styles=s.textContent},querySelectorAll:()=>[panel]}});
+new vm.Script(source).runInContext(ctx);
+new vm.Script(`var app=Object.assign(customerNotificationsMixin(),{notifications:[],customerProfile:{notificationPrefs:{email:true,sms:true}}});app.sendBookingConfirmation({id:'LM-DAR-2026-00001',serviceName:'Hair Styling',branchName:'Daraga',date:'2030-01-01',time:'10:00',status:'Pending'});app.sendBookingConfirmation({id:'LM-DAR-2026-00001'});`).runInContext(ctx);
+assert.equal(ctx.app.notifications.length,1,'one local receipt notice');
+assert(!/sent|SMS/.test(ctx.app.notifications[0].message),'no fabricated delivery claims');
+assert.equal(ctx.app.notifications[0].icon,ctx.app.notificationIcons.success);
+assert(ctx.app.notifications[0].message.includes('Hair Styling')&&ctx.app.notifications[0].message.includes('Daraga'));
+ctx.app.checkForReminders();assert.equal(ctx.app.notifications.length,1,'reminders come only from server');
+assert.equal(ctx.app.serverNotificationIconFor('REMINDER'),'reminder');
+assert.equal(ctx.app.serverNotificationIconFor('PAYMENT_ATTENTION'),'error');
+ready();assert.equal(panel.attrs['role'],'region');assert(styles.includes('100vw - 2rem')&&styles.includes('overflow-wrap:anywhere'));
+console.log('PASS duplicate local notice prevention, truthful channel messages, server reminder ownership, notification icons and responsive/accessibility bindings.');

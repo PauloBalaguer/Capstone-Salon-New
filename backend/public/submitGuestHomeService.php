@@ -118,6 +118,13 @@ try {
 
     $pdo = Database::getInstance();
     $pdo->beginTransaction();
+    $availability = HomeServiceRequest::availability($pdo, ['event_type'=>$eventType,'services'=>$services,'preferred_date'=>$date,'preferred_time'=>$time]);
+    if (!$availability['available']) {
+        $pdo->rollBack();
+        http_response_code(409);
+        echo json_encode(['success'=>false,'conflict'=>true,'message'=>$availability['message']]);
+        exit();
+    }
 
     // This form has no OTP/verification step at all, so unlike
     // submitGuestBooking.php there's no way to confirm the submitter owns a
@@ -159,13 +166,14 @@ try {
     $ins->execute([
         $referenceCode, $customerId, $email, $address, json_encode($structuredAddress), $eventType, $eventType === 'Wedding' ? $weddingPackage : null, $date, $time, $fullRequests, (int) $clients,
     ]);
+    $requestId = $pdo->lastInsertId();
     // Guest updates (quote, payment link, reschedules) go out by email.
     $pdo->prepare('UPDATE customers SET email = ? WHERE id = ? AND user_id IS NULL AND (email IS NULL OR email = "")')->execute([$email, $customerId]);
 
-    $requestId = $pdo->lastInsertId();
     $refStmt = $pdo->prepare('SELECT reference_code FROM home_service_requests WHERE id = ?');
     $refStmt->execute([$requestId]);
     $referenceCode = $refStmt->fetchColumn();
+    CustomerNotifier::notify($pdo, (int) $customerId, 'BOOKING_SUBMITTED', 'Your home service request was received and is pending admin review.', $referenceCode);
 
     $pdo->commit();
 

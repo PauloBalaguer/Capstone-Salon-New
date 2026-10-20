@@ -37,8 +37,9 @@
         .chip-btn { @apply rounded-lg border border-[#D9C9B4] bg-white py-2 text-base font-semibold text-slate-700 hover:border-[#006D6F]; }
         .chip-btn.is-active { @apply border-[#006D6F] bg-[#006D6F]/10 text-[#06464A] ring-1 ring-[#006D6F]; }
     </style>
-    <link rel="stylesheet" href="../../assets/css/cashier-theme.css">
+    <link rel="stylesheet" href="../../assets/css/cashier-theme.css?v=type16-20261020-1">
 <script src="../../scripts/booking-validation.js"></script>
+  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=type16-20261020-1" />
 </head>
 <body class="bg-gray-100 font-sans antialiased flex h-screen overflow-hidden text-slate-800">
 
@@ -205,6 +206,10 @@
                         </div>
 
                         <!-- Service progress: Confirmed -> In Progress -> Completed -->
+                        <dl class="text-sm space-y-1 text-slate-600">
+                            <div class="flex flex-wrap justify-between gap-2"><dt>Payment status</dt><dd id="ticketPaymentStatus" class="font-semibold">—</dd></div>
+                            <div class="flex flex-wrap justify-between gap-2"><dt>Reservation payment method</dt><dd id="ticketPaymentMethod" class="font-semibold">—</dd></div>
+                        </dl>
                         <div id="workflowActionBlock" class="rounded-xl border border-gray-200 bg-slate-50 p-4">
                             <p class="section-label mb-3">Service progress</p>
                             <ol class="grid grid-cols-3 gap-2 mb-4" aria-label="Service progress">
@@ -226,7 +231,7 @@
                             </button>
                             <div id="serviceCompletedNotice" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl py-2.5 px-3 text-base font-semibold text-emerald-800 items-center justify-center gap-2">
                                 <i class="fa-solid fa-circle-check"></i>
-                                <span>Service completed &mdash; ready for payment</span>
+                                <span>Service completed. Payment is tracked separately; finish checkout to issue a receipt.</span>
                             </div>
                         </div>
 
@@ -288,6 +293,10 @@
                                 <span id="reservationReceivedDisplay" class="font-medium">&minus; ₱0.00</span>
                             </div>
                             <div id="productsChargeRow" class="hidden flex justify-between text-slate-600">
+                                <span>Remaining service balance</span>
+                                <span id="remainingServiceDisplay" class="font-medium">₱0.00</span>
+                            </div>
+                            <div id="productsTotalRow" class="hidden flex justify-between text-slate-600">
                                 <span>Products</span>
                                 <span id="subtotalDisplay" class="font-medium">₱0.00</span>
                             </div>
@@ -327,7 +336,7 @@
                                 <i class="fa-solid fa-receipt"></i>
                                 <span id="payButtonLabel">Complete payment</span>
                             </button>
-                            <p id="payHint" class="text-xs text-center text-slate-500 min-h-[1rem]"></p>
+                            <p id="payHint" role="status" aria-live="polite" class="text-xs text-center text-slate-500 min-h-[1rem]"></p>
                         </div>
                     </div>
 
@@ -360,14 +369,15 @@
         </div>
     </div>
 
-    <div id="verifyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-center justify-center hidden opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-gray-100 transform scale-95 transition-transform duration-300">
+    <div id="verifyModal" role="dialog" aria-modal="true" aria-labelledby="verifyTitle" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-center justify-center hidden opacity-0 transition-opacity duration-300 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-100 transform scale-95 transition-transform duration-300">
             <div class="bg-slate-950 p-4 text-white flex justify-between items-center">
-                <h4 class="font-bold text-base tracking-wide"><i class="fa-solid fa-hand-holding-dollar text-amber-400 mr-2"></i>Verify Payment</h4>
+                <h4 id="verifyTitle" class="font-bold text-base tracking-wide"><i class="fa-solid fa-hand-holding-dollar text-amber-400 mr-2"></i>Payment Details</h4>
                 <button id="btnCloseVerifyModal" class="text-gray-400 hover:text-white transition-all text-lg" aria-label="Close">&times;</button>
             </div>
             <div class="p-5 space-y-3.5 text-base">
-                <p class="text-gray-500">Check this against your GCash/Maya account (or that the cash was actually received) before confirming. Verifying confirms the appointment.</p>
+                <p id="verifyDetails" class="text-slate-700 break-words"></p>
+                <p class="text-gray-500">Viewing details does not verify payment. Check the received cash or wallet transaction first. PayMongo amounts must match the confirmed online payment. Verify Payment confirms Pending bookings only when staff and schedule are available; other bookings keep their status.</p>
                 <div>
                     <label for="verifyAmountInput" class="block text-xs text-gray-500 font-bold uppercase mb-1">Amount received</label>
                     <input id="verifyAmountInput" type="number" step="0.01" min="0.01" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-amber-500">
@@ -389,6 +399,7 @@
     </div>
 
     <script src="../../scripts/cashier/cashier-common.js"></script>
+    <script src="../../scripts/appointment-arrival.js"></script>
     <script src="../../scripts/cashier/payment.js"></script>
 </body>
 </html>

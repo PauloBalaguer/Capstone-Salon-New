@@ -48,7 +48,7 @@ BookingValidation::enforce($_POST, [
     'date' => ['date', true, 'an appointment date'],
     'time' => ['time', true, 'an appointment time'],
     'staffId' => ['id', false, 'a staff or branch selection'],
-    'customerName' => ['text', true, 'your full name'],
+    'customerName' => ['name', true, 'your full name'],
     'customerPhone' => ['mobile', true, 'a mobile number (09XXXXXXXXX)'],
 ]);
 
@@ -162,7 +162,7 @@ try {
     if (Scheduling::branchWindowIsFull($pdo, $branchId, $appointmentDateTime, $durationMinutes)) {
         $pdo->rollBack();
         http_response_code(409);
-        echo json_encode(['success' => false, 'conflict' => true, 'message' => 'That time was just booked. Please choose another available schedule.']);
+        echo json_encode(['success' => false, 'conflict' => true, 'message' => Scheduling::SLOT_UNAVAILABLE_MESSAGE]);
         exit();
     }
 
@@ -198,11 +198,9 @@ try {
     }
     if (!$employee) {
         $pdo->rollBack();
-        http_response_code(400);
+        http_response_code($staffId !== '' && empty($candidates) ? 400 : 409);
         echo json_encode(['success' => false, 'conflict' => $staffId !== '' && !empty($candidates), 'message' => $staffId !== '' && empty($candidates)
-            ? 'Selected staff member cannot perform all selected services at this branch.' : ($staffId !== ''
-            ? 'That time was just booked. Please choose another available schedule.'
-            : 'No staff available at this branch offers this combination of services at that time. Please choose another time or adjust your service selection.')]);
+            ? 'Selected staff member cannot perform all selected services at this branch.' : Scheduling::SLOT_UNAVAILABLE_MESSAGE]);
         exit();
     }
     $employeeId = (int) $employee['id'];
@@ -266,8 +264,9 @@ try {
     }
 
     if ($pointsUsed > 0) {
-        $pdo->prepare('UPDATE customers SET loyalty_points = loyalty_points - ? WHERE id = ?')
-            ->execute([$pointsUsed, $customerId]);
+        $redeem = $pdo->prepare('UPDATE customers SET loyalty_points = loyalty_points - ? WHERE id = ? AND loyalty_points >= ?');
+        $redeem->execute([$pointsUsed, $customerId, $pointsUsed]);
+        if ($redeem->rowCount() !== 1) throw new RuntimeException('Your loyalty balance changed. Please review your booking total and try again.');
         $pdo->prepare('UPDATE appointments SET loyalty_points_used = ? WHERE id = ?')->execute([$pointsUsed, $appointmentId]);
     }
 
@@ -333,6 +332,11 @@ try {
 } catch (PDOException | InvalidArgumentException | RuntimeException $e) {
     if (isset($pdo) && $pdo->inTransaction()) {
         $pdo->rollBack();
+    }
+    if ($e instanceof PDOException && in_array((int) ($e->errorInfo[1] ?? 0), [1205, 1213], true)) {
+        http_response_code(409);
+        echo json_encode(['success' => false, 'conflict' => true, 'message' => Scheduling::SLOT_UNAVAILABLE_MESSAGE]);
+        exit();
     }
     http_response_code(500);
     error_log('submitBooking error: ' . $e->getMessage());

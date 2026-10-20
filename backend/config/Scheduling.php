@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/StaffNotifier.php';
+
 /**
  * Duration-aware slot/staff conflict checks shared by every booking write
  * path (submitBooking, submitGuestBooking, admin/cashier assignStaff) and
@@ -13,6 +15,152 @@
 class Scheduling
 {
     const DEFAULT_DURATION_MINUTES = 30;
+    const SLOT_UNAVAILABLE_MESSAGE = 'Selected time slot is unavailable. Please choose another schedule.';
+
+    public static function cleaningBufferMinutes(): int
+    {
+        $value = getenv('SALON_CLEANING_BUFFER_MINUTES');
+        return $value !== false && ctype_digit($value) ? (int) $value : 30;
+    }
+
+    /** Persistent rows serialize writes even when no appointments exist yet. */
+    private static function lockResource(PDO $pdo, string $table, int $id): void
+    {
+        if (!$pdo->inTransaction()) return;
+        $stmt = $pdo->prepare("SELECT id FROM {$table} WHERE id = ? FOR UPDATE");
+        $stmt->execute([$id]);
+        $stmt->fetchColumn();
+    }
+
+    const STAFF_UNAVAILABLE_MESSAGE = 'This staff member is unavailable at the selected time. Please choose another schedule or staff member.';
+
+    /** Caller owns the transaction. Lock branch before appointment, as booking creation does. */
+    public static function lockAppointment(PDO $pdo, int $id): array
+    {
+        if (!$pdo->inTransaction()) throw new LogicException('Scheduling write requires a transaction.');
+        $stmt = $pdo->prepare('SELECT branch_id FROM appointments WHERE id = ?');
+        $stmt->execute([$id]);
+        self::lockResource($pdo, 'branches', (int) $stmt->fetchColumn());
+        $stmt = $pdo->prepare('SELECT * FROM appointments WHERE id = ? FOR UPDATE');
+        $stmt->execute([$id]);
+        $appointment = $stmt->fetch();
+        if (!$appointment) throw new RuntimeException('Booking not found.');
+        return $appointment;
+    }
+
+    /** Validate the proposed main stylist and every explicit per-service assignment. */
+    public static function validateAppointmentStaff(PDO $pdo, array $appointment, string $start, ?int $mainStaffId = null, bool $replaceMainServices = false): void
+    {
+        $mainStaffId = $mainStaffId ?? (int) $appointment['employee_id'];
+        $stmt = $pdo->prepare('SELECT aps.service_id, aps.employee_id, s.duration_minutes
+            FROM appointment_services aps JOIN services s ON s.id = aps.service_id
+            WHERE aps.appointment_id = ? ORDER BY aps.id' . ($pdo->inTransaction() ? ' FOR UPDATE' : ''));
+        $stmt->execute([$appointment['id']]);
+        $rows = $stmt->fetchAll();
+        if ($replaceMainServices) {
+            foreach ($rows as &$row) {
+                if ($row['employee_id'] !== null && (int) $row['employee_id'] === (int) $appointment['employee_id']) $row['employee_id'] = $mainStaffId;
+            }
+            unset($row);
+        }
+        $qualified = $pdo->prepare('SELECT e.id FROM employees e WHERE e.id = ? AND e.branch_id = ? AND e.is_active = 1
+            AND (? = 0 OR EXISTS (SELECT 1 FROM staff_services ss WHERE ss.employee_id = e.id AND ss.service_id = ?))');
+        $qualified->execute([$mainStaffId, $appointment['branch_id'], 0, 0]);
+        if (!$qualified->fetchColumn()) throw new RuntimeException('Please choose an active staff member at this branch.');
+        if ($replaceMainServices && $rows) {
+            $qualified->execute([$mainStaffId, $appointment['branch_id'], $rows[0]['service_id'], $rows[0]['service_id']]);
+            if (!$qualified->fetchColumn()) throw new RuntimeException('Selected staff member cannot perform the assigned service at this branch.');
+        }
+        // A replacement main stylist must be qualified and available too,
+        // even when explicit service rows continue to name other stylists.
+        if (!$replaceMainServices && $mainStaffId !== (int) $appointment['employee_id'] && $rows) {
+            $qualified->execute([$mainStaffId, $appointment['branch_id'], $rows[0]['service_id'], $rows[0]['service_id']]);
+            if (!$qualified->fetchColumn()) throw new RuntimeException('Selected staff member cannot perform the assigned service at this branch.');
+            $duration = array_sum(array_map(fn($row) => (int) $row['duration_minutes'] > 0 ? (int) $row['duration_minutes'] : self::DEFAULT_DURATION_MINUTES, $rows));
+            if (self::staffHasConflict($pdo, $mainStaffId, $start, $duration, (int) $appointment['id'])) {
+                throw new RuntimeException(self::STAFF_UNAVAILABLE_MESSAGE);
+            }
+        }
+        $cursor = new DateTime($start);
+        if (!$rows) $rows = [['service_id' => 0, 'employee_id' => null, 'duration_minutes' => self::DEFAULT_DURATION_MINUTES]];
+        foreach ($rows as $row) {
+            $employeeId = $row['employee_id'] !== null ? (int) $row['employee_id'] : $mainStaffId;
+            $qualified->execute([$employeeId, $appointment['branch_id'], $row['service_id'], $row['service_id']]);
+            if (!$qualified->fetchColumn()) throw new RuntimeException('Selected staff member cannot perform the assigned service at this branch.');
+            $minutes = (int) $row['duration_minutes'] > 0 ? (int) $row['duration_minutes'] : self::DEFAULT_DURATION_MINUTES;
+            if (self::staffHasConflict($pdo, $employeeId, $cursor->format('Y-m-d H:i:s'), $minutes, (int) $appointment['id'])) {
+                throw new RuntimeException(self::STAFF_UNAVAILABLE_MESSAGE);
+            }
+            $cursor->modify("+{$minutes} minutes");
+        }
+    }
+
+    /** Unset until the salon approves a value. Informational only; never an automatic penalty. */
+    public static function arrivalGraceMinutes(): ?int
+    {
+        $value = getenv('SALON_LATE_GRACE_MINUTES');
+        return $value !== false && ctype_digit($value) ? (int) $value : null;
+    }
+
+    /** Review actual service windows without moving or cancelling any appointment. */
+    public static function arrivalReview(PDO $pdo, array $appointment, ?string $now = null): array
+    {
+        $now = $now ?? $pdo->query('SELECT NOW()')->fetchColumn();
+        $start = max($now, $appointment['appointment_datetime']);
+        $stmt = $pdo->prepare('SELECT branch_key FROM branches WHERE id = ?');
+        $stmt->execute([$appointment['branch_id']]);
+        $branchKey = (string) $stmt->fetchColumn();
+        $stmt = $pdo->prepare('SELECT service_id FROM appointment_services WHERE appointment_id = ? ORDER BY id');
+        $stmt->execute([$appointment['id']]);
+        $duration = self::totalDurationMinutes($pdo, $stmt->fetchAll(PDO::FETCH_COLUMN));
+        $reason = null;
+        if ($appointment['status'] !== 'Confirmed') $reason = 'Confirm the booking before reviewing its arrival.';
+        elseif (substr($now, 0, 10) !== substr($appointment['appointment_datetime'], 0, 10)) $reason = 'This appointment is on a different day. Please reschedule it before starting service.';
+        elseif ($now < $appointment['appointment_datetime']) $reason = 'The scheduled start time has not arrived. Review availability again at the appointment time.';
+        elseif (self::isOutsideOperatingHours($start, $duration, $branchKey)) $reason = 'The full service would run outside branch operating hours. Please reschedule.';
+        elseif (self::branchWindowIsFull($pdo, (int) $appointment['branch_id'], $start, $duration, (int) $appointment['id'])) $reason = 'The branch is full for the actual service window. Please choose another schedule.';
+        $stmt = $pdo->prepare('SELECT id, first_name, last_name FROM employees WHERE branch_id = ? AND is_active = 1 ORDER BY (id = ?) DESC, id');
+        $stmt->execute([$appointment['branch_id'], (int) $appointment['employee_id']]);
+        $staff = [];
+        foreach ($stmt->fetchAll() as $employee) {
+            $available = $reason === null;
+            if ($available) {
+                try { self::validateAppointmentStaff($pdo, $appointment, $start, (int) $employee['id'], true); }
+                catch (RuntimeException $e) { if ($e instanceof PDOException) throw $e; $available = false; }
+            }
+            $staff[] = ['id' => (string) $employee['id'], 'name' => trim($employee['first_name'] . ' ' . $employee['last_name']), 'available' => $available];
+        }
+        return ['scheduledStart' => $appointment['appointment_datetime'], 'actualStart' => $start,
+            'isLate' => $now > $appointment['appointment_datetime'],
+            'minutesLate' => max(0, (int) floor((strtotime($now) - strtotime($appointment['appointment_datetime'])) / 60)),
+            'graceMinutes' => self::arrivalGraceMinutes(), 'durationMinutes' => $duration,
+            'paymentStatus' => $appointment['payment_status'], 'staff' => $staff, 'reason' => $reason];
+    }
+
+    /** Called under the same branch/appointment transaction as status changes. */
+    public static function startAppointment(PDO $pdo, array $appointment, ?int $staffId, bool $arrivalConfirmed): string
+    {
+        if (!$arrivalConfirmed) throw new RuntimeException('Review the actual arrival time and available staff before starting service.');
+        $review = self::arrivalReview($pdo, $appointment);
+        if ($review['reason']) throw new RuntimeException($review['reason']);
+        $staffId = $staffId ?: (int) $appointment['employee_id'];
+        self::validateAppointmentStaff($pdo, $appointment, $review['actualStart'], $staffId, true);
+        if ($staffId !== (int) $appointment['employee_id']) {
+            // Explicit approval replaces only the original main stylist's services.
+            // Other per-service stylists remain assigned and were also validated.
+            $pdo->prepare('UPDATE appointment_services SET employee_id = ? WHERE appointment_id = ? AND employee_id = ?')
+                ->execute([$staffId, $appointment['id'], $appointment['employee_id']]);
+            StaffNotifier::notify($pdo, $staffId, 'APPOINTMENT_ASSIGNED', 'You are handling the reviewed arrival for ' . $appointment['reference_code'] . '.');
+            if ($appointment['employee_id']) StaffNotifier::notify($pdo, (int) $appointment['employee_id'], 'SCHEDULE_CHANGED', 'The arrival for ' . $appointment['reference_code'] . ' was reassigned after schedule review.');
+        }
+        $note = 'Arrival reviewed: reserved ' . $appointment['appointment_datetime'] . ', service start ' . $review['actualStart']
+            . ', staff ' . $appointment['employee_id'] . ' -> ' . $staffId . '; payment unchanged.';
+        $pdo->prepare('UPDATE appointments SET appointment_datetime = ?, employee_id = ?, notes = CONCAT_WS(CHAR(10), NULLIF(notes, ?), ?) WHERE id = ?')
+            ->execute([$review['actualStart'], $staffId, '', $note, $appointment['id']]);
+        $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "BOOKING", ?)')
+            ->execute([$appointment['reference_code'] . ': ' . $note]);
+        return $note;
+    }
     // Shortest bookable service. Enforced when services are saved
     // (backend/admin/saveService.php) so no service is too short to perform properly.
     const MIN_SERVICE_MINUTES = 20;
@@ -144,7 +292,7 @@ class Scheduling
         $newStart = new DateTime($startDateTime);
         $newEnd = (clone $newStart)->modify("+{$durationMinutes} minutes");
 
-        $sql = "SELECT id, appointment_datetime FROM appointments WHERE status != 'Cancelled' AND DATE(appointment_datetime) = ?";
+        $sql = "SELECT id, appointment_datetime FROM appointments WHERE status NOT IN ('Cancelled', 'No-Show') AND DATE(appointment_datetime) = ?";
         $params = [$newStart->format('Y-m-d')];
         if ($branchId !== null) {
             $sql .= ' AND branch_id = ?';
@@ -168,7 +316,7 @@ class Scheduling
         }
 
         $ids = array_column($candidates, 'id');
-        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $placeholders = $ids ? implode(',', array_fill(0, count($ids), '?')) : 'NULL';
         $stmt = $pdo->prepare("
             SELECT aps.appointment_id, SUM(s.duration_minutes) AS total
             FROM appointment_services aps
@@ -206,7 +354,33 @@ class Scheduling
         int $durationMinutes,
         ?int $excludeAppointmentId = null
     ): bool {
-        return self::countOverlapping($pdo, $branchId, null, $startDateTime, $durationMinutes, $excludeAppointmentId) >= self::slotLimit($pdo, $branchId);
+        self::lockResource($pdo, 'branches', $branchId);
+        $start = new DateTime($startDateTime);
+        $end = (clone $start)->modify("+{$durationMinutes} minutes");
+        $stmt = $pdo->prepare("SELECT a.id, a.appointment_datetime,
+            COALESCE(NULLIF((SELECT SUM(s.duration_minutes) FROM appointment_services aps
+                JOIN services s ON s.id = aps.service_id WHERE aps.appointment_id = a.id), 0), 30) AS minutes
+            FROM appointments a WHERE a.branch_id = ? AND a.status NOT IN ('Cancelled', 'No-Show')
+            AND a.appointment_datetime < ?" . ($excludeAppointmentId !== null ? ' AND a.id != ?' : '') . ' FOR UPDATE');
+        $params = [$branchId, $end->format('Y-m-d H:i:s')];
+        if ($excludeAppointmentId !== null) $params[] = $excludeAppointmentId;
+        $stmt->execute($params);
+        $events = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $a = new DateTime($row['appointment_datetime']);
+            $b = (clone $a)->modify('+' . (int) $row['minutes'] . ' minutes');
+            if ($b <= $start) continue;
+            $events[] = [max($a->getTimestamp(), $start->getTimestamp()), 1];
+            $events[] = [min($b->getTimestamp(), $end->getTimestamp()), -1];
+        }
+        sort($events); // Ends precede starts at the same instant.
+        $active = 0;
+        $limit = self::slotLimit($pdo, $branchId);
+        foreach ($events as $event) {
+            $active += $event[1];
+            if ($active >= $limit) return true;
+        }
+        return false;
     }
 
     // Home service jobs have no per-service duration data (no catalog item
@@ -228,33 +402,7 @@ class Scheduling
         string $time,
         ?int $excludeRequestId = null
     ): bool {
-        $startDateTime = $date . ' ' . $time;
-        if (self::staffHasConflict($pdo, $employeeId, $startDateTime, self::HOME_SERVICE_DURATION_MINUTES)) {
-            return true;
-        }
-
-        // Any home service team they're on (home_service_staff), or lead.
-        $sql = "SELECT preferred_time FROM home_service_requests
-                WHERE (employee_id = ? OR EXISTS (SELECT 1 FROM home_service_staff t WHERE t.home_service_request_id = home_service_requests.id AND t.employee_id = ?))
-                  AND preferred_date = ? AND status NOT IN ('Cancelled', 'Completed')";
-        $params = [$employeeId, $employeeId, $date];
-        if ($excludeRequestId !== null) {
-            $sql .= ' AND id != ?';
-            $params[] = $excludeRequestId;
-        }
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-
-        $newStart = new DateTime($startDateTime);
-        $newEnd = (clone $newStart)->modify('+' . self::HOME_SERVICE_DURATION_MINUTES . ' minutes');
-        foreach ($stmt->fetchAll() as $row) {
-            $existingStart = new DateTime($date . ' ' . ($row['preferred_time'] ?: '09:00:00'));
-            $existingEnd = (clone $existingStart)->modify('+' . self::HOME_SERVICE_DURATION_MINUTES . ' minutes');
-            if ($existingStart < $newEnd && $newStart < $existingEnd) {
-                return true;
-            }
-        }
-        return false;
+        return self::staffHasConflict($pdo, $employeeId, $date . ' ' . $time, self::HOME_SERVICE_DURATION_MINUTES, null, $excludeRequestId);
     }
 
     /** True if this specific staff member is busy with another client at any point in this window. */
@@ -263,9 +411,10 @@ class Scheduling
         int $employeeId,
         string $startDateTime,
         int $durationMinutes,
-        ?int $excludeAppointmentId = null
+        ?int $excludeAppointmentId = null,
+        ?int $excludeHomeServiceId = null
     ): bool {
-        return self::staffConflictUntil($pdo, $employeeId, $startDateTime, $durationMinutes, $excludeAppointmentId) !== null;
+        return self::staffConflictUntil($pdo, $employeeId, $startDateTime, $durationMinutes, $excludeAppointmentId, $excludeHomeServiceId) !== null;
     }
 
     /**
@@ -278,12 +427,14 @@ class Scheduling
         int $employeeId,
         string $startDateTime,
         int $durationMinutes,
-        ?int $excludeAppointmentId = null
+        ?int $excludeAppointmentId = null,
+        ?int $excludeHomeServiceId = null
     ): ?DateTime {
+        self::lockResource($pdo, 'employees', $employeeId);
         $newStart = new DateTime($startDateTime);
-        $newEnd = (clone $newStart)->modify("+{$durationMinutes} minutes");
+        $newEnd = (clone $newStart)->modify('+' . ($durationMinutes + self::cleaningBufferMinutes()) . ' minutes');
         $until = null;
-        foreach (self::staffBusyWindows($pdo, $employeeId, $newStart->format('Y-m-d'), $excludeAppointmentId) as $window) {
+        foreach (self::staffBusyWindows($pdo, $employeeId, $newStart->format('Y-m-d'), $excludeAppointmentId, $excludeHomeServiceId) as $window) {
             if ($window['start'] < $newEnd && $newStart < $window['end'] && ($until === null || $window['end'] > $until)) {
                 $until = $window['end'];
             }
@@ -303,10 +454,10 @@ class Scheduling
      *
      * @return array<int, array{start: DateTime, end: DateTime, appointment_id: int}>
      */
-    public static function staffBusyWindows(PDO $pdo, int $employeeId, string $dateYmd, ?int $excludeAppointmentId = null): array
+    public static function staffBusyWindows(PDO $pdo, int $employeeId, string $dateYmd, ?int $excludeAppointmentId = null, ?int $excludeHomeServiceId = null): array
     {
         $sql = "SELECT a.id, a.appointment_datetime, a.employee_id FROM appointments a
-                WHERE a.status != 'Cancelled' AND DATE(a.appointment_datetime) = ?
+                WHERE a.status NOT IN ('Cancelled', 'No-Show') AND a.appointment_datetime < DATE_ADD(?, INTERVAL 2 DAY)
                   AND (a.employee_id = ? OR EXISTS (SELECT 1 FROM appointment_services x WHERE x.appointment_id = a.id AND x.employee_id = ?))";
         $params = [$dateYmd, $employeeId, $employeeId];
         if ($excludeAppointmentId !== null) {
@@ -316,19 +467,18 @@ class Scheduling
         $stmt = $pdo->prepare($sql . ' FOR UPDATE');
         $stmt->execute($params);
         $appointments = $stmt->fetchAll();
-        if (!$appointments) return [];
 
         $ids = array_column($appointments, 'id');
-        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $placeholders = $ids ? implode(',', array_fill(0, count($ids), '?')) : 'NULL';
         $stmt = $pdo->prepare("
             SELECT aps.appointment_id, aps.employee_id, s.duration_minutes
             FROM appointment_services aps JOIN services s ON s.id = aps.service_id
             WHERE aps.appointment_id IN ($placeholders)
-            ORDER BY aps.appointment_id, aps.id
+            ORDER BY aps.appointment_id, aps.id FOR UPDATE
         ");
-        $stmt->execute($ids);
+        if ($ids) $stmt->execute($ids);
         $servicesByAppointment = [];
-        foreach ($stmt->fetchAll() as $row) {
+        foreach ($ids ? $stmt->fetchAll() : [] as $row) {
             $servicesByAppointment[$row['appointment_id']][] = $row;
         }
 
@@ -352,6 +502,19 @@ class Scheduling
                 }
                 $cursor = $end;
             }
+        }
+        $buffer = self::cleaningBufferMinutes();
+        foreach ($windows as &$window) $window['end']->modify("+{$buffer} minutes");
+        unset($window);
+        $stmt = $pdo->prepare("SELECT h.id, h.preferred_date, h.preferred_time FROM home_service_requests h
+            WHERE h.status NOT IN ('Cancelled', 'Completed')
+              AND (h.employee_id = ? OR EXISTS (SELECT 1 FROM home_service_staff t WHERE t.home_service_request_id = h.id AND t.employee_id = ?))
+              AND h.preferred_date BETWEEN DATE_SUB(?, INTERVAL 1 DAY) AND DATE_ADD(?, INTERVAL 1 DAY)
+              AND h.id != ? FOR UPDATE");
+        $stmt->execute([$employeeId, $employeeId, $dateYmd, $dateYmd, $excludeHomeServiceId ?? 0]);
+        foreach ($stmt->fetchAll() as $event) {
+            $start = new DateTime($event['preferred_date'] . ' ' . ($event['preferred_time'] ?: '09:00:00'));
+            $windows[] = ['start' => $start, 'end' => (clone $start)->modify('+' . (self::HOME_SERVICE_DURATION_MINUTES + $buffer) . ' minutes'), 'appointment_id' => 0];
         }
         return $windows;
     }

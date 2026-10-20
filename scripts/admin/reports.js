@@ -5,28 +5,60 @@ function adminReportsApp() {
     reportDateFrom: '',
     reportDateTo: '',
 
+    collections: [],
+    collectionsLoading: false,
+    collectionsError: '',
+    collectionsRequest: 0,
     init() {
       adminHighlightNav();
+      for (const key of ['reportFilterBranch','reportDateFrom','reportDateTo']) this.$watch(key, () => {
+        this.loadCollections();
+        if (this.reportType === 'activity' || this.activityLogLoaded) this.loadActivityLog();
+        if (this.reportType === 'payments' || this.paymentLogLoaded) this.loadPaymentLog();
+        this.reconciliation = null;
+      });
+      this.loadCollections();
+    },
+    async loadCollections() {
+      const request = ++this.collectionsRequest;
+      this.collections = []; this.collectionsError = ''; this.collectionsLoading = true;
+      if (this.reportDateFrom && this.reportDateTo && this.reportDateFrom > this.reportDateTo) {
+        this.collectionsError = 'The start date must be on or before the end date.';
+        this.collectionsLoading = false; return;
+      }
+      const params = new URLSearchParams({branch:this.reportFilterBranch,from:this.reportDateFrom,to:this.reportDateTo});
+      try {
+        const response = await fetch(ADMIN_API_BASE + 'getRevenueReport.php?' + params, {credentials:'same-origin'});
+        const body = await response.json();
+        if (request !== this.collectionsRequest) return;
+        if (!body.success) throw new Error(body.message || 'Could not load collected payments.');
+        this.collections = body.collections;
+      } catch (error) { if (request === this.collectionsRequest) this.collectionsError = error.message; }
+      finally { if (request === this.collectionsRequest) this.collectionsLoading = false; }
     },
 
     // Online Payment Log (backend/admin/getPaymentLog.php), loaded the first
     // time the report is opened and on each reference search.
     paymentLog: [],
     paymentLogLoaded: false,
+    paymentLogRequest: 0,
     paymentLogSearch: '',
     paymentLogError: '',
     async loadPaymentLog() {
+      const request = ++this.paymentLogRequest;
+      this.paymentLog = []; this.paymentLogLoaded = false;
       this.paymentLogError = '';
       try {
-        const params = new URLSearchParams({ reference: this.paymentLogSearch.trim() });
+        const params = new URLSearchParams({ reference: this.paymentLogSearch.trim(),branch:this.reportFilterBranch,from:this.reportDateFrom,to:this.reportDateTo });
         const response = await fetch(ADMIN_API_BASE + 'getPaymentLog.php?' + params, { credentials: 'same-origin' });
         const body = await response.json();
+        if (request !== this.paymentLogRequest) return;
         if (!body.success) throw new Error(body.message || 'Could not load the payment log.');
         this.paymentLog = body.events;
       } catch (error) {
-        this.paymentLogError = error.message || 'Could not load the payment log.';
+        if (request === this.paymentLogRequest) this.paymentLogError = error.message || 'Could not load the payment log.';
       } finally {
-        this.paymentLogLoaded = true;
+        if (request === this.paymentLogRequest) this.paymentLogLoaded = true;
       }
     },
     paymentEventLabel(event) {
@@ -44,15 +76,26 @@ function adminReportsApp() {
       if (['refund_due', 'checkout_expired', 'refund_requested'].includes(event)) return 'admin-badge--pending';
       return 'admin-badge--neutral';
     },
+    matchesReportBranch(reference) {
+      if (this.reportFilterBranch === 'all') return true;
+      const booking = Alpine.store('admin').bookings.find(b => b.id === reference);
+      return booking?.branchId === this.reportFilterBranch;
+    },
+    getFilteredPaymentLog() {
+      return this.paymentLog.filter(r => this.isWithinDateRange(r.createdAt) && this.matchesReportBranch(r.reference));
+    },
 
     // Activity Log (backend/admin/getAuditLog.php): who did what, when.
     activityLog: [],
     activityLogLoaded: false,
+    activityLogRequest: 0,
     activitySearch: '',
     activityRole: '',
     activityError: '',
     activityExpandedId: null,
     async loadActivityLog() {
+      const request = ++this.activityLogRequest;
+      this.activityLog = []; this.activityLogLoaded = false;
       this.activityError = '';
       try {
         const params = new URLSearchParams({ q: this.activitySearch.trim(), role: this.activityRole });
@@ -60,12 +103,13 @@ function adminReportsApp() {
         if (this.reportDateTo) params.set('to', this.reportDateTo);
         const response = await fetch(ADMIN_API_BASE + 'getAuditLog.php?' + params, { credentials: 'same-origin' });
         const body = await response.json();
+        if (request !== this.activityLogRequest) return;
         if (!body.success) throw new Error(body.message || 'Could not load the activity log.');
         this.activityLog = body.entries;
       } catch (error) {
-        this.activityError = error.message || 'Could not load the activity log.';
+        if (request === this.activityLogRequest) this.activityError = error.message || 'Could not load the activity log.';
       } finally {
-        this.activityLogLoaded = true;
+        if (request === this.activityLogRequest) this.activityLogLoaded = true;
       }
     },
     // Request fields as "key: value" lines for the expanded row.
@@ -101,7 +145,7 @@ function adminReportsApp() {
     },
     reconcileRows() {
       if (!this.reconciliation) return [];
-      return this.reconcileIssuesOnly ? this.reconciliation.rows.filter(r => r.severity !== 'ok') : this.reconciliation.rows;
+      return this.reconciliation.rows.filter(r => (!this.reconcileIssuesOnly || r.severity !== 'ok') && this.matchesReportBranch(r.reference));
     },
     reconcileBadge(severity) {
       return { ok: 'admin-badge--success', warning: 'admin-badge--pending', danger: 'admin-badge--danger' }[severity] || 'admin-badge--neutral';
@@ -113,7 +157,9 @@ function adminReportsApp() {
     },
 
     isWithinDateRange(dateStr) {
-      if (!dateStr) return true;
+      if (!dateStr) return !this.reportDateFrom && !this.reportDateTo;
+      dateStr = String(dateStr).slice(0,10);
+      if (this.reportDateFrom && this.reportDateTo && this.reportDateFrom > this.reportDateTo) return false;
       if (this.reportDateFrom && dateStr < this.reportDateFrom) return false;
       if (this.reportDateTo && dateStr > this.reportDateTo) return false;
       return true;
@@ -147,10 +193,12 @@ function adminReportsApp() {
 
     getServicePopularity() {
       const byService = {};
+      const collected = new Map();
+      this.collections.forEach(row => collected.set(row.reference, (collected.get(row.reference) || 0) + Number(row.amount || 0)));
       this.getReportBookings().forEach(b => {
         if (!byService[b.serviceName]) byService[b.serviceName] = { name: b.serviceName, count: 0, revenue: 0 };
         byService[b.serviceName].count += 1;
-        if (b.status === 'Completed') byService[b.serviceName].revenue += Number(b.price || 0);
+        byService[b.serviceName].revenue += collected.get(b.id) || 0;
       });
       return Object.values(byService).sort((a, b) => b.count - a.count);
     },
@@ -159,23 +207,12 @@ function adminReportsApp() {
     // aware) rather than the dashboard's all-time branch.revenue totals, so
     // the Date Range filter actually changes the numbers shown here.
     getRevenueByBranch() {
-      const store = Alpine.store('admin');
-      const branches = this.reportFilterBranch === 'all' ? store.branches : store.branches.filter(b => b.id === this.reportFilterBranch);
-      const rows = branches.map(branch => {
-        const revenue = this.getReportBookings()
-          .filter(b => b.branchId === branch.id && b.status === 'Completed')
-          .reduce((sum, b) => sum + Number(b.price || 0), 0);
-        return { id: branch.id, name: branch.name, revenue };
+      const groups = new Map();
+      this.collections.forEach(row => {
+        if (!groups.has(row.branchId)) groups.set(row.branchId, {id:row.branchId,name:row.branchName,revenue:0});
+        groups.get(row.branchId).revenue += Number(row.amount || 0);
       });
-      // Home services aren't tied to a branch: count every peso received on
-      // them (reservation fee + remaining balance, home_service_payments).
-      if (this.reportFilterBranch === 'all') {
-        const homeRevenue = this.getReportBookings()
-          .filter(b => b.isHomeService && b.status !== 'Cancelled')
-          .reduce((sum, b) => sum + Number(b.amountPaid || 0), 0);
-        rows.push({ id: 'home-service', name: 'Home Service (off-site)', revenue: homeRevenue });
-      }
-      return rows;
+      return [...groups.values()].map(row => ({...row,revenue:Math.round(row.revenue*100)/100}));
     },
 
     getReportTotalRevenue() {
@@ -183,7 +220,7 @@ function adminReportsApp() {
     },
 
     getReportMaxRevenue() {
-      return Math.max(1, ...this.getRevenueByBranch().map(b => b.revenue));
+      return Math.max(1, ...this.getRevenueByBranch().map(b => Math.abs(b.revenue)));
     },
 
     // Staff Performance report: real, separate metrics only (see Step 3) --
@@ -217,14 +254,27 @@ function adminReportsApp() {
         const rows = this.getReportBookings().map(b => [b.id, store.getBranchName(b.branchId), b.clientName, b.serviceName, b.date, b.status]);
         store.exportRowsToCSV('appointments-report.csv', ['Ref ID', 'Branch', 'Client', 'Service', 'Date', 'Status'], rows);
       } else if (this.reportType === 'revenue') {
-        const rows = this.getRevenueByBranch().map(b => [b.name, b.revenue]);
-        store.exportRowsToCSV('revenue-report.csv', ['Branch', 'Completed Revenue (PHP)'], rows);
+        if (this.collectionsLoading || this.collectionsError) return;
+        const rows = this.collections.map(r => [r.reference,r.branchName,r.collectedAt || 'Not recorded (legacy)',r.kind,r.amount]);
+        store.exportRowsToCSV('revenue-report.csv', ['Booking Reference','Branch','Collection Date','Transaction','Collected Amount (PHP)'], rows);
       } else if (this.reportType === 'staff') {
         const rows = this.getReportStaff().map(s => [s.name, store.getBranchName(s.branchId), s.role, s.completedCount, s.rating, s.attendance]);
         store.exportRowsToCSV('staff-performance-report.csv', ['Staff', 'Branch', 'Role', 'Completed Services', 'Rating', 'Attendance %'], rows);
       } else if (this.reportType === 'inventory') {
         const rows = this.getReportInventory().map(i => [i.name, store.getBranchName(i.branchId), i.stock, i.minQty, i.stock <= i.minQty ? 'Low Stock' : 'Good Stock']);
         store.exportRowsToCSV('inventory-report.csv', ['Item', 'Branch', 'Stock', 'Min Qty', 'Status'], rows);
+      } else if (this.reportType === 'payments') {
+        if (!this.paymentLogLoaded || this.paymentLogError) return;
+        const rows = this.getFilteredPaymentLog().map(r => [r.reference,r.createdAt,r.event,r.amount,r.status]);
+        store.exportRowsToCSV('payment-log.csv',['Booking Reference','Date','Event','Amount','Status'],rows);
+      } else if (this.reportType === 'activity') {
+        if (!this.activityLogLoaded || this.activityError) return;
+        const rows = this.activityLog.map(r => [r.createdAt,r.actor,r.role,r.label,r.reference,r.outcome]);
+        store.exportRowsToCSV('activity-log.csv',['Date','Actor','Role','Activity','Reference','Outcome'],rows);
+      } else if (this.reportType === 'reconciliation') {
+        if (!this.reconciliation || this.reconciling || this.reconcileError) return;
+        const rows = this.reconcileRows().map(r => [r.reference,r.paymentId,r.paidAt,r.amount,r.refunded,r.severity,r.issue || r.message || '']);
+        store.exportRowsToCSV('payment-reconciliation.csv',['Reference','Payment','Date','Amount','Refunded','Severity','Details'],rows);
       } else {
         const rows = this.getReportFeedback().map(f => [f.bookingReference || '', f.clientName, f.branchId ? store.getBranchName(f.branchId) : 'Off-Site', f.rating, f.date]);
         store.exportRowsToCSV('customer-feedback-report.csv', ['Booking Ref', 'Client', 'Branch', 'Rating', 'Date'], rows);

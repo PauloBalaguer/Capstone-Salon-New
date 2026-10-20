@@ -48,9 +48,10 @@
     .card-lift { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
     .card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(126, 34, 206, 0.35); }
   </style>
-  <link rel="stylesheet" href="../../assets/css/customer-theme.css">
+  <link rel="stylesheet" href="../../assets/css/customer-theme.css?v=type16-20261020-1">
   <script src="../../scripts/customer/theme-config.js"></script>
 <script src="../../scripts/booking-validation.js"></script>
+  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=type16-20261020-1" />
 </head>
 <body class="bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
@@ -331,8 +332,20 @@
         <button @click="closeHomeServiceModal()" class="text-slate-400 hover:text-white">&times;</button>
       </div>
 
-      <form @submit.prevent="submitHomeServiceRequest()" class="space-y-4 text-xs min-h-0 overflow-y-auto overscroll-contain pr-3 pb-1">
+      <form @submit.prevent="submitHomeServiceRequest()" @change.debounce.250ms="refreshEventAvailability()" class="space-y-4 text-xs min-h-0 overflow-y-auto overscroll-contain pr-3 pb-1">
         <p class="text-slate-400">Please provide the details for your home service request. Our team will review it and contact you to confirm availability, pricing, staff, and any required payment.</p>
+
+        <section aria-label="Contact details from your profile" class="rounded-xl bg-slate-800 border border-slate-700 p-4 space-y-2 break-words">
+          <h4 class="font-bold text-white text-sm">Your contact details</h4>
+          <dl class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+            <div><dt class="text-slate-400">Full Name</dt><dd class="text-white" x-text="customerProfile.name || 'Not saved in your profile'"></dd></div>
+            <div><dt class="text-slate-400">Email Address</dt><dd class="text-white break-all" x-text="customerProfile.email || 'Not saved in your profile'"></dd></div>
+            <div><dt class="text-slate-400">Mobile Number</dt><dd class="text-white" x-text="customerProfile.phone || 'Not saved in your profile'"></dd></div>
+          </dl>
+          <p class="text-slate-300">We use your account details for this request. You do not need to type them again.</p>
+          <a href="profile.html" class="inline-block py-2 text-gold-400 underline">Update my profile details</a>
+        </section>
+        <p x-show="homeServiceError" x-text="homeServiceError" role="alert" class="text-rose-200 bg-rose-950 rounded-lg p-3"></p>
 
         <div>
           <label class="block text-slate-400 mb-1">Venue Address</label>
@@ -436,6 +449,7 @@
         <div>
           <label class="block text-slate-400 mb-1">Preferred Time</label>
           <input type="time" x-model="homeServiceForm.preferredTime" required class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+          <p role="status" aria-live="polite" class="mt-2 text-sm text-slate-200" :aria-busy="eventAvailabilityLoading" x-text="eventAvailabilityLoading ? 'Checking staff availability...' : eventAvailabilityMessage"></p>
         </div>
         <p class="text-slate-500 -mt-2">Our team will review your preferred date, time, venue, and service requirements. Your request remains Under Review until we contact you and confirm the arrangements.</p>
 

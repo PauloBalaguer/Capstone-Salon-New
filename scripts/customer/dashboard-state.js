@@ -31,6 +31,8 @@ function customerDashboardState() {
       name: '',
       email: '',
       phone: '',
+      address: '',
+      structuredAddress: null,
       memberSince: '',
       loyaltyPoints: 0,
       loyaltyTier: { tier: 'Member', visits: 0, windowMonths: 12, nextTier: 'Silver', visitsToNext: 3, ladder: [] },

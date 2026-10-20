@@ -4,8 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Leo Mejillano Salon &amp; Beauty — Welcome</title>
-  <link rel="stylesheet" href="../../assets/css/login-base.css" />
-  <link rel="stylesheet" href="../../assets/css/login-theme.css" />
+  <link rel="stylesheet" href="../../assets/css/login-base.css?v=type16-20261020-1" />
+  <link rel="stylesheet" href="../../assets/css/login-theme.css?v=type16-20261020-1" />
+  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=type16-20261020-1" />
 </head>
 <body>
   <div class="photo-backdrop" aria-hidden="true"></div>
@@ -27,7 +28,7 @@
       <span class="page-note" data-auth-footer></span>
     </section>
 
-    <div class="reveal-overlay" id="login-reveal" hidden>
+    <div class="reveal-overlay" id="login-reveal" role="dialog" aria-modal="true" aria-labelledby="login-title" hidden>
       <div class="card">
         <button type="button" class="close-link" id="close-btn">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
@@ -42,7 +43,7 @@
         </span>
 
         <span class="card-eyebrow">Salon &amp; Beauty</span>
-        <h1 class="card-title">Welcome back</h1>
+        <h1 id="login-title" class="card-title">Welcome back</h1>
 
         <form id="login-form" class="form" novalidate>
           <div class="field">

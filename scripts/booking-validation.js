@@ -6,6 +6,7 @@ window.BookingFormValidation = (() => {
     const value = String(input.value ?? '').trim();
     let message = '';
     if (!value) message = required ? 'Please complete this field.' : '';
+    else if (kind === 'name' && (Array.from(value).length > 255 || !/^[\p{L}\p{M} .’'\-]+$/u.test(value) || !/\p{L}/u.test(value))) message = 'Please enter your name using letters, spaces, apostrophes, periods or hyphens.';
     else if (kind === 'mobile' && !/^09\d{9}$/.test(value)) message = 'Please enter a valid mobile number (09XXXXXXXXX).';
     else if (kind === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) message = 'Please enter a valid email address.';
     else if (kind === 'quantity' && (!/^[1-9]\d*$/.test(value) || Number(value) > 2147483647)) message = 'Please enter a whole number of clients (at least 1).';
@@ -42,6 +43,7 @@ window.BookingFormValidation = (() => {
   }
   function identify(input) {
     const name = [input.id, input.name, input.getAttribute('x-model'), input.getAttribute('x-model.number')].filter(Boolean).join(' ');
+    if (/customerName|bookName/.test(name)) return 'name';
     if (/customerPhone|clientPhone|walkInPhone|walkinPhone|bookPhone|hsPhone/i.test(name)) return 'mobile';
     if (/hsEmail|bookEmail/.test(name)) return 'email';
     if (/homeServiceForm.clients|hsClients/.test(name)) return 'quantity';
@@ -60,6 +62,13 @@ window.BookingFormValidation = (() => {
     const kind = identify(input);
     if (kind && input.dataset.bookingValidated) check(input, kind, kind === 'money' ? input.required : input.id !== 'bookEmail');
   });
+  // Capture before Alpine reads the value, including paste and mobile keyboards.
+  document.addEventListener('input', event => {
+    const input = event.target;
+    if (input instanceof HTMLInputElement && identify(input) === 'mobile') {
+      input.value = input.value.replace(/[^0-9]/g, '').slice(0, 11);
+    }
+  }, true);
   document.addEventListener('keydown', event => {
     if (event.target instanceof HTMLInputElement && ['quantity', 'money'].includes(identify(event.target)) && ['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();
   });
@@ -82,7 +91,21 @@ window.BookingFormValidation = (() => {
     }
   });
   const style = document.createElement('style');
-  style.textContent = '.booking-field-error{color:#9f1239;background:#fff1f2;padding:.35rem .5rem;border-radius:.375rem;font-size:.8125rem;line-height:1.5;margin:.35rem 0 .65rem}[data-booking-validated]:disabled{opacity:.6;cursor:not-allowed}[data-booking-validated]:read-only{opacity:.85}[data-booking-validated][aria-invalid="true"]{outline:2px solid #be123c;outline-offset:1px}';
+  style.textContent = '.booking-field-error{color:#9f1239;background:#fff1f2;padding:.35rem .5rem;border-radius:.375rem;font-size: 1rem;line-height:1.5;margin:.35rem 0 .65rem}[data-booking-validated]:disabled{opacity:.6;cursor:not-allowed}[data-booking-validated]:read-only{opacity:.85}[data-booking-validated][aria-invalid="true"]{outline:2px solid #be123c;outline-offset:1px}';
   document.head.appendChild(style);
-  return { check, fields };
+  function message(target, text) {
+    if (!target) return;
+    let error = target.nextElementSibling;
+    if (!error?.classList.contains('booking-field-error')) {
+      error = document.createElement('p');
+      error.className = 'booking-field-error';
+      error.id = 'booking-field-error-' + (++errorSequence);
+      error.setAttribute('role', 'status');
+      target.insertAdjacentElement('afterend', error);
+      target.setAttribute('aria-describedby', [target.getAttribute('aria-describedby'), error.id].filter(Boolean).join(' '));
+    }
+    error.textContent = text;
+    error.hidden = !text;
+  }
+  return { check, fields, message };
 })();

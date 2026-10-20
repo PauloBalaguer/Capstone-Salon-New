@@ -297,8 +297,8 @@ function sendAccountSetupEmail(string $email, string $name, string $role, string
 }
 
 /**
- * Sends the guest-booking verification OTP to $email. Returns true if a
- * real email was sent, false if it fell back to the log-file simulation.
+ * Sends the guest-booking verification OTP to $email. Returns true only
+ * after SMTP accepts it. Never log booking verification codes as delivery.
  */
 function sendBookingOtpEmail(string $email, string $code): bool
 {
@@ -306,11 +306,17 @@ function sendBookingOtpEmail(string $email, string $code): bool
     $credentialsPath = __DIR__ . '/mail_credentials.php';
 
     if (!file_exists($credentialsPath)) {
-        logSimulatedEmail('Booking Verification OTP', $email, "{$code} (expires in 10 minutes)");
+        error_log('Booking OTP email not sent: SMTP credentials are not configured.');
         return false;
     }
 
     $credentials = require $credentialsPath;
+
+    if (!is_array($credentials) || empty($credentials['smtp_host']) || empty($credentials['smtp_username'])
+        || empty($credentials['smtp_password']) || empty($credentials['from_email'])) {
+        error_log('Booking OTP email not sent: SMTP sender configuration is incomplete.');
+        return false;
+    }
 
     $mail = new PHPMailer(true);
     try {
@@ -326,6 +332,7 @@ function sendBookingOtpEmail(string $email, string $code): bool
         $mail->addAddress($email);
 
         $mail->Subject = 'Your booking verification code';
+        $mail->Timeout = 15;
         $mail->isHTML(true);
         $mail->Body = renderOtpEmailHtml(
             'Your Leo Mejillano Salon & Aesthetics booking verification code is:',
@@ -338,7 +345,6 @@ function sendBookingOtpEmail(string $email, string $code): bool
         return true;
     } catch (PHPMailerException $e) {
         error_log('Booking OTP email send failed: ' . $mail->ErrorInfo);
-        logSimulatedEmail('Booking Verification OTP (send failed, see error_log)', $email, "{$code} (expires in 10 minutes)");
         return false;
     }
 }
@@ -346,17 +352,16 @@ function sendBookingOtpEmail(string $email, string $code): bool
 /**
  * Sends a plain booking/status notification (no code to highlight) to
  * $email. Used by EmailOutbox for every queued customer email. Returns true
- * once the message is handled -- either really sent, or written to
- * logs/email.log when mail_credentials.php hasn't been set up -- and false
- * only when a real send was attempted and failed (so the outbox retries it).
+ * only after SMTP delivery succeeds. Missing credentials and send failures
+ * return false so queued mail is never incorrectly labelled as delivered.
  */
 function sendNotificationEmail(string $email, string $subject, string $message): bool
 {
     $credentialsPath = __DIR__ . '/mail_credentials.php';
 
     if (!file_exists($credentialsPath)) {
-        logSimulatedEmail($subject, $email, str_replace("\n", ' | ', $message));
-        return true;
+        error_log('Notification email not sent: SMTP credentials are not configured.');
+        return false;
     }
 
     $credentials = require $credentialsPath;

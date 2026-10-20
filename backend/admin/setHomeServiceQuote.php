@@ -31,6 +31,7 @@ require_once '../config/database.php';
 require_once '../config/AuditLog.php';
 require_once '../config/CustomerNotifier.php';
 require_once '../config/PayMongo.php';
+require_once '../config/HomeServiceRequest.php';
 
 sendCorsHeaders();
 AuditLog::captureRequest();
@@ -67,7 +68,8 @@ if ($referenceCode === '' || !in_array($action, ['quote', 'recordPayment', 'requ
 try {
     $pdo = Database::getInstance();
 
-    $stmt = $pdo->prepare('SELECT h.id, h.customer_id, h.status, h.deposit_paid, h.deposit_amount AS required_deposit, h.quote_price, c.user_id FROM home_service_requests h JOIN customers c ON c.id = h.customer_id WHERE h.reference_code = ? LIMIT 1');
+    $pdo->beginTransaction();
+    $stmt = $pdo->prepare('SELECT h.*, h.deposit_amount AS required_deposit, c.user_id FROM home_service_requests h JOIN customers c ON c.id = h.customer_id WHERE h.reference_code = ? LIMIT 1 FOR UPDATE');
     $stmt->execute([$referenceCode]);
     $homeService = $stmt->fetch();
     if (!$homeService) {
@@ -79,6 +81,9 @@ try {
     $customerId = (int) $homeService['customer_id'];
 
     if ($action === 'quote') {
+        if (in_array($homeService['status'], ['Cancelled','Completed','Service in Progress'], true)) throw new RuntimeException('This request can no longer be quoted.');
+        $team = HomeServiceRequest::team($pdo, $homeService);
+        HomeServiceRequest::requireAvailable($pdo, $homeService, $team ?: null);
         $quotePrice = filter_var($_POST['quotePrice'] ?? '', FILTER_VALIDATE_FLOAT);
         $reservationFee = filter_var($_POST['reservationFee'] ?? '0', FILTER_VALIDATE_FLOAT);
         if ($quotePrice === false || $quotePrice <= 0) {
@@ -144,9 +149,10 @@ try {
             : "Your home service request {$referenceCode} has a final quote of ₱" . number_format($quotePrice, 2) . ' with no reservation payment required.';
         CustomerNotifier::notify($pdo, $customerId, 'QUOTE_READY', $message);
 
+        $pdo->commit();
         echo json_encode([
             'success' => true,
-            'message' => 'Quote saved.' . ($payUrl ? ' A PayMongo payment link was sent to the customer; the request confirms itself once they pay.' : '') . $payNote,
+            'message' => 'Quote saved.' . ($payUrl ? ' A PayMongo payment link was sent. Staff availability is checked again before confirmation.' : '') . $payNote,
             'payUrl' => $payUrl,
         ]);
         exit();
@@ -181,6 +187,7 @@ try {
             WHERE id = ?
         ')->execute([$depositAmount, $depositMethod, $depositReference !== '' ? $depositReference : null, 'Payment Being Verified', 'Awaiting Verification', $homeServiceId]);
 
+        $pdo->commit();
         echo json_encode(['success' => true, 'message' => 'Payment recorded. Verify it to confirm the request.']);
         exit();
     }
@@ -192,8 +199,15 @@ try {
     $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "BOOKING", ?)')
         ->execute(["Schedule change requested for home service {$referenceCode}."]);
 
+    $pdo->commit();
     echo json_encode(['success' => true, 'message' => 'Customer notified of the requested schedule change.']);
-} catch (PDOException $e) {
+} catch (PDOException | RuntimeException $e) {
+    if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
+    if (!($e instanceof PDOException) || in_array((int) ($e->errorInfo[1] ?? 0), [1205,1213], true)) {
+        http_response_code(409);
+        echo json_encode(['success'=>false,'message'=>$e instanceof PDOException ? HomeServiceRequest::UNAVAILABLE : $e->getMessage()]);
+        exit();
+    }
     http_response_code(500);
     error_log('admin setHomeServiceQuote error: ' . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'A server error occurred while updating this request.']);

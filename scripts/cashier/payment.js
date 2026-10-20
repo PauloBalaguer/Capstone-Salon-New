@@ -11,7 +11,9 @@ const state = {
   cartProducts: [], // [{ id, name, price, stock, qty }]
   tip: 0,
   selectedMethod: 'Cash',
-  pendingVerifyRef: null
+  pendingVerifyRef: null,
+  processing: false,
+  verifying: false
 };
 
 function getReferenceFromUrl() {
@@ -78,7 +80,7 @@ function renderCheckoutList() {
   const now = new Date();
   const today = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
   const toCheckout = state.data.bookings.filter(b =>
-    b.paymentStatus !== 'Fully Paid' && (
+    !b.checkoutPaid && (
       b.status === 'In Progress' ||
       b.status === 'Completed' ||
       (b.status === 'Confirmed' && (b.date || '') <= today)
@@ -148,7 +150,7 @@ function renderVerifyList() {
         ${b.depositReference ? `<span class="block font-mono text-xs text-slate-400">${escapeHtml(b.depositReference)}</span>` : ''}
       </td>
       <td class="px-5 py-3.5 whitespace-nowrap text-slate-500">${escapeHtml(b.submittedAt || '—')}</td>
-      <td class="px-5 py-3.5 text-right"><button data-ref="${escapeHtml(b.id)}" class="btn-verify bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap">Verify</button></td>
+      <td class="px-5 py-3.5 text-right"><button data-ref="${escapeHtml(b.id)}" class="btn-verify bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap">View Payment Details</button></td>
     </tr>`;
   }).join('');
 }
@@ -156,6 +158,8 @@ function renderVerifyList() {
 function openVerifyModal(ref) {
   state.pendingVerifyRef = ref;
   const booking = state.data.bookings.find(b => b.id === ref);
+  if (!booking) return;
+  document.getElementById('verifyDetails').textContent = `${booking.id} · Total ${CashierApp.formatCurrency(booking.price)} · Reported ${CashierApp.formatCurrency(booking.depositAmount || 0)} · Booking: ${booking.status} · Payment: ${booking.paymentStatus}`;
   const allowedDepositMethods = ['Cash', 'GCash', 'Maya', 'PayMongo'];
   document.getElementById('verifyAmountInput').value = booking ? (booking.depositAmount || booking.price) : '';
   document.getElementById('verifyMethodInput').value = booking && allowedDepositMethods.includes(booking.depositMethod) ? booking.depositMethod : '';
@@ -167,6 +171,7 @@ function openVerifyModal(ref) {
    or "Paid in Full" (full amount) -- backend/cashier/updateStatus.php's
    Confirmed branch already derives which one from the amount vs. total. */
 async function confirmVerify() {
+  if (state.verifying) return;
   const amount = document.getElementById('verifyAmountInput').value;
   const method = document.getElementById('verifyMethodInput').value;
   if (!amount || Number(amount) <= 0 || !method) {
@@ -179,12 +184,24 @@ async function confirmVerify() {
   const payload = booking && booking.status !== 'Pending'
     ? { id: state.pendingVerifyRef, paymentAction: 'verify', depositAmount: amount, depositMethod: method }
     : { id: state.pendingVerifyRef, status: 'Confirmed', depositAmount: amount, depositMethod: method };
+  state.verifying = true;
+  const button = document.getElementById('btnConfirmVerify');
+  button.disabled = true;
+  button.textContent = 'Verifying…';
+  try {
   const result = await CashierApp.post('updateStatus.php', payload);
   CashierApp.toast(result.message || (result.success ? 'Payment verified.' : 'Failed to verify payment.'), result.success ? 'success' : 'error');
   if (result.success) {
     CashierApp.hideModal('verifyModal');
     const refreshed = await CashierApp.fetchDashboard();
-    if (refreshed.success) { state.data = refreshed; renderVerifyList(); }
+    if (refreshed.success) { state.data = refreshed; renderVerifyList(); renderCheckoutList(); }
+  }
+  } catch (error) {
+    CashierApp.toast('Could not confirm the result. Refresh payment details before trying again.', 'error');
+  } finally {
+    state.verifying = false;
+    button.disabled = false;
+    button.textContent = 'Verify Payment';
   }
 }
 
@@ -216,6 +233,8 @@ function renderTicketSummary(branch) {
   document.getElementById('ticketClientPhone').textContent = t.clientPhone;
   document.getElementById('ticketBranchName').textContent = branch ? branch.name : t.branchId;
   document.getElementById('ticketStaffName').textContent = t.staffName || 'Unassigned';
+  document.getElementById('ticketPaymentStatus').textContent = t.paymentStatus || 'Payment Required';
+  document.getElementById('ticketPaymentMethod').textContent = t.depositMethod || t.paymentMethod || 'Not selected';
 
   const servicesEl = document.getElementById('ticketServices');
   const serviceNames = (t.serviceName || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -350,9 +369,11 @@ function renderTotals() {
   const total = remainingBalance + productsTotal + tip;
 
   document.getElementById('serviceChargesDisplay').textContent = CashierApp.formatCurrency(serviceCharges);
-  document.getElementById('reservationReceivedRow').classList.toggle('hidden', reservationReceived <= 0);
+  document.getElementById('reservationReceivedRow').classList.remove('hidden');
   document.getElementById('reservationReceivedDisplay').textContent = '− ' + CashierApp.formatCurrency(reservationReceived);
-  document.getElementById('productsChargeRow').classList.toggle('hidden', productsTotal <= 0);
+  document.getElementById('remainingServiceDisplay').textContent = CashierApp.formatCurrency(remainingBalance);
+  document.getElementById('productsChargeRow').classList.remove('hidden');
+  document.getElementById('productsTotalRow').classList.toggle('hidden', productsTotal <= 0);
   document.getElementById('subtotalDisplay').textContent = CashierApp.formatCurrency(productsTotal);
   document.getElementById('tipRow').classList.toggle('hidden', tip <= 0);
   document.getElementById('tipDisplay').textContent = CashierApp.formatCurrency(tip);
@@ -372,6 +393,13 @@ function updateCashChange(total) {
   const alreadyPaid = !document.getElementById('alreadyPaidNotice').classList.contains('hidden');
   if (alreadyPaid) return;
   if (!state.ticket) { btn.disabled = true; hint.textContent = ''; return; }
+  if (state.processing) { btn.disabled = true; return; }
+  if (!['Confirmed', 'In Progress', 'Completed'].includes(state.ticket.status)) {
+    btn.disabled = true; hint.textContent = 'Confirm the booking before checkout.'; return;
+  }
+  if (state.ticket.depositPaid && !state.ticket.depositVerified && Number(state.ticket.depositAmount) > 0) {
+    btn.disabled = true; hint.textContent = 'Verify the reservation payment before collecting the balance.'; return;
+  }
   if (state.selectedMethod !== 'Cash') {
     btn.disabled = false;
     hint.textContent = `Collect ${CashierApp.formatCurrency(total)} via ${state.selectedMethod}, then complete.`;
@@ -493,6 +521,20 @@ function selectPaymentMethod(method) {
 
 
 async function updateTicketStatus(status) {
+  if (status === 'In Progress') {
+    if (await AppointmentArrival.review(state.ticket.id, 'cashier/updateStatus.php')) {
+      const refreshed = await CashierApp.fetchDashboard();
+      if (refreshed.success) {
+        state.data = refreshed;
+        state.ticket = refreshed.bookings.find(booking => booking.id === state.ticket.id) || state.ticket;
+        renderStatusUI(); renderTotals();
+      }
+    }
+    return;
+  }
+  const button = document.getElementById('btnWorkflowAction');
+  button.disabled = true;
+  try {
   const result = await CashierApp.post('updateStatus.php', { id: state.ticket.id, status });
   if (result.success) {
     state.ticket.status = status;
@@ -501,11 +543,14 @@ async function updateTicketStatus(status) {
   } else {
     CashierApp.toast(result.message || 'Failed to update status.', 'error');
   }
+  } catch (error) {
+    CashierApp.toast('Could not update the service. Refresh before trying again.', 'error');
+  } finally { renderStatusUI(); renderTotals(); }
 }
 
 
 async function processPayment() {
-  if (!state.ticket) return;
+  if (!state.ticket || state.processing) return;
 
   const payload = {
     reference: state.ticket.id,
@@ -526,18 +571,35 @@ async function processPayment() {
   }
 
   const btn = document.getElementById('btnProcessPayment');
+  if (btn.disabled) return;
+  if (!window.confirm(`Record ${CashierApp.formatCurrency(state.amountDue || 0)} via ${state.selectedMethod}, complete this visit, and issue a receipt? Confirm only after the payment has been received.`)) return;
+  state.processing = true;
   btn.disabled = true;
-
+  document.getElementById('paymentForm').inert = true;
+  btn.setAttribute('aria-busy', 'true');
+  document.getElementById('payButtonLabel').textContent = 'Processing checkout…';
+  let completed = false;
+  try {
   const result = await CashierApp.post('payment.php', payload);
 
   if (result.success) {
+    completed = true;
     CashierApp.toast('Payment processed. Redirecting to receipt...', 'success');
     setTimeout(() => {
       window.location.href = `receipt.html?ref=${encodeURIComponent(result.reference)}&pid=${encodeURIComponent(result.paymentId)}`;
     }, 600);
   } else {
     CashierApp.toast(result.message || 'Failed to process payment.', 'error');
-    btn.disabled = false;
+  }
+  } catch (error) {
+    CashierApp.toast('Connection interrupted. Check for an existing receipt before retrying checkout.', 'error');
+  } finally {
+    if (!completed) {
+      state.processing = false;
+      document.getElementById('paymentForm').inert = false;
+      btn.removeAttribute('aria-busy');
+      renderTotals();
+    }
   }
 }
 

@@ -14,6 +14,41 @@ final class ReservationPayment
 {
     public const MIN_DEPOSIT = 100.0;
 
+    /** Manual verification may acknowledge a trusted online payment, never invent one. */
+    public static function validateVerification(array $appointment, $amount, string $method): void
+    {
+        if (!is_numeric($amount) || !is_finite((float) $amount) || (float) $amount <= 0
+            || !in_array($method, ['Cash', 'GCash', 'Maya', 'PayMongo'], true)) {
+            throw new RuntimeException('Enter the payment amount and method actually received.');
+        }
+        if ($method === 'PayMongo' || ($appointment['deposit_method'] ?? '') === 'PayMongo'
+            || (!empty($appointment['paymongo_checkout_id']) && empty($appointment['deposit_paid']))) {
+            if ($method !== 'PayMongo' || empty($appointment['deposit_paid'])
+                || empty($appointment['paymongo_checkout_id']) || empty($appointment['deposit_reference'])
+                || ($appointment['deposit_method'] ?? '') !== 'PayMongo'
+                || (int) round((float) $amount * 100) !== (int) round((float) $appointment['deposit_amount'] * 100)) {
+                throw new RuntimeException('PayMongo has not confirmed this payment, or the amount does not match. Refresh payment details before verifying.');
+            }
+        }
+    }
+
+    /** Allocate the booked service total to receipt lines using integer centavos. */
+    public static function receiptServicePrices(array $services, float $total): array
+    {
+        if (!$services) return [];
+        $cents = (int) round($total * 100);
+        $catalog = array_sum(array_map(fn($s) => max(0, (int) round((float) $s['price'] * 100)), $services));
+        $allocated = 0;
+        $prices = [];
+        foreach ($services as $index => $service) {
+            $line = $index === array_key_last($services) ? $cents - $allocated
+                : ($catalog > 0 ? intdiv(max(0, (int) round((float) $service['price'] * 100)) * $cents, $catalog) : 0);
+            $prices[] = $line / 100;
+            $allocated += $line;
+        }
+        return $prices;
+    }
+
     public static function quote(array $services, int $availablePoints = 0, bool $redeem = false, string $plan = 'deposit'): array
     {
         $plan = $plan === 'full' ? 'full' : 'deposit';

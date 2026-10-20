@@ -53,7 +53,8 @@ function renderReceipt(receipt) {
   // otherwise Subtotal + Tip wouldn't add up to Total Paid.
   const reservation = Number(receipt.reservationReceived) || 0;
   document.getElementById('receiptReservationRow').classList.toggle('hidden', reservation <= 0);
-  document.getElementById('receiptReservation').textContent = '− ' + CashierApp.formatCurrency(reservation);
+  document.getElementById('receiptReservation').textContent = '− ' + CashierApp.formatCurrency(reservation)
+    + (receipt.reservationMethod ? ' via ' + receipt.reservationMethod : '');
   document.getElementById('receiptTip').textContent = CashierApp.formatCurrency(receipt.tip);
   document.getElementById('receiptTotal').textContent = CashierApp.formatCurrency(receipt.total);
   document.getElementById('receiptMethod').textContent = receipt.paymentMethod;

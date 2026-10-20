@@ -51,6 +51,7 @@ try {
             COALESCE(ce.first_name, NULL) AS cashierFirstName,
             COALESCE(ce.last_name, NULL) AS cashierLastName,
             a.total_price AS serviceCharges,
+            a.deposit_method AS reservationMethod,
             CASE WHEN a.deposit_paid = 1 AND a.deposit_recorded_by IS NOT NULL THEN a.deposit_amount ELSE 0 END AS reservationReceived
         FROM payments p
         JOIN appointments a ON a.id = p.appointment_id
@@ -59,7 +60,7 @@ try {
         LEFT JOIN employees e ON e.id = a.employee_id
         LEFT JOIN users u ON u.id = p.processed_by
         LEFT JOIN employees ce ON ce.user_id = p.processed_by
-        WHERE a.reference_code = ?
+        WHERE a.reference_code = ? AND p.status = 'Paid'
     ";
     $params = [$referenceCode];
 
@@ -116,6 +117,7 @@ try {
             'subtotal' => $subtotal,
             'serviceCharges' => (float) $payment['serviceCharges'],
             'reservationReceived' => (float) $payment['reservationReceived'],
+            'reservationMethod' => $payment['reservationMethod'],
             'tip' => (float) $payment['tipAmount'],
             'cashReceived' => $payment['cashReceived'] !== null ? (float) $payment['cashReceived'] : null,
             'changeGiven' => $payment['changeGiven'] !== null ? (float) $payment['changeGiven'] : null,

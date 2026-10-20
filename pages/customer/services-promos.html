@@ -48,9 +48,10 @@
     .card-lift { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
     .card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(126, 34, 206, 0.35); }
   </style>
-  <link rel="stylesheet" href="../../assets/css/customer-theme.css">
+  <link rel="stylesheet" href="../../assets/css/customer-theme.css?v=type16-20261020-1">
   <script src="../../scripts/customer/theme-config.js"></script>
 <script src="../../scripts/booking-validation.js"></script>
+  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=type16-20261020-1" />
 </head>
 <body class="bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
@@ -346,7 +347,7 @@
                           <p class="text-slate-300" x-show="bookingForm.time">Estimated End Time: <span x-text="bookingEstimatedEndTime()"></span></p>
                           <div>
                             <label class="block text-slate-400 mb-1">Date</label>
-                            <input type="date" x-model="bookingForm.date" @change="bookingForm.time = ''; refreshAvailableSlots()" :min="getLocalISODate()" required class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                            <input type="date" x-model="bookingForm.date" @change="bookingForm.time = ''; refreshAvailableSlots()" :min="getLocalISODate()" required class="w-full text-base bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
                           </div>
                           <div>
                             <label class="block text-slate-400 mb-1">Time</label>
@@ -431,12 +432,12 @@
                         <div class="pt-3 border-t border-slate-700 space-y-2">
                           <p class="font-medium text-white">Your Details</p>
                           <div>
-                            <label class="block text-slate-400 mb-1">Full Name</label>
-                            <input type="text" x-model="bookingForm.customerName" required class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                            <label for="bookingCustomerName" class="block text-slate-300 mb-1">Full Name</label>
+                            <input id="bookingCustomerName" type="text" autocomplete="name" maxlength="255" x-model="bookingForm.customerName" required class="w-full text-base bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
                           </div>
                           <div>
-                            <label class="block text-slate-400 mb-1">Phone Number</label>
-                            <input type="tel" x-model="bookingForm.customerPhone" pattern="09[0-9]{9}" placeholder="09XXXXXXXXX" required class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                            <label for="bookingCustomerPhone" class="block text-slate-300 mb-1">Mobile Number</label>
+                            <input id="bookingCustomerPhone" type="tel" autocomplete="tel" inputmode="numeric" maxlength="11" x-model="bookingForm.customerPhone" pattern="09[0-9]{9}" placeholder="09XXXXXXXXX" required class="w-full text-base bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
                           </div>
                         </div>
                       </div>
@@ -510,7 +511,16 @@
                     <!-- STEP: Review Terms & Conditions -->
                     <template x-if="bookingStep === 'terms'">
                       <div class="bg-slate-800 p-4 rounded-lg space-y-2">
-                        <p class="font-medium text-white">Terms &amp; Conditions</p>
+                        <div class="space-y-2 break-words text-slate-200" aria-label="Final booking summary">
+                          <p class="font-medium text-white">Your booking summary</p>
+                          <p>Branch: <strong x-text="selectedBranchForServices"></strong></p>
+                          <p>Services: <strong x-text="selectedServicesForBooking.map(s => s.name).join(', ')"></strong></p>
+                          <p>Staff: <strong x-text="bookingForm.staffId ? ((staffList.find(s => String(s.id) === String(bookingForm.staffId)) || {}).name || 'Selected stylist') : 'An available qualified stylist will be assigned'"></strong></p>
+                          <p>Appointment: <strong x-text="formatApptDateLong(bookingForm.date) + ' @ ' + bookingForm.time"></strong></p>
+                          <p>Total: <strong x-text="formatPeso(reservationQuote?.serviceTotal ?? finalBookingTotal())"></strong></p>
+                          <p>Reservation payment: <strong x-text="formatPeso(requiredDeposit()) + ' via ' + bookingForm.paymentMethod"></strong></p>
+                        </div>
+                        <p class="font-medium text-white pt-3">Terms &amp; Conditions</p>
                         <div class="max-h-24 overflow-y-auto text-slate-400 leading-relaxed pr-1">
                           <ul class="list-disc list-inside space-y-1">
                             <li><strong class="text-slate-300">Reservation payment:</strong> A reservation payment is required to hold your appointment slot.</li>
@@ -530,7 +540,8 @@
                       </div>
                     </template>
 
-                    <div class="pt-2 flex justify-between border-t border-slate-800">
+                    <p x-show="bookingError" x-text="bookingError" role="alert" class="text-rose-200 bg-rose-950 rounded-lg p-3"></p>
+                    <div class="pt-2 flex flex-wrap gap-3 justify-between border-t border-slate-800">
                       <button type="button" @click="bookingStep === 'schedule' ? cancelBookingForm() : goToPreviousBookingStep()" :disabled="isSubmittingBooking" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 transition disabled:opacity-50" x-text="bookingStep === 'schedule' ? 'Cancel' : 'Back'"></button>
 
                       <button type="button" x-show="bookingStep === 'schedule'" @click="proceedFromSchedule()" class="px-5 py-2 bg-gradient-to-r from-luxury-600 to-luxury-800 text-white font-bold rounded-lg transition active:scale-95">Continue</button>
@@ -539,7 +550,7 @@
                       <button type="button" x-show="bookingStep === 'payment' && !depositLocked" @click="proceedFromPayment()" class="px-5 py-2 bg-luxury-600 hover:bg-luxury-700 text-white font-bold rounded-lg transition active:scale-95">Submit Deposit &amp; Continue</button>
                       <button type="button" x-show="bookingStep === 'payment' && depositLocked" @click="bookingStep = 'notifications'" class="px-5 py-2 bg-gradient-to-r from-luxury-600 to-luxury-800 text-white font-bold rounded-lg transition active:scale-95">Continue</button>
                       <button type="button" x-show="bookingStep === 'notifications'" @click="proceedFromNotifications()" class="px-5 py-2 bg-gradient-to-r from-luxury-600 to-luxury-800 text-white font-bold rounded-lg transition active:scale-95">Continue</button>
-                      <button type="button" x-show="bookingStep === 'terms'" @click="submitBooking()" :disabled="isSubmittingBooking || !bookingForm.agreedToTerms" class="px-5 py-2 bg-gradient-to-r from-gold-500 to-gold-600 text-slate-900 font-bold rounded-lg transition disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2">
+                      <button type="button" x-show="bookingStep === 'terms'" @click="submitBooking()" :aria-busy="isSubmittingBooking" :disabled="isSubmittingBooking || !bookingForm.agreedToTerms" class="px-5 py-2 bg-gradient-to-r from-gold-500 to-gold-600 text-slate-900 font-bold rounded-lg transition disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2">
                         <svg x-show="isSubmittingBooking" class="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
                         <span x-text="isSubmittingBooking ? 'Processing...' : 'Confirm Booking Request'"></span>
                       </button>

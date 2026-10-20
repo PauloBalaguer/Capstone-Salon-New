@@ -2,6 +2,7 @@
 
 function customerBookingMixin() {
   return {
+    bookingError: '',
     reservationQuote: null,
     reservationQuoteLoading: false,
     reservationQuoteRequest: 0,
@@ -189,7 +190,7 @@ function customerBookingMixin() {
       this.bookingStep = 'review';
     },
     async proceedFromReview() {
-      if (!BookingFormValidation.fields([['[x-model="bookingForm.customerName"]', 'text'], ['[x-model="bookingForm.customerPhone"]', 'mobile']])) return;
+      if (!BookingFormValidation.fields([['[x-model="bookingForm.customerName"]', 'name'], ['[x-model="bookingForm.customerPhone"]', 'mobile']])) return;
       if (!this.bookingForm.customerName || !this.bookingForm.customerPhone) {
         return this.pushToast('error', 'Please provide your name and contact number.');
       }
@@ -404,8 +405,10 @@ function customerBookingMixin() {
     },
 
     submitBooking() {
+      if (this.isSubmittingBooking) return;
+      this.bookingError = '';
       if (!BookingFormValidation.fields([
-        ['[x-model="bookingForm.customerName"]', 'text'],
+        ['[x-model="bookingForm.customerName"]', 'name'],
         ['[x-model="bookingForm.customerPhone"]', 'mobile'],
         ['[x-model="bookingForm.date"]', 'date']
       ])) return;
@@ -421,7 +424,6 @@ function customerBookingMixin() {
       // customer to get through the rest of this form.
       if (!this.isSlotAvailableNow(this.bookingForm.time)) {
         this.bookingStep = 'schedule';
-        this.bookingForm.time = '';
         return this.pushToast('error', 'That time was just booked. Please choose another available schedule.');
       }
       if (!this.bookingForm.agreedToTerms) return this.pushToast('error', 'Please agree to the Terms & Conditions to continue.');
@@ -454,7 +456,9 @@ function customerBookingMixin() {
           this.isSubmittingBooking = false;
 
           if (!body.success) {
-            this.pushToast('error', body.message || 'Something went wrong while booking your appointment.');
+            this.bookingError = body.message || 'Something went wrong while booking your appointment.';
+            this.pushToast('error', this.bookingError);
+            if (body.errors?.customerName || body.errors?.customerPhone) this.bookingStep = 'review';
             // The backend found the slot taken (or the previously qualifying
             // stylist no longer free) in the moments between this form
             // loading and submitting — send the customer back to reschedule
@@ -466,7 +470,7 @@ function customerBookingMixin() {
             }
             if (body.conflict) {
               this.bookingStep = 'schedule';
-              this.bookingForm.time = '';
+              this.refreshAvailableSlots();
             }
             return;
           }
@@ -503,7 +507,8 @@ function customerBookingMixin() {
         })
         .catch(() => {
           this.isSubmittingBooking = false;
-          this.pushToast('error', 'A network error occurred while booking your appointment.');
+          this.bookingError = 'Could not send your booking. Your details are saved here. Please check your connection and try again.';
+          this.pushToast('error', this.bookingError);
         });
     }
   };

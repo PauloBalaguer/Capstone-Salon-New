@@ -1,0 +1,67 @@
+/* Shared viewport and accessibility safeguards; theme colors remain local. */
+:where(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  max-width: 100%;
+  min-width: 0;
+  scroll-margin-block: 5rem;
+}
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+:where(.overflow-x-auto) {
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+:where(dialog) {
+  max-width: calc(100% - 2rem);
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+/* Shared readable type scale; rem units respect browser preferences. */
+:root {
+  --text-small: 1rem;
+  --text-body: 1rem;
+  --text-card-title: 1.25rem;
+  --text-section-title: 1.5rem;
+  --text-page-title: clamp(1.5rem, 1.25rem + 1vw, 2rem);
+}
+html { font-size: 100%; }
+body { font-size: var(--text-body); line-height: 1.5; }
+:is([class~="text-[9px]"], [class~="text-[10px]"],
+    [class~="text-[11px]"], [class~="text-[12px]"],
+    [class~="text-[12.5px]"], [class~="text-[13px]"]) {
+  font-size: var(--text-small) !important;
+  line-height: 1.5;
+}
+button, input:not([type="checkbox"]):not([type="radio"]), select, textarea { min-height: 2.75rem; }
+button { white-space: normal; overflow-wrap: anywhere; }
+textarea { line-height: 1.5; }
+:where(h1, h2, h3, h4, p, label, dt, dd) { overflow-wrap: anywhere; }
+:where(.flex, .grid) > :where(div, section, article, fieldset) { min-width: 0; }
+/* Content previously styled as small must remain easy to read in every portal. */
+body .text-xs, body .text-sm {
+  font-size: var(--text-body) !important;
+  line-height: 1.5;
+}
+small { font-size: var(--text-small); line-height: 1.5; }
+/* Counter badges need enough room when their text grows or counts gain digits. */
+body :is(.text-xs, .text-sm).h-4 {
+  height: auto;
+  min-height: 1.5rem;
+  min-width: 1.5rem;
+  padding-inline: .2rem;
+}
+/* Custom utility sizes follow the same 16px minimum as body copy. */
+body :is(.text-base, [class~="text-[15px]"], [class~="text-[17px]"], [class~="text-[1.05rem]"]) {
+  font-size: var(--text-body) !important;
+  line-height: 1.5;
+}

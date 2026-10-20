@@ -5,8 +5,9 @@
   const forms = new Map();
   const cache = new Map();
   let saved = null;
+  let savedText = '';
   const keys = ['province', 'city', 'barangay', 'house', 'street', 'subdivision', 'landmark'];
-  const labels = ['Province', 'City/Municipality', 'Barangay', 'House/Unit Number (optional)', 'Street', 'Subdivision/Purok/Sitio (optional)', 'Landmark/Additional Directions (optional)'];
+  const labels = ['Province', 'City / Municipality', 'Barangay', 'House / Unit Number (optional)', 'Street / Road', 'Subdivision / Building / Purok (optional)', 'Landmark / Additional Directions (optional)'];
   async function locations(level, parent = '') {
     const key = `${level}/${parent}`;
     if (!cache.has(key)) {
@@ -30,10 +31,17 @@
       if (!this.optional && root.dataset.addressSaved === 'true') {
         const choice = document.createElement('div');
         this.savedButton = document.createElement('button'); this.savedButton.type = 'button'; this.savedButton.textContent = 'Use saved address';
-        this.savedButton.disabled = true; this.savedButton.addEventListener('click', () => this.set(saved));
+        this.savedButton.disabled = true; this.savedButton.textContent = 'Use My Saved Address';
+        this.savedButton.addEventListener('click', () => this.chooseSaved());
         const other = document.createElement('button'); other.type = 'button'; other.textContent = 'Use a different service address';
-        other.addEventListener('click', () => this.set({}));
-        choice.append(this.savedButton, document.createTextNode(' · '), other); root.append(choice);
+        this.otherButton = other; other.textContent = 'Enter Another Address';
+        other.addEventListener('click', () => this.chooseOther());
+        choice.className = 'flex flex-wrap gap-2 mb-3';
+        [this.savedButton, other].forEach(button => {
+          button.className = 'min-h-[44px] px-3 py-2 rounded-lg border border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50 disabled:cursor-not-allowed';
+          button.setAttribute('aria-pressed', 'false');
+        });
+        choice.append(this.savedButton, other); root.append(choice);
       }
       const grid = document.createElement('div'); grid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-3'; root.append(grid);
       keys.forEach((key, index) => {
@@ -44,12 +52,13 @@
         control.id = label.htmlFor; control.name = `address_${key}`;
         control.className = root.dataset.addressStyle === 'light'
           ? 'w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base'
-          : 'w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800';
+          : 'w-full min-w-0 text-base bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-400';
         if (index < 3) {
+          control.setAttribute('aria-required', String(!this.optional));
           control.addEventListener('change', () => this.change(key));
         } else {
           control.type = 'text'; control.maxLength = 150;
-          control.addEventListener('input', () => { this.touched = true; this.data[key] = control.value; this.clearErrors(); this.sync(); });
+          control.addEventListener('input', () => { this.markEdited(); this.touched = true; this.data[key] = control.value; this.clearErrors(); this.sync(); });
         }
         this.controls[key] = control;
         const error = document.createElement('p'); error.id = `${control.id}-error`; error.className = 'text-xs text-red-500'; error.setAttribute('aria-live', 'polite');
@@ -63,6 +72,24 @@
       note.textContent = this.optional ? 'Albay addresses only. Optional. Save a complete location to reuse it for home service. Existing addresses are preserved until you edit these fields.' : 'Albay addresses only. Enter a house/unit, street, or subdivision/purok/sitio. This service address is saved with this request; it does not change your profile.';
       root.append(note);
       this.set({});
+    }
+    chooseSaved() {
+      if (this.savedButton?.disabled) return;
+      if (this.mode === 'other') this.otherDraft = { ...this.data };
+      this.mode = 'saved'; this.updateChoice();
+      return this.set(saved);
+    }
+    markEdited() {
+      if (this.savedButton) { this.mode = 'other'; this.updateChoice(); }
+    }
+    chooseOther() {
+      if (this.mode === 'other') return;
+      this.mode = 'other'; this.updateChoice();
+      return this.set(this.otherDraft || {});
+    }
+    updateChoice() {
+      this.savedButton?.setAttribute('aria-pressed', String(this.mode === 'saved'));
+      this.otherButton?.setAttribute('aria-pressed', String(this.mode === 'other'));
     }
     fill(key, rows, placeholder) {
       const select = this.controls[key]; if (!select) return;
@@ -104,6 +131,7 @@
       finally { if (version === this.version) this.busy = false; }
     }
     change(key) {
+      this.markEdited();
       this.touched = true;
       const next = { ...this.data, [key]: this.controls[key].value };
       if (key === 'province') { next.city = ''; next.barangay = ''; }
@@ -132,17 +160,32 @@
     prepare: (id, formData) => forms.get(id)?.prepare(formData) === true,
     errors: (id, errors) => forms.get(id)?.showErrors(errors),
     setSaved: profile => {
-      saved = profile.structuredAddress;
+      saved = profile.structuredAddress && typeof profile.structuredAddress === 'object' ? { ...profile.structuredAddress } : null;
+      savedText = profile.address || '';
       const profileForm = forms.get('profile-address');
       if (profileForm) {
         if (saved) profileForm.set(saved);
         else if (profile.address) profileForm.legacy.textContent = `Existing address: ${profile.address}. Enter structured fields to replace it.`;
       }
       locations('provinces').then(rows => {
-        for (const form of forms.values()) if (form.savedButton) form.savedButton.disabled = !saved?.city || !saved?.barangay || !rows.some(row => row.code === saved?.province);
+        for (const form of forms.values()) if (form.savedButton) {
+          form.savedButton.disabled = !saved?.city || !saved?.barangay || !rows.some(row => row.code === saved?.province);
+          form.legacy.textContent = form.savedButton.disabled
+            ? (savedText ? `Saved address: ${savedText}. Select its province, city and barangay below to use it for this request.` : 'No saved address yet. Enter the address for this request below.')
+            : `Saved address: ${savedText || saved.formatted || ''}`;
+        }
       }).catch(() => {});
     },
-    defaultService: () => forms.get('service-address')?.set(saved || {}),
+    defaultService: () => {
+      const form = forms.get('service-address');
+      if (!form) return;
+      form.otherDraft = null;
+      if (saved?.province && saved?.city && saved?.barangay) {
+        form.mode = 'saved'; form.updateChoice(); return form.set(saved);
+      }
+      form.mode = 'other'; form.updateChoice();
+      return form.set(savedText ? { street: savedText } : {});
+    },
     resetGuest: () => forms.get('guest-service-address')?.set({})
   };
   document.addEventListener('DOMContentLoaded', () => {

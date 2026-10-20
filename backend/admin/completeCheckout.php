@@ -5,6 +5,8 @@ require_once '../config/session.php';
 require_once '../config/database.php';
 require_once '../config/AuditLog.php';
 require_once '../config/CustomerNotifier.php';
+require_once '../config/Scheduling.php';
+require_once '../config/LoyaltyTier.php';
 
 sendCorsHeaders();
 AuditLog::captureRequest();
@@ -47,29 +49,32 @@ try {
         exit();
     }
 
-    // Idempotency guard: without this, re-submitting checkout for an
-    // already-Completed booking (double-click, retry, re-opened tab) would
-    // re-run the loyalty award below and credit the same booking twice.
-    if ($appointment['status'] === 'Completed') {
+    $pdo->beginTransaction();
+    $appointment = Scheduling::lockAppointment($pdo, (int) $appointment['id']);
+    if (in_array($appointment['status'], ['Cancelled', 'No-Show', 'Reviewed'], true)) {
+        $pdo->rollBack();
         http_response_code(409);
-        echo json_encode(['success' => false, 'message' => 'This booking has already been completed.']);
+        echo json_encode(['success' => false, 'message' => 'This booking is closed and cannot be checked out. Use the eligible rescheduling action first.']);
         exit();
     }
 
-    $pdo->beginTransaction();
+    // The locked appointment and unique checkout row prevent repeat rewards.
+    if (!in_array($appointment['status'], ['Confirmed','In Progress','Completed'], true)) throw new RuntimeException('This booking is not ready for checkout.');
+    if ($appointment['deposit_paid'] && (float)$appointment['deposit_amount']>0 && $appointment['deposit_recorded_by']===null) throw new RuntimeException('Verify the reservation payment before checkout.');
+    if ($appointment['paymongo_checkout_id'] && !$appointment['deposit_paid']) throw new RuntimeException('The online reservation payment is still pending.');
 
     $stmt = $pdo->prepare('SELECT id FROM payments WHERE appointment_id = ?');
     $stmt->execute([$appointment['id']]);
-    if (!$stmt->fetchColumn()) {
-        $pdo->prepare('INSERT INTO payments (appointment_id, amount, payment_method, status) VALUES (?, ?, ?, "Paid")')
-            ->execute([$appointment['id'], $appointment['total_price'], $paymentMethod]);
-    }
+    if ($stmt->fetchColumn()) throw new RuntimeException('This booking has already been paid.');
+    $verifiedDeposit = $appointment['deposit_paid'] && $appointment['deposit_recorded_by'] !== null ? (float)$appointment['deposit_amount'] : 0;
+    $balance = max(0,(float)$appointment['total_price']-$verifiedDeposit);
+    $pdo->prepare('INSERT INTO payments (appointment_id, amount, payment_method, status) VALUES (?, ?, ?, "Paid")')
+        ->execute([$appointment['id'], $balance, $paymentMethod]);
 
     $pdo->prepare("UPDATE appointments SET status = 'Completed', payment_status = 'Fully Paid' WHERE id = ?")->execute([$appointment['id']]);
 
     // Loyalty points earned on completion, same rate + per-service weighting
     // (customer scoring) as cashier/payment.php.
-    define('LOYALTY_EARN_RATE', 20); // 1 point per PHP20 of services (at 1.0x weight)
     $stmt = $pdo->prepare('
         SELECT s.price, s.loyalty_multiplier AS loyaltyMultiplier
         FROM appointment_services aps
@@ -78,10 +83,7 @@ try {
     ');
     $stmt->execute([$appointment['id']]);
     $bookedServices = $stmt->fetchAll();
-    $weightedServiceValue = array_reduce($bookedServices, fn($sum, $s) => $sum + ((float) $s['price'] * (float) $s['loyaltyMultiplier']), 0.0);
-    $baseServiceValue = array_reduce($bookedServices, fn($sum, $s) => $sum + (float) $s['price'], 0.0);
-    $scoringMultiplier = $baseServiceValue > 0 ? ($weightedServiceValue / $baseServiceValue) : 1.0;
-    $pointsEarned = (int) floor(((float) $appointment['total_price'] * $scoringMultiplier) / LOYALTY_EARN_RATE);
+    $pointsEarned = LoyaltyTier::earnedPoints((float)$appointment['total_price'], $bookedServices);
     if ($pointsEarned > 0) {
         $pdo->prepare('UPDATE customers SET loyalty_points = loyalty_points + ? WHERE id = ?')
             ->execute([$pointsEarned, $appointment['customer_id']]);
@@ -96,7 +98,11 @@ try {
     $pdo->commit();
 
     echo json_encode(['success' => true, 'message' => 'Checkout completed.']);
-} catch (PDOException $e) {
+} catch (PDOException | RuntimeException $e) {
+    if (!($e instanceof PDOException)) {
+        if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
+        http_response_code(409);echo json_encode(['success'=>false,'message'=>$e->getMessage()]);exit();
+    }
     if (isset($pdo) && $pdo->inTransaction()) {
         $pdo->rollBack();
     }

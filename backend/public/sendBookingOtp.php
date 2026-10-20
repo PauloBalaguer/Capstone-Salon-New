@@ -26,15 +26,19 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $ip_address = RateLimiter::getIpAddress();
-$otp_limiter = new RateLimiter($ip_address, 'booking_otp', 5, 3600);
+$otp_limiter = new RateLimiter($ip_address, 'booking_otp', 1, 60);
 
 if ($otp_limiter->isExceeded()) {
+    $retry = Database::getInstance()->prepare("SELECT LEAST(60, GREATEST(1, 60 - TIMESTAMPDIFF(SECOND, MAX(created_at), NOW()))) FROM rate_limit WHERE identifier = ? AND type = 'booking_otp'");
+    $retry->execute([$ip_address]);
+    $retryAfter = (int) $retry->fetchColumn();
     http_response_code(429);
-    echo json_encode(['success' => false, 'message' => 'Too many verification requests. Please wait an hour before trying again.']);
+    header('Retry-After: ' . $retryAfter);
+    echo json_encode(['success' => false, 'retryAfter' => $retryAfter, 'message' => "Please wait {$retryAfter} seconds before requesting another code."]);
     exit();
 }
 
-$email = trim($_POST['email'] ?? '');
+$email = is_string($_POST['email'] ?? null) ? trim($_POST['email']) : '';
 
 if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     http_response_code(400);
@@ -51,6 +55,7 @@ try {
     $expires = new DateTime('now + 10 minutes');
     $expires_at = $expires->format('Y-m-d H:i:s');
 
+    $pdo->beginTransaction();
     $stmt = $pdo->prepare('
         INSERT INTO booking_verifications (email, code, expires_at)
         VALUES (?, ?, ?)
@@ -58,11 +63,19 @@ try {
     ');
     $stmt->execute([$email, $code, $expires_at, $code, $expires_at]);
 
-    sendBookingOtpEmail($email, $code);
+    if (!sendBookingOtpEmail($email, $code)) {
+        // A failed resend must not invalidate a code that was already delivered.
+        $pdo->rollBack();
+        http_response_code(503);
+        echo json_encode(['success' => false, 'retryAfter' => 60, 'message' => 'We could not send your verification email. Please try again later. Your booking details have been kept.']);
+        exit();
+    }
+    $pdo->commit();
 
     http_response_code(200);
-    echo json_encode(['success' => true, 'message' => 'Verification code sent.']);
+    echo json_encode(['success' => true, 'retryAfter' => 60, 'message' => 'Verification code sent.']);
 } catch (Exception $e) {
+    if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
     error_log('Send Booking OTP Error: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'A server error occurred while sending the verification code. Please try again.']);

@@ -48,9 +48,10 @@
     .card-lift { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
     .card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(126, 34, 206, 0.35); }
   </style>
-  <link rel="stylesheet" href="../../assets/css/customer-theme.css">
+  <link rel="stylesheet" href="../../assets/css/customer-theme.css?v=type16-20261020-1">
   <script src="../../scripts/customer/theme-config.js"></script>
 <script src="../../scripts/booking-validation.js"></script>
+  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=type16-20261020-1" />
 </head>
 <body class="bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
@@ -256,6 +257,19 @@
                       <p><strong class="text-slate-500 w-16 inline-block">Stylist:</strong> <span x-text="appt.staffName"></span></p>
                       <p x-show="appt.depositAmount"><strong class="text-slate-500 w-16 inline-block">Deposit:</strong> <span x-text="formatPeso(appt.depositAmount) + ' via ' + appt.paymentMethod"></span> <span :class="appt.depositVerified ? 'text-emerald-400' : 'text-amber-400'" class="font-bold" x-text="appt.depositVerified ? '(Verified)' : '(Pending Verification)'"></span></p>
                     </div>
+                    <details class="mt-3 rounded-lg border border-slate-700 p-3 text-xs text-slate-300">
+                      <summary class="cursor-pointer font-semibold text-purple-300 py-1">View Payment Details</summary>
+                      <div class="mt-2 space-y-1" aria-live="polite">
+                        <p>Total service price: <span x-text="formatPeso(appt.price)"></span></p>
+                        <p>Verified deposit paid: <span x-text="formatPeso(appt.depositVerified ? appt.depositAmount || 0 : 0)"></span></p>
+                        <p>Remaining service balance: <strong x-text="formatPeso(appt.remainingBalance)"></strong></p>
+                        <p>Payment method: <span x-text="appt.paymentMethod || 'Not selected'"></span></p>
+                        <p>Booking status: <span x-text="appt.status"></span></p>
+                        <p>Payment status: <span x-text="appt.paymentStatus"></span></p>
+                        <p x-show="!appt.depositVerified && appt.depositAmount" class="text-amber-300">The reported reservation payment is awaiting verification. Do not pay it again while verification is pending.</p>
+                        <p x-show="appt.remainingBalance > 0 && !['Cancelled', 'No-Show'].includes(appt.status)">Pay the verified remaining balance at the branch cashier using Cash, GCash, or Maya. The cashier will confirm receipt and issue your receipt. Retail items and tips are separate.</p>
+                      </div>
+                    </details>
                   </div>
                   <p x-show="appt.status === 'Reschedule Requested'" class="text-xs font-semibold rounded-lg p-2 bg-amber-950 text-amber-300 border border-amber-800">The salon asked to move this appointment. Tap Reschedule to pick a new time — your payment carries over.</p>
                   <div class="pt-3 border-t border-slate-800 flex gap-2">
@@ -285,6 +299,19 @@
                       <p><strong class="text-slate-500 w-16 inline-block">Date:</strong> <span x-text="appt.date"></span></p>
                       <p><strong class="text-slate-500 w-16 inline-block">Stylist:</strong> <span x-text="appt.staffName"></span></p>
                     </div>
+                    <details class="mt-3 rounded-lg border border-slate-700 p-3 text-xs text-slate-300">
+                      <summary class="cursor-pointer font-semibold text-purple-300 py-1">View Payment Details</summary>
+                      <div class="mt-2 space-y-1" aria-live="polite">
+                        <p>Total service price: <span x-text="formatPeso(appt.price)"></span></p>
+                        <p>Verified deposit paid: <span x-text="formatPeso(appt.depositVerified ? appt.depositAmount || 0 : 0)"></span></p>
+                        <p>Remaining service balance: <strong x-text="formatPeso(appt.remainingBalance)"></strong></p>
+                        <p>Payment method: <span x-text="appt.paymentMethod || 'Not selected'"></span></p>
+                        <p>Booking status: <span x-text="appt.status"></span></p>
+                        <p>Payment status: <span x-text="appt.paymentStatus"></span></p>
+                        <p x-show="!appt.depositVerified && appt.depositAmount" class="text-amber-300">The reported reservation payment is awaiting verification. Do not pay it again while verification is pending.</p>
+                        <p x-show="appt.remainingBalance > 0 && !['Cancelled', 'No-Show'].includes(appt.status)">Pay the verified remaining balance at the branch cashier using Cash, GCash, or Maya. The cashier will confirm receipt and issue your receipt. Retail items and tips are separate.</p>
+                      </div>
+                    </details>
                   </div>
                   <p x-show="hasKeptDeposit(appt)" class="text-xs font-semibold rounded-lg p-2 bg-amber-950 text-amber-300 border border-amber-800"
                      x-text="'Your ' + formatPeso(appt.depositAmount) + ' deposit is non-refundable, but you can still use it — tap Reschedule to pick a new time.'"></p>

@@ -34,8 +34,9 @@ document.addEventListener('DOMContentLoaded', function () {
     page.classList.add('reveal-active');
     overlay.classList.add('is-open');
     cover.setAttribute('aria-hidden', 'true');
+    cover.inert = true;
     apertureBtn.setAttribute('aria-expanded', 'true');
-    setTimeout(function () { document.getElementById('login-email').focus(); }, 350);
+    setTimeout(function () { if (overlay.classList.contains('is-open')) document.getElementById('login-email').focus(); }, 350);
   }
 
   function closeReveal() {
@@ -43,6 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
     overlay.classList.remove('is-open');
     page.classList.remove('reveal-active');
     cover.removeAttribute('aria-hidden');
+    cover.inert = false;
     apertureBtn.setAttribute('aria-expanded', 'false');
     const onDone = function (e) {
       if (e && e.target !== card) return;
@@ -58,7 +60,14 @@ document.addEventListener('DOMContentLoaded', function () {
   apertureBtn.addEventListener('click', openReveal);
   closeBtn.addEventListener('click', closeReveal);
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && !overlay.hidden) closeReveal();
+    if (overlay.hidden || !overlay.classList.contains('is-open')) return;
+    if (e.key === 'Escape') closeReveal();
+    if (e.key === 'Tab') {
+      const controls = Array.from(overlay.querySelectorAll('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled])')).filter(el => el.getClientRects().length);
+      const first = controls[0], last = controls[controls.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
   });
 
   let busy = false;

@@ -2,6 +2,17 @@ function adminBookingsApp() {
   return {
     bookingFilterBranch: 'all',
     bookingFilterStatus: 'all',
+    bookingSearch: '',
+    bookingFilterPayment: 'all',
+    bookingDateFrom: '',
+    bookingDateTo: '',
+    bookingLoading: false,
+    bookingError: '',
+    bookingRequest: 0,
+    detailsBooking: null,
+    exporting: false,
+    initialized: false,
+    filterTimer: null,
 
     openStaffAssignModal: false,
     staffAssignBooking: null,
@@ -22,16 +33,66 @@ function adminBookingsApp() {
     reservationFee: '',
 
     init() {
+      if (this.initialized) return;
+      this.initialized = true;
       adminHighlightNav();
+      for (const field of ['bookingFilterBranch','bookingFilterStatus','bookingFilterPayment','bookingSearch','bookingDateFrom','bookingDateTo']) {
+        this.$watch(field, () => { clearTimeout(this.filterTimer); this.filterTimer = setTimeout(() => this.loadBookings(1), 0); });
+      }
+      this.$watch('$store.admin.bookings', () => {
+        if (this.detailsBooking) {
+          const updated = Alpine.store('admin').bookings.find(booking => booking.id === this.detailsBooking.id);
+          if (updated) this.detailsBooking = updated;
+          else this.$refs.bookingDetails.close();
+        }
+      });
     },
 
     getFilteredBookings() {
+      return Alpine.store('admin').bookings;
+    },
+
+    get pagination() { return Alpine.store('admin').bookingPagination || { page: 1, pageSize: 10, total: 0, totalPages: 1 }; },
+    get pageNumbers() {
+      const { page, totalPages } = this.pagination;
+      const first = Math.max(1, Math.min(page - 2, totalPages - 4));
+      return Array.from({length: Math.min(5, totalPages)}, (_, index) => first + index);
+    },
+    filterQuery(page = 1, pageSize = 10) {
+      return { bookingPage: page, pageSize, search: this.bookingSearch.trim(), branch: this.bookingFilterBranch,
+        status: this.bookingFilterStatus, paymentStatus: this.bookingFilterPayment, dateFrom: this.bookingDateFrom, dateTo: this.bookingDateTo };
+    },
+    async loadBookings(page = 1) {
+      const request = ++this.bookingRequest;
+      if (this.bookingDateFrom && this.bookingDateTo && this.bookingDateFrom > this.bookingDateTo) {
+        this.bookingLoading = false;
+        this.bookingError = 'The end date must be on or after the start date.'; return;
+      }
       const store = Alpine.store('admin');
-      let list = store.bookings;
-      if (this.bookingFilterBranch !== 'all') list = list.filter(b => b.branchId === this.bookingFilterBranch);
-      if (this.bookingFilterStatus === 'refunds') list = list.filter(b => ['Refund Due', 'Refund Processing'].includes(b.paymentStatus));
-      else if (this.bookingFilterStatus !== 'all') list = list.filter(b => b.status === this.bookingFilterStatus);
-      return list;
+      const query = this.filterQuery(page);
+      store.bookingQuery = query;
+      this.bookingLoading = true; this.bookingError = '';
+      try {
+        const response = await fetch(ADMIN_API_BASE + 'getDashboardData.php?' + new URLSearchParams({...query, bookingsOnly: 1}), {credentials:'same-origin'});
+        if (response.status === 401) { window.location.href = '../login/login.html'; return; }
+        const data = await response.json();
+        if (request !== this.bookingRequest) return;
+        if (!data.success) throw new Error(data.message || 'Could not load bookings.');
+        store.bookings = data.bookings;
+        store.bookingPagination = data.bookingPagination;
+        store.bookingQuery = {...query, bookingPage: data.bookingPagination.page};
+      } catch (error) { if (request === this.bookingRequest) this.bookingError = error.message || 'Could not load bookings. Please retry.'; }
+      finally { if (request === this.bookingRequest) this.bookingLoading = false; }
+    },
+    resetFilters() {
+      this.bookingSearch = ''; this.bookingFilterBranch = 'all'; this.bookingFilterStatus = 'all';
+      this.bookingFilterPayment = 'all'; this.bookingDateFrom = ''; this.bookingDateTo = '';
+      clearTimeout(this.filterTimer);
+      this.filterTimer = setTimeout(() => this.loadBookings(1), 0);
+    },
+    openBookingDetails(booking) {
+      this.detailsBooking = booking;
+      this.$nextTick(() => this.$refs.bookingDetails.showModal());
     },
 
     /* Each branch has its own configured concurrent-booking capacity (see
@@ -39,6 +100,7 @@ function adminBookingsApp() {
        flat number for every branch. */
     getCurrentSlotLimitLabel() {
       if (this.bookingFilterBranch === 'all') return 'Varies by branch';
+      if (this.bookingFilterBranch === 'off-site') return 'Not applicable (off-site)';
       const branch = Alpine.store('admin').branches.find(b => b.id === this.bookingFilterBranch);
       return branch ? branch.slotLimit + ' concurrent' : '—';
     },
@@ -120,6 +182,12 @@ function adminBookingsApp() {
 
     async updateBookingStatus(id, newStatus) {
       const store = Alpine.store('admin');
+      if (newStatus === 'In Progress') {
+        if (await AppointmentArrival.review(id, 'admin/updateBookingStatus.php')) await store.refresh();
+        return;
+      }
+      if (['Cancelled', 'No-Show'].includes(newStatus) && !confirm(
+        `Mark this booking ${newStatus}? Confirm the customer is absent before choosing No-Show; an arrived-but-late customer should use Review Arrival instead. The existing non-refundable deposit policy applies only if you confirm this closure.`)) return;
       const result = await store.post('updateBookingStatus.php', { id, status: newStatus });
       if (!result.success) {
         alert(result.message || 'Failed to update booking status.');
@@ -288,9 +356,23 @@ function adminBookingsApp() {
       this.openCheckoutModalFlag = false;
     },
 
-    exportBookingsToCSV() {
+    async exportBookingsToCSV() {
       const store = Alpine.store('admin');
-      const rows = this.getFilteredBookings().map(b => [
+      if (this.exporting || this.bookingError) return;
+      this.exporting = true;
+      try {
+      const query = this.filterQuery(1, 100);
+      const bookings = [];
+      let totalPages = 1;
+      for (let page = 1; page <= totalPages; page++) {
+        const response = await fetch(ADMIN_API_BASE + 'getDashboardData.php?' + new URLSearchParams({...query, bookingPage: page, bookingsOnly: 1}), {credentials:'same-origin'});
+        if (response.status === 401) { window.location.href = '../login/login.html'; return; }
+        const data = await response.json();
+        if (!data.success) throw new Error(data.message || 'Export failed.');
+        bookings.push(...data.bookings);
+        totalPages = data.bookingPagination.totalPages;
+      }
+      const rows = bookings.map(b => [
         b.id, b.isHomeService ? 'Off-Site' : store.getBranchName(b.branchId), b.clientName, b.clientPhone,
         b.serviceName, b.staffName || 'Unassigned', b.date, b.time, b.endTime || '', b.durationMinutes || '',
         b.bookingType, b.status, b.paymentStatus || '', b.isHomeService ? '' : b.price
@@ -298,6 +380,8 @@ function adminBookingsApp() {
       store.exportRowsToCSV('bookings-export.csv',
         ['Ref ID', 'Branch', 'Client', 'Phone', 'Service', 'Staff', 'Date', 'Start Time', 'End Time', 'Duration (min)', 'Type', 'Status', 'Payment Status', 'Price'],
         rows);
+      } catch (error) { alert(error.message || 'Could not export bookings.'); }
+      finally { this.exporting = false; }
     }
   };
 }

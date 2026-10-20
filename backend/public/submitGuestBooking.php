@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 require_once __DIR__ . '/../config/BookingValidation.php';
 BookingValidation::enforce($_POST, [
-    'fullname' => ['text', true, 'your full name'],
+    'fullname' => ['name', true, 'your full name'],
     'contact' => ['mobile', true, 'a mobile number (09XXXXXXXXX)'],
     'branch' => ['id', true, 'a staff or branch selection'],
     'services' => ['ids', true, 'service or staff selections'],
@@ -216,7 +216,7 @@ try {
     if (Scheduling::branchWindowIsFull($pdo, $branchId, $appointmentDateTime, $durationMinutes)) {
         $pdo->rollBack();
         http_response_code(409);
-        echo json_encode(['success' => false, 'message' => 'This time slot is fully booked. Please select another time.']);
+        echo json_encode(['success' => false, 'message' => Scheduling::SLOT_UNAVAILABLE_MESSAGE]);
         exit();
     }
 
@@ -251,7 +251,7 @@ try {
         if ($until !== null) {
             $pdo->rollBack();
             http_response_code(409);
-            echo json_encode(['success' => false, 'message' => "{$stylistName} is now busy with another client until " . $until->format('g:i A') . '. Please choose another stylist or time.']);
+            echo json_encode(['success' => false, 'message' => Scheduling::SLOT_UNAVAILABLE_MESSAGE]);
             exit();
         }
         $segmentStart->modify("+{$durations[$serviceId]} minutes");
@@ -360,6 +360,11 @@ try {
 } catch (PDOException | InvalidArgumentException | RuntimeException $e) {
     if (isset($pdo) && $pdo->inTransaction()) {
         $pdo->rollBack();
+    }
+    if ($e instanceof PDOException && in_array((int) ($e->errorInfo[1] ?? 0), [1205, 1213], true)) {
+        http_response_code(409);
+        echo json_encode(['success' => false, 'conflict' => true, 'message' => Scheduling::SLOT_UNAVAILABLE_MESSAGE]);
+        exit();
     }
     http_response_code(500);
     error_log('submitGuestBooking error: ' . $e->getMessage());

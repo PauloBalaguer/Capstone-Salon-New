@@ -22,7 +22,15 @@ final class LoyaltyTier
     ];
 
     /** SQL condition for a visit that counts toward the tier (alias `a`). */
-    public const VISIT_CONDITION = "a.status IN ('Completed', 'Reviewed') AND a.appointment_datetime >= NOW() - INTERVAL 12 MONTH";
+    public const VISIT_CONDITION = "a.status IN ('Completed', 'Reviewed') AND a.appointment_datetime >= NOW() - INTERVAL 12 MONTH AND a.appointment_datetime <= NOW()";
+
+    /** Existing rule: 1 point/PHP20 of net services, with catalog weighting. */
+    public static function earnedPoints(float $serviceTotal, array $services): int
+    {
+        $base = array_reduce($services, fn($sum,$s)=>$sum+(float)$s['price'],0.0);
+        $weighted = array_reduce($services, fn($sum,$s)=>$sum+(float)$s['price']*(float)$s['loyaltyMultiplier'],0.0);
+        return max(0,(int)floor(($serviceTotal*($base>0?$weighted/$base:1.0))/20));
+    }
 
     public static function fromVisits(int $visits): array
     {

@@ -89,21 +89,39 @@ try {
     }
 
     $durationMinutes = Scheduling::totalDurationMinutes($pdo, $serviceIds);
-    $allSlots = Scheduling::timeSlots($branchKey);
+    $allSlots = Scheduling::timeSlots($branchKey, $date);
 
-    $slots = array_map(function ($slot) use ($pdo, $branchId, $branchKey, $date, $durationMinutes) {
+    $slots = array_map(function ($slot) use ($pdo, $branchId, $branchKey, $date, $durationMinutes, $serviceIds) {
         $slotTimestamp = strtotime("$date $slot");
         $slotDateTime = date('Y-m-d H:i:s', $slotTimestamp);
         $available = $slotTimestamp > time()
             && !Scheduling::isOutsideOperatingHours($slotDateTime, $durationMinutes, $branchKey)
             && !Scheduling::branchWindowIsFull($pdo, $branchId, $slotDateTime, $durationMinutes);
+        // Each service needs a qualified free stylist for its own segment,
+        // matching the guest form's per-service assignment.
+        $cursor = new DateTime($slotDateTime);
+        foreach ($serviceIds as $serviceId) {
+            if (!$available) break;
+            $minutes = Scheduling::totalDurationMinutes($pdo, [$serviceId]);
+            $staff = $pdo->prepare('SELECT e.id FROM employees e JOIN staff_services ss ON ss.employee_id = e.id WHERE ss.service_id = ? AND e.branch_id = ? AND e.is_active = 1');
+            $staff->execute([$serviceId, $branchId]);
+            $free = false;
+            foreach ($staff->fetchAll() as $employee) {
+                if (!Scheduling::staffHasConflict($pdo, (int) $employee['id'], $cursor->format('Y-m-d H:i:s'), $minutes)) {
+                    $free = true;
+                    break;
+                }
+            }
+            $available = $free;
+            $cursor->modify("+{$minutes} minutes");
+        }
         return [
             'time' => $slot,
             'available' => $available,
         ];
     }, $allSlots);
 
-    [$openingTime, $closingTime] = Scheduling::operatingHours($branchKey);
+    [$openingTime, $closingTime] = Scheduling::operatingHours($branchKey, $date);
     echo json_encode(['success' => true, 'branchKey' => $branchKey, 'openingTime' => $openingTime, 'closingTime' => $closingTime, 'slots' => $slots]);
 } catch (PDOException $e) {
     http_response_code(500);

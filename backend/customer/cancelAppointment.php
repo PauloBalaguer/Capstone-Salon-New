@@ -54,8 +54,7 @@ try {
         SELECT a.' . str_replace(', ', ', a.', CancellationPolicy::COLUMNS) . '
         FROM appointments a
         JOIN customers c ON c.id = a.customer_id
-        WHERE a.reference_code = ? AND c.user_id = ? AND a.status NOT IN ("Cancelled", "Completed", "Reviewed", "No-Show")
-        FOR UPDATE
+        WHERE a.reference_code = ? AND c.user_id = ?
     ');
     $stmt->execute([$referenceCode, $_SESSION['user_id']]);
     $appointment = $stmt->fetch();
@@ -66,6 +65,15 @@ try {
         echo json_encode(['success' => false, 'message' => 'Appointment not found or it can no longer be cancelled.']);
         exit();
     }
+
+    $appointment = Scheduling::lockAppointment($pdo, (int) $appointment['id']);
+    if ($appointment['status'] === 'Cancelled') {
+        $pdo->commit();
+        echo json_encode(['success' => true, 'message' => 'This appointment is already cancelled. No additional payment action was taken.', 'paymentStatus' => $appointment['payment_status']]);
+        exit();
+    }
+    if ($appointment['status'] === 'In Progress') throw new RuntimeException('Your service has already started. Please speak to the branch cashier.');
+    CancellationPolicy::validateTransition($pdo, $appointment, 'Cancelled');
 
     $outcome = CancellationPolicy::outcome($pdo, $appointment, CancellationPolicy::BY_CUSTOMER);
     if ($previewOnly) {
@@ -103,9 +111,14 @@ try {
         'message' => trim("Appointment #{$referenceCode} has been successfully cancelled. {$depositNote}"),
         'paymentStatus' => $outcome,
     ]);
-} catch (PDOException $e) {
+} catch (PDOException | RuntimeException $e) {
     if (isset($pdo) && $pdo->inTransaction()) {
         $pdo->rollBack();
+    }
+    if (!($e instanceof PDOException) || in_array((int) ($e->errorInfo[1] ?? 0), [1205, 1213], true)) {
+        http_response_code(409);
+        echo json_encode(['success' => false, 'message' => $e instanceof PDOException ? 'This booking changed. Refresh before trying again.' : $e->getMessage()]);
+        exit();
     }
     http_response_code(500);
     error_log('cancelAppointment error: ' . $e->getMessage());

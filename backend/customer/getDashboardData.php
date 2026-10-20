@@ -68,14 +68,15 @@ try {
 
     $stmt = $pdo->prepare("
         SELECT
-            a.reference_code AS id,
+            a.reference_code AS id, a.created_at AS createdAt,
             br.branch_name AS branchName,
             GROUP_CONCAT(s.service_name ORDER BY s.id SEPARATOR ', ') AS serviceName,
             a.total_price AS price,
             a.reservation_requirement AS reservationRequirement,
             a.reservation_amount_due AS amountDue,
-            GREATEST(0, a.total_price - COALESCE(a.deposit_amount, 0)) AS remainingBalance,
-            a.preferred_payment_method AS paymentMethod,
+            CASE WHEN EXISTS (SELECT 1 FROM payments p WHERE p.appointment_id = a.id AND p.status = 'Paid') THEN 0
+                ELSE GREATEST(0, a.total_price - CASE WHEN a.deposit_paid = 1 AND a.deposit_recorded_by IS NOT NULL THEN COALESCE(a.deposit_amount, 0) ELSE 0 END) END AS remainingBalance,
+            COALESCE(a.deposit_method, a.preferred_payment_method) AS paymentMethod,
             a.deposit_amount AS depositAmount,
             a.deposit_reference AS depositReference,
             a.deposit_recorded_by IS NOT NULL AS depositVerified,
@@ -93,7 +94,7 @@ try {
         LEFT JOIN services s ON s.id = aps.service_id
         WHERE a.customer_id = ?
         GROUP BY a.id
-        ORDER BY a.appointment_datetime DESC
+        ORDER BY a.created_at DESC, a.id DESC
     ");
     $stmt->execute([$customerId]);
     $appointments = array_map(function ($row) {

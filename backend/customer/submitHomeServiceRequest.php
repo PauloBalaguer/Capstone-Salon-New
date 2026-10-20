@@ -99,6 +99,12 @@ $fullRequests = HomeServiceRequest::details($eventType, $weddingPackage, $client
 
 try {
     $pdo = Database::getInstance();
+    $availability = HomeServiceRequest::availability($pdo, ['event_type'=>$eventType,'services'=>$services,'preferred_date'=>$preferredDate,'preferred_time'=>$preferredTime]);
+    if (!$availability['available']) {
+        http_response_code(409);
+        echo json_encode(['success'=>false,'conflict'=>true,'message'=>$availability['message']]);
+        exit();
+    }
     $userId = $_SESSION['user_id'];
 
     $stmt = $pdo->prepare('SELECT id FROM customers WHERE user_id = ? LIMIT 1');
@@ -124,6 +130,7 @@ try {
     $refStmt = $pdo->prepare('SELECT reference_code FROM home_service_requests WHERE id = ?');
     $refStmt->execute([$requestId]);
     $referenceCode = $refStmt->fetchColumn();
+    CustomerNotifier::notify($pdo, (int) $customerId, 'BOOKING_SUBMITTED', 'Your home service request was received and is pending admin review.', $referenceCode);
 
     echo json_encode([
         'success' => true,

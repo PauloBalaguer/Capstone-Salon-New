@@ -84,10 +84,9 @@ document.addEventListener('alpine:init', () => {
     async startService(referenceCode) {
       this.busy = true;
       try {
-        const res = await this.post('appointment/update.php', { id: referenceCode, status: 'In Progress' });
-        this.toast(res.message, res.success ? 'success' : 'error');
-        if (res.success) await this.refresh();
-        return res;
+        const changed = await AppointmentArrival.review(referenceCode, 'appointment/update.php');
+        if (changed) await this.refresh();
+        return { success: changed };
       } finally {
         this.busy = false;
       }
@@ -284,7 +283,12 @@ function staffPositionMobileNav() {
 
   let activeLink = null;
   links.forEach(link => {
-    const isActive = link.getAttribute('data-mobile-nav-page') === current;
+    const page = link.getAttribute('data-mobile-nav-page');
+    const labels = { 'dashboard.html': 'Dashboard', 'assignedAppointments.html': 'Assigned appointments', 'inventory.html': 'Inventory', 'attendance.html': 'Attendance', 'profile.html': 'Profile' };
+    link.setAttribute('aria-label', labels[page] || 'Staff navigation');
+    if (page === current) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+    const isActive = page === current;
     link.classList.toggle('text-white', isActive);
     link.classList.toggle('text-slate-400', !isActive);
     if (isActive) activeLink = link;

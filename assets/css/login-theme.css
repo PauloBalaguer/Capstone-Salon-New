@@ -3,7 +3,7 @@
     .welcome-circle { position: relative; width: 112px; height: 112px; border: 1px solid var(--sand); border-radius: 50%; display: grid; place-items: center; }
     .welcome-circle::before { content: ''; position: absolute; inset: 9px; border: 1px solid var(--gold); border-radius: 50%; transition: inset .3s; }
     .welcome-core { width: 54px; height: 54px; display: grid; place-items: center; border-radius: 50%; background: var(--teal); color: white; box-shadow: 0 12px 26px -14px rgba(0,109,111,.9); transition: transform .3s; }
-    .welcome-label { font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--teal-dark); }
+    .welcome-label { font-size: 1rem; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--teal-dark); }
     .welcome-entry:hover .welcome-circle::before { inset: 3px; }
     .welcome-entry:hover .welcome-core { transform: scale(1.08); }
     .welcome-entry:focus-visible { outline: 3px solid var(--teal); outline-offset: 8px; }
@@ -75,3 +75,5 @@
       border-radius: 999px;
       margin-top: 8px;
     }
+
+.reveal-overlay .card { max-height: calc(100dvh - 40px); }

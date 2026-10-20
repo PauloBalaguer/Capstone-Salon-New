@@ -46,12 +46,12 @@ final class Reschedule
             $sql .= ' AND c.user_id = ?';
             $params[] = $customerUserId;
         }
-        $stmt = $pdo->prepare($sql . ' LIMIT 1');
+        $stmt = $pdo->prepare($sql . ' LIMIT 1' . ($pdo->inTransaction() ? ' FOR UPDATE' : ''));
         $stmt->execute($params);
         $appointment = $stmt->fetch();
         if (!$appointment) return null;
 
-        $stmt = $pdo->prepare('SELECT service_id FROM appointment_services WHERE appointment_id = ?');
+        $stmt = $pdo->prepare('SELECT service_id FROM appointment_services WHERE appointment_id = ? ORDER BY id' . ($pdo->inTransaction() ? ' FOR UPDATE' : ''));
         $stmt->execute([$appointment['id']]);
         $appointment['service_ids'] = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
         $appointment['duration_minutes'] = Scheduling::totalDurationMinutes($pdo, $appointment['service_ids']);
@@ -128,20 +128,21 @@ final class Reschedule
         return null;
     }
 
-    /** Active stylists at the booking's branch qualified for every one of its services (current stylist first). */
+    /** Main stylists qualified for inherited services; explicit service assignments are preserved. */
     public static function qualifiedStylists(PDO $pdo, array $appointment): array
     {
         $serviceIds = $appointment['service_ids'];
         if (!$serviceIds) return [];
-        $placeholders = implode(',', array_fill(0, count($serviceIds), '?'));
         $stmt = $pdo->prepare("
             SELECT e.id, e.first_name, e.last_name, e.position
             FROM employees e
             WHERE e.branch_id = ? AND e.is_active = 1
-              AND (SELECT COUNT(DISTINCT service_id) FROM staff_services WHERE employee_id = e.id AND service_id IN ($placeholders)) = ?
+          AND NOT EXISTS (SELECT 1 FROM appointment_services aps
+              WHERE aps.appointment_id = ? AND aps.employee_id IS NULL
+              AND NOT EXISTS (SELECT 1 FROM staff_services ss WHERE ss.employee_id = e.id AND ss.service_id = aps.service_id))
             ORDER BY (e.id = ?) DESC, e.first_name ASC, e.last_name ASC
         ");
-        $stmt->execute([$appointment['branch_id'], ...$serviceIds, count($serviceIds), (int) $appointment['employee_id']]);
+        $stmt->execute([$appointment['branch_id'], $appointment['id'], (int) $appointment['employee_id']]);
         return $stmt->fetchAll();
     }
 
@@ -155,8 +156,12 @@ final class Reschedule
     {
         foreach (self::qualifiedStylists($pdo, $appointment) as $candidate) {
             if ($staffId !== null && (int) $candidate['id'] !== $staffId) continue;
-            if (!Scheduling::staffHasConflict($pdo, (int) $candidate['id'], $startDateTime, (int) $appointment['duration_minutes'], (int) $appointment['id'])) {
+            try {
+                Scheduling::validateAppointmentStaff($pdo, $appointment, $startDateTime, (int) $candidate['id']);
                 return $candidate;
+            } catch (RuntimeException $e) {
+                if ($e instanceof PDOException) throw $e;
+                // Try another main stylist; explicit per-service assignments stay fixed.
             }
         }
         return null;
@@ -181,6 +186,14 @@ final class Reschedule
 
         $pdo->beginTransaction();
         try {
+            Scheduling::lockAppointment($pdo, (int) $appointment['id']);
+            $appointment = self::load($pdo, $appointment['reference_code']);
+            if (!$appointment) throw new RuntimeException('Booking not found.');
+            if ($blocked = self::blockedReason($appointment, $byCustomer)) throw new RuntimeException($blocked);
+            if ($newDateTime === $appointment['appointment_datetime']
+                && ($staffId === null || $staffId === (int) $appointment['employee_id']) && !self::isReinstatable($appointment)) {
+                throw new RuntimeException('That is already this booking\'s schedule. Pick a different date, time, or stylist.');
+            }
             // Re-checked inside the transaction (countOverlapping locks rows)
             // so a booking made while the picker was open can't be double-booked.
             $blocked = self::unavailableReason($pdo, $appointment, $newDateTime, $staffId);
@@ -236,6 +249,9 @@ final class Reschedule
             $pdo->commit();
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();
+            if ($e instanceof PDOException && in_array((int) ($e->errorInfo[1] ?? 0), [1205, 1213], true)) {
+                throw new RuntimeException(Scheduling::STAFF_UNAVAILABLE_MESSAGE, 0, $e);
+            }
             throw $e;
         }
 

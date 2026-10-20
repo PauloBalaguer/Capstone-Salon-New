@@ -1,6 +1,6 @@
 
 /* Customer portal treatment aligned with the public site and admin workspace. */
-@import url("./admin-theme.css");
+@import url("./admin-theme.css?v=type16-20261020-1");
 
 #customer-mobile-nav {
   color: var(--admin-charcoal);
@@ -109,7 +109,7 @@ textarea {
 /* Readable text and controls across screen sizes. */
 .text-xs,
 .admin-badge {
-  font-size: 0.875rem !important;
+  font-size: 1rem !important;
   line-height: 1.5;
 }
 .text-base { font-size: 1rem; line-height: 1.5; }
@@ -152,7 +152,7 @@ main :is(input, textarea)::placeholder { color: #475569; opacity: 1; }
 
 /* Main page titles and section headings use relative, consistent sizes. */
 main > header h2 {
-  font-size: clamp(1.5rem, calc(1.25rem + 1vw), 1.75rem) !important;
+  font-size: var(--text-page-title) !important;
   line-height: 1.3;
 }
 main h3,
@@ -160,4 +160,10 @@ body > .fixed.inset-0 h3,
 body > .fixed.inset-0 h4 {
   font-size: 1.25rem !important;
   line-height: 1.4;
+}
+
+/* Keep fixed navigation and final form actions clear of phone home indicators. */
+@media (max-width: 767px) {
+  #customer-mobile-nav { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  main .pb-24 { padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px)) !important; }
 }

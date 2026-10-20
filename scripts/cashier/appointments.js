@@ -148,7 +148,7 @@ function actionsFor(b) {
   const checkout = `<a href="payment.html?ref=${encodeURIComponent(b.id)}" class="text-emerald-700 font-bold hover:underline">Checkout</a>`;
   const isDue = (b.date || '') <= localDateYmd(new Date());
   if (b.status === 'Confirmed') {
-    return `${details}${isDue ? checkout : ''}<button data-action="reassign" data-ref="${ref}" class="text-amber-700 font-bold hover:underline">${b.staffName ? 'Reassign' : 'Assign'} Staff</button>${reschedule}`;
+    return `${details}<button data-action="arrival" data-ref="${ref}" class="text-teal-700 font-bold hover:underline">Review Arrival</button>${isDue ? checkout : ''}<button data-action="reassign" data-ref="${ref}" class="text-amber-700 font-bold hover:underline">${b.staffName ? 'Reassign' : 'Assign'} Staff</button>${reschedule}`;
   }
   if (b.status === 'Reschedule Requested') {
     return `${details}${reschedule}<button data-action="cancel" data-ref="${ref}" class="text-rose-700 font-bold hover:underline">Cancel</button>`;
@@ -441,6 +441,7 @@ function wireStaticEvents() {
     const ref = btn.dataset.ref;
     switch (btn.dataset.action) {
       case 'details': showDetails(ref); break;
+      case 'arrival': AppointmentArrival.review(ref, 'cashier/updateStatus.php').then(changed => { if (changed) refreshData(); }); break;
       case 'verify': showDetails(ref); break;
       case 'confirm': openDepositModal(ref); break;
       case 'reassign': openReassignModal(ref); break;

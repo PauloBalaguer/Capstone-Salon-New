@@ -5,6 +5,7 @@ require_once '../config/session.php';
 require_once '../config/database.php';
 require_once '../config/AuditLog.php';
 require_once '../config/Scheduling.php';
+require_once '../config/HomeServiceRequest.php';
 require_once '../config/StaffNotifier.php';
 
 sendCorsHeaders();
@@ -52,6 +53,10 @@ try {
     $homeService = $stmt->fetch();
     if ($homeService !== false) {
         $homeServiceId = $homeService['id'];
+        $pdo->beginTransaction();
+        $homeService = HomeServiceRequest::lock($pdo, (int) $homeServiceId);
+        if (in_array($homeService['status'], ['Cancelled','Completed','Service in Progress'], true)) throw new RuntimeException('This request can no longer be reassigned.');
+        HomeServiceRequest::requireAvailable($pdo, $homeService, $staffIds);
 
         // A home service can have a whole team (home_service_staff); the
         // first stylist picked is the team lead (home_service_requests.employee_id).
@@ -66,19 +71,6 @@ try {
             exit();
         }
 
-        $preferredTime = $homeService['preferred_time'] ?: '09:00:00';
-        $busy = [];
-        foreach ($staffIds as $id) {
-            if (Scheduling::homeServiceStaffHasConflict($pdo, $id, $homeService['preferred_date'], $preferredTime, $homeServiceId)) {
-                $busy[] = $staffById[$id];
-            }
-        }
-        if ($busy) {
-            http_response_code(409);
-            echo json_encode(['success' => false, 'message' => implode(', ', $busy) . (count($busy) === 1 ? ' already has' : ' already have') . ' an overlapping booking (in-salon or home service) around this date and time. Unselect them or pick others.']);
-            exit();
-        }
-
         // Assigning staff to a request that's already past quoting/payment
         // naturally advances it to "Staff Assigned" -- earlier-stage requests
         // (still under review, awaiting a quote or payment) keep their
@@ -89,7 +81,6 @@ try {
         $stmt->execute([$homeServiceId]);
         $previousTeam = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
 
-        $pdo->beginTransaction();
         $pdo->prepare('DELETE FROM home_service_staff WHERE home_service_request_id = ?')->execute([$homeServiceId]);
         $add = $pdo->prepare('INSERT INTO home_service_staff (home_service_request_id, employee_id) VALUES (?, ?)');
         foreach ($staffIds as $id) $add->execute([$homeServiceId, $id]);
@@ -123,44 +114,12 @@ try {
         exit();
     }
 
-    $stmt = $pdo->prepare('SELECT id, first_name, last_name FROM employees WHERE id = ? AND branch_id = ? AND is_active = 1');
-    $stmt->execute([$staffId, $appointment['branch_id']]);
-    $staff = $stmt->fetch();
-    if (!$staff) {
-        http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Selected staff member is not available at this branch.']);
-        exit();
-    }
-
-    // Qualification: staff must cover every service on this booking.
-    $stmt = $pdo->prepare('SELECT service_id FROM appointment_services WHERE appointment_id = ?');
-    $stmt->execute([$appointment['id']]);
-    $requiredServiceIds = array_map('intval', array_column($stmt->fetchAll(), 'service_id'));
-    if (!empty($requiredServiceIds)) {
-        $placeholders = implode(',', array_fill(0, count($requiredServiceIds), '?'));
-        $stmt = $pdo->prepare("SELECT COUNT(DISTINCT service_id) FROM staff_services WHERE employee_id = ? AND service_id IN ($placeholders)");
-        $stmt->execute(array_merge([$staffId], $requiredServiceIds));
-        if ((int) $stmt->fetchColumn() !== count($requiredServiceIds)) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'This staff member does not offer every service on this booking.']);
-            exit();
-        }
-    }
-
-    // Duration-aware time-conflict: don't double-book this stylist across any
-    // overlapping window, not just the exact same start time. Broader than
-    // the Confirmed-only priority check in updateBookingStatus.php -- this
-    // mirrors submitBooking.php's booking-creation-time exclusion.
-    $durationMinutes = Scheduling::totalDurationMinutes($pdo, $requiredServiceIds);
-
     $pdo->beginTransaction();
-
-    if (Scheduling::staffHasConflict($pdo, $staffId, $appointment['appointment_datetime'], $durationMinutes, $appointment['id'])) {
-        $pdo->rollBack();
-        http_response_code(409);
-        echo json_encode(['success' => false, 'message' => 'This staff member already has an overlapping booking at this date and time.']);
-        exit();
-    }
+    $appointment = Scheduling::lockAppointment($pdo, (int) $appointment['id']);
+    Scheduling::validateAppointmentStaff($pdo, $appointment, $appointment['appointment_datetime'], $staffId);
+    $stmt = $pdo->prepare('SELECT first_name, last_name FROM employees WHERE id = ?');
+    $stmt->execute([$staffId]);
+    $staff = $stmt->fetch();
 
     $pdo->prepare('UPDATE appointments SET employee_id = ? WHERE id = ?')->execute([$staffId, $appointment['id']]);
 
@@ -172,9 +131,14 @@ try {
     $pdo->commit();
 
     echo json_encode(['success' => true, 'message' => 'Staff assigned.']);
-} catch (PDOException $e) {
+} catch (PDOException | RuntimeException $e) {
     if (isset($pdo) && $pdo->inTransaction()) {
         $pdo->rollBack();
+    }
+    if (!($e instanceof PDOException) || in_array((int) ($e->errorInfo[1] ?? 0), [1205, 1213], true)) {
+        http_response_code(409);
+        echo json_encode(['success' => false, 'message' => $e instanceof PDOException ? Scheduling::STAFF_UNAVAILABLE_MESSAGE : $e->getMessage()]);
+        exit();
     }
     http_response_code(500);
     error_log('admin assignStaff error: ' . $e->getMessage());

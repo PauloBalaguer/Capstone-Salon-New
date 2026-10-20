@@ -8,8 +8,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-  <link rel="stylesheet" href="../../assets/css/admin-theme.css">
+  <link rel="stylesheet" href="../../assets/css/admin-theme.css?v=type16-20261020-1">
   <script src="../../scripts/admin/theme-config.js"></script>
+  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=type16-20261020-1" />
 </head>
 <body class="bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="adminDashboardApp()" x-init="init()" x-cloak>
@@ -123,6 +124,11 @@
       </header>
 
       <div class="p-6 space-y-6">
+        <section class="bg-slate-900 border border-luxury-900 rounded-2xl p-5" aria-label="Collected payments overview">
+          <h3 class="text-sm text-slate-300">Net collected payments</h3>
+          <p class="text-2xl font-serif font-bold text-emerald-400 mt-1" x-text="$store.admin.formatCurrency($store.admin.getTotalRevenue())"></p>
+          <p class="text-xs text-slate-400 mt-2">All-time verified collections, including off-site payments and checkout tips, less completed refunds.</p>
+        </section>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-luxury-900 rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-luxury-500 transition-all duration-300 md:col-span-2 lg:col-span-1">
@@ -169,7 +175,7 @@
 
               <div class="grid grid-cols-2 gap-2 border-t border-slate-800/80 pt-3">
                 <div>
-                  <span class="text-xs text-slate-400 block">Total Revenue</span>
+                  <span class="text-xs text-slate-400 block">Collected Payments</span>
                   <span class="text-base font-bold text-emerald-400" x-text="$store.admin.formatCurrency(branch.revenue)"></span>
                 </div>
                 <div>

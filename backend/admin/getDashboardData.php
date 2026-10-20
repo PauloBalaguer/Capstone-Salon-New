@@ -18,6 +18,7 @@ require_once '../config/cors.php';
 require_once '../config/session.php';
 require_once '../config/database.php';
 require_once '../config/LoyaltyTier.php';
+require_once '../config/RevenueReport.php';
 require_once '../config/Scheduling.php';
 
 sendCorsHeaders();
@@ -32,7 +33,16 @@ if (!isLoggedIn() || !in_array($_SESSION['user_role'] ?? '', ['Admin'], true)) {
 try {
     $pdo = Database::getInstance();
     $userId = $_SESSION['user_id'];
+    $selection = null;
+    if (isset($_GET['bookingPage'])) {
+        require_once '../config/AdminBookingList.php';
+        $selection = AdminBookingList::select($pdo, $_GET);
+    }
+    $appointmentWhere = $selection === null ? '' : 'WHERE a.id IN (' . implode(',', array_map('intval', $selection['salonIds']) ?: [0]) . ')';
+    $homeServiceWhere = $selection === null ? '' : 'WHERE h.id IN (' . implode(',', array_map('intval', $selection['homeIds']) ?: [0]) . ')';
 
+    if (!isset($_GET['bookingsOnly']) || $selection === null) {
+    $revenueTotals = RevenueReport::totals($pdo);
     $stmt = $pdo->query("
         SELECT
             br.id, br.branch_key AS branchKey, br.branch_name AS name,
@@ -40,9 +50,7 @@ try {
             br.opening_time AS openingTime, br.closing_time AS closingTime,
             br.sunday_opening_time AS sundayOpeningTime, br.sunday_closing_time AS sundayClosingTime,
             br.slot_limit AS slotLimit,
-            (SELECT COALESCE(SUM(pay.amount), 0) FROM payments pay
-                JOIN appointments ap ON ap.id = pay.appointment_id
-                WHERE ap.branch_id = br.id AND pay.status = 'Paid') AS revenue,
+            0 AS revenue,
             (SELECT ROUND(AVG(f.rating), 1) FROM feedback f
                 JOIN appointments ap2 ON ap2.id = f.appointment_id
                 WHERE ap2.branch_id = br.id) AS rating,
@@ -53,13 +61,13 @@ try {
         WHERE br.is_active = 1
         ORDER BY br.id
     ");
-    $branches = array_map(function ($row) {
+    $branches = array_map(function ($row) use ($revenueTotals) {
         return [
             'id' => $row['branchKey'],
             'name' => $row['name'],
             'location' => $row['location'],
             'type' => $row['type'],
-            'revenue' => (float) $row['revenue'],
+            'revenue' => (float) ($revenueTotals[$row['branchKey']] ?? 0),
             'rating' => $row['rating'] !== null ? (float) $row['rating'] : 0,
             'ratingCount' => (int) $row['ratingCount'],
             'slotLimit' => (int) $row['slotLimit'],
@@ -70,9 +78,13 @@ try {
         ];
     }, $stmt->fetchAll());
 
+    }
+
     $stmt = $pdo->query("
         SELECT
             a.reference_code AS id,
+            a.created_at AS createdAt, a.notes AS notes, c.email AS clientEmail,
+            a.deposit_paid AS depositPaid, a.reservation_amount_due AS requiredAmount,
             br.branch_key AS branchId,
             CONCAT(c.first_name, ' ', c.last_name) AS clientName,
             c.phone_number AS clientPhone,
@@ -85,6 +97,11 @@ try {
             COALESCE(SUM(s.duration_minutes), 0) AS durationMinutes,
             a.status AS status,
             a.payment_status AS paymentStatus,
+            EXISTS (SELECT 1 FROM payments p WHERE p.appointment_id = a.id AND p.status = 'Paid') AS checkoutPaid,
+            (SELECT COALESCE(SUM(p.amount), 0) FROM payments p WHERE p.appointment_id = a.id AND p.status = 'Paid')
+                + CASE WHEN a.deposit_paid = 1 AND a.deposit_recorded_by IS NOT NULL
+                    AND EXISTS (SELECT 1 FROM payments p WHERE p.appointment_id = a.id AND p.status = 'Paid')
+                    THEN COALESCE(a.deposit_amount, 0) ELSE 0 END AS checkoutRevenue,
             a.total_price AS price,
             a.preferred_payment_method AS paymentMethod,
             a.deposit_amount AS depositAmount,
@@ -103,14 +120,19 @@ try {
         LEFT JOIN employees e ON e.id = a.employee_id
         LEFT JOIN appointment_services aps ON aps.appointment_id = a.id
         LEFT JOIN services s ON s.id = aps.service_id
+        $appointmentWhere
         GROUP BY a.id
-        ORDER BY a.appointment_datetime DESC
+        ORDER BY a.created_at DESC, a.reference_code DESC
     ");
     $bookings = array_map(function ($row) {
         $row['staffId'] = $row['staffId'] !== null ? (string) $row['staffId'] : null;
         $row['price'] = (float) $row['price'];
         $row['depositAmount'] = $row['depositAmount'] !== null ? (float) $row['depositAmount'] : null;
         $row['depositVerified'] = (bool) $row['depositVerified'];
+        $row['depositPaid'] = (bool) $row['depositPaid'];
+        $row['remainingBalance'] = $row['checkoutPaid'] ? 0 : max(0, $row['price'] - ($row['depositPaid'] && $row['depositVerified'] ? (float) $row['depositAmount'] : 0));
+        $row['checkoutPaid'] = (bool) $row['checkoutPaid'];
+        $row['checkoutRevenue'] = (float) $row['checkoutRevenue'];
         $row['isHomeService'] = false;
         $row['bookingType'] = $row['depositMethod'] === 'Walk-in' ? 'Walk-In' : 'Appointment';
         $row['hasConflict'] = (bool) $row['hasConflict'];
@@ -129,7 +151,7 @@ try {
     // their immutable public reference as id; internal keys stay private. ---
     $stmt = $pdo->query("
         SELECT
-            h.reference_code AS id,
+            h.reference_code AS id, h.submitted_at AS createdAt, c.email AS clientEmail,
             CONCAT(c.first_name, ' ', c.last_name) AS clientName,
             c.phone_number AS clientPhone,
             h.event_type AS eventType,
@@ -155,7 +177,8 @@ try {
         FROM home_service_requests h
         JOIN customers c ON c.id = h.customer_id
         LEFT JOIN employees e ON e.id = h.employee_id
-        ORDER BY h.submitted_at DESC
+        $homeServiceWhere
+        ORDER BY h.submitted_at DESC, h.reference_code DESC
     ");
     $homeServiceBookings = array_map(function ($row) {
         $quotePrice = $row['quotePrice'] !== null ? (float) $row['quotePrice'] : null;
@@ -166,6 +189,7 @@ try {
             : null;
         return [
             'id' => $row['id'],
+            'createdAt' => $row['createdAt'], 'clientEmail' => $row['clientEmail'],
             'branchId' => null,
             'clientName' => $row['clientName'],
             'clientPhone' => $row['clientPhone'],
@@ -202,7 +226,11 @@ try {
     }, $stmt->fetchAll());
 
     $bookings = array_merge($bookings, $homeServiceBookings);
-    usort($bookings, fn($a, $b) => strcmp($b['date'] ?? '', $a['date'] ?? ''));
+    usort($bookings, fn($a, $b) => strcmp($b['createdAt'] ?? '', $a['createdAt'] ?? '') ?: strcmp($b['id'], $a['id']));
+    if (isset($_GET['bookingsOnly']) && $selection !== null) {
+        echo json_encode(['success'=>true, 'bookings'=>$bookings, 'bookingPagination'=>$selection['pagination']]);
+        exit();
+    }
 
     $stmt = $pdo->query("
         SELECT
@@ -493,7 +521,9 @@ try {
     echo json_encode([
         'success' => true,
         'branches' => $branches,
+        'collectedRevenue' => (float) array_sum($revenueTotals),
         'bookings' => $bookings,
+        'bookingPagination' => $selection['pagination'] ?? null,
         'staffList' => $staffList,
         'cashierList' => $cashierList,
         'inventory' => $inventory,
@@ -507,6 +537,9 @@ try {
         'servicesByBranch' => $servicesByBranch,
         'services' => $services,
     ]);
+} catch (InvalidArgumentException $e) {
+    http_response_code(422);
+    echo json_encode(['success'=>false, 'message'=>$e->getMessage()]);
 } catch (PDOException $e) {
     http_response_code(500);
     error_log('admin getDashboardData error: ' . $e->getMessage());

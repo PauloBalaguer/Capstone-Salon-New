@@ -8,8 +8,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-  <link rel="stylesheet" href="../../assets/css/admin-theme.css">
+  <link rel="stylesheet" href="../../assets/css/admin-theme.css?v=type16-20261020-1">
   <script src="../../scripts/admin/theme-config.js"></script>
+  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=type16-20261020-1" />
 </head>
 <body class="bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="adminReportsApp()" x-init="init()" x-cloak>
@@ -119,7 +120,7 @@
             </div>
           </div>
 
-          <button @click="exportReportToCSV()" class="bg-emerald-900 hover:bg-emerald-800 text-white font-semibold text-xs px-4 py-2 rounded-lg transition duration-150 flex items-center gap-2">
+          <button @click="exportReportToCSV()" :disabled="reportType === 'revenue' && (collectionsLoading || collectionsError)" class="bg-emerald-900 hover:bg-emerald-800 text-white font-semibold text-xs px-4 py-2 rounded-lg transition duration-150 flex items-center gap-2 disabled:opacity-50">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
             <span>Export Report</span>
           </button>
@@ -130,7 +131,7 @@
 
         <div class="bg-slate-900 border border-luxury-900 rounded-xl p-4 flex flex-wrap items-center gap-3">
           <span class="text-xs text-slate-400 font-semibold">Report Type:</span>
-          <select x-model="reportType" class="bg-slate-950 text-slate-300 text-xs rounded-lg p-2 border border-slate-800 focus:ring-purple-500 focus:outline-none">
+          <select aria-label="Report type" x-model="reportType" class="bg-slate-950 text-slate-300 text-xs rounded-lg p-2 border border-slate-800 focus:ring-purple-500 focus:outline-none">
             <option value="appointments">Appointments</option>
             <option value="revenue">Revenue / Sales</option>
             <option value="staff">Staff Performance</option>
@@ -142,22 +143,27 @@
           </select>
 
           <span class="text-xs text-slate-400 font-semibold ml-2">Branch:</span>
-          <select x-model="reportFilterBranch" class="bg-slate-950 text-slate-300 text-xs rounded-lg p-2 border border-slate-800 focus:ring-purple-500 focus:outline-none">
-            <option value="all">All Albay Branches</option>
+          <select aria-label="Report branch" x-model="reportFilterBranch" :disabled="reportType === 'activity'" class="bg-slate-950 text-slate-300 text-xs rounded-lg p-2 border border-slate-800 focus:ring-purple-500 focus:outline-none">
+            <option value="all">All branches and off-site</option>
+            <option value="home-service">Home Service (off-site)</option>
             <template x-for="branch in $store.admin.branches" :key="branch.id">
               <option :value="branch.id" x-text="branch.name"></option>
             </template>
           </select>
 
           <span class="text-xs text-slate-400 font-semibold ml-2">Date Range:</span>
-          <input type="date" x-model="reportDateFrom" class="bg-slate-950 text-slate-300 text-xs rounded-lg p-2 border border-slate-800 focus:ring-purple-500 focus:outline-none">
+          <input type="date" aria-label="Report start date" x-model="reportDateFrom" :disabled="['staff','inventory'].includes(reportType)" class="bg-slate-950 text-slate-300 text-xs rounded-lg p-2 border border-slate-800 focus:ring-purple-500 focus:outline-none">
           <span class="text-slate-600 text-xs">to</span>
-          <input type="date" x-model="reportDateTo" class="bg-slate-950 text-slate-300 text-xs rounded-lg p-2 border border-slate-800 focus:ring-purple-500 focus:outline-none">
+          <input type="date" aria-label="Report end date" x-model="reportDateTo" :disabled="['staff','inventory'].includes(reportType)" class="bg-slate-950 text-slate-300 text-xs rounded-lg p-2 border border-slate-800 focus:ring-purple-500 focus:outline-none">
         </div>
 
+        <p x-show="['staff','inventory'].includes(reportType)" class="text-xs text-slate-400">Staff totals are all-time; inventory shows current stock. These reports use the branch filter only.</p>
+        <p x-show="reportType === 'activity'" class="text-xs text-slate-400">Activity logs use date, search and role filters. Branch filtering is not available for this log.</p>
+        <p x-show="collectionsLoading" role="status" class="text-sm text-slate-300">Loading collected payments...</p>
+        <p x-show="collectionsError" x-text="collectionsError" role="alert" class="text-sm text-rose-300"></p>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div class="bg-slate-900 border border-luxury-900 rounded-2xl p-5 shadow-xl">
-            <span class="text-xs text-slate-400 uppercase">Filtered Revenue</span>
+            <span class="text-xs text-slate-400 uppercase">Net Collected Payments</span>
             <h4 class="text-2xl font-serif font-bold text-emerald-400 mt-1" x-text="$store.admin.formatCurrency(getReportTotalRevenue())"></h4>
             <p class="text-xs text-slate-500 mt-1">Completed bookings, current filters</p>
           </div>
@@ -194,6 +200,7 @@
           </div>
           <div class="pt-2 border-t border-slate-800">
             <h3 class="font-serif text-base font-bold text-white mb-3">Top Requested Services</h3>
+            <p class="text-xs text-slate-400 mb-3">Amounts show collections in the selected date range for the listed bookings.</p>
             <div class="space-y-2 max-h-72 overflow-y-auto">
               <template x-for="(service, index) in getServicePopularity()" :key="service.name">
                 <div class="p-3 bg-slate-950 rounded-xl border border-slate-800/80 flex justify-between items-center">
@@ -215,25 +222,32 @@
         <!-- Revenue / Sales report -->
         <div x-show="reportType === 'revenue'" class="bg-slate-900 border border-luxury-900 p-5 rounded-2xl space-y-4">
           <h3 class="font-serif text-base font-bold text-white">Branch Revenue Comparison</h3>
-          <p class="text-xs text-slate-400">Completed-booking revenue, current filters</p>
+          <p class="text-xs text-slate-400">Verified collections by payment date, including checkout tips. Reservation payments and balances are counted once; completed refunds are deducted. Unpaid balances are excluded. Legacy deposits without a recorded collection date appear only in all-time totals.</p>
           <div class="space-y-4 py-2">
             <template x-for="branch in getRevenueByBranch()" :key="branch.id">
               <div class="space-y-1.5">
                 <div class="flex justify-between text-xs">
                   <span class="font-medium text-slate-300" x-text="branch.name"></span>
-                  <span class="font-bold text-purple-400" x-text="$store.admin.formatCurrency(branch.revenue) + ' (' + safePct(branch.revenue, getReportTotalRevenue()) + '%)'"></span>
+                  <span class="font-bold text-purple-400" x-text="$store.admin.formatCurrency(branch.revenue)"></span>
                 </div>
                 <div class="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden border border-slate-800/80">
-                  <div class="bg-gradient-to-r from-luxury-500 to-gold-500 h-full rounded-full transition-all duration-1000" :style="'width: ' + safePct(branch.revenue, getReportMaxRevenue()) + '%'"></div>
+                  <div class="bg-gradient-to-r from-luxury-500 to-gold-500 h-full rounded-full transition-all duration-1000" :style="'width: ' + safePct(Math.abs(branch.revenue), getReportMaxRevenue()) + '%'"></div>
                 </div>
               </div>
             </template>
             <template x-if="getRevenueByBranch().length === 0">
-              <p class="text-slate-500 text-xs italic text-center py-6">No branches match the current filters.</p>
+              <p class="text-slate-500 text-xs italic text-center py-6">No collected payments match the current filters.</p>
             </template>
           </div>
         </div>
 
+        <div x-show="reportType === 'revenue'" class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="w-full text-left text-sm text-slate-300">
+            <caption class="text-left p-3 text-slate-300">Collected transactions — same records as CSV export</caption>
+            <thead class="bg-slate-950"><tr><th scope="col" class="p-3">Reference</th><th scope="col" class="p-3">Branch</th><th scope="col" class="p-3">Collection date</th><th scope="col" class="p-3">Transaction</th><th scope="col" class="p-3">Amount</th></tr></thead>
+            <tbody><template x-for="row in collections" :key="row.id"><tr class="border-t border-slate-800"><td class="p-3 font-mono" x-text="row.reference"></td><td class="p-3" x-text="row.branchName"></td><td class="p-3 whitespace-nowrap" x-text="row.collectedAt || 'Not recorded (legacy)'"></td><td class="p-3" x-text="row.kind"></td><td class="p-3 whitespace-nowrap" x-text="$store.admin.formatCurrency(row.amount)"></td></tr></template></tbody>
+          </table>
+        </div>
         <!-- Staff Performance report -->
         <div x-show="reportType === 'staff'" class="bg-slate-900 border border-luxury-900 p-5 rounded-2xl space-y-4">
           <h3 class="font-serif text-base font-bold text-white">Staff Performance</h3>
@@ -327,7 +341,7 @@
           <div class="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h3 class="font-serif text-base font-bold text-white">Online Payment Log</h3>
-              <p class="text-xs text-slate-400">Every PayMongo checkout, payment, expiry, webhook delivery, and deposit forfeit/refund. Newest first.</p>
+              <p class="text-xs text-slate-400">Latest 300 matching checkout, payment, expiry, webhook and refund events. CSV exports these same filtered records.</p>
             </div>
             <form @submit.prevent="loadPaymentLog()" class="flex gap-2">
               <input x-model="paymentLogSearch" type="text" placeholder="Booking reference…" class="bg-slate-950 text-slate-300 text-xs rounded-lg p-2 border border-slate-800 focus:ring-purple-500 focus:outline-none">
@@ -341,7 +355,7 @@
                 <tr><th class="p-2">Time</th><th class="p-2">Booking</th><th class="p-2">Event</th><th class="p-2">Amount</th><th class="p-2">Status</th><th class="p-2">PayMongo ID</th><th class="p-2">Details</th></tr>
               </thead>
               <tbody class="divide-y divide-slate-800">
-                <template x-for="e in paymentLog" :key="e.id">
+                <template x-for="e in getFilteredPaymentLog()" :key="e.id">
                   <tr class="text-slate-300 align-top">
                     <td class="p-2 whitespace-nowrap text-slate-400" x-text="e.createdAt"></td>
                     <td class="p-2 whitespace-nowrap font-semibold" x-text="e.reference || '—'"></td>
@@ -354,7 +368,7 @@
                 </template>
               </tbody>
             </table>
-            <p x-show="paymentLogLoaded && paymentLog.length === 0" class="text-slate-500 text-xs italic text-center py-6">No online payment events yet.</p>
+            <p x-show="paymentLogLoaded && getFilteredPaymentLog().length === 0" class="text-slate-500 text-xs italic text-center py-6">No online payment events match these filters (latest 300 matching records).</p>
           </div>
         </div>
 

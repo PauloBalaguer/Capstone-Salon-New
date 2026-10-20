@@ -16,6 +16,7 @@
 require_once '../config/cors.php';
 require_once '../config/database.php';
 require_once '../config/Scheduling.php';
+require_once '../config/PayMongo.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -54,6 +55,7 @@ $appointmentDateTime = date('Y-m-d H:i:s', $appointmentTimestamp);
 
 try {
     $pdo = Database::getInstance();
+    PayMongo::releaseExpiredHolds($pdo);
 
     $stmt = $pdo->prepare('SELECT id FROM branches WHERE id = ?');
     $stmt->execute([$branchId]);
@@ -98,8 +100,12 @@ try {
             'role' => $candidate['position'] ?: '',
         ];
         if (!Scheduling::staffHasConflict($pdo, (int) $candidate['id'], $appointmentDateTime, $durationMinutes)) {
+            $entry['available'] = true;
+            $entry['status'] = 'Available';
             $staff[] = $entry;
         } else {
+            $entry['available'] = false;
+            $entry['status'] = 'Busy';
             $busy[] = $entry;
         }
     }
@@ -135,6 +141,7 @@ try {
                 'name' => trim($e['first_name'] . ' ' . $e['last_name']),
                 'role' => $e['position'] ?: '',
                 'available' => $until === null,
+                'status' => $until === null ? 'Available' : 'Busy',
                 'busyUntil' => $until ? $until->format('h:i A') : null,
             ];
         }, $qualifiedStmt->fetchAll());

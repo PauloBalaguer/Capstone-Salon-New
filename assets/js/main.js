@@ -30,22 +30,36 @@
 
   const menuBtn = document.getElementById('menuBtn');
   const mobileNav = document.getElementById('mobileNav');
+  let mobileNavPreviousOverflow = '';
   function setMobileNav(open){
     if (!mobileNav || !menuBtn) return;
+    const wasOpen = !mobileNav.classList.contains('hidden');
+    if (open && !wasOpen) mobileNavPreviousOverflow = document.body.style.overflow;
     mobileNav.classList.toggle('hidden', !open);
     mobileNav.classList.toggle('flex', open);
     menuBtn.setAttribute('aria-expanded', String(open));
-    document.body.style.overflow = open ? 'hidden' : '';
+    document.body.style.overflow = open ? 'hidden' : mobileNavPreviousOverflow;
+    if (open) mobileNav.querySelector('button, a[href]')?.focus();
+    else if (wasOpen) menuBtn.focus();
   }
   if (menuBtn && mobileNav) {
     menuBtn.addEventListener('click', () => setMobileNav(mobileNav.classList.contains('hidden')));
+    document.addEventListener('keydown', event => {
+      if (mobileNav.classList.contains('hidden')) return;
+      if (event.key === 'Escape') { event.preventDefault(); setMobileNav(false); }
+      if (event.key !== 'Tab') return;
+      const controls = [menuBtn, ...mobileNav.querySelectorAll('button:not([disabled]), a[href]')];
+      const first = controls[0], last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    });
   }
 
   /* If the phone is rotated (or the window widened) while the menu is open,
      the menu is hidden by the stylesheet but the page would stay locked,
      so it is closed properly here. */
   window.addEventListener('resize', () => {
-    if (window.innerWidth >= 1536 && mobileNav && !mobileNav.classList.contains('hidden')) {
+    if (window.matchMedia('(min-width: 1024px)').matches && mobileNav && !mobileNav.classList.contains('hidden')) {
       setMobileNav(false);
     }
   });
@@ -134,15 +148,21 @@
     renderProducts();
   }
 
+  let toastHideTimer;
   function showToast(msg) {
     const toast = document.getElementById('toast');
+    clearTimeout(toastHideTimer);
     toast.textContent = msg;
+    if (typeof toast.showPopover === 'function' && !toast.matches(':popover-open')) {
+      toast.showPopover();
+    }
     toast.classList.remove('opacity-0');
     toast.classList.add('opacity-100');
-    setTimeout(() => {
+    toastHideTimer = setTimeout(() => {
       toast.classList.remove('opacity-100');
       toast.classList.add('opacity-0');
-    }, 2500);
+      if (typeof toast.hidePopover === 'function' && toast.matches(':popover-open')) toast.hidePopover();
+    }, 6000);
   }
 
   const bookingModalOverlay = document.getElementById('bookingModalOverlay');
@@ -1437,6 +1457,7 @@
         if (btn) { btn.disabled = false; btn.textContent = 'Submit Home Service Request'; }
         if (!res.success) {
           AddressForms.errors('guest-service-address', res.errors);
+          if (res.conflict) { hsGo(2); BookingFormValidation.message(document.getElementById('hsTime'), res.message); }
           if (res.errors && Object.keys(res.errors).some(key => ['address', 'province', 'city', 'barangay', 'house', 'street', 'subdivision', 'landmark'].includes(key))) hsGo(2);
           showToast(res.message); return;
         }
@@ -2418,7 +2439,7 @@
   });
 
   document.getElementById('bookingModalForm')?.addEventListener('submit', e => {
-    if (!BookingFormValidation.fields([['#bookName', 'text'], ['#bookPhone', 'mobile'], ['#bookEmail', 'email', false], ['#bookDate', 'date']])) { e.preventDefault(); return; }
+    if (!BookingFormValidation.fields([['#bookName', 'name'], ['#bookPhone', 'mobile'], ['#bookEmail', 'email', false], ['#bookDate', 'date']])) { e.preventDefault(); return; }
     e.preventDefault();
 
     const branchId = document.getElementById('bookBranchSelect').value;
@@ -2429,12 +2450,13 @@
     const serviceIds = Array.from(document.querySelectorAll('.book-service-check:checked')).map(c => c.value);
     const serviceNames = Array.from(document.querySelectorAll('.book-service-check:checked')).map(c => c.dataset.name);
 
-    if (!branchId) { showToast('Please choose a branch'); return; }
-    if (!serviceIds.length) { showToast('Please choose at least one service'); return; }
+    BookingFormValidation.message(document.getElementById('bookSubmitBtn'), '');
+    if (!branchId) { BookingFormValidation.message(document.getElementById('bookBranchSelect'), 'Please choose a branch.'); return; }
+    if (!serviceIds.length) { BookingFormValidation.message(document.getElementById('bookSubmitBtn'), 'Please choose at least one service.'); return; }
     if (!bookDepositLocked) { showToast('Please save your deposit details before reviewing your booking'); return; }
     if (!date) { showToast('Please select a date'); return; }
-    if (!selectedSlotLabel) { showToast('Please choose an available time'); return; }
-    if (!selectedStaffId) { showToast('Please select a staff member for your appointment'); return; }
+    if (!selectedSlotLabel) { BookingFormValidation.message(document.getElementById('bookDate'), 'Please choose an available time.'); return; }
+    if (!selectedStaffId) { BookingFormValidation.message(document.getElementById('bookSubmitBtn'), 'Please select an available staff member for each service.'); return; }
     if (!name) { showToast('Please enter your full name'); return; }
     if (!/^09\d{9}$/.test(phone)) { showToast('Please enter a valid 11-digit mobile number'); return; }
     if (email && !/^\S+@\S+\.\S+$/.test(email)) { showToast('Please enter a valid email address, or leave it blank'); return; }
@@ -2520,7 +2542,11 @@
         document.getElementById('bookReviewEdit').disabled = false;
         submitBtn.textContent = 'Continue to email verification';
         if (pendingBooking !== reviewedBooking) return;
-        if (!res.success) { showToast(res.message); return; }
+        if (!res.success) {
+          showToast(res.message);
+          if (res.retryAfter) startBookOtpCooldown(res.retryAfter, submitBtn, 'Continue to email verification');
+          return;
+        }
 
         document.getElementById('bookOtpEmailLabel').textContent = email;
         document.getElementById('bookingFormPanel').classList.add('hidden');
@@ -2528,7 +2554,7 @@
         document.getElementById('bookingOtpPanel').classList.remove('hidden');
         document.getElementById('bookingModalBox').scrollTop = 0;
         resetBookOtpInputs();
-        startBookOtpCooldown(60);
+        startBookOtpCooldown(res.retryAfter || 60);
         document.querySelector('.book-otp-digit')?.focus();
       })
       .catch(() => {
@@ -2562,12 +2588,10 @@
     bookOtpDigits.forEach(d => d.value = '');
   }
 
-  function startBookOtpCooldown(seconds) {
+  function startBookOtpCooldown(seconds, btn = document.getElementById('bookOtpResendBtn'), baseLabel = 'Resend code') {
     let cooldown = seconds;
-    const btn = document.getElementById('bookOtpResendBtn');
-    const baseLabel = 'Resend code';
     btn.disabled = true;
-    btn.textContent = 'Resend code (' + cooldown + 's)';
+    btn.textContent = baseLabel + ' (' + cooldown + 's)';
     clearInterval(bookOtpCooldownTimer);
     bookOtpCooldownTimer = setInterval(() => {
       cooldown -= 1;
@@ -2577,7 +2601,7 @@
         btn.disabled = false;
         btn.textContent = baseLabel;
       } else {
-        btn.textContent = 'Resend code (' + cooldown + 's)';
+        btn.textContent = baseLabel + ' (' + cooldown + 's)';
       }
     }, 1000);
   }
@@ -2594,8 +2618,9 @@
       .then(r => r.json())
       .then(res => {
         showToast(res.message);
-        resetBookOtpInputs();
-        startBookOtpCooldown(60);
+        if (res.success) resetBookOtpInputs();
+        if (res.retryAfter || res.success) startBookOtpCooldown(res.retryAfter || 60);
+        else btn.disabled = false;
       })
       .catch(() => {
         showToast('A network error occurred. Please try again.');
@@ -2613,7 +2638,12 @@
   // OTP form) and without one (straight from the review step, since there's
   // nothing to verify). Same backend endpoint, same booking system, same
   // payment rules either way -- only whether otpCode is populated differs.
+  let guestBookingSubmitting = false;
   function finalizeGuestBooking(booking, otpCode, submitBtn, idleLabel) {
+    if (guestBookingSubmitting) return Promise.resolve(false);
+    guestBookingSubmitting = true;
+    submitBtn?.setAttribute('aria-busy', 'true');
+    BookingFormValidation.message(submitBtn, '');
     const formData = new FormData();
     formData.append('fullname', booking.name);
     formData.append('contact', booking.phone);
@@ -2638,6 +2668,15 @@
 
         if (!res.success) {
           showToast(res.message);
+          BookingFormValidation.message(submitBtn, res.message || 'Could not send your booking. Please try again.');
+          if (res.errors || res.conflict) {
+            document.getElementById('bookingOtpPanel').classList.add('hidden');
+            document.getElementById('bookingReviewPanel').classList.add('hidden');
+            document.getElementById('bookingFormPanel').classList.remove('hidden');
+            const fields = {fullname:'bookName', contact:'bookPhone', email:'bookEmail', appointment_date:'bookDate', branch:'bookBranchSelect'};
+            for (const [field, error] of Object.entries(res.errors || {})) BookingFormValidation.message(document.getElementById(fields[field] || 'bookSubmitBtn'), error);
+            if (res.conflict) BookingFormValidation.message(document.getElementById('bookDate'), res.message);
+          }
           if (res.quoteChanged) {
             unlockDepositGate();
             updateDepositRequiredDisplay();
@@ -2687,14 +2726,14 @@
       })
       .catch(() => {
         if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = idleLabel; }
-        showToast('A network error occurred. Please try again.');
+        BookingFormValidation.message(submitBtn, 'Could not send your booking. Your details are saved here. Check your connection and try again.');
         return false;
-      });
+      }).finally(() => { guestBookingSubmitting = false; submitBtn?.setAttribute('aria-busy', 'false'); });
   }
 
   document.getElementById('bookingOtpForm')?.addEventListener('submit', e => {
     e.preventDefault();
-    if (!pendingBooking) return;
+    if (!pendingBooking || guestBookingSubmitting) return;
 
     const code = bookOtpDigits.map(d => d.value).join('');
     if (code.length !== bookOtpDigits.length) { showToast('Please enter the full 6-digit code.'); return; }
@@ -2705,7 +2744,7 @@
 
     finalizeGuestBooking(pendingBooking, code, submitBtn, 'Verify & submit request')
       .then(succeeded => {
-        if (!succeeded) { resetBookOtpInputs(); bookOtpDigits[0].focus(); }
+        if (!succeeded && !document.getElementById('bookingOtpPanel').classList.contains('hidden')) bookOtpDigits[0].focus();
       });
   });
 

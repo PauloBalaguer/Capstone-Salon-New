@@ -1,0 +1,11 @@
+/* Shared brand colors: accent fills and readable foregrounds. */
+:root {
+  --brand-teal: #006D6F;
+  --brand-teal-dark: #06464A;
+  --brand-gold: #E0B84C;
+  --brand-gold-ink: #805B0B;
+  --brand-cream: #FFF8EE;
+  --brand-panel: #FFFDF9;
+  --brand-ink: #222222;
+  --brand-muted: #475569;
+}

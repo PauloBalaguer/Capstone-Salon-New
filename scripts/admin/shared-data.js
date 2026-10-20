@@ -9,8 +9,12 @@ const ADMIN_API_BASE = '../../backend/admin/';
 document.addEventListener('alpine:init', () => {
   Alpine.store('admin', {
     loading: true,
+    error: '',
     branches: [],
+    collectedRevenue: null,
     bookings: [],
+    bookingQuery: location.pathname.endsWith('/appointments.html') ? { bookingPage: 1, pageSize: 10 } : null,
+    bookingPagination: null,
     staffList: [],
     cashierList: [],
     inventory: [],
@@ -25,19 +29,28 @@ document.addEventListener('alpine:init', () => {
     services: [],
 
     async refresh() {
+      if (this.error) this.loading = true;
+      this.error = '';
       try {
-        const response = await fetch(ADMIN_API_BASE + 'getDashboardData.php', { credentials: 'same-origin' });
+        const bookingQuery = this.bookingQuery ? new URLSearchParams(this.bookingQuery).toString() : '';
+        const response = await fetch(ADMIN_API_BASE + 'getDashboardData.php' + (bookingQuery ? '?' + bookingQuery : ''), { credentials: 'same-origin' });
         if (response.status === 401) {
           window.location.href = '../login/login.html';
           return;
         }
         const data = await response.json();
         if (!data.success) {
+          this.error = data.message || 'Could not load booking management data. Please retry.';
           console.error('Failed to load admin dashboard data:', data.message);
           return;
         }
         this.branches = data.branches;
-        this.bookings = data.bookings;
+        this.collectedRevenue = data.collectedRevenue ?? null;
+        if (bookingQuery === (this.bookingQuery ? new URLSearchParams(this.bookingQuery).toString() : '')) {
+          this.bookings = data.bookings;
+          this.bookingPagination = data.bookingPagination;
+          if (this.bookingQuery && data.bookingPagination) this.bookingQuery = {...this.bookingQuery, bookingPage: data.bookingPagination.page};
+        }
         this.staffList = data.staffList;
         this.cashierList = data.cashierList;
         this.inventory = data.inventory;
@@ -51,6 +64,7 @@ document.addEventListener('alpine:init', () => {
         this.servicesByBranch = data.servicesByBranch;
         this.services = data.services;
       } catch (e) {
+        this.error = 'Could not load admin data. Check your connection and retry.';
         console.error('Network error while loading admin dashboard data:', e);
       } finally {
         this.loading = false;
@@ -86,6 +100,7 @@ document.addEventListener('alpine:init', () => {
     },
 
     getBranchName(branchId) {
+      if (branchId === 'home-service') return 'Home Service (off-site)';
       const b = this.getBranch(branchId);
       return b ? b.name : 'Unknown Branch';
     },
@@ -120,7 +135,7 @@ document.addEventListener('alpine:init', () => {
     },
 
     getTotalRevenue() {
-      return this.branches.reduce((sum, b) => sum + Number(b.revenue), 0);
+      return this.collectedRevenue ?? this.branches.reduce((sum, b) => sum + Number(b.revenue), 0);
     },
 
     getMaxBranchRevenue() {

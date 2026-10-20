@@ -1,14 +1,16 @@
+@import url("./brand-palette.css");
+@import url("./responsive-base.css?v=type16-20261020-1");
 
 :root {
-  --cashier-teal: #006D6F;
-  --cashier-dark-teal: #06464A;
-  --cashier-gold: #E0B84C;
+  --cashier-teal: var(--brand-teal);
+  --cashier-dark-teal: var(--brand-teal-dark);
+  --cashier-gold: var(--brand-gold);
   --cashier-gold-dark: #B8933A;
-  --cashier-cream: #FFF8EE;
-  --cashier-panel: #FFFDF9;
+  --cashier-cream: var(--brand-cream);
+  --cashier-panel: var(--brand-panel);
   --cashier-warm: #F3E9D6;
   --cashier-border: #D9C9B4;
-  --cashier-ink: #222222;
+  --cashier-ink: var(--brand-ink);
 }
 
 html { color-scheme: light; background: var(--cashier-cream); }
@@ -143,7 +145,7 @@ textarea {
 /* Readable text and controls across screen sizes. */
 .text-xs,
 .admin-badge {
-  font-size: 0.875rem !important;
+  font-size: 1rem !important;
   line-height: 1.5;
 }
 .text-base { font-size: 1rem; line-height: 1.5; }
@@ -201,7 +203,7 @@ main :is(input, textarea)::placeholder { color: #475569; opacity: 1; }
 
 /* Main page titles and section headings use relative, consistent sizes. */
 main > header h2 {
-  font-size: clamp(1.5rem, calc(1.25rem + 1vw), 1.75rem) !important;
+  font-size: var(--text-page-title) !important;
   line-height: 1.3;
 }
 main h3,
@@ -210,3 +212,7 @@ body > .fixed.inset-0 h4 {
   font-size: 1.25rem !important;
   line-height: 1.4;
 }
+
+/* Product checkout dialog needs the same small-screen gutter as verification. */
+#productSaleModal { padding: 1rem; overflow-y: auto; }
+#productSaleModal > div { max-height: calc(100dvh - 2rem); overflow-y: auto; }

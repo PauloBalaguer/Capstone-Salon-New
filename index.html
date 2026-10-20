@@ -36,8 +36,9 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="assets/css/home-theme.css" />
+  <link rel="stylesheet" href="assets/css/home-theme.css?v=type16-20261020-1" />
 <script src="scripts/booking-validation.js"></script>
+  <link rel="stylesheet" href="assets/css/responsive-base.css?v=type16-20261020-1" />
 </head>
 
 <body class="bg-sand-100 text-ink font-body antialiased">
@@ -119,7 +120,7 @@
         </button>
         <button id="menuBtn"
           class="lg:hidden w-10 h-10 rounded-full border border-bronze/30 flex items-center justify-center text-ink"
-          aria-label="Menu" aria-expanded="false">
+          aria-label="Menu" aria-controls="mobileNav" aria-expanded="false">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="3" y1="6" x2="21" y2="6" />
             <line x1="3" y1="12" x2="21" y2="12" />
@@ -392,8 +393,8 @@
             <div>
               <label for="bookName" class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Full
                 name</label>
-              <input id="bookName" type="text" autocomplete="name" placeholder="Your name"
-                class="w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition"
+              <input id="bookName" type="text" autocomplete="name" maxlength="255" placeholder="Your name"
+                class="w-full px-4 py-2.5 border border-bronze bg-white text-ink placeholder:text-ink/50 shadow-sm rounded-xl text-base focus:outline-none focus:border-plum transition"
                 required />
             </div>
             <div>
@@ -401,15 +402,15 @@
                 class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Mobile number</label>
               <input id="bookPhone" type="tel" autocomplete="tel" inputmode="numeric" pattern="09[0-9]{9}" placeholder="09XXXXXXXXX"
                 maxlength="11"
-                class="numbers-only w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition"
+                class="numbers-only w-full px-4 py-2.5 border border-bronze bg-white text-ink placeholder:text-ink/50 shadow-sm rounded-xl text-base focus:outline-none focus:border-plum transition"
                 required />
             </div>
           </div>
           <div>
             <label for="bookEmail" class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Email
               address <span class="normal-case font-normal text-ink/35">(optional)</span></label>
-            <input id="bookEmail" type="email" autocomplete="email" placeholder="you@email.com"
-              class="w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition" />
+            <input id="bookEmail" type="email" autocomplete="email" maxlength="254" placeholder="you@email.com"
+              class="w-full px-4 py-2.5 border border-bronze bg-white text-ink placeholder:text-ink/50 shadow-sm rounded-xl text-base focus:outline-none focus:border-plum transition" />
             <p class="text-xs text-ink/40 mt-1">If you provide an email, we'll send a short code to confirm it.</p>
           </div>
 
@@ -452,7 +453,7 @@
             Review guest booking
           </button>
           <p class="text-xs text-ink/40 text-center leading-relaxed">
-            Review your guest details, then verify your email to receive a booking reference. The branch will confirm your appointment separately.
+            Review your guest details, confirm your request to receive a booking reference (email verification applies when you provide an email). The branch will confirm your appointment separately.
           </p>
         </form>
       </div>
@@ -696,9 +697,8 @@
       alt="Enlarged view" />
   </div>
 
-  <div id="toast"
-    class="fixed left-1/2 -translate-x-1/2 bottom-7 bg-ink text-white text-base font-semibold px-5 py-3 rounded-full opacity-0 pointer-events-none transition-all duration-300 z-60 whitespace-nowrap">
-    Notification
+  <div id="toast" popover="manual" role="status" aria-live="polite" aria-atomic="true"
+    class="fixed left-1/2 -translate-x-1/2 bottom-7 bg-ink text-white text-base font-semibold px-5 py-3 rounded-2xl opacity-0 pointer-events-none transition-all duration-300">
   </div>
 
   <button onclick="openBookingModal()"
@@ -2687,7 +2687,7 @@
 
   <script src="scripts/address-form.js"></script>
   <script src="scripts/service-duration.js"></script>
-  <script src="assets/js/main.js?v=home-service-aligned-1"></script>
+  <script src="assets/js/main.js?v=header18-20261020-4"></script>
 </body>
 
 </html>

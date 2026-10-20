@@ -34,6 +34,10 @@ function customerProfileMixin() {
             this.pushToast('error', body.message || 'Could not save your profile.');
             return;
           }
+          if (body.addressProfile) {
+            Object.assign(this.customerProfile, body.addressProfile);
+            AddressForms.setSaved(this.customerProfile);
+          }
           this.pushToast('success', body.message || 'Profile and preferences updated successfully!');
         })
         .catch(() => this.pushToast('error', 'A network error occurred while saving your profile.'));

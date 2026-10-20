@@ -12,8 +12,11 @@ require_once '../config/cors.php';
 require_once '../config/session.php';
 require_once '../config/database.php';
 require_once '../config/CustomerNotifier.php';
+require_once '../config/Scheduling.php';
+require_once '../config/AuditLog.php';
 
 sendCorsHeaders();
+AuditLog::captureRequest();
 header('Content-Type: application/json');
 
 if (!isLoggedIn() || ($_SESSION['user_role'] ?? null) !== 'Staff') {
@@ -69,9 +72,21 @@ try {
         exit();
     }
 
+    $pdo->beginTransaction();
+    $appointment = Scheduling::lockAppointment($pdo, (int) $appointment['id']);
     if ((int) $appointment['employee_id'] !== $employeeId) {
         http_response_code(403);
         echo json_encode(['success' => false, 'message' => 'That booking is not assigned to you.']);
+        exit();
+    }
+
+    if (filter_var($_POST['arrivalReview'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+        $review = Scheduling::arrivalReview($pdo, $appointment);
+        $review['staff'] = array_values(array_filter($review['staff'], fn($staff) => (int) $staff['id'] === $employeeId));
+        $review['canReschedule'] = false;
+        AuditLog::record($pdo, 'booking/arrival_review', 'Reviewed assigned arrival', $referenceCode, 'Payment and schedule unchanged.', $review);
+        $pdo->commit();
+        echo json_encode(['success' => true, 'review' => $review]);
         exit();
     }
 
@@ -81,12 +96,10 @@ try {
         exit();
     }
 
-    // A service can only start on its appointment day -- starting a future
-    // booking early made the stylist show "With a client" days ahead.
-    if ($status === 'In Progress' && (int) $appointment['is_future']) {
-        http_response_code(409);
-        echo json_encode(['success' => false, 'message' => 'This appointment is on a later date -- you can start it on the day itself.']);
-        exit();
+    if ($status === 'In Progress') {
+        $note = Scheduling::startAppointment($pdo, $appointment, $employeeId,
+            filter_var($_POST['arrivalConfirmed'] ?? false, FILTER_VALIDATE_BOOLEAN));
+        AuditLog::record($pdo, 'booking/arrival_started', 'Started assigned service after arrival review', $referenceCode, $note);
     }
 
     $pdo->prepare('UPDATE appointments SET status = ? WHERE id = ?')->execute([$status, $appointment['id']]);
@@ -98,8 +111,15 @@ try {
     $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "BOOKING", ?)')
         ->execute(["{$employee['name']} marked {$referenceCode} as {$status}."]);
 
+    $pdo->commit();
     echo json_encode(['success' => true, 'message' => "Booking marked as {$status}.", 'status' => $status]);
-} catch (PDOException $e) {
+} catch (PDOException | RuntimeException $e) {
+    if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
+    if (!($e instanceof PDOException) || in_array((int) ($e->errorInfo[1] ?? 0), [1205, 1213], true)) {
+        http_response_code(409);
+        echo json_encode(['success' => false, 'message' => $e instanceof PDOException ? Scheduling::STAFF_UNAVAILABLE_MESSAGE : $e->getMessage()]);
+        exit();
+    }
     http_response_code(500);
     error_log('appointment update error: ' . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'A server error occurred while updating the booking.']);

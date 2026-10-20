@@ -9,6 +9,31 @@ const HS_WEDDING_PACKAGES = { A: { price: 5000, fee: null }, B: { price: 8000, f
 
 function customerHomeServiceMixin() {
   return {
+    homeServiceError: '',
+    eventAvailabilityLoading: false,
+    homeServiceAvailability: null,
+    eventAvailabilityMessage: '',
+    eventAvailabilityRequest: 0,
+    async refreshEventAvailability() {
+      const seq = ++this.eventAvailabilityRequest;
+      this.homeServiceAvailability = null;
+      this.eventAvailabilityMessage = '';
+      this.eventAvailabilityLoading = false;
+      const f = this.homeServiceForm;
+      if (!f.preferredDate || !f.preferredTime || (f.eventType === 'Wedding' ? !f.weddingPackage : !f.services.length)) return;
+      const params = new URLSearchParams({date:f.preferredDate,time:f.preferredTime,eventType:f.eventType === 'Other' ? f.otherEventType : f.eventType,weddingPackage:f.weddingPackage});
+      f.services.forEach(s => params.append('services[]',s));
+      this.eventAvailabilityLoading = true;
+      try {
+        const response = await fetch('../../backend/public/getHomeServiceAvailability.php?' + params);
+        const body = await response.json();
+        if (seq !== this.eventAvailabilityRequest) return;
+        this.homeServiceAvailability = body.success ? body.available : null;
+        this.eventAvailabilityMessage = body.message || 'Availability could not be checked. Please try again.';
+      } catch (_) {
+        if (seq === this.eventAvailabilityRequest) this.eventAvailabilityMessage = 'Availability could not be checked. We will check again when you submit.';
+      } finally { if (seq === this.eventAvailabilityRequest) this.eventAvailabilityLoading = false; }
+    },
     hsEstimatedDp() {
       const form = this.homeServiceForm || {};
       if (form.eventType !== 'Wedding') return null;
@@ -62,7 +87,11 @@ function customerHomeServiceMixin() {
     // (see backend/admin/updateBookingStatus.php).
     getHomeServiceStatusLabel(status) {
       const labels = {
-        'Pending Review': 'Under Review',
+        'Pending Review': 'Pending Review',
+        'Payment Required': 'Awaiting Payment',
+        'Payment Being Verified': 'Payment / Schedule Under Review',
+        'Quote Ready': 'Quotation Ready',
+        'Staff Assigned': 'Confirmed — Team Assigned',
         'Confirmed': 'Confirmed',
         'Completed': 'Completed',
         'Cancelled': 'Cancelled'
@@ -82,16 +111,21 @@ function customerHomeServiceMixin() {
 
     openHomeServiceModal() {
       AddressForms.defaultService();
+      this.homeServiceError = '';
       this.homeServiceForm.preferredDate = getLocalISODate();
+      this.refreshEventAvailability();
       this.isHomeServiceSuccess = false;
       this.isHomeServiceModalOpen = true;
     },
     closeHomeServiceModal() {
+      if (this.isSubmittingHomeService) return;
       this.isHomeServiceModalOpen = false;
       this.homeServiceForm = { address: '', eventType: 'Standard Home Service', otherEventType: '', weddingPackage: '', clients: '', services: [], venueDetails: '', preferredDate: getLocalISODate(), preferredTime: '', requests: '', agreedToTerms: false };
     },
 
     submitHomeServiceRequest() {
+      if (this.isSubmittingHomeService) return;
+      this.homeServiceError = '';
       const formData = new FormData();
       if (!AddressForms.prepare('service-address', formData)) return;
       if (!BookingFormValidation.fields([
@@ -134,6 +168,7 @@ function customerHomeServiceMixin() {
           this.isSubmittingHomeService = false;
 
           if (!body.success) {
+            this.homeServiceError = body.message || 'Could not submit your home service request. Your details are still here.';
             AddressForms.errors('service-address', body.errors);
             this.pushToast('error', body.message || 'Could not submit your home service request.');
             return;
@@ -148,6 +183,7 @@ function customerHomeServiceMixin() {
         })
         .catch(() => {
           this.isSubmittingHomeService = false;
+          this.homeServiceError = 'Could not send your request. Your details are saved here. Check your connection and try again.';
           this.pushToast('error', 'A network error occurred while submitting your request.');
         });
     }

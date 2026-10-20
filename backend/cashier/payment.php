@@ -20,6 +20,9 @@ require_once '../config/database.php';
 require_once '../config/AuditLog.php';
 require_once '../config/CustomerNotifier.php';
 require_once '../config/EodLock.php';
+require_once '../config/Scheduling.php';
+require_once '../config/LoyaltyTier.php';
+require_once '../config/ReservationPayment.php';
 
 sendCorsHeaders();
 AuditLog::captureRequest();
@@ -127,6 +130,9 @@ try {
         exit();
     }
 
+    $pdo->beginTransaction();
+    $appointment = Scheduling::lockAppointment($pdo, $appointmentId);
+
     if (in_array($appointment['status'], ['Cancelled', 'No-Show'], true)) {
         http_response_code(409);
         echo json_encode(['success' => false, 'message' => 'This booking was cancelled and can no longer be paid.']);
@@ -140,12 +146,21 @@ try {
         exit();
     }
 
-    $stmt = $pdo->prepare('SELECT id FROM payments WHERE appointment_id = ?');
+    $stmt = $pdo->prepare('SELECT id FROM payments WHERE appointment_id = ? FOR UPDATE');
     $stmt->execute([$appointmentId]);
     if ($stmt->fetchColumn()) {
         http_response_code(409);
         echo json_encode(['success' => false, 'message' => 'This booking has already been paid.']);
         exit();
+    }
+    if (!in_array($appointment['status'], ['Confirmed', 'In Progress', 'Completed'], true)) {
+        throw new RuntimeException('Confirm this booking before cashier checkout.');
+    }
+    if ($appointment['deposit_paid'] && (float) $appointment['deposit_amount'] > 0 && $appointment['deposit_recorded_by'] === null) {
+        throw new RuntimeException('Verify the reservation payment before collecting the remaining balance.');
+    }
+    if ($appointment['paymongo_checkout_id'] && !$appointment['deposit_paid']) {
+        throw new RuntimeException('The online reservation payment is still pending. Check its status before checkout.');
     }
 
     $stmt = $pdo->prepare('
@@ -153,6 +168,7 @@ try {
         FROM appointment_services aps
         JOIN services s ON s.id = aps.service_id
         WHERE aps.appointment_id = ?
+        ORDER BY aps.id
     ');
     $stmt->execute([$appointmentId]);
     $services = $stmt->fetchAll();
@@ -161,7 +177,7 @@ try {
     if (!empty($products)) {
         $ids = array_column($products, 'id');
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
-        $stmt = $pdo->prepare("SELECT id, product_name AS name, branch_id, quantity_on_hand AS stock, sale_price AS price FROM inventory WHERE id IN ($placeholders) AND is_active = 1"); // archived items can't be sold
+        $stmt = $pdo->prepare("SELECT id, product_name AS name, branch_id, quantity_on_hand AS stock, sale_price AS price FROM inventory WHERE id IN ($placeholders) AND is_active = 1 ORDER BY id FOR UPDATE"); // archived items can't be sold
         $stmt->execute($ids);
         $inventoryById = [];
         foreach ($stmt->fetchAll() as $row) {
@@ -205,7 +221,7 @@ try {
     $reservationReceived = ($appointment['deposit_paid'] && $appointment['deposit_recorded_by'] !== null)
         ? (float) $appointment['deposit_amount'] : 0.0;
     $remainingBalance = max(0.0, $servicesTotal - $reservationReceived);
-    $total = $remainingBalance + $productsTotal + $tip;
+    $total = round($remainingBalance + $productsTotal + $tip, 2);
 
     $changeGiven = null;
     if ($paymentMethod === 'Cash') {
@@ -217,8 +233,6 @@ try {
         $changeGiven = round($cashReceived - $total, 2);
     }
 
-    $pdo->beginTransaction();
-
     $pdo->prepare('
         INSERT INTO payments (appointment_id, amount, tip_amount, cash_received, change_given, payment_method, status, processed_by)
         VALUES (?, ?, ?, ?, ?, ?, "Paid", ?)
@@ -229,8 +243,12 @@ try {
         INSERT INTO payment_items (payment_id, item_type, item_name, quantity, unit_price, line_total)
         VALUES (?, ?, ?, ?, ?, ?)
     ');
-    foreach ($services as $service) {
-        $price = (float) $service['price'];
+    $receiptPrices = ReservationPayment::receiptServicePrices($services, $servicesTotal);
+    if (!$services) {
+        $insItem->execute([$paymentId, 'Service', 'Booked salon services', 1, $servicesTotal, $servicesTotal]);
+    }
+    foreach ($services as $index => $service) {
+        $price = $receiptPrices[$index];
         $insItem->execute([$paymentId, 'Service', $service['name'], 1, $price, $price]);
     }
 
@@ -266,11 +284,7 @@ try {
     // trim), applied here as a price-weighted average across the
     // appointment's services so the total still tracks what was actually
     // paid (servicesTotal, which may already reflect a promo discount).
-    define('LOYALTY_EARN_RATE', 20); // 1 point per PHP20 of services (at 1.0x weight)
-    $weightedServiceValue = array_reduce($services, fn($sum, $s) => $sum + ((float) $s['price'] * (float) $s['loyaltyMultiplier']), 0.0);
-    $baseServiceValue = array_reduce($services, fn($sum, $s) => $sum + (float) $s['price'], 0.0);
-    $scoringMultiplier = $baseServiceValue > 0 ? ($weightedServiceValue / $baseServiceValue) : 1.0;
-    $pointsEarned = (int) floor(($servicesTotal * $scoringMultiplier) / LOYALTY_EARN_RATE);
+    $pointsEarned = LoyaltyTier::earnedPoints($servicesTotal, $services);
     if ($pointsEarned > 0) {
         $pdo->prepare('UPDATE customers SET loyalty_points = loyalty_points + ? WHERE id = ?')
             ->execute([$pointsEarned, $appointment['customer_id']]);
@@ -290,9 +304,15 @@ try {
         'reference' => $referenceCode,
         'paymentId' => (string) $paymentId,
     ]);
-} catch (PDOException $e) {
+} catch (PDOException | RuntimeException $e) {
     if (isset($pdo) && $pdo->inTransaction()) {
         $pdo->rollBack();
+    }
+    if (!($e instanceof PDOException) || in_array((int) ($e->errorInfo[1] ?? 0), [1062, 1205, 1213], true)) {
+        http_response_code(409);
+        echo json_encode(['success' => false, 'message' => $e instanceof PDOException
+            ? 'This checkout changed or was already processed. Refresh and check the receipt before trying again.' : $e->getMessage()]);
+        exit();
     }
     http_response_code(500);
     error_log('cashier payment error: ' . $e->getMessage());

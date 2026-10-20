@@ -8,11 +8,12 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-  <link rel="stylesheet" href="../../assets/css/admin-theme.css">
+  <link rel="stylesheet" href="../../assets/css/admin-theme.css?v=type16-20261020-1">
   <script src="../../scripts/admin/theme-config.js"></script>
 <script src="../../scripts/booking-validation.js"></script>
+  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=type16-20261020-1" />
 </head>
-<body class="bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
+<body class="admin-bookings bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="adminBookingsApp()" x-init="init()" x-cloak>
 
   <div class="h-1.5 w-full bg-gradient-to-r from-luxury-600 via-gold-500 to-luxury-800"></div>
@@ -126,18 +127,16 @@
 
       <div class="p-6 space-y-6">
 
-        <div class="bg-slate-900 border border-luxury-900 rounded-xl p-4 flex flex-wrap justify-between items-center gap-4">
-          <div class="flex items-center space-x-3 flex-wrap gap-2">
-            <span class="text-xs text-slate-400 font-semibold">Filter Branch:</span>
-            <select x-model="bookingFilterBranch" class="bg-slate-950 text-slate-300 text-xs rounded-lg p-2 border border-slate-800 focus:ring-purple-500 focus:outline-none">
-              <option value="all">All Albay Branches</option>
-              <template x-for="branch in $store.admin.branches" :key="branch.id">
-                <option :value="branch.id" x-text="branch.name"></option>
-              </template>
-            </select>
-
-            <span class="text-xs text-slate-400 font-semibold ml-2">Status:</span>
-            <select x-model="bookingFilterStatus" class="bg-slate-950 text-slate-300 text-xs rounded-lg p-2 border border-slate-800 focus:ring-purple-500 focus:outline-none">
+        <section class="booking-manager space-y-4" aria-label="Booking management">
+          <div class="booking-toolbar">
+            <div><h2>All bookings</h2><p>Salon visits, weddings and home services. Newest submissions first.</p></div>
+            <button @click="exportBookingsToCSV()" :disabled="exporting || bookingLoading || $store.admin.loading || !!bookingError || !!$store.admin.error" class="booking-button" x-text="exporting ? 'Exporting…' : 'Export filtered CSV'"></button>
+          </div>
+          <div class="booking-filters">
+            <label class="booking-search">Search bookings<input x-model.debounce.350ms="bookingSearch" type="search" placeholder="Customer name or booking reference" maxlength="150"></label>
+            <label>Branch<select x-model="bookingFilterBranch"><option value="all">All branches & off-site</option><option value="off-site">Off-site / Home Service</option><template x-for="branch in $store.admin.branches" :key="branch.id"><option :value="branch.id" x-text="branch.name"></option></template></select></label>
+            <label>Booking status
+<select x-model="bookingFilterStatus" class="bg-slate-950 text-slate-300 text-xs rounded-lg p-2 border border-slate-800 focus:ring-purple-500 focus:outline-none">
               <option value="all">All Booking Statuses</option>
               <option value="refunds">⚠ Refunds to Process</option>
               <option value="Pending">Pending Validation</option>
@@ -149,28 +148,68 @@
               <option value="Staff Assigned">Home Service: Staff Assigned</option>
               <option value="In Progress">In Progress</option>
               <option value="Service in Progress">Home Service: In Progress</option>
-              <option value="Completed">Completed / Paid</option>
+              <option value="Completed">Completed (service)</option>
               <option value="Cancelled">Cancelled</option>
-            </select>
-
-            <div class="border-l border-slate-800 h-6 mx-2"></div>
-
-            <span class="text-xs text-slate-400 font-semibold">Slot Limit:</span>
-            <span class="bg-slate-950 text-gold-400 text-xs font-bold rounded-lg px-3 py-2 border border-slate-800" x-text="getCurrentSlotLimitLabel()"></span>
+            <option value="No-Show">No-Show</option><option value="Reviewed">Reviewed</option><option value="Reschedule Requested">Reschedule Requested</option><option value="Reschedule Required">Reschedule Required</option></select>
+            </label>
+            <label>Payment status<select x-model="bookingFilterPayment"><option value="all">All payment statuses</option><template x-for="status in ['Payment Required','Awaiting Verification','Down Payment Verified','Fully Paid','Rejected','Refund Due','Refund Processing','Refunded','Forfeited']" :key="status"><option :value="status" x-text="status"></option></template></select></label>
+            <label>Appointment from<input type="date" x-model="bookingDateFrom" :max="bookingDateTo || null"></label>
+            <label>Appointment to<input type="date" x-model="bookingDateTo" :min="bookingDateFrom || null"></label>
+            <button @click="resetFilters()" class="booking-button">Clear filters</button>
           </div>
-          <div class="flex items-center gap-2">
-            <button @click="exportBookingsToCSV()" class="bg-emerald-900 hover:bg-emerald-800 text-white font-semibold text-xs px-4 py-2 rounded-lg transition duration-150 flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-              <span>Export CSV</span>
-            </button>
+          <div class="booking-toolbar booking-result-summary" aria-live="polite">
+            <p x-text="pagination.total ? 'Showing ' + ((pagination.page - 1) * pagination.pageSize + 1) + '–' + Math.min(pagination.page * pagination.pageSize, pagination.total) + ' of ' + pagination.total + ' bookings' : '0 bookings'"></p>
+            <p>Capacity: <span x-text="getCurrentSlotLimitLabel()"></span> · 10 per page</p>
           </div>
-        </div>
+          <p x-show="bookingLoading || $store.admin.loading" role="status" class="booking-empty">Loading bookings…</p>
+          <div x-show="bookingError || $store.admin.error" role="alert" class="booking-error"><span x-text="bookingError || $store.admin.error"></span> <button @click="$store.admin.error ? $store.admin.refresh() : loadBookings(pagination.page)" class="booking-button">Retry</button></div>
+          <div x-show="!bookingLoading && !$store.admin.loading && !bookingError && !$store.admin.error" :aria-busy="bookingLoading">
+            <div class="booking-table-scroll" tabindex="0" aria-label="Bookings table, scroll horizontally on smaller screens">
+              <table class="booking-table"><caption class="sr-only">Booking management, sorted by newest submission</caption>
+                <thead><tr><th scope="col">Reference</th><th scope="col">Customer</th><th scope="col">Service / Event</th><th scope="col">Branch</th><th scope="col">Staff</th><th scope="col">Appointment</th><th scope="col">Booking status</th><th scope="col">Payment status</th><th scope="col">Actions</th></tr></thead>
+                <tbody><template x-for="booking in getFilteredBookings()" :key="booking.id"><tr>
+                  <td><span class="booking-reference" x-text="booking.id"></span><small x-text="booking.createdAt"></small></td>
+                  <td><strong x-text="booking.clientName"></strong><small x-text="booking.clientPhone"></small></td>
+                  <td><span class="booking-truncate" x-text="booking.eventType || booking.serviceName || 'Not specified'" :title="booking.eventType || booking.serviceName"></span><small x-text="booking.bookingType"></small></td>
+                  <td><span class="booking-truncate" x-text="booking.isHomeService ? 'Off-site' : $store.admin.getBranchName(booking.branchId)" :title="booking.isHomeService ? 'Off-site / Home Service' : $store.admin.getBranchName(booking.branchId)"></span></td>
+                  <td><span class="booking-truncate" x-text="booking.staffName || 'Unassigned'" :title="booking.staffName"></span></td>
+                  <td><span x-text="booking.date || 'Not scheduled'"></span><small x-text="booking.time || 'Time not specified'"></small></td>
+                  <td><span :class="$store.admin.getStatusBadgeClass(booking.status)" x-text="booking.status"></span></td>
+                  <td><span class="booking-payment-status" x-text="booking.paymentStatus || 'Not recorded'"></span></td>
+                  <td><button @click="openBookingDetails(booking)" :aria-label="'View details and actions for ' + booking.id" class="booking-button booking-button-primary">View Details</button></td>
+                </tr></template></tbody>
+              </table>
+            </div>
+            <div class="booking-mobile-list"><template x-for="booking in getFilteredBookings()" :key="booking.id"><article class="booking-mobile-card">
+              <div class="booking-toolbar"><span class="booking-reference" x-text="booking.id"></span><span :class="$store.admin.getStatusBadgeClass(booking.status)" x-text="booking.status"></span></div>
+              <h3 x-text="booking.clientName"></h3><p x-text="booking.eventType || booking.serviceName || 'Not specified'"></p>
+              <dl><div><dt>Branch</dt><dd x-text="booking.isHomeService ? 'Off-site' : $store.admin.getBranchName(booking.branchId)"></dd></div><div><dt>Staff</dt><dd x-text="booking.staffName || 'Unassigned'"></dd></div><div><dt>Appointment</dt><dd x-text="(booking.date || 'Not scheduled') + ' ' + (booking.time || '')"></dd></div><div><dt>Payment</dt><dd x-text="booking.paymentStatus || 'Not recorded'"></dd></div></dl>
+              <button @click="openBookingDetails(booking)" :aria-label="'View details and actions for ' + booking.id" class="booking-button booking-button-primary">View Details & Actions</button>
+            </article></template></div>
+            <div x-show="getFilteredBookings().length === 0" class="booking-empty"><h3>No bookings match these filters</h3><p>Try another name, reference, date range or status.</p><button @click="resetFilters()" class="booking-button">Clear filters</button></div>
+          </div>
+          <nav class="booking-pagination" aria-label="Booking pages" x-show="pagination.total > 0">
+            <button @click="loadBookings(pagination.page - 1)" :disabled="bookingLoading || pagination.page <= 1" class="booking-button">Previous</button>
+            <button x-show="pageNumbers[0] > 1" @click="loadBookings(1)" :disabled="bookingLoading" class="booking-button" aria-label="First page">1 …</button>
+            <template x-for="page in pageNumbers" :key="page"><button @click="loadBookings(page)" :disabled="bookingLoading" :aria-current="page === pagination.page ? 'page' : null" :aria-label="'Page ' + page" class="booking-button" x-text="page"></button></template>
+            <button x-show="pageNumbers[pageNumbers.length - 1] < pagination.totalPages" @click="loadBookings(pagination.totalPages)" :disabled="bookingLoading" class="booking-button" aria-label="Last page" x-text="'… ' + pagination.totalPages"></button>
+            <button @click="loadBookings(pagination.page + 1)" :disabled="bookingLoading || pagination.page >= pagination.totalPages" class="booking-button">Next</button>
+          </nav>
+        </section>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <template x-for="booking in getFilteredBookings()" :key="booking.id">
+      </div>
+    </main>
+  </div>
+
+  <dialog x-ref="bookingDetails" class="booking-details-dialog" aria-modal="true" aria-labelledby="bookingDetailsTitle" @click.capture="if ($event.target.closest('button') && !$event.target.closest('[data-details-close]')) $refs.bookingDetails.close()">
+    <div class="booking-dialog-header"><h2 id="bookingDetailsTitle">Booking details & actions</h2><button type="button" data-details-close @click="$refs.bookingDetails.close()" class="booking-button" aria-label="Close booking details" autofocus>Close</button></div>
+          <template x-for="booking in detailsBooking ? [detailsBooking] : []" :key="booking.id">
             <div class="bg-slate-900 border border-luxury-900 hover:border-luxury-500 rounded-2xl p-5 shadow-xl transition space-y-4 flex flex-col justify-between">
 
               <div class="space-y-2">
+                <div class="booking-detail-metadata"><p>Submitted: <span x-text="booking.createdAt"></span></p><p x-show="booking.clientEmail">Email: <span x-text="booking.clientEmail"></span></p></div>
+                <template x-if="!booking.isHomeService"><dl class="booking-detail-finances"><div><dt>Total service price</dt><dd x-text="$store.admin.formatCurrency(booking.price)"></dd></div><div><dt>Verified reservation payment</dt><dd x-text="$store.admin.formatCurrency(booking.depositPaid && booking.depositVerified ? booking.depositAmount || 0 : 0)"></dd></div><div><dt>Remaining balance</dt><dd x-text="$store.admin.formatCurrency(booking.remainingBalance)"></dd></div><div><dt>Method</dt><dd x-text="booking.depositMethod || booking.paymentMethod || 'Not selected'"></dd></div><div><dt>Payment reference</dt><dd x-text="booking.depositReference || 'Not recorded'"></dd></div></dl></template>
+                <p x-show="booking.notes" class="text-sm whitespace-pre-line break-words" x-text="booking.notes"></p>
                 <div class="flex justify-between items-start">
                   <div>
                     <span class="text-xs text-slate-400 uppercase tracking-wider block" x-text="booking.isHomeService ? 'Off-Site / Home Service' : $store.admin.getBranchName(booking.branchId)"></span>
@@ -313,12 +352,17 @@
                 </div>
               </div>
 
-              <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between gap-2">
+              <div class="flex flex-wrap gap-2" x-show="!booking.isHomeService">
+                <button x-show="['Pending','Confirmed','Reschedule Requested','Reschedule Required'].includes(booking.status) || (booking.status === 'Cancelled' && ['Forfeited','Refund Due'].includes(booking.paymentStatus) && booking.depositAmount > 0)" @click="updateBookingStatus(booking.id, 'In Progress')" class="booking-button">Reschedule / Review availability</button>
+                <button x-show="['Pending','Confirmed','Reschedule Requested','Reschedule Required'].includes(booking.status)" @click="updateBookingStatus(booking.id, 'Cancelled')" class="booking-button">Cancel booking</button>
+                <button x-show="booking.status === 'Pending' && booking.depositAmount" @click="openConfirmDeposit(booking)" class="booking-button">Verify Payment</button>
+              </div>
+              <div class="pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
                 <template x-if="!booking.isHomeService && booking.status === 'Pending'">
                   <button @click="openConfirmDeposit(booking)" class="w-full bg-[#006D6F] hover:bg-[#06464A] text-white text-xs font-bold py-2 rounded-lg shadow-sm transition duration-150">Confirm Slot</button>
                 </template>
                 <template x-if="!booking.isHomeService && booking.status === 'Confirmed'">
-                  <button @click="updateBookingStatus(booking.id, 'In Progress')" class="w-full bg-[#006D6F] hover:bg-[#06464A] text-white text-xs font-bold py-2 rounded-lg shadow-sm transition duration-150">Check In Client</button>
+                  <div class="w-full space-y-2"><button @click="updateBookingStatus(booking.id, 'In Progress')" class="w-full bg-[#006D6F] hover:bg-[#06464A] text-white text-xs font-bold py-2 rounded-lg shadow-sm transition duration-150">Review Arrival / Check In</button><button @click="updateBookingStatus(booking.id, 'No-Show')" class="w-full text-rose-300 border border-rose-900 rounded-lg p-2 text-xs font-semibold">Mark No-Show (confirm absence)</button></div>
                 </template>
                 <template x-if="!booking.isHomeService && booking.status === 'In Progress'">
                   <button @click="openCheckoutModal(booking)" class="w-full bg-[#15803D] hover:bg-[#166534] text-white text-xs font-bold py-2 rounded-lg shadow-sm transition duration-150">Complete & Pay</button>
@@ -375,16 +419,8 @@
             </div>
           </template>
 
-          <template x-if="getFilteredBookings().length === 0">
-            <div class="md:col-span-2 lg:col-span-3 text-center py-12 bg-slate-900 border border-dashed border-luxury-900 rounded-2xl">
-              <p class="text-slate-500 text-base">No bookings match the current filters.</p>
-            </div>
-          </template>
-        </div>
 
-      </div>
-    </main>
-  </div>
+  </dialog>
 
   <!-- Collect a home service's remaining balance (cash / GCash / Maya) -->
   <div x-show="collectBalanceBooking" x-cloak class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" @keydown.escape.window="collectBalanceBooking = null">
@@ -553,6 +589,7 @@
 
   <script src="../../scripts/admin/shared-data.js"></script>
   <script src="../../scripts/service-duration.js"></script>
-  <script src="../../scripts/admin/appointments.js"></script>
+  <script src="../../scripts/appointment-arrival.js"></script>
+    <script src="../../scripts/admin/appointments.js"></script>
 </body>
 </html>

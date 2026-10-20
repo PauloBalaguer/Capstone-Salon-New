@@ -81,6 +81,27 @@ final class CancellationPolicy
         return self::holdsDeposit($appointment) ? 'Forfeited' : null;
     }
 
+    /** No automatic lateness/no-show threshold: absence is a staff decision. */
+    public static function validateTransition(PDO $pdo, array $appointment, string $next): void
+    {
+        $current = $appointment['status'];
+        if ($current === $next) return;
+        if (in_array($current, ['Cancelled', 'No-Show'], true)) {
+            throw new RuntimeException('This booking is already closed. Use the rescheduling action where eligible; do not change its status directly.');
+        }
+        if (in_array($current, ['Completed', 'Reviewed'], true) && !($current === 'Completed' && $next === 'Reviewed')) {
+            throw new RuntimeException('This service is already completed and cannot be cancelled or restarted.');
+        }
+        if ($next === 'No-Show') {
+            if ($current === 'In Progress') throw new RuntimeException('A customer whose service has started cannot be marked No-Show.');
+            $future = $pdo->prepare('SELECT NOW() < ?');
+            $future->execute([$appointment['appointment_datetime']]);
+            if ($future->fetchColumn()) throw new RuntimeException('A future appointment cannot be marked No-Show.');
+        }
+        if ($next === 'In Progress' && $current !== 'Confirmed') throw new RuntimeException('Confirm the booking before starting service.');
+        if ($next === 'Completed' && $current !== 'In Progress') throw new RuntimeException('Start the service before marking it completed.');
+    }
+
     /**
      * Applies the policy after the appointment's status was changed to
      * Cancelled/No-Show: updates the payment status, logs it, notifies the
@@ -89,8 +110,9 @@ final class CancellationPolicy
      */
     public static function apply(PDO $pdo, array $appointment, string $trigger): string
     {
-        $pdo->prepare('UPDATE appointments SET cancelled_at = COALESCE(cancelled_at, NOW()) WHERE id = ?')
-            ->execute([$appointment['id']]);
+        $close = $pdo->prepare("UPDATE appointments SET cancelled_at = NOW() WHERE id = ? AND cancelled_at IS NULL AND status IN ('Cancelled', 'No-Show')");
+        $close->execute([$appointment['id']]);
+        if ($close->rowCount() !== 1) return ''; // Repeated closure is a no-op.
 
         if ($appointment['employee_id']) {
             Waitlist::notifyOpening($pdo, (int) $appointment['employee_id'], $appointment['appointment_datetime']);
@@ -99,7 +121,9 @@ final class CancellationPolicy
         $outcome = self::outcome($pdo, $appointment, $trigger);
         if ($outcome === null) return '';
 
-        $pdo->prepare('UPDATE appointments SET payment_status = ? WHERE id = ?')->execute([$outcome, $appointment['id']]);
+        $payment = $pdo->prepare('UPDATE appointments SET payment_status = ? WHERE id = ? AND payment_status = ?');
+        $payment->execute([$outcome, $appointment['id'], $appointment['payment_status']]);
+        if ($payment->rowCount() !== 1) return '';
         $amount = (float) $appointment['deposit_amount'];
         $peso = '₱' . number_format($amount, 2);
         $reference = $appointment['reference_code'];

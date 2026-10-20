@@ -14,8 +14,7 @@ require_once __DIR__ . '/EmailOutbox.php';
  * account email, or the OTP-verified email a guest gave when booking --
  * customers.email) unless they turned email notifications off. Queued via
  * EmailOutbox so it only goes out if the surrounding change commits.
- * Reminders are excluded because backend/cron/sendAppointmentReminders.php
- * already emails those itself.
+ * Reminders use the same queue, with scheduling handled by the reminder cron.
  */
 final class CustomerNotifier
 {
@@ -28,49 +27,89 @@ final class CustomerNotifier
         'REFUND_DUE' => 'Your reservation deposit will be refunded',
         'PAYMENT_REFUNDED' => 'Your reservation deposit has been refunded',
         'CONFIRMED' => 'Your appointment is confirmed',
-        'RESCHEDULE' => 'Your appointment needs a schedule change',
+        'RESCHEDULE' => 'Appointment schedule update',
         'CANCELLED' => 'Your appointment was cancelled',
         'COMPLETED' => 'Thank you for visiting us',
         'WAITLIST_OPENING' => 'Your preferred stylist has an opening',
-        'QUOTE_READY' => 'Your home service quote is ready — pay to confirm',
+        'QUOTE_READY' => 'Your home service quote is ready',
+        'REMINDER' => 'Appointment reminder',
+        'PAYMENT_RECEIVED' => 'Your payment was received',
     ];
 
-    public static function notify(PDO $pdo, int $customerId, string $type, string $message): void
+    public static function notify(PDO $pdo, int $customerId, string $type, string $message, ?string $reference = null): bool
     {
+        $ownsTransaction = !$pdo->inTransaction();
+        if ($ownsTransaction) $pdo->beginTransaction();
+        else $pdo->exec('SAVEPOINT customer_notification');
+        try {
         $stmt = $pdo->prepare('
-            SELECT c.user_id, c.notify_email, COALESCE(u.email, c.email) AS email
+            SELECT c.user_id, c.notify_email, c.first_name, c.last_name, COALESCE(NULLIF(u.email, \'\'), c.email) AS email
             FROM customers c LEFT JOIN users u ON u.id = c.user_id
-            WHERE c.id = ? LIMIT 1
+            WHERE c.id = ? LIMIT 1 FOR UPDATE
         ');
         $stmt->execute([$customerId]);
         $customer = $stmt->fetch();
         if (!$customer) {
-            return;
+            if ($ownsTransaction) $pdo->commit();
+            else $pdo->exec('RELEASE SAVEPOINT customer_notification');
+            return false;
         }
 
+        $reference = $reference ?? (preg_match('/\bLM-(?:[A-Z]+-)+\d{4}-\d+\b/', $message, $m) ? $m[0] : null);
+        $details = $reference ? self::bookingDetails($pdo, $customerId, $reference) : null;
+        if ($details) $message .= "\n\n" . $details['text'];
         if ($customer['user_id']) {
-            $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (?, ?, ?)')
+            $existing = $pdo->prepare('SELECT id FROM notifications WHERE user_id = ? AND type = ? AND message = ? LIMIT 1 FOR UPDATE');
+            $existing->execute([$customer['user_id'],$type,$message]);
+            if (!$existing->fetchColumn()) $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (?, ?, ?)')
                 ->execute([$customer['user_id'], $type, $message]);
         }
 
-        $reference = preg_match('/\bLM-[A-Z]+-\d{4}-\d+\b/', $message, $m) ? $m[0] : null;
         // A home service message goes to the email given on that request
         // (home_service_requests.contact_email) -- guests track, pay and
         // reschedule with it, and their shared customer record may have none.
-        if ($reference && str_starts_with($reference, 'LM-HOM-')) {
-            $stmt = $pdo->prepare('SELECT contact_email FROM home_service_requests WHERE reference_code = ? LIMIT 1');
-            $stmt->execute([$reference]);
-            $contactEmail = $stmt->fetchColumn();
-            if ($contactEmail) $customer['email'] = $contactEmail;
-        }
+        if (!empty($details['contactEmail'])) $customer['email'] = $details['contactEmail'];
 
         if (isset(self::EMAIL_SUBJECTS[$type]) && $customer['email'] && (int) $customer['notify_email'] === 1) {
-            $body = $message . ($customer['user_id']
+            $body = 'Hello ' . trim($customer['first_name'].' '.$customer['last_name']) . ",\n\n" . $message . ($customer['user_id']
                 ? "\n\nYou can view your appointment details anytime in your Leo Mejillano account."
-                : ($reference && str_starts_with($reference, 'LM-HOM-')
+                : (!empty($details['homeService'])
                     ? "\n\nTrack, pay or reschedule anytime in Track Your Home Service (Home & Events) on our website using reference {$reference} and this email address."
                     : "\n\nYou can check your booking anytime with Track a Booking on our website" . ($reference ? " using reference {$reference}." : '.')));
-            EmailOutbox::queue($pdo, $customer['email'], self::EMAIL_SUBJECTS[$type] . ($reference ? " ({$reference})" : ''), $body, $reference);
+            $subject = $type === 'PAYMENT_VERIFIED' && ($details['paymentStatus'] ?? '') === 'Fully Paid' ? 'Your full payment was received' : self::EMAIL_SUBJECTS[$type];
+            EmailOutbox::queue($pdo, $customer['email'], $subject . ($reference ? " ({$reference})" : ''), $body, $reference);
         }
+        if ($ownsTransaction) $pdo->commit();
+        else $pdo->exec('RELEASE SAVEPOINT customer_notification');
+        return true;
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) {
+                if ($ownsTransaction) $pdo->rollBack();
+                else { $pdo->exec('ROLLBACK TO SAVEPOINT customer_notification'); $pdo->exec('RELEASE SAVEPOINT customer_notification'); }
+            }
+            error_log('Customer notification could not be queued: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    private static function bookingDetails(PDO $pdo, int $customerId, string $reference): ?array
+    {
+        $stmt = $pdo->prepare("SELECT a.reference_code, a.appointment_datetime AS scheduled, a.status, a.payment_status,
+            br.branch_name, (SELECT GROUP_CONCAT(s.service_name ORDER BY aps.id SEPARATOR ', ') FROM appointment_services aps JOIN services s ON s.id = aps.service_id WHERE aps.appointment_id = a.id) AS services
+            FROM appointments a LEFT JOIN branches br ON br.id = a.branch_id WHERE a.reference_code = ? AND a.customer_id = ? LIMIT 1");
+        $stmt->execute([$reference,$customerId]); $row = $stmt->fetch(); $home = false;
+        if (!$row) {
+            $stmt = $pdo->prepare("SELECT h.reference_code, CONCAT(h.preferred_date, ' ', COALESCE(h.preferred_time,'09:00:00')) AS scheduled,
+                h.status, h.payment_status, COALESCE(br.branch_name,'Home / Event Service (off-site)') AS branch_name,
+                CONCAT(h.event_type, IF(h.wedding_package IS NULL,'',CONCAT(' — Package ',h.wedding_package))) AS services, h.contact_email
+                FROM home_service_requests h LEFT JOIN branches br ON br.id = h.branch_id WHERE h.reference_code = ? AND h.customer_id = ? LIMIT 1");
+            $stmt->execute([$reference,$customerId]); $row = $stmt->fetch(); $home = true;
+        }
+        if (!$row) return null;
+        $when = new DateTimeImmutable($row['scheduled'],new DateTimeZone('Asia/Manila'));
+        return ['homeService'=>$home,'contactEmail'=>$row['contact_email']??null,'paymentStatus'=>$row['payment_status'],
+            'text'=>"Booking reference: {$row['reference_code']}\nService / Event: ".($row['services'] ?: 'Service details available in your booking').
+            "\nScheduled time: ".$when->format('Y-m-d H:i')." (Philippine time)\nAppointment: ".$when->format('l, F j, Y, g:i A').
+            "\nBranch: {$row['branch_name']}\nBooking status: {$row['status']}\nPayment status: {$row['payment_status']}"];
     }
 }

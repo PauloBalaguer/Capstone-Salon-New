@@ -1,16 +1,18 @@
+@import url("./brand-palette.css");
+@import url("./responsive-base.css?v=type16-20261020-1");
 /* Shared styles for the login pages (login, register, forgot/reset/set
    password, verify OTP). Replaces the old compiled tailwind.build.css —
    these pages only use the component classes below, not Tailwind utilities. */
 
 :root {
-  --teal: #006d6f;
-  --teal-dark: #06464a;
-  --gold: #e0b84c;
-  --gold-dark: #b8933a;
-  --cream: #fff8ee;
-  --panel: #fffdf9;
+  --teal: var(--brand-teal);
+  --teal-dark: var(--brand-teal-dark);
+  --gold: var(--brand-gold);
+  --gold-dark: var(--brand-gold-ink);
+  --cream: var(--brand-cream);
+  --panel: var(--brand-panel);
   --sand: #e8dcc8;
-  --charcoal: #222222;
+  --charcoal: var(--brand-ink);
   --font-title: Georgia, Cambria, "Times New Roman", serif;
   --font-body: "Segoe UI", Tahoma, Verdana, Arial, sans-serif;
   --radius: 22px;
@@ -94,7 +96,7 @@ button { cursor: pointer; }
 }
 .wordmark {
   font-family: var(--font-title);
-  font-size: 15px;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   color: var(--teal-dark);
@@ -102,7 +104,7 @@ button { cursor: pointer; }
 .link-back {
   border-radius: 9999px;
   padding: 8px 16px;
-  font-size: 0.75rem;
+  font-size: 1rem;
   line-height: 1rem;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -111,7 +113,7 @@ button { cursor: pointer; }
   transition: color 250ms, background-color 250ms, border-color 250ms;
 }
 .link-back:hover { border-color: var(--teal); background: rgba(0, 109, 111, 0.05); color: var(--teal); }
-.page-note { text-align: center; font-size: 11.5px; color: rgba(34, 34, 34, 0.45); }
+.page-note { text-align: center; font-size: 1rem; color: var(--brand-muted); }
 
 /* ---------- Card ---------- */
 .card {
@@ -133,10 +135,10 @@ button { cursor: pointer; }
   margin: -6px -4px 12px;
   padding: 6px 4px;
   border-radius: 0.5rem;
-  font-size: 0.75rem;
+  font-size: 1rem;
   line-height: 1rem;
   font-weight: 600;
-  color: rgba(34, 34, 34, 0.55);
+  color: var(--brand-muted);
   transition: color 200ms;
 }
 .close-link svg { transition: translate 200ms cubic-bezier(0, 0, 0.2, 1); }
@@ -157,16 +159,16 @@ button { cursor: pointer; }
 .card-eyebrow {
   display: block;
   margin-bottom: 7px;
-  font-size: 10.5px;
+  font-size: 1rem;
   font-weight: 800;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--gold-dark);
 }
-.card-title { font-family: var(--font-title); font-size: 29px; line-height: 1.2; font-weight: 700; color: var(--charcoal); }
-.card-text { margin-top: 9px; font-size: 13.5px; line-height: 1.65; color: rgba(34, 34, 34, 0.62); }
+.card-title { font-family: var(--font-title); font-size: var(--text-page-title); line-height: 1.2; font-weight: 700; color: var(--charcoal); }
+.card-text { margin-top: 9px; font-size: 1rem; line-height: 1.65; color: rgba(34, 34, 34, 0.62); }
 .card-text strong { color: var(--teal); }
-.card-foot { text-align: center; font-size: 13px; color: rgba(34, 34, 34, 0.62); }
+.card-foot { text-align: center; font-size: 1rem; color: rgba(34, 34, 34, 0.62); }
 .card-foot + .card-foot { margin-top: 8px; }
 
 /* ---------- Form ---------- */
@@ -175,11 +177,11 @@ button { cursor: pointer; }
 .field label {
   display: block;
   margin-bottom: 6px;
-  font-size: 10.5px;
+  font-size: 1rem;
   font-weight: 800;
   letter-spacing: 0.13em;
   text-transform: uppercase;
-  color: rgba(34, 34, 34, 0.5);
+  color: var(--brand-muted);
 }
 .field-box {
   display: flex;
@@ -192,23 +194,23 @@ button { cursor: pointer; }
   transition: border-color 250ms, box-shadow 250ms;
 }
 .field-box:focus-within { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(0, 109, 111, 0.13); }
-.field-box svg { flex-shrink: 0; color: rgba(34, 34, 34, 0.4); }
+.field-box svg { flex-shrink: 0; color: var(--brand-muted); }
 .field-box input {
   flex: 1;
   min-width: 0;
   border: 0;
   background: transparent;
   padding: 12px 0;
-  font-size: 0.875rem;
+  font-size: 1rem;
   line-height: 1.25rem;
   outline: none;
 }
-.field-box input::placeholder { color: rgba(34, 34, 34, 0.32); }
+.field-box input::placeholder { color: var(--brand-muted); opacity: 1; }
 .field-box.is-wrong { border-color: #c0392b; }
-.field-error { display: none; margin-top: 5px; font-size: 0.75rem; line-height: 1rem; color: #c0392b; }
+.field-error { display: none; margin-top: 5px; font-size: 1rem; line-height: 1rem; color: #c0392b; }
 .field-error.show { display: block; }
 .field-row { display: grid; grid-template-columns: 1fr; column-gap: 18px; }
-.eye-btn { display: flex; flex-shrink: 0; padding: 4px; color: rgba(34, 34, 34, 0.4); transition: color 200ms; }
+.eye-btn { display: flex; flex-shrink: 0; padding: 4px; color: var(--brand-muted); transition: color 200ms; }
 .eye-btn:hover { color: var(--teal); }
 .form-row {
   display: flex;
@@ -216,7 +218,7 @@ button { cursor: pointer; }
   justify-content: space-between;
   gap: 14px;
   margin-bottom: 20px;
-  font-size: 13px;
+  font-size: 1rem;
 }
 .checkbox { display: flex; align-items: center; gap: 8px; cursor: pointer; color: rgba(34, 34, 34, 0.62); }
 .checkbox input { width: 15px; height: 15px; cursor: pointer; accent-color: var(--teal); }
@@ -227,7 +229,7 @@ button { cursor: pointer; }
   border-radius: 9999px;
   background: var(--teal);
   color: #fff;
-  font-size: 12.5px;
+  font-size: 1rem;
   font-weight: 800;
   letter-spacing: 0.13em;
   text-transform: uppercase;
@@ -257,7 +259,7 @@ button { cursor: pointer; }
   border-radius: 10px;
   text-align: center;
   font-family: var(--font-title);
-  font-size: 18px;
+  font-size: 1.25rem;
   color: var(--charcoal);
   background: var(--cream);
   border: 1px solid var(--sand);
@@ -279,7 +281,7 @@ button { cursor: pointer; }
   opacity: 0;
   padding: 13px 16px;
   border-radius: 13px;
-  font-size: 13.5px;
+  font-size: 1rem;
   line-height: 1.5;
   background: var(--panel);
   border: 1px solid var(--sand);
@@ -314,14 +316,14 @@ button { cursor: pointer; }
 .cover-hero { display: flex; flex-direction: column; align-items: center; gap: 16px; max-width: 560px; }
 .cover-title {
   font-family: var(--font-title);
-  font-size: clamp(34px, 6vw, 58px);
+  font-size: clamp(2rem, 1.5rem + 3vw, 3rem);
   line-height: 1.08;
   font-weight: 400;
   font-style: italic;
   color: var(--teal-dark);
 }
 .cover-title em { font-weight: 700; font-style: normal; color: var(--teal); }
-.cover-text { max-width: 400px; font-size: 14.5px; line-height: 1.7; color: rgba(34, 34, 34, 0.62); }
+.cover-text { max-width: 400px; font-size: 1rem; line-height: 1.7; color: rgba(34, 34, 34, 0.62); }
 
 /* ---------- Larger screens (≥ 640px) ---------- */
 @media (min-width: 640px) {
@@ -330,7 +332,7 @@ button { cursor: pointer; }
   .field-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .btn-main { padding: 14px; }
   .otp-row { gap: 9px; }
-  .otp-digit { border-radius: 0.75rem; font-size: 21px; }
+  .otp-digit { border-radius: 0.75rem; font-size: 1.25rem; }
   .toast { right: 24px; bottom: 24px; left: auto; max-width: 360px; }
 }
 
@@ -338,3 +340,25 @@ button { cursor: pointer; }
   .card, .spinner { animation: none; }
   .toast { transition: none; }
 }
+
+/* Prevent phone input zoom and keep validation readable. */
+.field-box input, select, textarea { font-size: 1rem; min-width: 0; }
+.field-error { font-size: 1rem; line-height: 1.5; }
+.close-link, .btn-main { min-height: 2.75rem; }
+@media (max-width: 479px) {
+  .card { padding: 24px 18px; }
+}
+
+/* Reflow enlarged labels and keep form actions comfortable to tap. */
+.card-text, .cover-text { font-size: 1rem; line-height: 1.5; }
+.card-foot, .page-note, .card-eyebrow, .field label, .field-error,
+.link-back, .close-link, .form-row, .toast { line-height: 1.5; }
+.card-text, .card-foot, .cover-text, .checkbox { color: var(--brand-muted); }
+.field label, .card-eyebrow { letter-spacing: .06em; }
+.btn-main { font-size: 1rem; line-height: 1.5; letter-spacing: .04em; }
+.top-bar, .form-row { flex-wrap: wrap; }
+.top-bar > *, .form-row > * { min-width: 0; }
+.link-back, .close-link { display: inline-flex; align-items: center; min-height: 2.75rem; }
+.eye-btn { min-width: 2.75rem; min-height: 2.75rem; align-items: center; justify-content: center; }
+.checkbox { min-height: 2.75rem; }
+.otp-digit { min-height: 2.75rem; aspect-ratio: auto; padding-block: .5rem; }

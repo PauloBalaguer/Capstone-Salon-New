@@ -94,7 +94,11 @@ try {
     $_SESSION['user_email'] = $email;
     $_SESSION['user_name'] = trim($firstName . ' ' . $lastName);
 
-    echo json_encode(['success' => true, 'message' => 'Profile and preferences updated successfully!']);
+    $response = ['success' => true, 'message' => 'Profile and preferences updated successfully!'];
+    if ($updatesAddress) {
+        $response['addressProfile'] = ['address' => $structuredAddress['formatted'] ?? null, 'structuredAddress' => $structuredAddress];
+    }
+    echo json_encode($response);
 } catch (PDOException $e) {
     if (isset($pdo) && $pdo->inTransaction()) {
         $pdo->rollBack();

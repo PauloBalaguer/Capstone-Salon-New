@@ -48,8 +48,9 @@
     .card-lift { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
     .card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(126, 34, 206, 0.35); }
   </style>
-  <link rel="stylesheet" href="../../assets/css/customer-theme.css">
+  <link rel="stylesheet" href="../../assets/css/customer-theme.css?v=type16-20261020-1">
   <script src="../../scripts/customer/theme-config.js"></script>
+  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=type16-20261020-1" />
 </head>
 <body class="bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
@@ -251,6 +252,7 @@
               <h3 class="text-xs font-semibold text-gold-400 uppercase mb-2">Loyalty Points</h3>
               <p class="text-3xl font-bold font-serif text-white" x-text="displayLoyaltyPoints"></p>
               <p class="text-xs text-slate-600" x-text="'Worth ' + formatPeso(displayLoyaltyPoints * loyaltyPointValue) + ' off your next booking'"></p>
+              <p class="text-xs text-slate-400 mt-2">Earn 1 point per ₱20 of paid, completed services, adjusted by service weighting. Each point gives ₱0.10 off a future booking.</p>
             </div>
           </div>
 

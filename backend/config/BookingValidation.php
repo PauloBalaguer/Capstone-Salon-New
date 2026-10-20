@@ -32,6 +32,10 @@ final class BookingValidation
                     case 'id': case 'quantity': $valid = self::positiveId($value); break;
                     case 'email': $valid = strlen($value) <= 254 && filter_var($value, FILTER_VALIDATE_EMAIL) !== false; break;
                     case 'mobile': $valid = preg_match('/^09[0-9]{9}$/D', $value) === 1; break;
+                    case 'name':
+                        $valid = mb_strlen($value) <= 255 && preg_match("/^[\\p{L}\\p{M} .’'\\-]+$/u", $value) === 1
+                            && preg_match('/\\p{L}/u', $value) === 1;
+                        break;
                     case 'date':
                         $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value);
                         $valid = $date && $date->format('Y-m-d') === $value;
@@ -53,6 +57,7 @@ final class BookingValidation
                 $errors[$field] = "Please enter a valid {$description}.";
                 if (in_array($type, ['id', 'ids', 'staffMap'], true)) $errors[$field] = "Please select valid {$description}.";
                 if ($type === 'quantity') $errors[$field] = 'Please enter a whole number of clients (at least 1).';
+                if ($type === 'name') $errors[$field] = 'Please enter your name using letters, spaces, apostrophes, periods or hyphens.';
                 if ($type === 'date') $errors[$field] = 'Please select a valid appointment date.';
                 if ($type === 'time') $errors[$field] = 'Please select a valid appointment time.';
                 if ($type === 'money') $errors[$field] = 'Please enter a non-negative amount with at most two decimal places.';

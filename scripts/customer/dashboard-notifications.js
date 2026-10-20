@@ -1,5 +1,4 @@
-// Toast notifications, the notification bell panel, and simulated backend
-// status updates / reminders for the customer dashboard.
+// Customer notification panel. Delivery and reminders are handled by the backend.
 
 function customerNotificationsMixin() {
   return {
@@ -52,7 +51,7 @@ function customerNotificationsMixin() {
 
     addNotification(type, message) {
       const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      this.notifications.unshift({ type, message, time, read: false, icon: this.notificationIcons[type] || this.notificationIcons['system'] });
+      this.notifications.unshift({ type, message, time, read: false, icon: this.notificationIcons[type] || this.notificationIcons[this.serverNotificationIconFor(type)] || this.notificationIcons['system'] });
     },
 
     // Maps a backend notification "type" (see backend/config/CustomerNotifier.php
@@ -63,7 +62,7 @@ function customerNotificationsMixin() {
     // render with the same look as the client-simulated ones above.
     serverNotificationIconFor(type) {
       const map = {
-        BOOKING_SUBMITTED: 'success', PAYMENT_SUBMITTED: 'system', PAYMENT_VERIFIED: 'success',
+        BOOKING_SUBMITTED: 'success', PAYMENT_SUBMITTED: 'system', PAYMENT_RECEIVED: 'success', PAYMENT_VERIFIED: 'success',
         PAYMENT_ATTENTION: 'error', CONFIRMED: 'success', REMINDER: 'reminder',
         RESCHEDULE: 'system', CANCELLED: 'error', COMPLETED: 'success',
         PAYMENT_FORFEITED: 'error', REFUND_DUE: 'system', PAYMENT_REFUNDED: 'success', WAITLIST_OPENING: 'reminder'
@@ -88,34 +87,27 @@ function customerNotificationsMixin() {
     },
 
     sendBookingConfirmation(appointment) {
-      this.addNotification('success', `Booking request ${appointment.id} received.`);
-      if (this.customerProfile.notificationPrefs.email) {
-        this.addNotification('email', `Booking confirmation sent to ${this.customerProfile.email} for appointment ${appointment.id}.`);
-      }
-      if (this.customerProfile.notificationPrefs.sms) {
-        this.addNotification('sms', `Booking confirmation sent to ${this.customerProfile.phone} for appointment ${appointment.id}.`);
-      }
+      if (this.notifications.some(n => n.type === 'BOOKING_SUBMITTED' && n.message.includes(appointment.id))) return;
+      const details = [appointment.serviceName, appointment.branchName,
+        [appointment.date, appointment.time].filter(Boolean).join(' '),
+        appointment.status ? `Booking status: ${appointment.status}` : ''].filter(Boolean).join('\n');
+      this.addNotification('BOOKING_SUBMITTED', `Booking request ${appointment.id} received.\n${details}\nCheck its status in My Appointments.`);
     },
 
     checkForReminders() {
-      // Needs getUpcomingAppointments(), which only exists on pages that
-      // also load dashboard-appointments.js.
-      if (!this.getUpcomingAppointments) return;
-
-      const now = new Date();
-      const reminderThreshold = 24 * 60 * 60 * 1000;
-      this.getUpcomingAppointments().forEach(appt => {
-        if (appt.reminderSent || !['Pending', 'Confirmed'].includes(appt.status)) return;
-        const apptDateTime = parseApptDateTime(appt.date, appt.time);
-        const timeDiff = apptDateTime.getTime() - now.getTime();
-        if (timeDiff > 0 && timeDiff <= reminderThreshold) {
-          this.sendAppointmentReminder(appt);
-          appt.reminderSent = true;
-        }
-      });
-    },
-    sendAppointmentReminder(appointment) {
-      this.addNotification('reminder', `Reminder: Your appointment ${appointment.id} for "${appointment.serviceName}" is tomorrow at ${appointment.time}.`);
+      // Persisted reminders come from the scheduled backend job. Do not
+      // simulate reminders or claim email/SMS delivery in the browser.
     }
   };
 }
+
+// Keep the existing panel readable within narrow phone viewports.
+document.addEventListener('DOMContentLoaded', () => {
+  const style = document.createElement('style');
+  style.textContent = '[x-show="isNotificationPanelOpen"]{max-width:calc(100vw - 2rem);max-height:min(24rem,70dvh)}[x-show="isNotificationPanelOpen"] [x-text="notif.message"]{white-space:pre-line;overflow-wrap:anywhere;font-size:1rem;line-height:1.5}@media(max-width:640px){[x-show="isNotificationPanelOpen"]{position:fixed;top:4.5rem;right:1rem;width:calc(100vw - 2rem)}}';
+  document.head.appendChild(style);
+  document.querySelectorAll('[x-show="isNotificationPanelOpen"]').forEach(panel => {
+    panel.setAttribute('role', 'region');
+    panel.setAttribute('aria-label', 'Customer notifications');
+  });
+});

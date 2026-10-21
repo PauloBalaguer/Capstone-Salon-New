@@ -250,3 +250,28 @@ body.services-page { height: 100dvh; min-height: 0; overflow: hidden; }
 .home-request-fields dt { font-weight: 700; color: #475569; }
 .home-request-fields dd { min-width: 0; overflow-wrap: anywhere; }
 @media (max-width: 480px) { .home-request-fields > div { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+
+.customer-notification-panel > .p-3 { padding: 8px 14px; }
+.customer-notification-panel .notification-close { min-height: 32px; padding: 2px 6px; }
+.customer-notification-panel .notification-read-all { min-height: 40px; padding: 6px 10px; }
+.customer-notification-panel .notification-card { padding: 14px; }
+.customer-notification-panel .notification-branch { margin-top: 2px; font-size: 12px !important; line-height: 1.5; color: #475569; }
+
+.stylist-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.stylist-option { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; padding: 14px; border: 1px solid #cbbfa9; border-radius: 10px; background: #fffdf9; text-align: left; }
+.stylist-any { width: 100%; }
+.stylist-selected { border-color: #007174; box-shadow: inset 0 0 0 1px #007174; background: #edf7f5; }
+.stylist-choice { flex: 1; min-width: 0; text-align: left; background: transparent; }
+.stylist-choice:disabled { cursor: default; }
+.stylist-availability, .stylist-shift-label { display: inline-block; margin-top: 7px; padding: 3px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.stylist-available-label { color: #166534; background: #dcfce7; }
+.stylist-busy-label { color: #9f1239; background: #ffe4e6; }
+.stylist-shift-label { color: #475569; background: #f1f5f9; margin-left: 4px; }
+.stylist-option:disabled { opacity: .55; }
+@media (max-width: 767px) { .stylist-options { grid-template-columns: minmax(0, 1fr); } .stylist-option { flex-wrap: wrap; } }
+
+.appointment-filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; gap: 12px; align-items: end; }
+.appointment-filters label { display: block; font-size: .875rem; font-weight: 600; margin-bottom: 5px; }
+.appointment-filters select, .appointment-filters input { width: 100%; min-width: 0; padding: 10px; border: 1px solid #b7a995; border-radius: 8px; background: #fffaf1; color: #263b42; font-size: .875rem; }
+@media (max-width: 1100px) { .appointment-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .appointment-filters { grid-template-columns: minmax(0, 1fr); } }

@@ -581,3 +581,19 @@ body.admin-bookings > .fixed.inset-0 button.text-slate-400:hover { color: var(--
 .booking-table small, .booking-reference, .booking-payment-status,
 .booking-detail-metadata, .booking-filters label { font-size: 1rem; line-height: 1.5; }
 .booking-payment-status { max-width: none; }
+.admin-notification-panel { width: 390px; padding: 0; gap: 0; }
+.admin-notice-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #e4d7c0; }
+.admin-notice-header button { padding: 4px 8px; font-size: 22px; min-height: 32px; }
+.admin-notice-list { max-height: min(25rem, 50dvh); }
+.admin-notice-card { padding: 14px 16px; border-bottom: 1px solid #e4d7c0; overflow-wrap: anywhere; font-size: 13px; line-height: 1.5; }
+.admin-notice-card > .flex > strong { color: #006b70; }
+.admin-notice-reference { font-family: monospace; font-size: 12px; margin-top: 5px; }
+.admin-notice-unread { color: #007174; font-size: 11px; }
+.admin-notice-fields { display: grid; gap: 4px; margin-top: 8px; }
+.admin-notice-fields > div { display: grid; grid-template-columns: 65px minmax(0, 1fr); gap: 8px; }
+.admin-notice-fields dt { font-weight: 600; }
+.admin-notice-fields dd { min-width: 0; }
+.admin-notice-time { font-size: 11px; color: #64748b; margin-top: 9px; }
+.admin-notice-footer { padding: 8px 12px; border-top: 1px solid #e4d7c0; }
+.admin-notice-footer button { width: 100%; padding: 8px; color: #007174; font-size: 13px; font-weight: 600; }
+.admin-notice-footer button:disabled { opacity: .5; cursor: default; }

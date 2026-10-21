@@ -1,0 +1,1692 @@
+A Centralized Digital Multi-Branch Platform for the Leo Mejillano Salon and Beauty Services Brand
+
+
+
+
+
+
+
+
+A Capstone Project Proposal
+Presented to the Faculty of the
+Information and Communications Technology Program
+STI College Legazpi
+
+
+
+
+
+
+
+In Partial Fulfilment
+of the Requirements for the Degree
+Bachelor of Science in Information Technology
+Michael Kharl M. Agao
+Paulo M. Balaguer
+Angelo O. Navarra
+
+
+
+
+
+October 2026
+
+ENDORSEMENT FORM FOR PROPOSAL DEFENSE
+
+
+TITLE OF RESEARCH: A Centralized Digital Multi-Branch Platform for   the Leo Mejillano Salon and Beauty Service Brand
+
+NAME OF PROPONENTS:Michael Kharl M. Agao
+Paulo M. Balaguer
+Angelo O. Navarra
+
+
+
+In Partial Fulfilment of the Requirements 
+for the degree Bachelor of Science in Information Technology
+has been examined and is recommended for Proposal Defense.
+
+
+
+ENDORSED BY:
+
+
+Mr. Jason C. Maliquid
+Capstone Project Adviser
+
+
+APPROVED FOR PROPOSAL DEFENSE:
+
+
+
+Mr. Jaime Pineda
+Capstone Project Coordinator
+
+
+
+NOTED BY:
+
+
+
+Ms. Marie Diejhey B. Martinez, MIT
+Program Head
+
+
+October 2026
+
+ABSTRACT
+
+
+Title of research:A Centralized Digital Multi-Branch Platform for the Leo Mejillano Salon and Beauty Services Brand
+
+Researcher:                         Michael Kharl M. Agao
+                                            Paulo M. Balaguer
+                                            Angelo O. Navarra
+Degree:                               Bachelor of Science in Information Technology
+
+Key words:Salon Management, Multi-Branch System, Appointment  Booking, Inventory Monitoring
+
+This study presents a centralized web-based platform developed for Leo Mejillano Salon and Beauty Services to unify operations across its branches in Daraga, Legazpi City, and Cabangan, Albay. The goal is to replace manual, branch-by-branch processes with a single system that streamlines appointment booking, payment handling, inventory monitoring, and staff management. Clients can book services online as registered customers or as guests using only a name and contact number, pay reservation deposits through an integrated online payment gateway, and reschedule, track, and review their appointments. Front desk cashiers verify payments, manage the appointment pipeline, process checkouts, and issue receipts, while staff monitor their assignments, attendance, and supply usage. For the owner, the platform provides a unified dashboard, branch-specific service and promotion management, booking limit configuration, staff performance rankings, and consolidated reports. The development process includes user feedback and testing to ensure a user-friendly experience across desktop and mobile devices. In essence, the platform aims to improve operational efficiency and customer experience, and to support data-driven decisions for the owner across all branch locations.
+APPROVAL SHEET
+
+This capstone project proposal titled A Centralized Digital Multi-Branch Platform for the Leo Mejillano Salon and Beauty Services Brand, prepared and submitted by Michael Kharl M. Agao, Paulo M. Balaguer, and Angelo O. Navarra, in partial fulfillment of the requirements for the degree of Bachelor of Science in Information Technology, has been examined and is recommended for acceptance and approval.
+Mr. Jason C. Maliquid
+Capstone Project Adviser
+Accepted and approved by the Capstone Project Review Panel
+in partial fulfillment of the requirements for the degree of 
+Bachelor of Science in Information Technology
+
+
+
+ 
+Ms. Maria Diejhey B. Martinez, MIT
+Lead Panelist
+
+Noted:
+Mr. Jaime Pineda
+Ms. Maria Diejhey B. Martinez, MIT
+Capstone Project Coordinator
+Program Head
+
+October 2026
+
+Page
+Title Page
+i
+Endorsement form for Proposal Defense
+ii
+Abstract
+iii
+Approval Sheet
+iv
+Table of Contents
+v
+List of Figures
+vi
+List of Tables
+vii
+Introduction
+1
+
+Project Context
+1 
+
+Purpose and Description
+3
+
+Objectives
+4
+
+Scope and Limitations
+5 
+
+Review of Related Literature/Studies/Systems
+7 
+
+Synthesis
+20
+Methodology
+21
+
+Technical Background
+28 
+
+Resources
+33 
+
+Requirements Analysis
+37
+
+Requirements Documentation
+41 
+References
+47
+Appendices
+53
+
+Resource Persons
+54
+
+Evaluation Tool / Test Document
+56
+
+Data Flow Diagram
+93 
+
+Documentation
+118
+
+Personal Technical Vitae
+122
+
+Transcript
+127
+Table of Contents
+
+
+List of Figures
+Figure
+
+Page
+1
+Existing DFD of Leo Mejillano Salon Context Diagram
+99
+2
+Existing DFD of Leo Mejillano Salon Level 1
+100
+3
+Existing DFD of Leo Mejillano Salon 1.0 Handle Customer Inquiry and Service Information
+101
+4
+Existing DFD of Leo Mejillano Salon 2.0 Record Appointment Booking
+102
+5
+Existing DFD of Leo Mejillano Salon 3.0 Manage Customer Records
+103
+6
+Existing DFD of Leo Mejillano Salon 4.0 Monitor Inventory Manually
+104
+7
+Existing DFD of Leo Mejillano Salon 5.0 Coordinate Staff Schedule and Service Assignment
+105
+8
+Existing DFD of Leo Mejillano Salon 6.0 Handle Sales,Payment and Branch Reporting
+106
+9
+Propose DFD of A Centralized Digital Multi-Branch Platform for Leo Mejillano Salon and Beauty Services(Context Diagram)
+107
+10
+Propose DFD of A Centralized Digital Multi-Branch Platform for Leo Mejillano Salon and Beauty Services(Level 1)
+108
+11
+Proposed Data Flow Diagram Registration
+109
+12
+Proposed Data Flow Diagram Verify Account
+110
+13
+Proposed Data Flow Diagram Log In
+111
+14
+Proposed Data Flow Diagram Manage Service & Branches
+112
+15
+Proposed Data Flow Diagram Book Appointment
+113
+16
+Proposed Data Flow Diagram 6.0 Manage Appointments
+114
+17
+Proposed Data Flow Diagram 7.0 Manage Staff
+115
+18
+Proposed Data Flow Diagram 8.0 Manage Inventory
+116
+19
+Proposed Data Flow Diagram 9.0 Manage  Supplier Orders
+117
+20
+Proposed Data Flow Diagram 10.0 Process Payment & Billing
+118
+21
+Proposed Data Flow Diagram 11.0 Verify Payment & Issue Reciept
+119
+22
+Proposed Data Flow Diagram 12.0 Collect Feedback & Ratings
+120
+23
+Proposed Data Flow Diagram 13.0 Generate Reports & Dashboard
+121
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Table
+
+Page
+1.0
+Calendar of Activities
+32
+2.0
+Hardware Requirements for Web Application
+33
+3.0
+Software Requirements for Web Application
+33
+4.0
+Hardware Requirements for Android Application
+34
+5.0
+Frontend Requirements
+34
+6.0 
+Backend Requirements
+35
+7.0
+Storyboard Customer/Guest Applicant
+41
+8.0
+Storyboard Owner/Admin
+42
+9.0
+Storyboard Cashier
+43
+10.0
+Storyboard Salon Staff
+43
+
+
+
+List of Tables
+
+
+Introduction
+Project Context
+The beauty and wellness industry plays an important role in providing employment and serving the daily needs of consumers around the world. As businesses in this sector expand to multiple locations, the proper management of appointments, staff schedules, inventory, and operational records becomes increasingly important to maintaining  consistent service quality and long-term client satisfaction. Across different markets, enterprises are recognizing that relying on manual processes alone is no longer sufficient to meet the demands of a competitive environment. Scholars in business and information systems emphasize that the adoption of digital platforms enables organizations to streamline their operations, reduce human error, and make well-informed decisions based on current and accurate data. This global shift toward digitalization in service-oriented industries highlights the growing need for integrated systems that can support not only the present requirements of a business but also its capacity for future growth.  
+In the Philippine context, small and medium enterprises in the beauty and wellness sector are increasingly facing pressure to modernize their operations as client expectations rise and market competition intensifies. Many local salon and personal care businesses have begun adopting digital tools to manage bookings, track supplies, and coordinate with their teams. However, a significant number of enterprises, particularly those managing more than one branch, still depend on manual and paper-based methods that are prone to inconsistency and error. The Department of Trade and Industry (DTI) has consistently encouraged Philippine small businesses to embrace digital transformation as a means of improving competitiveness and sustaining growth in an evolving market. The Leo Mejillano brand is one such enterprise. With three established locations in Albay the Leo Mejillano Salon and Make Up Studio in Daraga, Skin Brows by Leo Mejillano in Yashano, and Lash and Brows in Cabangan the brand has grown considerably in reach and clientele, yet it continues to operate without a unified system for managing its daily activities across all branches.Currently, scheduling at each Leo Mejillano branch is handled manually and independently, which frequently results in booking conflicts, missed appointments, and inconsistencies in client records. These shortages can cause cancelled appointments, lost revenue, and a diminished experience for clients. Monitoring staff performance and reviewing branch-level sales also requires management to visit each location in person, which is time-consuming and increasingly impractical as the brand continues to grow. According to Laudon and Laudon (2020), integrated information systems help businesses consolidate data, eliminate redundancy, and reduce the errors that arise from fragmented, manual record-keeping. The operational difficulties currently faced by the Leo Mejillano brand are a direct consequence of the absence of such a system. 
+Beyond its internal operations, the brand also faces a widening gap between what modern clients expect and what the current setup can deliver. Clients today expect the convenience of viewing available services and booking appointments quickly and easily, without having to make phone calls or visit a branch in person. This level of accessibility has become a standard expectation in the beauty and wellness industry, and businesses that cannot offer it risk losing clients to competitors who have already adopted digital booking platforms. In a 2023 report by Statista, a growing number of consumers across Southeast Asia indicated that they prefer to book personal care and grooming services through online platforms rather than through traditional walk-in or phone-based methods, reflecting a clear shift in client behavior that local businesses must address. When a business fails to meet this expectation, the consequences extend beyond lost bookings they include damaged reputation, reduced client loyalty, and a weakened position in an increasingly digital marketplace. Furthermore, the inability to provide real-time service information and online scheduling forces potential clients to seek out competitors who can offer these conveniences with ease. For a growing brand like Leo Mejillano, this gap represents not only a present operational weakness but also a significant barrier to attracting and retaining a wider client base. Addressing this gap is therefore not simply a matter of modernizing the brand's image but a practical and necessary step toward ensuring its long-term viability and competitiveness in the local beauty and wellness market. In response to these challenges, the development of a centralized, web-based management system tailored to the specific needs of the Leo Mejillano brand presents a viable and timely solution. Such a system would unify appointment scheduling, staff coordination, inventory tracking. 
+Purpose and Description
+The project develops a centralized web-based platform that serves as the main system for organizing and monitoring the daily operations of Leo Mejillano Salon & Makeup Studio (Daraga Branch), Skin Brows by Leo Mejillano (Yashano Branch), Lash & Brows bye Leo Mejillano Salon (Cabangan Branch).Its primary function is to bring together appointment scheduling, inventory tracking, staff performance recording. Instead of managing each branch separately through manual methods, the platform allows all locations to be viewed and managed through a single dashboard, giving the management team a complete and current picture of operations at any time without the need for physical branch visits. A key feature of the system is its guest booking function, which allows clients to reserve appointments at any branch by simply entering their name and contact number, removing the inconvenience of phone-based scheduling and making the process faster and more accessible for everyone.
+What makes this platform relevant and practical is that it is designed specifically around the structure and needs of the Leo Mejillano brand, a multi-branch beauty and wellness enterprise operating within the local setting of Albay. Unlike general-purpose booking or scheduling applications, this system is built to reflect how the brand actually operates, accommodating the distinct services offered at each branch while maintaining one unified record system for the entire enterprise. It is straightforward enough to be used by both clients and staff without requiring any technical knowledge, making it immediately useful to its intended users. By replacing the brand's current fragmented and manual processes with a single organized digital solution, the platform provides a dependable and accessible foundation for improving day-to-day consistency, reducing scheduling and inventory errors, and supporting the continued growth of the Leo Mejillano brand across all of Leo Mejillano Salon & Makeup Studio (Daraga Branch), Skin Brows by Leo Mejillano (Yashano Branch), Lash & Brows bye Leo Mejillano Salon (Cabangan Branch). This digital transition empowers the business to scale its operations while ensuring that high-quality service remains synonymous with the brand across every location. The platform also offers real-time updates on inventory levels, allowing for timely stock replenishment and reducing the risk of shortages, which ensures uninterrupted service delivery. 
+Objectives
+General Objectives:
+To develop a centralized web-based multi-branch Salon Management System for Leo Mejillano Salon that improves scheduling, inventory, staff management, and customer service through automation and data updates.
+Specific Objectives:
+To develop a centralized web-based platform that allows customers to select their preferred branch location in Albay (Yashano Branch, Cabangan Branch, and Daraga Branch) and view available services, schedules, and branch-specific offerings. 
+To implement a guest booking system that allows customers to book appointments using only their name and contact number.
+To develop an appointment management and tracking system that allows customers to monitor booking status, receive service updates, and access appointment progress.
+To develop a secure administrative system with role-based access for the owner, front desk/cashier, and staff to manage operations, staff assignments, and branch records. 
+To implement a centralized inventory tracking system for monitoring beauty products and professional supplies across all branches.
+To provide an administrative dashboard for the owner to monitor schedules, bookings, branch performance, and overall business operations through a single login.
+To integrate a home service booking system that allows administrators to schedule, organize, and assign staff for off-site appointments.
+To implement an automated notification system that sends appointment reminders and service updates to customers via SMS or email.
+To create a feedback and rating module that allows customers to evaluate services and branch performance.
+To implement employee accounts per branch for managing attendance, task assignments, and workforce allocation, and to develop a performance evaluation system based on completed services, customer satisfaction, and attendance.
+To enable the owner to manage and customize service menus and promotions per branch, with options to add, update, or remove based on business needs and local demand.
+Scope and Limitations
+Scope
+This study covers the design, development, and implementation of a centralized web-based platform for Leo Mejillano Salon and Beauty Services. The study aims to streamline appointment booking, inventory monitoring, staff management, payment recording, and branch performance tracking across its locations in Daraga, Legazpi City, and Cabangan, Albay. The intended users and beneficiaries include the owner, front desk personnel or cashiers, staff members assigned to each branch, and clients who book appointments through the platform.
+The proposed platform will include the following features: multi-branch service selection and appointment booking with a guest booking option requiring only a name and contact number; a home service booking module for off-site appointments; a role-based administrative system with distinct access levels for the owner (administrator), front desk/cashier, and staff; online reservation payments through PayMongo, along with cashier payment verification, checkout, and receipt generation; appointment rescheduling and a reservation deposit policy; a multi-branch inventory tracking module maintained through staff input; automated booking updates and appointment reminders through email and in-app notifications; a feedback and rating module for customer evaluations; a staff performance ranking system using one selected metric at a time—services completed, average customer rating, or attendance rate; individual employee accounts per branch for attendance and task monitoring; branch-specific service menu and promotional offer management; a customer loyalty program; configurable booking limits to manage appointment capacity and prevent scheduling conflicts; and a unified owner dashboard with reports for monitoring schedules, bookings, and overall branch performance across all locations.
+The platform will be accessible through compatible web browsers on desktop and mobile devices with a stable internet connection, allowing staff and clients to interact with the system conveniently. Through a single centralized interface, the owner will have access to consolidated operational records and performance summaries from all branches. These features will support informed decision-making by helping the owner identify operational inefficiencies, monitor key performance indicators, and make adjustments to improve business operations.
+
+Limitations
+The system is developed exclusively for Leo Mejillano Salon and Beauty Services and is not intended for use by other salon or wellness businesses. Adapting the platform for other enterprises would require a separate study on generalized system architecture, which falls outside the objectives of this capstone project.
+
+The automated notification feature relies on a third-party email service through SMTP to deliver booking, payment, and reminder messages. SMS notifications are not implemented in the current version because they require a paid SMS provider account. The system only prepares and logs SMS reminder content for future integration. Email delivery depends on external service availability and reliability, which are beyond the researchers’ control; therefore, successful delivery cannot be guaranteed.
+
+Staff performance rankings are based solely on records entered into the platform. The system ranks staff using one selected metric at a time: services completed, average customer rating, or attendance rate. It does not generate a combined weighted performance score or account for qualitative performance factors that are not captured within the platform.
+
+The platform does not include payroll processing or financial accounting features. Although it supports checkout and payment recording, these functions do not constitute a complete accounting system. Payroll and financial accounting require specialized functionality beyond the scope of this capstone project.
+
+The accuracy and reliability of inventory tracking depend on the consistent and proper recording of stock movements by designated staff at each branch. The system cannot automatically detect physical stock changes that are not entered into the platform. Unrecorded or incorrectly entered transactions may therefore result in discrepancies between recorded inventory and actual stock levels.
+
+The platform includes checkout and payment recording and integrates with a single online payment gateway, PayMongo, for reservation payments through GCash, Maya, and cards. However, it does not integrate with external point-of-sale (POS) hardware or software or with accounting systems. Transactions processed through a separate POS must be manually reconciled with the platform’s records. Available online payment methods are limited to those supported by PayMongo and enabled for the integration, while processing, settlement, and refund timelines depend on the payment provider.
+
+
+Review of Related Literature/Studies/ System
+
+Related Literature:
+
+Foreign Studies
+
+Based on the "Service Quality and Modern Business Practices in the Hair Salon Industry" by Reyes (2025) explores how mixing great customer service with modern business methods helps keep clients happy. Reyes points out that running a successful salon isn't just about looking good; it's about making sure every customer feels truly cared for from the moment they walk in. When a salon creates a warm and professional environment, it builds a strong bond of trust between the stylists and the clients.
+Reyes explains that this trust is the "secret sauce" for salons in smaller, local areas like Talavera. In these communities, people aren't just looking for a quick haircut they want someone who understands their personal style and remembers their preferences. Providing this kind of personal touch is what helps a small salon stand out against bigger competitors.
+This journal also warns about the “make or break” factors. If a salon is unorganized, slow, or inconsistent with its service, it risks losing its reputation very quickly. Because customer expectations are always changing, salon owners must stay on their toes. By focusing on toes. By focusing on both high-quality hair care and smooth business operations, salons can keep their clients coming back for years to come. Consistent staff training and feedback mechanisms can ensure that the salon maintains its high standards. Additionally, embracing technology for appointment booking and inventory management can streamline operations.
+ According to an article "Value Co-Creation through Digital Platform Ecosystems: Case Studies of Hair Salon Chains" by Ng et al. (2024) explains how hair salons are moving away from old-school methods and using digital tools to better connect with their customers. The researchers found that instead of just focusing on one thing, successful salons are now using a mix of mobile apps, social media, and online booking to keep track of what their clients actually like. By using these tools, salons can offer more personalized care, like easy mobile payments and direct messaging, which makes customers want to stay loyal.
+Ng. highlight a concept they call "value co-creation," which basically means that when salons use technology to work closely with their clients, everyone wins. Customers get a much smoother and more modern experience, while salon owners find it easier to grow their business and boost their income. The study proves that in today’s busy market, having a strong digital presence isn’t just an "extra" it is a key part of keeping a salon successful and making sure clients leave happy.
+This article is demonstrates how digital platforms and data tracking can modernize traditional services. It supports the idea that using technology to understand customer behavior is no longer optional; it is essential for staying competitive and building a stronger, more personalized relationship with the community. By showing how digital tools simplify the business side of things, the study reinforces why shifting to a tech-driven approach is the best way to ensure both customer satisfaction and business growth.
+Based on the"Digital Impact on Beauty Salons: E-Service Quality, E-Promotion, Customer Satisfaction and Purchase Decisions" by Wahyuni et al. (2024) explores how using digital tools like online advertising can be a powerful way to get customers excited and encourage them to book appointments. However, the researchers found a surprising twist: simply having a fancy website or a high-tech app doesn't automatically mean a customer will be happy with the business. This is because most people see these online platforms as "extra" tools for convenience, while their real satisfaction still comes from the actual beauty service they get once they are in the styling chair. Therefore, while digital promotion is important, it should be paired with consistently excellent in-salon service.
+Wahyuni. suggest that for a salon to really thrive today, it needs a two-part strategy. First, it must use strong online marketing to grab people's attention and help them make a decision to visit. Second, it must ensure that the physical service the haircut or treatment itself is top-notch. The study proves that while digital tools are great for getting people through the door, the hands-on quality of the work is what actually keeps them truly satisfied. Salons should foster a loyal customer base by providing personalized experiences, which can encourage repeat visits. By maintaining consistent quality and addressing customer preferences, a salon can establish a reputation.
+This journal highlights the balance between technology and traditional service. It supports the idea that while digital platforms are essential for reaching modern customers and making bookings easier, they work best when paired with high-quality, in-person care. By showing that technology acts as a gateway rather than a replacement for good service, the study reinforces the need for a system that simplifies the business side without losing the personal touch that clients value most.
+Based on the "Revolutionizing Salon Services: A comprehensive study on the development of a salon reservation application" by Ningrum and Sejati (2023) points out that relying on manual bookings like messy WhatsApp chats or walk-in visits can be a major "barrier" that stops a salon from giving customers a great experience. Their research highlights how a simple mobile app can completely change the way a business runs by letting clients book their hair treatments instantly, helping them avoid long wait times. By moving away from handwritten notes and confusing chat histories, salon managers can organize their schedules and customer info much more accurately and quickly.
+Ningrum and Sejati found that using mobile technology isn’t just about looking modern; it is a necessary step to stay organized and keep up with the fast-growing beauty industry. The researchers emphasize that a well-designed app makes daily work much easier for the manager and creates a smoother, stress-free journey for every client. Ultimately, the study proves that when a salon switches to a digital booking systm, it removes the head of manual scheduling and allows the staff to focus more on their clients.
+This journal highlights how moving from manual processes to digital tools can solve common business frustrations. It supports the idea that replacing old-fashioned methods with a mobile system is essential for staying efficient and organized. By showing that a streamlined reservation process directly improves the customer experience, the study reinforces the importance of using technology to manage a salon’s busy schedule and keep both staff and clients happy. Moreover, the use of digital tools allows for real-time updates, ensuring that both clients and staff are always on the same page. As a result, the integration of such systems not only boosts operational efficiency but also enhances client satisfaction, fostering long-term business success.
+Based on the "Enhancing Customer Experience and Satisfaction through Mobile-Based Salon and Spa Reservations on Android Platforms" by Permatasari et al. (2024) argues that salons and spas need to embrace "pocket-sized" technology to stay competitive and give customers the personal attention they crave. Their research shows that an Android app can turn a stressful booking process into a simple, easy-to-use experience, which is especially helpful for smaller businesses. By using a mobile system, clients can book and manage their own treatments whenever they want, while the salon gets a huge helping hand with organizing busy schedules and tracking daily earnings.
+Permatasari. found that users really loved having interactive features and a clean, simple interface. The study proves that when a salon combines great beauty services with smart mobile technology, it doesn't just make the work go faster it builds a much stronger and happier connection with every client. It highlights that technology should be used to make the customer feel more in control of their own experience.
+This journal shows how mobile apps can take the pressure off both the owner and the customer. It supports the idea that moving to a digital platform isn't just about being "high-tech," but about making life easier for everyone involved. By showing that a clean and simple app can lead to better customer satisfaction, the study reinforces the need for a system that balances business efficiency with a user-friendly design.
+Local Studies
+
+Based on the "Vicky Salon: A Smart Salon Management System with Prescriptive and Descriptive Analytics for Enhanced Admin Side Experience" by Palaroan et al. (2025), the study highlights how digital tools can help small beauty salons move away from messy manual records. The researchers explain that using a web-based platform solves common headaches like double-booked appointments and lost customer data by automating the entire scheduling process. A key part of this system is its ability to use data to show owners trends and patterns, helping them make informed decisions for the business. Furthermore, the platform offers real-time analytics that can assist in tracking service popularity and staff performance, ensuring resources are used effectively. By providing insights into customer behavior, it also allows salon owners to tailor their services, creating a more personalized.
+Palaroan. found that this technology does more than just reduce human error; it helps owners make much smarter business decisions through clear, data-driven reports. The study proves that adopting "smart" solutions makes daily operations more efficient, safer, and easier to manage. it provides a clear path for small businesses to stay organized and grow in a world that is becoming more digital every day.
+This journal demonstrates how moving from paper-based records to a smart system can fix the most common operational problems in a salon. It supports the idea that using data analytics isn't just for big companies, but is a practical way for local businesses to track their progress and reward loyal clients. By showing that a centralized platform makes the admin experience much smoother, the study reinforces the need for a system that simplifies management while providing helpful insights for business growth.
+Based on the "Design and implementation of a beauty salon appointment and sales management system" by Garcia et al. (2026) notes that many small beauty salons still struggle with "manual headaches" like double-booked appointments, lost customer records, and messy inventory tracking. The researchers focused on building a custom web-based system to replace these old-fashioned paper logs with a digital dashboard. By using a fast-paced development method, they created a tool that allows salon owners to see their sales and schedules in real-time.
+Garcia. found that moving to a digital system makes a huge difference: it stops human errors, saves time on paperwork, and makes customers happier because the service is more reliable. Expert testers gave the system high marks for being secure and easy to learn, proving that even small local shops can successfully join the digital age. The study shows that adopting these tools makes daily work life much smoother and more professional.
+This journal demonstrates how moving from paper-based records to a digital system can fix the most common operational problems in a salon. It supports the idea that modernizing the way a shop handles its schedule and sales is a practical way for local businesses to save time and reduce stress. By showing that a centralized dashboard makes management much easier, the study reinforces the need for a system that simplifies daily tasks while ensuring the business stays reliable for its clients.
+Based on the "Service Quality and Customer Satisfaction among Beauty Salons" by Mangarin and Gonzaga (2022) points out that a beautiful salon environment isn’t just about looks it is often the biggest reason why customers feel happy with their visit. In their research conducted in Davao del Norte, the researchers looked at different parts of the business, like how friendly the staff are and how clean the equipment is, to see what matters most to clients. Interestingly, they found that the "tangibles" meaning the physical vibe of the shop and the quality of the tools were the main things that truly made customers feel s
+Mangarin and Gonzaga suggest that even if you have great stylists, the physical comfort of the salon is what really wins people over. The study proves that investing in a clean, modern, and inviting space is a key "secret" to keeping customers coming back. For salon owners, this means that the atmosphere of the shop is just as important as the haircut itself when it comes to building a loyal following.
+This journal shows that the vibe of a salon is a huge factor in how customers feel about their visit. It really hits home the idea that keeping a shop tidy and professional is the best way to make a great first impression. When a space feels modern and comfortable, clients are naturally much happier, which proves that owners need a reliable system to stay organized. By letting a system handle the background details, stylists can spend less time worrying about the mess and more time focusing on making their customers feel right at home. A well-organized space allows staff to be more efficient, reducing stress and increasing overall productivity. This creates a positive cycle where both employees and customers benefit from a harmonious environment.
+Based on the "Salon Management System for Salon Chami" by Silva (2021) shows that even a popular and growing salon can struggle to stay efficient if it relies on old-fashioned paperwork. The researcher found that at Salon Chami, the staff found it nearly impossible to keep up with busy schedules using manual methods, which led to wasted resources and missed chances to connect with their clients. To fix this, a web-based system was built to take the stress out of daily routines by automating appointment bookings and keeping digital records of every transaction. This shift allowed the salon to optimize its operations, reduce errors, and improve the overall client experience. 
+Silva highlights that moving everything online, from managing special promos to messaging customers directly, allows a salon to stop the "manual documentation" headaches. The study proves that when a business lets technology handle the boring paperwork, the team can spend more time focusing on making their clients look and feel beautiful. It shows that digitalization is a practical way for any salon to turn a chaotic schedule into a smooth, professional operation. By automating repetitive tasks, staff can reduce errors and improve accuracy, leading to better client experiences. Additionally, this shift helps salons stay organized and responsive, ensuring that no client or detail is overlooked. The ease of managing everything digitally also gives owners greater flexibility to focus on growing their business and expanding their client base.
+This journal shows that switching from paper notebooks to a digital system can fix the most common headaches in a salon. It proves that modernizing how a shop handles bookings and sales is a simple way for local owners to save time and lower their stress levels. By showing that a single digital dashboard makes management much easier, the study highlights why salons need a system that handles the boring daily tasks so the business can stay reliable and professional for its clients. This shift also allows staff to focus more on delivering excellent service rather than dealing with administrative work. Furthermore, it improves overall communication between the team and clients, fostering stronger relationships and trust. Ultimately, embracing digital tools enables a salon to operate more smoothly and scale efficiently, enhancing both customer and employee satisfaction.
+Based on the "Functional Salon Website for Service Display and Online Booking Management for Gold and Gorgeous Salon using Prescriptive Analysis and K-Means Clustering" by Calzada et al. (2025) points out that local salons often struggle when they rely only on walk-ins and manual social media replies. The researchers found that these old methods often lead to missed appointments and wasted time. To fix this, they built a "smart" website that does more than just take bookings it actually helps the business think. By using advanced tools to group customers based on what they like, the system allows owners to send out personalized rewards and special promos.Calzada. also used smart analysis to give the salon staff helpful advice on scheduling and which services to promote. When tested by 150 people, the results showed that this digital shift made the salon.
+Review of Related Studies and/or System
+
+Related Studies:
+
+Foreign Studies
+
+This study, GlamHub Rathi et al., (2025), developed in Kerala, India, is a centralized beauty service platform that connects users with various providers, including established parlors, individual makeup artists, and rental shops. The system stands out for its use of multimedia content that allows service providers to showcase their work, giving customers greater transparency before booking. GlamHub operates through a multi-modular structure built on HTML5, CSS, PHP, and MySQL, covering appointment scheduling, product ordering, and a dedicated complaint resolution channel. This approach of combining multiple service functions into one platform mirrors the goal of the proposed Leo Mejillano system, which similarly aims to consolidate booking, inventory, and management tools under a single digital environment.
+The study demonstrates how a centralized beauty platform can serve as more than just a booking tool it can become a complete service ecosystem that builds trust between providers and clients. It supports the idea that integrating multiple modules into one system reduces the need for separate tools and makes operations more transparent and manageable. By showing that a multi-modular platform is technically achievable using standard web technologies, the study reinforces the feasibility of the proposed Leo Mejillano platform's design and architecture.
+This study “The Unified Platform for Wellness and Salon Services” (2024), published in the International Journal of Innovative Research in Engineering, proposed a comprehensive and user-centric system designed to manage the full operations of a wellness and salon service provider. The platform incorporated role-based access for customers, salon owners and administrators, and employees, each with distinct interfaces and functionalities tailored to their specific roles. The system enabled user registration, shop and employee management, service listings, appointment bookings, and feedback mechanisms, and it supported multi-branch management through a centralized dashboard. The researchers explicitly noted that prior systems suffered from difficulties.
+This study is particularly relevant because it establishes a clear technical and functional blueprint for how a multi-branch salon system should be structured. It supports the idea that role-based access control and centralized dashboards are not just desirable features but necessary components of any effective multi-branch management system. By documenting the specific limitations of previous platforms, the study validates the design decisions.
+A study “The Salon Management System India” Gulshan and Khan, (2021), a web-based salon management system developed in India, connected users and salons on a single online platform where customers could browse salon services, book appointments, and write and read reviews. The system was developed in response to the growing demand for on-demand, easy-to-use, and effective digital salon management solutions in an era of widespread internet use. Despite being developed in a different country context, the system's core functionalities  user registration, scheduling, and review mechanisms align closely with the key features of the proposed Leo Mejillano platform, proving that these digital capabilities are applicable across different business sizes and geographic settings.
+This study shows that even small to medium-scale businesses can successfully implement core digital salon functionalities without requiring enterprise-level infrastructure. It supports the idea that a straightforward, well-designed web-based system can address the most common operational pain points of a growing salon business. By demonstrating that user registration, scheduling, and review features are both practical and effective, the study reinforces the relevance of including these same features in the proposed platform for the Leo Mejillano brand.
+This study “Fresha” Fresha Limited, (2026) has grown into the world's largest beauty and wellness booking platform, trusted by salons, spas, and barbershops around the world to keep their calendars full and operations running smoothly. The platform offers a comprehensive suite of tools covering appointment scheduling, point-of-sale payments, marketing campaigns, online booking, and multi-location management, supporting the full operational lifecycle of a beauty business. Fresha reported an 89 percent reduction in no-shows for businesses that use its automated reminder feature, demonstrating the measurable real-world impact that well-designed salon management software.
+This study establishes the global benchmark for what a fully realized salon management platform can achieve. It supports the idea that automated reminders and centralized scheduling are not just conveniences but proven tools for reducing lost revenue and improving client reliability. By showing the gap between enterprise-level platforms and the needs of small local businesses, the study reinforces why a custom-built, locally grounded platform is the more appropriate and accessible solution for the Leo Mejillano brand. A tailored system allows for more flexibility in meeting specific customer needs, ensuring a personalized experience that large-scale solutions often overlook. Moreover, local businesses can integrate features that are unique to their operational style, such as personalized promotions or loyalty programs that speak directly to their clientele. Additionally, a locally designed platform offers better customer support and easier troubleshooting, as the service provider is more attuned to the specific market and challenges of the area. 
+A study “Mindbody” Mindbody Inc., (2024) is a widely used business management platform that provides wellness and beauty businesses with tools for marketplace exposure, multi-location management, marketing and retention campaigns, and a white-label mobile app for client booking. It is particularly strong in helping businesses attract new clients through its built-in marketplace and in managing chains with multiple locations through a centralized interface. However, Mindbody is more oriented toward fitness centers and wellness studios than traditional beauty salons, making many of its features less suited to the specific service structure of a salon brand like Leo Mejillano. Its pricing and complexity also make it a less practical option for small, independently run businesses in a local Philippine context.This study highlights that even the most robust management platforms have limitations when applied outside their intended environment. It supports the idea that a system must be designed with its specific users and context in mind, rather than adapted from a tool built for a different industry.By showing where Mindbody falls short for salon specific and locally rooted businesses, the study reinfporces the importance of developing a purpose built platform that is tailored to the actual operational needs and scale of the Leo Mejillano Brand. The complexity and pricing structure of such large-scale platforms may overwhelm smaller businesses, reducing their ability to efficiently manage operations and grow within a competitive local market. 
+Local Studies
+
+A study “Salon Management System for Multi-Branch Beauty Salons in NCR” Oliverio et al., (2024), by Ma. Bernadeth M. Oliverio, Devon Earl T. Panes, Trinah Mae C. Vinluan, and Grace Lorraine D. Intal (2024) focused on managing salon operations across multiple branches in the National Capital Region (NCR) of the Philippines. The study highlighted the inefficiencies of manual management and followed a structured development process to implement a system that streamlines salon operations and enhances customer satisfaction. This is closely related to the proposed system, which similarly aims to manage multiple branches of the Leo Mejillano brand under a single digital platform. By integrating all salon operations into one system, the platform can offer real-time updates on appointment scheduling, inventory management, and staff performance. This would not only improve operational efficiency but also allow the management team to make more informed decisions based on data-driven insights. Additionally, the system could help standardize service quality across all branches, ensuring that customers receive a consistent experience regardless of location. The proposed system would also streamline communication between branches, making it easier to manage resources and respond to customer needs promptly. With automation at the core, the Leo Mejillano brand can focus more on delivering high-quality services while leaving administrative tasks to the system. This integration would ultimately foster growth and scalability while maintaining the brand's commitment to excellence.
+This study “Web-Based Management Information System for Purple Look Hair Salon and Spa” (Belolo et al., 2025), designed and developed a web-based Management Information System (MIS) for Purple Look Hair Salon and Spa in Bacoor City, Cavite. The system featured a calendar-based appointment scheduling tool, an inventory management module for tracking salon equipment and supplies, an employee management system, and a sales reporting module capable of generating reports across daily, weekly, monthly, quarterly, and annual periods. Problems identified prior to the system's development included appointment scheduling managed via Facebook Messenger, lack of proper inventory management, disorganized employee records, and reliance on Excel spreadsheets and manual papers for sales reporting. 
+According to this study “Enhance Salon Management System Mallig Plains Colleges” (Puddunan & Mamauag, 2023–2024), Capstone research by Puddunan and Mamauag from Mallig Plains Colleges, Isabela, developed an enhanced salon management system for a local salon in Mallig. The study recognized that beauty and fashion have become a major trend across all ages and genders, and proposed a digital solution to address stock control, customer data management, product inventory, and staff management. The system reflects the growing demand for digitized salon operations in provincial Philippine settings, which parallels the context of the proposed platform. , the study emphasizes the role of automation in reducing manual workload and improving operational accuracy within salon businesses. By digitizing key processes such as inventory tracking and customer record management, the system helps salon staff perform tasks more efficiently and with fewer errors. It also enhances decision-making by providing organized and easily accessible data that supports better planning and resource allocation. , the study emphasizes the role of automation in reducing manual workload and improving operational accuracy within salon businesses. By digitizing key processes such as inventory tracking and customer record management, the system helps salon staff perform tasks more efficiently and with fewer errors. It also enhances decision-making by providing organized and easily accessible data that supports better planning and resource allocation.
+According to this study “BEauTify – Salon Management System for Philippine Salons” (2024), A Philippine-based research developed a system called BEauTify using design thinking methodology. With features including appointment scheduling, sales statistics, salon reviews, client data records, and item inventories, the system allowed the salon's main office to examine sales figures and recommend ways to enhance branch profitability. Surveys and interviews with consumers, branch administrators, and main office staff validated BEauTify's positive impact on operational efficiency and client engagement. This study is directly relevant to the proposed system, particularly its emphasis on centralized oversight of branch-level performance. The study highlights how integrating multiple business processes into a single digital platform can reduce redundancy and improve workflow efficiency across salon branches. It also demonstrates that real-time data access supports faster and more accurate decision-making, especially in monitoring sales trends and customer preferences. 
+According to this study “Service Quality and Customer Satisfaction Among Beauty Salons in the Philippines” (2021), A local study anchored on the concept of Khan and Tabassum (2010) noted that the intensifying effect of heightened beauty consciousness in globalization has made beauty salons one of the most flourishing industries. The study found that customers give significance to beauty parlors that offer good ambiance, better facilities, and quality service delivery by employees. This underscores the importance of a customer-centric approach in the design of the Leo Mejillano platform. These findings further reinforce the decision to incorporate a feedback and rating module into the proposed system, ensuring that client satisfaction remains measurable and continuously addressed across all branches. By integrating service quality indicators into the platform’s design, the Leo Mejillano system is positioned not only as an operational tool but also as a means of sustaining the high standards of client care. This will allow the brand to consistently meet customer expectations and stay competitive in a rapidly evolving industry. The integration of customer feedback will allow the system to adapt and respond to evolving client needs, creating a continuous cycle of improvement. Additionally, incorporating real-time performance tracking will empower staff to identify areas for development, enhancing their ability to provide exceptional service. The system’s role in monitoring these metrics will foster a proactive approach to customer care, enabling the Leo Mejillano brand to stay ahead of industry trends. Ultimately, by maintaining a strong connection.
+The study also highlights that globalization has played a major role in increasing people’s awareness of beauty and personal care services. As a result, more customers now expect higher standards when visiting salons, which pushes businesses to improve their overall service quality. It explains that customer satisfaction is not only based on the outcome of the service but also on the entire experience during the visit. This includes how customers are treated, how comfortable the environment is, and how efficiently services are delivered. The findings suggest that salons must focus on building long-term relationships with clients rather than just providing one-time services. It also implies that consistent service quality can lead to stronger customer loyalty and repeat visits. In addition, the study shows that employee behavior and professionalism greatly influence customer perception of the salon. This means that staff training is essential to maintain high service standards and customer satisfaction. 
+Synthesis
+The literature reviewed highlights a significant shift towards digital operations in the beauty and wellness industry, driven by increasing client expectations, market competition, and the operational demands of multi-branch businesses. Studies identify common challenges such as manual appointment scheduling, disorganized inventory management, fragmented staff records, and a lack of centralized systems to support real-time decision-making. These recurring operational gaps are evident in the Leo Mejillano Salon and Beauty Services Brand, thus validating the need for the proposed platform.
+Key insights from foreign studies emphasize the importance of service quality and client trust, which directly influence the design of the system. A digital platform that streamlines backend operations while improving the client experience is crucial. The concept of value co-creation through digital ecosystems, which enhances client-business interactions, supports the integration of features like online booking and personalized service management. Studies on mobile reservation systems further confirm that digital scheduling reduces errors, shortens response times, and boosts overall productivity.
+Local studies reinforce these findings, showing that small and medium enterprises in the beauty sector can successfully transition to digital platforms. The adoption of digital tools for appointment management, performance tracking, and role-based access has proven effective for local beauty businesses. Furthermore, the importance of physical space and customer satisfaction, as emphasized in the literature, supports the inclusion of feedback and rating modules within the platform.
+The reviewed literature provides a solid foundation for the proposed system. By integrating features like centralized appointment scheduling, multi-branch inventory tracking, role-based controls, staff performance monitoring, automated client notifications, and a feedback module, the platform synthesizes the most relevant elements into a cohesive solution tailored to the needs of the Leo Mejillano Salon and Beauty Services Brand. The platform will support scalability, allowing the system to adapt to future business growth. Its flexibility will enable seamless integration of future features as new industry trends and customer demands emerge.
+Methodology
+This study employed the Rapid Application Development (RAD) model as its software development methodology. RAD is an iterative development approach that emphasizes rapid prototyping, incremental delivery, and direct user involvement throughout the development process. The model was first formalized by James Martin in the 1990s as a structured alternative to traditional sequential development methods, which were often ill-suited to projects requiring frequent requirement changes and active stakeholder participation.
+The RAD model was adopted in this study on the basis that the Leo Mejillano Salon and Beauty Services Brand operates across three geographically separate branches — located in Daraga, Yashano, and Cabangan in Albay — each of which currently manages appointments, inventory, and staff records through manual and uncoordinated methods. The absence of a unified digital system has resulted in scheduling conflicts, inconsistent client records, and operational inefficiencies that cannot be adequately addressed through a rigid, documentation-heavy development process.
+
+Figure 1.0 Rapid Application Development (RAD) Cycle
+Figure 1.0 illustrates the Rapid Application Development cycle adopted in this study. The cycle begins with Analysis and Quick Design, where the needs and constraints of the system are identified and a preliminary design is developed. This is followed by the Prototype Cycles phase, which operates as a continuous loop of three iterative sub-phases: Demonstrate, where the working prototype is presented to the stakeholders for evaluation; Refine, where the system is revised based on the feedback received; and Build, where the next version of the prototype is constructed. The loop continues until the system satisfies the operational requirements of the Leo Mejillano Salon and Beauty Services Brand. The cycle then proceeds to the Testing phase, where all system modules are evaluated for functionality, accuracy, and usability. The cycle concludes with the Implementation phase, where the completed system is deployed, users are trained, and the platform is formally transitioned into active use.
+Analysis and Quick Design
+The first phase of the RAD methodology involved a systematic analysis of the current operational conditions of the Leo Mejillano Salon and Beauty Services Brand, followed by the development of a preliminary system design. This phase established the informational and structural foundation upon which the prototype cycles were subsequently conducted.
+Requirements Gathering
+
+The proponents conducted requirements gathering through three data collection methods: interviews, direct observation, and document analysis. These methods were applied across all three Leo Mejillano branch locations to ensure that the system requirements identified were representative of the full operational scope of the brand.
+Interviews
+Structured interviews were conducted with the salon owner, Mr. Leopoldo Mejillano, and with front desk personnel and salon staff from the Daraga, Yashano, and Cabangan branches. The interviews were directed at obtaining detailed information regarding the current processes for appointment booking, inventory monitoring, staff assignment, and inter-branch coordination. Findings indicated that appointments are managed through phone calls and walk-in arrangements, that inventory is monitored manually without a shared tracking system, and that the evaluation of staff performance across branches necessitates physical visits by the owner to each location.
+Direct Observation
+On-site observation was conducted at all three branches to verify the information obtained through interviews and to document actual workflows under operating conditions. The proponents observed the handling of appointment scheduling during high-volume periods, the management of concurrent bookings by front desk personnel, and the communication of inventory-related concerns between branch locations. The observations confirmed that the current manual processes result in scheduling conflicts, duplicated entries in appointment records, and delays in the dissemination of operational information across branches.
+Document Analysis 
+Existing logbooks, appointment records, and transaction summaries from the branches were reviewed to identify patterns of error and inconsistency in the current record-keeping practices. The analysis provided documentary evidence of the operational limitations arising from the absence of a centralized information system and served to inform the specification of functional requirements for the proposed platform.
+Identification of System Requirement
+
+Based on the data obtained through interviews, observation, and document analysis, the proponents identified the functional requirements of the Centralized Digital Multi-Branch Platform. The system is required to provide multi-branch appointment booking with a guest booking option that accepts only a client name and contact number, a home service booking module for the management of off-site appointments, and a role-based administrative system with distinct access levels for the owner, front desk personnel, and salon staff. The system must further include a multi-branch inventory tracking module maintained through staff input, an automated notification function for the delivery of appointment reminders via SMS or email, and a feedback and rating module through which clients may evaluate services rendered. Additional requirements include a staff performance ranking system based on services completed, attendance, and customer satisfaction scores; individual employee accounts per branch for the recording of attendance and task assignments; branch-specific service menu and promotional offer management; and a unified owner dashboard through which the performance and operations of all three branches may be monitored from a single interface.
+Quick Design
+Following the identification of requirements, the proponents developed a preliminary design of the system architecture and user interface. The quick design was not intended to be a final or exhaustive specification but rather a working framework to guide the initial prototype build. It defined the general structure of the platform, including the separation between the client-facing appointment booking interface and the role-based administrative back-end, the data relationships among the three branch modules, and the navigation pathways assigned to each user role. This design served as the baseline reference for the first cycle of prototype development.
+Prototype Cycles
+The Prototype Cycles phase constitutes the central and most iterative component of the RAD methodology applied in this study. Rather than developing the complete system in a single continuous process, the proponents constructed the platform incrementally through a series of repeating cycles. Each cycle consisted of three sequential sub-phases Demonstrate, Refine, and Build  which were repeated until a stable and fully functional version of the system was achieved.
+Demonstrate
+Each prototype cycle commenced with a demonstration of the current working version of the system to the project stakeholders, including the salon owner, Mr. Leopoldo Mejillano, and designated front desk and salon staff personnel from the Leo Mejillano branches. The demonstration sessions provided stakeholders with direct access to the prototype, allowing them to interact with its features and communicate their observations regarding the accuracy, completeness, and usability of the system in relation to actual branch operations. The demonstrations served the dual function of verifying that the implemented features corresponded to the requirements established during the analysis phase and of providing a structured mechanism through which end users could identify deficiencies or inconsistencies that required correction prior to the subsequent build.
+Refine
+Subsequent to each demonstration session, the proponents conducted a systematic review of the feedback received and documented all identified issues according to their nature and priority. Necessary modifications were then incorporated into the system before the Build sub-phase of the same cycle commenced. Refinements across the prototype cycles included revisions to the appointment booking interface to improve accessibility for users without prior experience with digital platforms, adjustments to the inventory tracking module to accurately reflect the product categories in use at each branch, modifications to the administrative dashboard to enhance the legibility of branch performance data, and the introduction of booking limit controls to prevent the recurrence of scheduling conflicts observed during the analysis phase.
+Build
+The Build sub-phase involved the construction of the revised prototype incorporating all refinements identified in the preceding demonstration and refine stages. The system was developed using Visual Studio Code as the integrated development environment, MySQL as the relational database management system, and HTML, CSS, JavaScript, and Tailwind CSS as the frontend development technologies. Development proceeded in a modular sequence, with each build cycle directed at a defined cluster of system functionalities.
+The initial build cycle established the foundational structure of the platform, encompassing the multi-branch selection interface and the guest booking module, which permits clients to reserve appointments by submitting only their name and contact number. This module was accorded development priority given that it directly addresses the most critical operational deficiency identified during the analysis phase: the dependence on unstructured, phone-based booking arrangements that generate frequent scheduling conflicts. Subsequent build cycles incorporated the remaining system modules, including the role-based access control system, the inventory tracking module, the staff performance ranking system, the automated notification feature, the feedback and rating module, and the unified owner dashboard. Each module was developed within a multi-branch architectural framework to ensure that data from the Daraga, Yashano, and Cabangan branches could be accessed and managed through a single centralized interface. Upon completion of each Build sub-phase, the cycle returned to the Demonstrate stage, and the iterative process continued until all modules were functional, tested within the cycle, and approved by the stakeholders.
+Testing
+Following the completion of the prototype cycles and the attainment of a stable system version, the proponents conducted a formal testing phase to assess the functionality, reliability, and usability of the platform prior to deployment.
+Functional Testing
+Functional testing was conducted to verify that each system module operated in accordance with the specified requirements. The guest booking module was tested to confirm that appointments could be reserved using only a client name and contact number without generating conflicts or errors in the scheduling system. The role-based access control system was evaluated to ensure that each designated user type owner, front desk personnel, and salon staff was restricted to the functions and data relevant to the assigned role. The inventory tracking module was tested to confirm that stock entries submitted by staff at any branch were reflected accurately and in real time within the unified system. The automated notification function was assessed to verify that appointment reminders were transmitted to clients via SMS or email at the appropriate trigger points. The feedback and rating module was examined to confirm that client evaluations were accurately recorded, stored, and rendered within the administrative interface. The staff performance ranking system was tested to verify that rankings were computed correctly based on the defined criteria of services completed, customer satisfaction scores, and attendance records. The owner dashboard was evaluated to confirm that real-time operational data from all three branch locations was accurately consolidated and presented through a single administrative interface.
+User Acceptance Testing
+User Acceptance Testing was conducted with the actual end users of the system, comprising the salon owner, front desk personnel, and salon staff from the Daraga, Yashano, and Cabangan branches. Participants were assigned a series of representative operational tasks to perform using the platform, including reserving an appointment as a client, submitting an inventory update as a staff member, and reviewing consolidated branch performance data as the owner. The responses and interactions of participants were documented and analyzed to assess the usability, operational adequacy, and overall suitability of the system for its intended function. Issues identified during this phase were addressed through targeted modifications to ensure that the system was in its most complete and operationally appropriate state prior to final deployment.
+Implementation
+The Implementation phase involved the formal deployment of the Centralized Digital Multi-Branch Platform across all three Leo Mejillano branch locations: Leo Mejillano Salon and Makeup Studio in Daraga, Skin Brows by Leo Mejillano in Yashano, and Lash and Brows in Cabangan. This phase encompassed the transition from the existing manual operational processes to the centralized digital system and constituted the final stage of the RAD development cycle.
+Prior to deployment, the proponents conducted orientation and training sessions for all system users, including the salon owner, front desk personnel, and salon staff. The sessions were structured to ensure that each user group was able to perform the functions specific to their assigned role within the system and to address operational questions arising from the transition to a digital platform. Instructional materials were developed in consideration of the varying levels of digital literacy among personnel, as a portion of the salon staff had limited prior experience with web-based management tools.
+Technical Background
+Technologies to be Used
+Development Tools and Environment
+
+Visual Studio Code, commonly known as VS Code, is one of the most popular and widely used Integrated Development Environments in the world today. It was created by Microsoft and released to the public for free, making it accessible to beginner programmers and professional developers alike. An Integrated Development Environment, or IDE, is simply a software application that provides a complete workspace for writing, editing, testing, and debugging code all in one place. Think of it as a very smart and powerful text editor that understands programming languages and helps you write better code faster.
+Database Management System
+MySQL is one of the oldest, most reliable, and most widely used database management systems in the entire world. It is an open-source relational database, which means it is free to use and organizes data into structured tables made up of rows and columns, similar to how a spreadsheet works. MySQL was originally developed in the mid-1990s and has since become the backbone of countless websites, applications, and businesses around the world, including large companies like Facebook, Twitter, and YouTube in their early days.
+Frontend Development Technologies 
+
+HTML, which stands for Hypertext Markup Language, is the fundamental building block of every website and web page that exists on the internet today. It is not exactly a programming language in the traditional sense, but rather a markup language, which means it uses special tags and elements to define the structure and content of a web page. Every time you open a website in your browser, what you are seeing is the result of HTML working behind the scenes to organize and display text, images, links, buttons, forms, and all other visual elements on the screen.CSS, which stands for Cascading Style Sheets, is the language responsible for making websites look beautiful, organized, and visually appealing. While HTML provides the raw structure and content of a web page, CSS is what gives that structure its visual appearance, including colors, fonts, sizes, spacing, layout, and overall design. Without CSS, every website would look like a plain, unstilled document with black text on a white background, similar to reading a simple text file with no formatting or decoration whatsoever.
+JavaScript is the most widely used programming language in the world and is the only programming language that runs natively inside web browsers, making it absolutely essential for web development. While HTML structures the content of a web page and CSS makes it look attractive, JavaScript is what brings a website to life by adding interactivity, dynamic behavior, and real-time functionality. Without JavaScript, websites would be completely static, meaning they would only display fixed content with no ability to respond to user actions or update information without reloading the entire page.
+Framework
+Tailwind CSS is a modern and highly popular utility-first CSS framework that has completely changed the way many developers approach styling and designing web interfaces. Unlike traditional CSS frameworks that provide pre-designed components like buttons, cards, and navigation bars, Tailwind CSS takes a different approach by giving developers a large collection of small, single-purpose utility classes that can be combined directly in the HTML to build any design imaginable. This approach gives developers much greater flexibility and control over the appearance of their projects without being locked into a specific visual style.
+Authentication
+SMS authentication is a security method used by web applications and digital systems to verify the identity of a user by sending a unique code or one-time password directly to their mobile phone number via a text message. This process is commonly known as two-factor authentication, or 2FA, because it adds a second layer of security on top of the traditional username and password login. Even if someone manages to steal or guess your password, they would still be unable to access your account without also having physical access to your phone to receive the verification code.
+Tools & Software
+
+The system is developed using a carefully selected set of tools and technologies that collectively support both the development process and the overall performance, usability, and security of the application. Each component plays a specific role in ensuring that the system is efficient, scalable, and user-friendly.
+The Integrated Development Environment (IDE) used is Visual Studio Code. It serves as the primary platform for writing, editing, and managing the system’s source code. Visual Studio Code is widely used due to its lightweight structure, fast performance, and strong support for web development languages and extensions. It also provides helpful features such as syntax highlighting, IntelliSense (code suggestions), debugging tools, and integrated terminal access, which improve developer productivity and reduce errors during the development process.
+For data management, the system utilizes MySQL as its database management system. MySQL is a powerful and widely used relational database system designed to store, organize, and manage large amounts of structured data efficiently. It allows the system to perform essential operations such as creating, reading, updating, and deleting records (CRUD operations). MySQL also supports data integrity, security, and relationship management between different tables, ensuring that all stored information remains consistent and reliable. This makes it suitable for applications that require secure and well-organized data handling.
+In terms of programming, the system is built using HTML, CSS, and JavaScript, which form the core technologies of modern web development. HTML (HyperText Markup Language) is responsible for structuring the content of the web pages, including headings, forms, tables, and other interface elements. CSS (Cascading Style Sheets) is used to control the visual appearance of the system, such as layout, colors, spacing, typography, and responsiveness across different devices. JavaScript enhances the functionality of the system by adding interactivity and dynamic behavior, such as form validation, real-time updates, and user-triggered events. Together, these three languages create a complete and interactive web-based application.
+To improve the design and responsiveness of the user interface, the system incorporates Tailwind CSS as its frontend framework. Tailwind CSS is a utility-first CSS framework that allows developers to style components directly within HTML using predefined classes. This approach speeds up development and ensures design consistency throughout the system. It also makes it easier to create responsive layouts that automatically adapt to different screen sizes, including mobile phones, tablets, and desktops. As a result, the system achieves a modern and visually appealing interface without the need for extensive custom CSS coding.
+The user interface itself is primarily built using HTML, which acts as the structural foundation of all web pages. Through HTML elements such as forms, buttons, input fields, menus, and tables, users are able to interact with the system effectively. The interface is designed to be simple, intuitive, and accessible, ensuring that users can easily navigate the system and complete tasks without confusion or difficulty.
+For authentication and security, the system employs SMS-based verification. This method enhances account protection by requiring users to verify their identity through a One-Time Password (OTP) sent to their registered mobile number. During login or registration, the system generates a unique code and sends it via SMS, which the user must enter correctly to gain access. This additional security layer helps prevent unauthorized access, reduces the risk of fake accounts, and ensures that only verified users can use the system. In addition to SMS-based verification, the system incorporates multi-factor authentication (MFA) as an added layer of security. This approach requires users to provide additional verification, such as a security question or a secondary email confirmation, alongside the SMS-based OTP. This further strengthens user security by making it significantly harder for unauthorized individuals to gain access, even if they manage to obtain a user’s password. By combining multiple security methods, the platform ensures a higher level of protection for its users and their sensitive data.
+The database management and querying system are optimized with MySQL indexes and queries designed to minimize retrieval times and maximize performance. By creating indexes on frequently queried fields, the system can retrieve records more efficientl
+Calendar of Activities
+
+
+
+Table 1.0 Calendar of Activities
+
+Resources
+This section presents the hardware, software, and technological resources required for the development, testing, deployment, and maintenance of the proposed Centralized Digital Multi-Branch Platform for the Leo Mejillano Salon and Beauty Services Brand. The listed resources are specifically selected based on the system architecture, scalability requirements, and operational needs of a multi-branch salon management system.
+Table 2.0  Hardware Requirements for Web Application
+Component
+Minimum
+Recommended
+CPU
+Intel i3 / AMD Ryzen 3, 1.2 GHz or higher
+Intel i5 / AMD Ryzen 5, 2.1 GHz or higher
+RAM
+4 GB
+8 GB or higher
+Storage
+256 GB HDD/SSD
+512 GB SSD or higher
+Internet Connection
+Stable broadband (3G/Wi-Fi)
+High-speedbroadband (4G/5G/Wi-Fi)
+Table 2presents the minimum and recommended hardware specifications for running the web-based platform on a desktop or laptop computer. An Intel i3 or AMD Ryzen 3 processor (1.2 GHz or higher), at least 4 GB of RAM, and 256 GB of storage are essential for smooth browser-based access to the system.
+Table 3.0  Software Requirements for Web Application
+Component
+Minimum
+Recommended
+Operating System
+Windows 10 (64-bit) / Ubuntu 20.04 LTS
+Windows 11 (64-bit) / Ubuntu 22.04 LTS
+Table 3.0 outlines the software requirements for running the desktop version of the web application. At minimum, Windows 10 (64-bit) or Ubuntu 20.04 LTS is required
+
+Table 4.0  Hardware Requirements for Android Application
+Component
+Minimum
+Recommended
+CPU
+1.4 GHz Quad-core
+2.0 GHz Octa-core or higher
+RAM
+2 GB
+4 GB or higher
+Storage
+512 MB available space
+1 GB available space or higher
+Table 4.0 presents the minimum and recommended hardware specifications for accessing the Leo Mejillano Salon Management System through an Android mobile device. A quad-core processor running at 1.4 GHz and at least 2 GB of RAM are required to run the platform smoothly through a mobile browser. A minimum of 512 MB of available storage is needed to support the browser cache and temporary data generated during booking and session management. For optimal performance, particularly when navigating real-time appointment updates and the administrative dashboard, a 2.0 GHz octa-core processor with 4 GB of RAM and 1 GB or more of available storage is recommended.
+
+Table 5.0  Frontend Requirements 
+Component
+Technology
+Description
+Markup Language
+HTML5
+Defines the structure and content of every page in the system  forms, buttons, tables, and all visual elements
+Styling Language
+CSS3
+Responsible for the visual appearance of the system including colors, fonts, spacing, and layout design
+CSS Framework
+Tailwind CSS
+Utility-first framework used to build responsive and modern user interfaces consistently and efficiently across all modules
+Programming Language
+JavaScript
+Adds interactivity and dynamic behavior to the system, enabling real-time updates and response to user actions without full page reloads
+User Interface
+HTML
+All system pages  booking forms, dashboards, and administrative panels  are built using HTML as the foundation
+Table 5.0 presents the frontend technologies used in developing the user-facing components of the Leo Mejillano Salon Management System. HTML5 serves as the foundational markup language that structures every page element, including booking forms, service listings, and administrative panels. CSS3 is used to define the visual styling of the system, covering layout, typography, color schemes, and spacing to ensure a professional and consistent appearance. Tailwind CSS, a utility-first framework, is applied to accelerate the development of responsive and modern interfaces that function across different screen sizes and devices. JavaScript is integrated to handle dynamic behaviors such as real-time booking status updates, form validation, and interactive dashboard components without requiring full page reloads. 
+Table 6.0  Backend Requirements 
+Component
+Technology
+Description
+Database Management System
+MySQL
+Open-source relational database that stores all system data including appointments, inventory, staff records, and branch information in structured tables
+Development Environment
+Visual Studio Code
+Primary IDE used for writing, editing, and managing the system's source code across all modules
+Authentication Method
+SMS (OTP)
+One-time password sent via SMS to verify user identity, adding a second layer of security on top of the standard login credentials
+Notification Service
+SMS / Email API
+Third-party service used to send automated appointment reminders and service status updates to clients
+Data Synchronization
+Real-time (MySQL)
+All branch data is synchronized in real time through the centralized MySQL database, ensuring consistent records across Daraga, Yashano, and Cabangan branches
+Table 6.0 presents the backend technologies that support the core operations and data management of the Leo Mejillano Salon Management System. MySQL is used as the primary database management system, providing a reliable and structured environment for storing all system records, including appointments, inventory levels, staff assignments, and branch-specific data across the Daraga, Yashano, and Cabangan locations. Visual Studio Code serves as the development environment, offering a lightweight yet feature-rich platform for writing and maintaining the system's source code. SMS-based OTP authentication is implemented to verify user identity during login, ensuring that access to the administrative modules is protected by a two-factor security layer. An SMS and Email API is integrated to automate the delivery of appointment reminders and real-time service status updates to clients. Real-time data synchronization through the centralized MySQL database ensures that any changes made at one branch are immediately reflected across all locations, maintaining consistency and accuracy throughout the entire platform.
+Requirements Analysis
+The proponents conducted a comprehensive analysis of the current operational processes of the Leo Mejillano Salon and Beauty Services Brand to determine the functional and technical requirements of the proposed Centralized Digital Multi-Branch Platform. The analysis focused on identifying inefficiencies in appointment handling, inventory monitoring, staff coordination, and multi-branch management across the Daraga, Yashano, and Cabangan branches in Albay.
+Who
+The primary users of the system include the owner, branch managers, front desk/cashier personnel, and salon staff, all of whom are granted role-based administrative access to manage daily operations. The system also serves clients/customers, who are provided with limited access to book appointments, view service availability, and track booking status through a guest or registered user interface.
+What
+The proposed system is a web-based Salon and Multi-Branch Management System designed to centralize and automate key business operations. It includes modules for online appointment booking, branch selection, inventory management, staff performance tracking, service management, automated notifications, customer feedback and rating, home service booking, and a centralized administrative dashboard. The system also provides real-time monitoring of branch activities and business performance.
+Where
+The system will be used across all Leo Mejillano Salon branches in Albay, specifically at the Daraga Main Branch, Skin Brows (Yashano Mall), and Lash & Brows (Cabangan). It will be accessible in both on-site salon operations and remote management, allowing administrators to monitor and manage operations even outside physical branch locations using internet-connected devices.
+
+When
+The system will be utilized during daily business operations, particularly during peak hours when appointments are actively scheduled and managed. It is also heavily used during high-demand periods such as weekends, holidays, and seasonal promotions, where booking volume increases. Administrators will also use the system regularly for monitoring reports, inventory updates, and performance evaluation.
+How
+The current workflow of the salon relies heavily on manual appointment recording, phone-based bookings, handwritten logs, and branch-by-branch communication, which often leads to scheduling conflicts, duplicated entries, and delayed information sharing. Inventory tracking is done manually, making it difficult to monitor stock levels across branches in real time.
+The proposed system addresses these issues by implementing a centralized digital platform that allows real-time synchronization of appointments, automated scheduling validation to prevent booking conflicts, and a unified inventory tracking system updated by staff input. It also generates automated notifications for clients regarding bookings and reminders, and provides a centralized dashboard for the owner to monitor all branches efficiently. Role-based access control ensures that each user only interacts with relevant system functions based on their position.
+Experiment and Tools
+To ensure accurate system development, the proponents utilized interviews, direct observation, and document analysis as primary data gathering techniques. Interviews were conducted with the salon owner, front desk/cashier staff, and salon personnel to understand operational challenges in scheduling, inventory handling, and customer management. Direct observation was used to analyze actual day-to-day salon workflows across different branches, particularly in appointment booking and walk-in handling processes. Document analysis was performed on existing logbooks, appointment records, and transaction summaries to identify inconsistencies and inefficiencies in manual record-keeping.
+Interview
+An interview is a data gathering method where questions are asked directly to people who are familiar with the existing system. It is used to obtain detailed information about processes, problems, and requirements that cannot be fully captured through observation or documents alone.
+For this study, structured interviews were conducted with the owner, Mr. Leopoldo Mejillano, as well as front desk/cashier staff and salon personnel from the Leo Mejillano Salon branches in Daraga, Yashano, and Cabangan. The interviews were directed at obtaining detailed information regarding the current processes for appointment booking, inventory monitoring, staff assignment, and inter-branch coordination. The goal was to understand how appointments, customer records, and inventory are currently handled across all three branch locations.
+Based on the responses, the current system is mostly manual, relying on phone calls, walk-in bookings, logbooks, and verbal coordination between staff. Appointments are managed through phone calls and walk-in arrangements, while inventory is monitored manually without a shared tracking system. The evaluation of staff performance across branches requires the owner to make physical visits to each location, which is time-consuming and increasingly impractical as the brand continues to grow. This results in frequent booking conflicts, duplicated records, missed appointments, and inconsistent client information across branches. Staff also reported difficulty in checking availability and inventory in real time, especially when multiple branches are involved.
+The interviews confirmed the need for a centralized system for scheduling, client records, inventory tracking, and branch management to reduce errors and improve coordination. The findings directly informed the identification of functional requirements for the proposed Centralized Digital Multi-Branch Platform, particularly the need for a guest booking module, role-based access control, and a unified owner dashboard for monitoring all branches from a single interface. These requirements ensure that all operational processes are streamlined and consistently managed across every branch. Ultimately, this centralized approach enhances efficiency, improves decision-making, and supports.
+Observation
+Observation is a data gathering method where the actual workflow is directly examined without interference. It is used to identify how processes are performed in real situations and to verify issues found during interviews.
+On-site observation was conducted in the Daraga, Yashano Mall, and Cabangan branches of Leo Mejillano Salon. The proponents observed the handling of appointment scheduling during high-volume periods, the management of concurrent bookings by front desk personnel, and the communication of inventory-related concerns between branch locations. The proponents observed how appointments, walk-ins, and inventory tasks are handled under actual operating conditions.
+It was observed that appointment scheduling is done using manual logbooks and phone calls, which leads to overlapping schedules and delayed updates. The observations confirmed that the current manual processes result in scheduling conflicts, duplicated entries in appointment records, and delays in the dissemination of operational information across branches. Staff must also manually check availability across branches, which slows down the booking process and increases the risk of double-booking, particularly during peak hours and high-demand periods such as weekends and holidays. As a result, customers may experience frustration from either being unable to book appointments or being informed about last-minute cancellations due to overbooking.
+Inventory management is also handled manually through physical checking of stock levels, leading to inaccurate records and delayed restocking updates between branches. This becomes more challenging during busy periods, where staff struggle to update records in real time, sometimes resulting in shortages, cancelled appointments.
+The observation confirmed that these manual systems are not only time-consuming but also prone to errors, which ultimately affects both operational efficiency and customer satisfaction. Addressing these issues by implementing a more automated, digital system could help streamline processes, reduce errors, and improve communication and data visibility. This would lead to enhanced customer experiences, better inventory management, and more efficient scheduling.
+Requirements Documentation
+Storyboard
+Storyboard - Customer / Guest Applicant
+
+Access Systemand SelectBranch
+View Servicesand PrepareBooking
+SubmitAppointmentRequest
+ReceiveConfirmationand Updates
+Track Statusand SubmitFeedback
+Customer opens the platform via browser on desktop or mobile
+Selects preferred branch: Daraga, Yashano, or Cabangan
+Views branch-specific services and active promotions
+System displays available services with name, price, and duration
+Customer selects desired service(s)
+Guest option: requires name and contact number only  no account needed
+Customer selects preferred date and time slot
+System validates slot availability in real time
+System generates booking reference / tracking number upon submission
+System sends automated SMS or email confirmation
+Customer receives booking details: branch, service, date, and time
+Reminder notification sent before scheduled appointment
+Customer monitors booking status: Pending, Confirmed, In Progress, Completed
+Receives notification when appointment is ready or completed
+Submits rating and written feedback after service completion
+Table 7.0: Storyboard Customer/Guest Applicant
+The Customer/Guest storyboard illustrates the step-by-step interaction of clients with the A Centralized Digital Multi-Branch Platform for the Leo Mejillano Salon and Beauty Services Brand. The process begins with the customer accessing the platform and selecting a preferred branch from the three Leo Mejillano locations in Albay: Daraga, Yashano Mall, and Cabangan. The system displays branch-specific services and active promotions, enabling the customer to review available offerings before proceeding with a booking.
+Once the desired service is identified, the customer proceeds to submit a booking request. Guest users are required to provide only their full name and contact number  no account registration is necessary. The system validates the selected date and time slot in real time to prevent scheduling conflicts, and then generates a unique booking reference number to confirm that the appointment has been successfully recorded in the system.The platform delivers automated confirmation and reminder notifications via SMS or email, informing the customer of the appointment date, time, branch, and selected service. Throughout the process, the customer can track the booking status from Pending through Confirmed, In Progress, and Completed. After service completion, the customer is invited to submit a star rating and written feedback, which contributes to branch satisfaction metrics and staff performance rankings monitored by the owner through the centralized dashboard. This storyboard highlights how the platform improves accessibility for clients, reduces scheduling errors, and ensures consistent service delivery across all Leo Mejillano branches.
+Storyboard - Owner / Admin 
+
+Login andAccess OwnerDashboard
+ManageServices andPromotions
+Monitor Staffand BranchOperations
+OverseeInventory andSupplier Orders
+GenerateReports andAnalytics
+Owner logs in using secure credentials
+System directs owner to the centralized multi-branch dashboard
+Dashboard displays real-time summaries: bookings, inventory alerts, and staff status for all branches
+Owner adds, updates, or removes services per branch menu
+Sets branch-specific pricing and service duration
+Creates and publishes promotional offers with start and end dates
+Reviews staff attendance and task assignments per branch
+Views staff performance rankings based on completed services and ratings
+Configures booking slot limits to prevent overbooking
+Views consolidated inventory levels across all three branches
+Receives low-stock alerts and approves restocking actions
+Monitors supplier order status and expected delivery dates
+Generates reports on appointments, staff performance, and inventory
+Filters reports by branch, date range, or category
+
+Table 8.0: Storyboard Owner/Admin
+The Owner storyboard illustrates the comprehensive administrative control available to Mr. Leopoldo Mejillano as the business owner of the A Centralized Digital Multi-Branch Platform for the Leo Mejillano Salon and Beauty Services Brand. The workflow begins with the owner logging in using secure role-based credentials, after which the system directs him to a centralized dashboard displaying real-time summaries of appointments, inventory alerts, and staff activity across all three branch locations  Daraga, Yashano Mall, and Cabangan  from a single interface.
+The owner proceeds to manage services and promotions for each branch, customizing service menus, setting pricing and duration, and publishing time-limited promotional offers. The staff and branch operations monitoring module allows the owner to review employee attendance records, task assignments, and system-generated performance rankings based on completed services, customer satisfaction scores, and attendance data. The owner also configures booking slot limits per branch to prevent scheduling conflicts during peak periods.
+The inventory and supplier oversight phase provides the owner with a consolidated view of stock levels across all branches, automated low-stock alerts, and the ability to monitor supplier order status and expected delivery timelines.The owner accesses the reports and analytics module to generate downloadable business reports filtered by branch, date range, or category. This storyboard highlights how the platform empowers the owner to make informed, data-driven decisions and maintain consistent operational standards across the entire Leo Mejillano brand without requiring physical visits to each branch.
+Storyboard -  Cashier
+
+Login andView BranchSchedule
+ManageAppointmentsand Walk-Ins
+Assign Staffand UpdateService Status
+ProcessPayment andIssue Receipt
+UpdateInventory andEnd-of-Day Log
+Cashier logs in with branch-specific credentials
+System displays today's appointment list for the assigned branch
+Views booking status: Pending, Confirmed, In Progress
+Confirms, reschedules, or cancels existing bookings
+Manually enters walk-in bookings into the system
+
+Assigns available staff members to confirmed appointments
+Updates appointment status as service progresses
+Communicates task updates to salon staff through the system
+Selects completed appointment and processes payment
+System calculates itemized service charges
+Issues digital receipt and marks transaction as Paid in the branch sales log
+Updates stock levels used during daily operations
+Flags low-stock items for admin notification
+Reviews and closes end-of-day appointment and transaction records
+Table 9.0: Storyboard Cashier
+The Cashier/Front Desk storyboard illustrates the daily operational workflow of front desk and cashier personnel within the A Centralized Digital Multi-Branch Platform for the Leo Mejillano Salon and Beauty Services Brand. The workflow begins with the cashier logging in using branch-specific credentials, after which the system displays the day's appointment schedule for the assigned branch. The cashier reviews booking statuses and prepares the branch for incoming clients.The cashier proceeds to manage appointments and walk-ins, confirming, rescheduling, or cancelling bookings as needed. Walk-in clients are recorded directly into the system to ensure all transactions remain digital and accurate. The system automatically enforces slot limits to prevent overbooking. The cashier also assigns staff members to confirmed appointments and updates service status in real time as each appointment progresses through the queue.
+Once a service is completed, the cashier processes the payment through the platform, which calculates itemized charges, records the transaction in the branch sales log, and issues a digital receipt to the client. At the end of the day, the cashier updates inventory records to reflect supplies used and flags any low-stock items for administrator notification. This storyboard highlights how the platform streamlines front desk operations, reduces manual recording errors, and ensures accurate and up-to-date branch records throughout the business day.
+Storyboard -  Salon Staff
+
+Login andView DailyAssignments
+PrepareTools andSupplies
+PerformService andUpdate Status
+Log SuppliesUsed andAttendance
+ReceiveFeedback andPerformance
+Staff member logs in with personal employee account
+System displays list of assigned appointments and tasks for the day
+Views client name, service type, and scheduled time per task
+Reviews service requirements for each assigned appointment
+Checks out necessary supplies from branch inventory
+System updates inventory to reflect items taken for use
+Conducts assigned beauty service for the client
+Updates appointment status to In Progress upon starting
+Marks appointment as Completed when service is finished
+Records supplies consumed during service delivery
+System syncs usage data with branch inventory records
+Attendance is automatically logged based on system activity
+Client submits rating and feedback after service completion
+Staff can view their own performance summary and ratings
+Performance score is updated in the owner's dashboard rankings
+Table 10.0: Storyboard Salon Staff
+The Staff storyboard illustrates the daily workflow of salon personnel stylists, technicians, and service providers within the A Centralized Digital Multi-Branch Platform for the Leo Mejillano Salon and Beauty Services Brand. The workflow begins with the staff member logging in using their individual employee account, after which the system displays a list of assigned appointments and tasks for the day. Each entry shows the client name, service type, and scheduled time, giving the staff member a clear picture of their workload before the shift begins.
+The staff member prepares tools and supplies by reviewing service requirements for each appointment and checking out the necessary items from the branch inventory system. The inventory module is automatically updated to reflect the supplies taken, maintaining accurate stock records at all times. Once ready, the staff member performs the assigned service, updating the appointment status to In Progress upon starting and marking it Completed when finished, keeping the cashier and administrator informed in real time.
+After service delivery, the staff member logs supplies consumed and the system syncs this data with the branch inventory records. Attendance is automatically recorded based on system login and activity, reducing the need for separate manual logbooks. Following appointment completion, the client submits a rating and feedback, which the staff member can view through their personal performance summary. These ratings are factored into the system's staff performance ranking, which is monitored by the owner through the centralized dashboard. This storyboard highlights how the platform supports salon staff in managing their daily responsibilities efficiently and transparently.
+
+Design of Software, System, Product, and/or Processes
+In this part, the proponents shall describe in detail how they will design the proposed system in accordance with standards.
+
+
+References
+Resty Wahyuni, & Nindi Vourezky. (2021). Indonesian Journal of Education, Social Sciences and Research(IJESSR),2(2),114–117. https://jurnal.umsu.ac.id/index.php/ijessr/article/view/6619/pdf
+Ningrum, A. W., & Sejati, R. H. P. (2023). Revolutionizing Salon Services: A comprehensive study on the development of a salon reservation application. International Journal of Computer Applications,185(44),34–40. https://doi.org/10.5120/ijca2023923257
+Permatasari, H., Purwanto, E., & Triyono, T. (2024). Enhancing Customer Experience and Satisfaction through Mobile-Based Salon and Spa Reservations on Android Platforms. IJEEIT International Journal of Electrical Engineering and Information Technology, 7(1), 12–21. https://doi.org/10.29138/ijeeit.v7i1.2621
+Palaroan, P. A., Raymundo, L. M., Garay, L., Chavez, E., & Guillermo, E. (2025). Vicky Salon: A Smart Salon Management System with Prescriptive and Descriptive Analytics for Enhanced Admin Side Experience. International Journal of Research and Innovation in Applied Science, 10(10), 1459–1470. https://doi.org/10.51584/ijrias.2025.10100000131
+Garcia, A. F., Ducay, B., Ilustrisimo, A. C., Niedo, E. P., Illustrisimo, D. L., Santillan, C. M. V., Almonicar, S. C., Paragsa, J. P., Ducay, L. M., Oflas, A. C., & Alegre, K. B. S. (2026). Design and implementation of a beauty salon appointment and sales management system. International Journal of Computer Science and Mobile Computing, 15(3), 69–80. https://doi.org/10.47760/ijcsmc.2026.v15i03.008
+Mangarin, R. A., & Gonzaga, J. C. (2021). Service Quality and Customer Satisfaction among Beauty Salons. International Journal of Research and Innovation in Social Science, 05(05), 67–72. https://doi.org/10.47772/ijriss.2021.5503
+Silva,W.(2021,August2).SalonManagementSystemforSalonChami. http://dl.ucsc.cmb.ac.lk/jspui/handle/123456789/4320
+Calzada, C. K., Cudal, R. A., & David, I. C. C. (2025). Functional Salon Website for Service Display and Online Booking Management for Gold and Gorgeous Salon using Prescriptive Analysis and K-Means Clustering. International Journal of Research and Innovation inApplied Science, 10(10), 808– 820. https://doi.org/10.51584/ijrias.2025.1010000064
+B, R., C, S., & S, S. (2025b). GlamHub Redefining Beauty and Fashion Retail through Digital Innovation and Consumer-Centric Strategies. International Journal of Scientific Research in Computer Science Engineering and Information Technology, 11(1), 2844 2846. https://doi.org/10.32628/cseit2511137
+Permatasari, et al. (2024). A unified platform for wellness and salon services. International Journal of Innovative Research in Engineering (IJIRE), 5(2), 161–168 https://www.theijire.com/archiver/archives/a_unified_platform_for_wellness_and_salon_ services.pdf
+Gulshan, A. K., & Khan, A. (2021). Salon management system. International Journal of Creative Research Thoughts(IJCRT), 9(5),b387–b390. https://ijcrt.org/papers/IJCRT2105150.pdf
+Mindbody, Inc. (2024). Mindbody – Business management software for wellness and beauty. Mindbody, Inc. https://www.mindbodyonline.com
+Oliverio, M. B. M., Panes, D. E. T., Vinluan, T. M. C., & Intal, G. L. D. (2024). BEauTify: An information system for company-owned salons with multiple branches in NCR. In Proceedings of the 2024 7th International Conference on Computers in Management and Business (ICCMB '24). ACM. https://doi.org/10.1145/3647782.3647812
+Belolo, F. C. J., Goc-ong, M. V., & Trampe, K. C. V. (2025). Web-based management information system for Purple Look Hair Salon and Spa [Undergraduate capstone project, Bachelor of Science in Information Technology]. Cavite State University – Bacoor City Campus. https://cvsubccl.librarika.com/search/detail/12046834
+Puddunan, M. A., & Mamauag, D. M. (2023). Enhance salon management system [Undergraduate research report, Bachelor of Science in Information Technology]. Mallig Plains Colleges, Inc.https://www.studocu.com/ph/document/san-jose-national-high school/student/enhance-salon-management-system/90859676
+Tagabucba, M., & Research Team. (2024). BEauTify: A salon management system for Philippine salons[Conferencepaper]. ACM Digital Library. https://unpaywall.org/10.1145%2F3647782.3647812
+Risisinternational. (2021). Service quality and customer satisfaction among beauty salons in the Philippines. International Journal of Research and Innovation in Social Science (IJRISS), 5(5), 67–72. https://risisinternational.org/journals/ijriss/Digital-Library/volume-5-issue-5/67-72.pdf
+Verhoef, P. C., Broekhuizen, T., Bart, Y., Bhattacharya, A., Dong, J. Q., Fabian, N., & Haenlein, M. (2022). Digital transformation: A multidisciplinary reflection and research agenda. Journal of Business Research, 122, 889–901. https://doi.org/10.1016/j.jbusres.2019.09.022 Ng, W., Du, B., Liu, L., Hsu, F., Chen, C., Lee, Y., Chang, S., Lu, C., & Yeung, T. (2024).
+Ng, W., Du, B., Liu, L., Hsu, F., Chen, C., Lee, Y., Chang, S., Lu, C., & Yeung, T. (2024). Value Co-Creation through Digital Platform Ecosystems: Case Studies of Hair Salon Chains. Open Journal of Business and Management, 12(06), 4260–4277. https://doi.org/10.4236/ojbm.2024.126214
+Wahyuni, P. H. S., Hidayati, N., & Asiyah, S. (2024). Digital Impact on Beauty Salons: E-Service Quality, E-Promotion, Customer Satisfaction and Purchase Decisions. Journal of Business and Management Review, 5(8). https://doi.org/10.47153/jbmr.v5i8.1017
+Ningrum, A. W., & Sejati, R. H. P. (2023). Revolutionizing salon services: A comprehensive study on the development of a salon reservation application. International Journal of Computer Applications, 185(44), 34–40. https://doi.org/10.5120/ijca2023923257Permatasari, H., Purwanto, E., & Triyono, T. (2024). A unified platform for wellness and salon services. International Journal of Innovative Research in Engineering (IJIRE), 5(2), 161–168. https://www.theijire.com/archiver/archives/a_unified_platform_for_wellness_and_salon_services.pdf
+Mangarin, R. A., & Gonzaga, J. C. (2021). Service Quality and Customer Satisfaction among Beauty Salons. International Journal of Research and Innovation in Social Science, 05(05), 67–72. https://doi.org/10.47772/IJRISS.2021.5503
+M. V., Almonicar, S. C., Paragsa, J. P., Ducay, L. M., Oflas, A. C., & Alegre, K. B. S. (2026). Design and implementation of a beauty salon appointment and sales management system. International Journal of Computer Science and Mobile Computing, 15(3), 69–80. https://doi.org/10.47760/ijcsmc.2026.v15i03.008
+Silva, W. (2021, August 2). Salon Management System for Salon Chami. http://dl.ucsc.cmb.ac.lk/jspui/handle/123456789/4320
+Calzada, C. K., Cudal, R. A., & David, I. C. C. (2025). Functional Salon Website for Service Display and Online Booking Management for Gold and Gorgeous Salon using Prescriptive Analysis and K-Means Clustering. International Journal of Research and Innovation in Applied Science, 10(10),808–820. https://doi.org/10.51584/ijrias.2025.1010000064
+Palaroan, P. A., Raymundo, L. M., Garay, L., Chavez, E., & Guillermo, E. (2025). Vicky Salon: A Smart Salon Management System with Prescriptive and Descriptive Analytics for Enhanced Admin Side Experience. International Journal of Research and Innovation in Applied Science, 10(10), 1459–1470. https://research.rug.nl/en/publications/digital-transformation-a-multidisciplinary-reflection-and-researc/
+Appendice
+
+APPENDIX A. RESOURCE PERSONS
+Mr. Leopoldo Mejillano
+Leo Mejillano Salon & Make up Studio (Daraga, Branch)
+Lash & Brows by Leo Mejillano (Cabangan Legazpi Branch)
+Skin Brows by Leo Mejillano (Yashano Mall Legazpi Branch)
+Business Owner
+
+Mr. Jason C. Maliquid
+STI College Legazpi
+Capstone Project Adviser
+
+Ms. Maria Diejhey B. Martinez, MIT
+STI College Legazpi
+Lead Panelist
+
+Ms. Maria Diejhey B. Martinez, MIT
+STI College Legazpi
+Academic Head
+
+Mrs. Carrie M. Donacao
+STI College Legazpi
+STI Librarian
+
+
+
+
+APPENDIX b. EVALUATION TOOL/ TEST DOCUMENTS
+
+
+Leo Mejillano Salon & Make up Studio (Daraga, Branch)
+
+
+
+
+
+
+
+
+
+
+
+Skin Brows by Leo Mejillano (Yashano Mall Legazpi Branch)
+
+
+
+
+Lash & Brows by Leo Mejillano (Cabangan Legazpi Branch)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Survey Questionnaire
+
+ 
+
+
+APPENDIX C. DATA FLOW DIAGRAM 
+Data Flow Diagram
+Figure 1: Existing DFD of Leo Mejillano Salon Context Diagram
+
+Figure 1 shows the overall data flow of the Leo Mejillano Salon System, where the system serves as the central hub that connects and manages interactions between five key external entities: the Client, Branch Staff, Management/Owner, Supplier, and Accountant. The diagram, represented as a Context Diagram or Level 0 Data Flow Diagram, provides a high-level overview of the system's scope and boundaries, where the central process labeled as Process 0 acts as the single point through which all data is received, processed, and distributed to ensure that every aspect of the salon's daily operations is properly coordinated. The system interacts with the Client for appointment and service data, the Branch Staff for operational updates and details, the Management and Owner for policies and reports, the Supplier for goods and procurement transactions, and the Accountant for financial records and sales data. 
+Figure 2: Existing DFD of Leo Mejillano Salon Level 1
+
+Figure 2 presents the Level 1 Data Flow Diagram (DFD) of the Leo Mejillano Salon System. It illustrates the major processes of the system, including Manage Client Inquiries and Appointments, Manage Services and Sales, Manage Inventory, Manage Supplier and Purchases, Manage Branch Operations and Marketing, and Generate Reports and Financial Records, as well as the flow of data between these processes, the data stores, and external entities such as the Client, Branch Staff, Management/Owner, Supplier, and Accountant. The diagram provides a detailed view of system operations and how data is processed to support effective salon service delivery and business management.
+Figure 3: Existing DFD of Leo Mejillano Salon  1.0 Handle Customer Inquiry and Service Information 
+
+Figure 3 presents the Level 2 Data Flow Diagram (DFD) of the Leo Mejillano Salon System, specifically focusing on Process 1.0 – Handle Customer Inquiry and Service Information. It illustrates the major sub-processes of the system, including Manage Client Inquiries and Appointments, Check Available Service Information, Check Branch or Staff Availability, and Manual Response to Customer, as well as the flow of data between these processes, the data stores, and external entities such as the Client and Cashier. The diagram provides a detailed view of how customer inquiries are handled and how data is processed to support effective service information delivery and appointment management within the salon.
+Figure 4: Existing DFD of Leo Mejillano Salon 2.0 Record Appointment Booking 
+
+Figure 4 presents the Level 2 Data Flow Diagram (DFD) of the Leo Mejillano Salon System, specifically focusing on Process 2.0 – Record Appointment Booking. It illustrates the major sub-processes of the system, including Accept Booking Request, Verify Appointment Availability, Save Customer and Appointment Details, Send Appointment Confirmation, and Assign Appointment to Staff, as well as the flow of data between these processes, the data stores, and external entities such as the Customer, Cashier, and Branch Staff. The diagram provides a detailed view of how appointment bookings are recorded and how data is processed to support effective scheduling, confirmation, and staff assignment within the salon.
+Figure 5: Existing DFD of Leo Mejillano Salon 3.0 Manage Customer Records
+
+Figure 5 presents the Level 2 Data Flow Diagram (DFD) of the Leo Mejillano Salon System, specifically focusing on Process 3.0 – Manage Customer Records. It illustrates the major sub-processes of the system, including Gather Customer Information, Search Customer Records, Create or Update Customer Record, and Retrieve Customer Service History, as well as the flow of data between these processes, the data stores, and external entities such as the Cashier. The diagram provides a detailed view of how customer records are managed, where the system determines whether a customer is new or existing through a Customer Record Availability check, and how data is processed to support accurate record keeping and retrieval of customer service history within the salon.
+Figure 6: Existing DFD of Leo Mejillano Salon 4.0 Monitor Inventory Manually
+
+Figure 6 presents the Level 2 Data Flow Diagram (DFD) of the Leo Mejillano Salon System, specifically focusing on Process 4.0 – Monitor Inventory Manually. It illustrates the major sub-processes of the system, including Verify Physical Stock, Record Product Usage, Update Inventory Records, Identify Low Stock Items, and Report Supply Needs to Owner, as well as the flow of data between these processes, the data stores, and external entities such as the Branch Staff, Cashier, and Management/Owner. The diagram provides a detailed view of how inventory is manually monitored and how data is processed to support accurate stock tracking, low stock identification, and timely reporting of supply needs to ensure continuous and efficient salon operations.
+Figure 7: Existing DFD of Leo Mejillano Salon 5.0 Coordinate Staff Schedule and Service Assignment
+
+Figure 7 presents the Level 2 Data Flow Diagram (DFD) of the Leo Mejillano Salon System, specifically focusing on Process 5.0 – Coordinate Staff Schedule and Service Assignment. It illustrates the major sub-processes of the system, including Check Staff Availability, Assign Staff to Appointment, Notify Staff of Assigned Tasks, Record Staff Attendance, and Update Service Completion Records, as well as the flow of data between these processes, the data stores, and external entities such as the Cashier, Branch Staff, and Management/Owner. The diagram provides a detailed view of how staff schedules and service assignments are coordinated and how data is processed to support accurate attendance recording, task notification, and service completion tracking to ensure efficient and well-organized salon operations.
+Figure 8: Existing DFD of Leo Mejillano Salon 6.0 Handle Sales,Payment and Branch Reporting
+
+Figure 8 presents the Level 2 Data Flow Diagram (DFD) of the Leo Mejillano Salon System, specifically focusing on Process 6.0 – Handle Sales, Payment and Branch Reporting. It illustrates the major sub-processes of the system, including Receive Payment Information, Generate Manual Receipt, Record Daily Sales, Compile Branch Operation Summary, and Submit Branch Report to Owner, as well as the flow of data between these processes, the data stores, and external entities such as the Client, Cashier, and Management/Owner. The diagram provides a detailed view of how sales and payments are processed and how branch reports are compiled and submitted, ensuring accurate transaction recording and timely reporting of branch operations to support effective management and decision-making within the salon.
+Figure 9: Propose DFD of A Centralized Digital Multi-Branch Platform for Leo Mejillano Salon and Beauty Services (Context Diagram) 
+The Level 0 Data Flow Diagram shows the overall data flow of the Centralized Digital Multi-Branch Platform for the Leo Mejillano Salon and Beauty Services Brand, where the system serves as the central hub between the Customer, Owner, Staff, and Cashier. It receives inputs such as booking requests, feedback and ratings, staff and inventory settings, attendance and time records, inventory usage and stock data, walk-in booking and registration data, and payment and billing information, and provides outputs like booking confirmations, SMS notifications, service status updates, sales and performance reports, dashboard and analytics data, daily task lists and schedules, assigned bookings and appointments, and payment confirmations and receipts for coordinated salon operations across multiple branches.
+
+Figure 10: Propose DFD of A Centralized Digital Multi-Branch Platform for Leo Mejillano Salon and Beauty Services (Level 1)
+
+The Level 1 Data Flow Diagram  shows the detailed data flow of the Centralized Digital Multi-Branch Platform for the Leo Mejillano Salon and Beauty Services Brand, where the system breaks down into thirteen interconnected processes that collectively handle the full scope of salon operations across multiple branches. It receives inputs such as customer information submitted during registration, online appointment details and walk-in booking data from the Customer and Cashier, feedback and ratings provided by customers after service, payment and billing information processed through the cashier, attendance and time records and staff records submitted by the Owner, inventory usage data reported by the Staff, inventory control instructions from the Owner, services and branch configuration data, and supplies and delivery information received from the Supplier, and provides outputs like registered and verified accounts, booking confirmations and appointment status updates, schedule and task assignments distributed to the Staff, service updates relayed back to the system, inventory data and stock updates maintained in the central database, payment confirmations and receipts issued to the Cashier, staff data and management records stored and monitored by the system, purchase orders transmitted to the Supplier, and full reports, dashboard views, and report summaries delivered to the Owner to support informed decision-making, performance monitoring, and coordinated and efficient salon management across all branches of the Leo Mejillano Salon and Beauty Services Brand.
+
+Figure 11: Proposed Data Flow Diagram 1.0 Registration
+
+Figure 1.0 shows how customers submit registration information through the system. The system validates the submitted data through sequential sub-processes and stores records in the Customer Database. The workflow begins when customers provide personal information, captured by process 1.1 (Enter Customer Information). Process 1.2 (Validate Registration Details) ensures accuracy and compliance with business rules. Process 1.3 (Create Customer Account) creates a new customer account, and process 1.4 (Store Customer Data) stores information within the Customer Database (D1). Finally, process 1.5 (Send Registration Confirmation) transmits confirmation messages back to customers. This approach ensures customer data is thoroughly validated before storage, maintaining data integrity and providing persistent record-keeping for future account access within the overall information system architecture.
+
+Figure 12: Proposed Data Flow Diagram 2.0 Verify Account
+
+Figure 2.0 shows how registered customers submit verification requests to activate their accounts. The system validates verification data through sequential sub-processes and stores records in the User Database. The workflow begins when customers initiate verification through process 2.1 (Receive Verification Request). Process 2.2 (Check Verification Code) validates against stored OTP/token data in the User Database (D2). Process 2.3 (Validate Verification Token) ensures data authenticity and security. Process 2.4 (Activate User Account) activates the customer's account and stores activation data. Finally, process 2.5 (Update Verification Status) transmits confirmation messages back to the customer. This approach ensures secure verification through multi-layer security while maintaining data integrity and persistent record-keeping for account access within the overall information system architecture.
+
+Figure 13: Proposed Data Flow Diagram 3.0 Log In
+
+Figure 3.0 shows how registered users submit login credentials to access their accounts. The system validates credential data through sequential sub-processes and stores session records in the User Database. The workflow begins when users provide credentials through process 3.1 (Enter Login Credentials). Process 3.2 (Validate User Credentials) validates against stored information in the User Database (D2). Process 3.3 (Authenticate User Role) determines access permissions and authorization levels. Process 3.4 (Generate User Session) creates session records for tracking active users. Finally, process 3.5 (Display User Dashboard) transmits login confirmation to the user. This approach ensures secure authentication through multi-layer validation while maintaining data integrity and persistent record-keeping for user activity monitoring within the overall information system architecture.
+
+Figure 14: Proposed Data Flow Diagram 4.0 Manage Service & Branches
+
+Figure 4.0 shows how owners submit branch and service information to manage business operations. The system validates and processes data through sequential sub-processes and stores records across multiple databases. The workflow begins when owners provide branch information through process 4.1 (Add New Branch) in the Branch Database (D3). Process 4.2 (Update Branch Information) modifies branch records. Process 4.3 (Add Salon Services) stores service data in the Service Database (D4). Process 4.4 (Update Service Pricing) updates pricing in the Branch Service Pricing Database (D5). Process 4.5 (Archive Inactive Services) archives discontinued services. Finally, process 4.6 (Save Services and Branch Data) transmits operation results to the owner. This approach ensures business information is thoroughly managed across multiple databases while maintaining data integrity and persistent record-keeping for service operations within the overall information system architecture.
+
+Figure 15: Proposed Data Flow Diagram 5.0 Book Appointment
+
+Figure 5.0 shows how registered customers submit appointment details to book salon services. The system processes the appointment data through sequential sub-processes and stores records in the Appointment Database. The workflow begins when customers provide appointment details through process 5.1 (Select Branch). Process 5.2 (Select Salon Services) captures selected services, and process 5.3 (Select Schedule and Stylist) captures schedule and stylist details. Process 5.4 (Check Appointment Availability) checks availability status within the Appointment Database (D6). Process 5.5 (Confirm Appointment) confirms the appointment and stores details in the database. Process 5.6 (Store Appointment Information) stores the appointment record within the Appointment Database (D6). Finally, process 5.7 (Send Booking Confirmation) transmits confirmation messages back to customers. This approach ensures appointment data is thoroughly processed and validated for availability, maintaining data integrity and providing persistent record-keeping for appointment management within the overall information system architecture.
+
+Figure 16: Proposed Data Flow Diagram 6.0 Manage Appointments
+
+Figure 17: Proposed Data Flow Diagram 7.0 Manage Staff
+
+Figure 7.0 shows how owners submit staff information to manage their salon personnel. The system processes the staff data through sequential sub-processes and stores records in the Staff Database. The workflow begins when owners provide staff information through process 7.1 (Add Staff Information), which captures new staff data within the Staff Database (D8). Process 7.2 (Assign Staff Roles) assigns role and department responsibilities and stores assignment data within the Staff Database (D8). Process 7.3 (Record Attendance) records attendance data submitted by staff within the Staff Database (D8). Process 7.4 (Update Staff Records) updates staff information and stores updated data within the Staff Database (D8). Process 7.5 (Monitor Staff Performance) monitors performance data and stores records within the Staff Database (D8). Finally, process 7.6 (Save Staff Information) consolidates staff management operations and transmits results back to the owner. This approach ensures staff information is thoroughly managed across roles, attendance, and performance, maintaining data integrity and providing persistent record-keeping for staff management within the overall information system architecture.
+
+Figure 18: Proposed Data Flow Diagram 8.0 Manage Inventory
+
+Figure 8.0 shows how owners submit inventory item information to manage salon supplies through sequential sub-processes stored in the Inventory Database (D9). The workflow begins when owners add inventory items through process 8.1 (Add Inventory Items), with data stored in the database. Process 8.2 (Monitor Stock Levels) then monitors and retrieves current stock data. Process 8.3 (Record Inventory Usage) captures item usage submitted by staff, while Process 8.4 (Update Stock Quantity) updates inventory quantities accordingly. Process 8.5 (Generate Low Stock Alerts) monitors stock levels and triggers alerts when items fall below minimum thresholds. Finally, Process 8.6 (Save Inventory Records) stores complete inventory records in the database. This ensures real-time stock monitoring and persistent record-keeping for inventory management within the overall information system architecture.
+
+Figure 19: Proposed Data Flow Diagram 9.0 Manage Supplier Orders
+
+Figure 9.0 shows how owners submit purchase order requests to manage supplier transactions through sequential sub-processes stored in the Inventory & Supplier Database (D10). The workflow begins when owners create purchase orders through Process 9.1 (Create Purchase Order), capturing all order details. Process 9.2 (Send Order to Supplier) then forwards confirmed orders to suppliers, and Process 9.3 (Receive Delivery Items) processes incoming deliveries. Process 9.4 (Verify Delivered Stocks) verifies received items against original orders, storing verification data in the database. Process 9.5 (Update Inventory Records) updates inventory quantities based on received items, and Process 9.6 (Store Supplier Transactions) saves complete supplier transaction records. This ensures thorough order management from creation through delivery verification, maintaining data integrity and persistent record-keeping within the overall information system architecture.
+
+Figure 20: Proposed Data Flow Diagram 10.0 Process Payment & Billing
+
+Figure 10.0 shows how customers submit payment details to complete transactions through sequential sub-processes stored across multiple databases. The workflow begins when customers provide payment details through Process 10.1 (Validate Payment Details), which validates information against the Payment Transaction Database (D11). Process 10.2 (Process Payment Transaction) then processes the validated payment and stores transaction data in the same database. Process 10.3 (Generate Billing Information) generates billing details based on service and appointment data, storing records in the Billing Database (D12), while Process 10.4 (Store Billing Record) saves complete billing records. Finally, Process 10.5 (Send Payment Confirmation) transmits payment confirmation and invoice billing status back to both customers and the cashier. This ensures thorough payment validation and processing with complete billing records, maintaining data integrity within the overall information system architecture.
+
+Figure 21: Proposed Data Flow Diagram 11.0 Verify Payment & Issue Reciept
+
+
+Figure 11.0 shows how customers submit payment verification requests to receive official receipts through sequential sub-processes stored in the Receipt Database (D13). The workflow begins when customers submit verification requests through Process 11.1 (Retrieve Payment Details), which retrieves payment data from the Payment Transactions Database (D11). Process 11.2 (Verify Payment Status) then verifies the payment status and confirms validation with the cashier. Process 11.3 (Generate & Issue Receipt) generates and issues official receipts containing verified payment information. Finally, Process 11.4 (Store Receipt Record) stores complete receipt records within the Receipt Database. This ensures payment verification is thoroughly completed before receipt issuance, maintaining data integrity and persistent record-keeping within the overall information system architecture.
+
+Figure 22: Proposed Data Flow Diagram 12.0 Collect Feedback & Ratings
+
+\
+Figure 12.0 shows how customers submit feedback and ratings to evaluate services through sequential sub-processes stored in the Feedback Database (D14). The workflow begins when customers provide feedback through Process 12.1 (Receive Customer Feedback), which captures and stores feedback data in the database. Process 12.2 (Record Ratings) records customer ratings and stores rating information accordingly. Process 12.3 (Analyze Customer Satisfaction) analyzes collected feedback to determine satisfaction levels, while Process 12.4 (Generate Feedback Summary) produces summary reports from the analyzed data. Finally, Process 12.5 (Store Feedback Records) saves complete feedback records with storage confirmation. This ensures customer feedback is thoroughly collected and analyzed for satisfaction measurement, maintaining data integrity and persistent record-keeping within the overall information system architecture.
+
+Figure 23: Proposed Data Flow Diagram 13.0 Generate Reports & Dashboard 
+
+Figure 13.0 shows how owners request reports and analytics to monitor business performance through sequential sub-processes stored in the Report Database (D15). The workflow begins when owners submit report requests through Process 13.1 (Retrieve Transaction Data), which retrieves sales and transaction data from the database. Process 13.2 (Retrieve Inventory Reports) and Process 13.3 (Retrieve Staff Performance Data) gather additional operational data stored in the Report Database. Process 13.4 (Analyze Business Performance) consolidates and analyzes all retrieved data, while Process 13.5 (Generate Dashboard Analytics) produces comprehensive reports and analytics stored in the database. Finally, Process 13.6 (Display Reports to Owner) presents the reports and dashboard information back to owners with delivery confirmation. This ensures business reports are thoroughly generated from multiple data sources with comprehensive analytics, maintaining data integrity and persistent record-keeping for business intelligence within the overall information system architecture.
+
+
+APPENDIX D. DOCUMENTATION
+Documentation
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   
+    APPENDIX E. PERSONAL TECHNICAL VITAE
+Curriculum Vitae of 
+Michael Kharl M. Agao
+Purok 7 Tagbacan Estanza Legazpi City
+michaelkharlagao227@gmail.com
+09542450588
+
+
+EDUCATIONAL BACKGROUND
+Level
+Inclusive Dates
+Name of school/ Institution
+Tertiary
+2023 - Present
+STI College Legazpi
+Senior High School
+2021 - 2023
+Daraga National High School
+High School
+2017 - 2021
+Daraga National High School
+Elementary
+2011 - 2017
+Gabawan Elementary School, Kiwalo Elementary School
+
+
+PROFESSIONAL OR VOLUNTEER EXPERIENCE
+Inclusive Dates
+Nature of Experience/ 
+Job Title
+Name and Address of Company or Organization
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AFFILIATIONS
+Inclusive Dates
+Name of Organization
+Position
+
+
+
+
+
+
+
+
+
+
+
+
+
+SKILLS
+SKILLS
+Level of Competency
+Date Acquired
+Html
+Beginner
+2026
+Css
+Beginner
+2026
+Javascript
+Beginner
+2026
+C#
+Beginner
+2025
+Python
+Beginner
+2024
+Java
+Beginner
+2023
+
+
+TRAININGS, SEMINARS, OR WORKSHOPS ATTENDED
+Inclusive Dates
+Title of Training, Seminar, or Workshop
+February 2024
+STI National Youth Convention 2024
+
+
+
+
+
+
+
+Curriculum Vitae of 
+Paulo M. Balaguer
+Padang Legazpi City
+Paulbalaguer69@gmail.com
+09159235946
+
+
+EDUCATIONAL BACKGROUND
+Level
+Inclusive Dates
+Name of school/ Institution
+Tertiary
+2023 - Present
+STI College Legazpi
+Senior High School
+2021 - 2023
+Genecom Institute Science and Technology, inc.
+High School
+2017 - 2021
+Genecom Institute Science and Technology, inc.
+Elementary
+2011 - 2017
+Padang,Legazpi City
+
+
+PROFESSIONAL OR VOLUNTEER EXPERIENCE
+Inclusive Dates
+Nature of Experience/ 
+Job Title
+Name and Address of Company or Organization
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AFFILIATIONS
+Inclusive Dates
+Name of Organization
+Position
+
+
+
+
+
+
+
+
+
+
+
+
+
+SKILLS
+SKILLS
+Level of Competency
+Date Acquired
+Html
+Beginner
+2026
+Css
+Beginner
+2026
+Javascript
+Beginner
+2026
+C#
+Beginner
+2025
+Python
+Beginner
+2024
+Java
+Beginner
+2023
+
+TRAININGS, SEMINARS, OR WORKSHOPS ATTENDED
+Inclusive Dates
+Title of Training, Seminar, or Workshop
+
+
+
+
+
+
+
+
+
+Curriculum Vitae of
+Angelo E. Cortes
+957 Kimantong St. Daraga Albay
+cortesangelo12@gmail.com
+09539783002
+
+
+EDUCATIONAL BACKGROUND
+Level
+Inclusive Dates
+Name of school/ Institution
+Tertiary
+    2023 - Present
+STI College Legazpi
+Vocational/Technical
+2021 - 2023
+STI College Legazpi
+High School
+2012 - 2016
+ Rafael L. Lazatin Memorial High School
+Elementary
+2007 - 2012
+Sta. Cruz Elementary School
+
+
+PROFESSIONAL OR VOLUNTEER EXPERIENCE
+Inclusive Dates
+Nature of Experience/ 
+Job Title
+Name and Address of Company or Organization
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AFFILIATIONS
+Inclusive Dates
+Name of Organization
+Position
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SKILLS
+SKILLS
+Level of Competency
+Date Acquired
+Html
+Beginner
+2026
+Css
+Beginner
+2026
+Javascript
+Beginner
+2026
+C#
+Beginner
+2025
+Python
+Beginner
+2024
+Java
+Beginner
+2023
+
+
+TRAININGS, SEMINARS, OR WORKSHOPS ATTENDED
+Inclusive Dates
+Title of Training, Seminar, or Workshop
+February 2024
+STI National Youth Convention 2024
+
+
+
+
+
+
+
+
+Curriculum Vitae of
+Angelo O. Navarra
+Emilio Jacinto Street Poblacion Guinobatan
+geloan448@gmail.com
+09754375156
+
+
+EDUCATIONAL BACKGROUND
+Level
+Inclusive Dates
+Name of school/ Institution
+Tertiary
+2023 - Present
+STI College Legazpi
+Senior High School
+2019 - 2021
+Marcial O. Rañola Memorial School
+High School
+2015 - 2019
+St. Benedict's Academy, Inc., United Institute, Inc.
+Elementary
+2009 - 2015
+Guinobatan East Central School
+
+
+PROFESSIONAL OR VOLUNTEER EXPERIENCE
+Inclusive Dates
+Nature of Experience/ 
+Job Title
+Name and Address of Company or Organization
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AFFILIATIONS
+Inclusive Dates
+Name of Organization
+Position
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SKILLS
+SKILLS
+Level of Competency
+Date Acquired
+Html
+Beginner
+2026
+Css
+Beginner
+2026
+Javascript
+Beginner
+2026
+C#
+Beginner
+2025
+Python
+Beginner
+2024
+Java
+Beginner
+2023
+
+TRAININGS, SEMINARS, OR WORKSHOPS ATTENDED
+Inclusive Dates
+Title of Training, Seminar, or Workshop
+February 2024
+STI National Youth Convention 2024
+
+
+
+
+
+APPENDIX F. TRANSCRIPT
+
+Leo Mejillano Salon & Make up Studio (Daraga, Albay)
+
+
+
+Angelo N.: Ano tabi ang mga Services para sa Hair and ilan oras man po tig aabot?
+
+Staff: Dipende sa Hair Color 45 mins si Highlights almost 1 hour si Threatment with Straight mga 4 hours 
+
+Kharl: Halimbawa po nag book su Costumer online sa Fb page niyo may saro man lang syang tig book nung yaon na sya po igdi pano i handle kung yaon na sya may gusto pang idagdag?
+
+Staff: Halimbawa nag pa book syang keratine pwede mi pa siyang i Brazillan 
+
+Kharl: Sa sarong aldaw po may maximum po kamong client
+
+Staff: Dipende ta rotation kami dae pwede ako 3 sana su iba 2 lang
+
+Angelo N.: Pag sa online nag book si Costumer tas may pinili siyang Staff makapag service saiya halimbawa po ika napili at may tig gigibo ka pwede mo ba siyang i recommend sa ibang staff?
+
+Staff: Tig hahapot mi po si Client if kung gusto nya mag service sa iba kung habu hapoton mi si Client na kung pwede sya maka halat
+
+Angelo N.: Naka Centralized po ba ang Tip sa kada Staff?
+
+Staff: Hindi po kung sisay lang su tinawan kan costumer siya lang pero halimbawa ako su tinawan tas nag pa tabang ako sa kaibahan ko titawan ko nalang su kaibahan kung tip
+ 
+Kharl: Sa pag book po sa online sainyo kaipuhan po mag down payment at may minimum po kung ilan percent ang down payment
+
+Staff: Dipende minsan 50% minsan  pibayadan na ni sir buo tas paminsan may nag ba backout online kaya lugi man 
+
+Angelo N.: Sa nag ba backout po online pinag re refund nyo pa po ang binayad?
+
+Staff: Dipende minsan pinag ask nalang mi si client if pwede sya I sched kaysa masayang man su binayad
+Kharl: Halimbawa po nag book online si costumer tas dae pa sya naka bayad ilan oras po ito bago ma cancel?
+
+Staff: Dipende pag sinabihan kami ni Sir na may nag pa book na minsan 4pm minsan ngani dae man naabot
+
+Kharl: Pag may nag pa book po saindo sa FB tas dae pa sya naka bayad and may costumer na walk inn na same time sa oras kan service per si walk inn is naka bayad na onsite sisay po ang mas priority nyo si costumer na nag book online pero dae pa bayad o si walk in na naka bayad na?
+
+Staff: Mas priority mi po su nag walk in naka bayad na ta paminsan dae mi aram kung anong oras maabot mas priority mi talaga si walk in ta dapat kung ma book dapat naka DP na 
+
+
+
+Interview Signature Cashier
+
+Angelo N.: May terms & condition po ba kamo pina agree sa costumer bago ma finalize ang booking?
+
+Cashier: Pag abot po kaya sa pag book ki Sir pinaga inform nalang kami na si Client mapa Amazon ngaya kaya sir talaga naka abot ang mga naga pa book minsan samu man 
+
+Kharl: Halimbawa po nag advance payment sya pwede ba i refund saiya su binayad nya?
+
+Cashier: Wara pa man kami na encounter kaan pero pinag re schedule mi nalang
+
+Kharl: Sa Payment Method po ano ang tig gagamit nyo?
+
+Cashier: Gcash, Card & Cash
+
+Kharl: Pano nyo po ni ri record ang sa payment
+
+Cashier: Igwa man kami igdi su parang tablet su naka record su pinag ta type mot as may ma luwas na receipt su na mo monitor na Sir
+
+Angelo N.: Parehas po ba ang operational process kan 3 branch pag abot sa booking & scheduling?
+
+Cashier: Same lang po may pinag kaiba lang duman sa Yashano iba ang price duman ta sa laog mall kumpara igdi sa Daraga & Cabangan  igdi sa 2 ang haircut 30 sa Yashano 49 ta dae man nag payag su duman ta may iba pang salon duman
+
+Kharl: May na encounter na po kamo na nag book sa ibang branch halimbawa na book nya is Cabangan tas nag igdi sya Daraga
+
+Cashier: Dae pa man kasi naaraman mn yan ni Costumer kung sain sya harani duman sya mapa book
+Angelo N.: Anong Info ang inagad nyo sa Costumer pag nag pa book?
+
+Cashier: May nag pa book po sa page namin na naga direkta kay Sir tas tiga inform kami ni sir tas pag abot ni Client mapa midbid nalng sya na sya nag pa book online at I assist mi na
+
+Kharl: Halimbawa po dae available si Staff na ma service sa costumer na tig book nya?
+
+Cashier: Paminsan pag na book si Staff na naka day off malaug sya or minsan pinag hahapot mi na si Client kung ok lang saiya na iba ang mag gibo ta kung habu man ni client malaug sun a book nya na saff
+
+Angelo N.: Sa pag book po nin Costumer kan services  may limit po ba kung ilan treatment?
+
+Cashier: Mayo man limit kung ano lang ang gusto ni Client nag lilimit lang kami sa home service halimbawa si Staff ang maduman
+
+Angelo N.: Pag sa home service mga ilan days or week na dapat mag book si Client halimbawa sa mga event like debut or wedding?
+
+Cashier: Basta bako head of time pwede man ngunyan tas sa aga gigibohon ta dakul man kami staff dakul man makaka gibo
+
+Kharl: Ang business operation po igdi hangang anong oras?
+
+Cashier: Kami po igdi open kami 8am–8pm
+
+Paulo: Pag sa home service hangang sain lang po na location?
+
+Cashier: Within Albay area only
+
+Angelo N.: Same time po ba ang bukas kan 3 branch?
+
+Cashier: Daraga and Cabangan branch same mag ka iba lang sa Yashano branch ta 9:30 open tas close 8 man
+
+AngeloN.: Pinag sasabay nyo pa ang tip sa Service payment
+
+Cashier: Cash lang pinag a accept mi na tip dae mi man tig sasabay sa Online payment like sa Gcash & Card ta exact amount lang dapat duman sa ibabayad dae mi man tog sasabay ta bawal kaya isabay ang tip pag abot sa gcash payment ta naga direkta kaya kay Sir kaya dae kami nag aacept nin gcash ta pag abot sa pag inventory 
+
+Kharl: Sa tip po palan nindo tiga byu nyo ito sa sarong bulan para ma distribute sa gabos na tao or su tip na ito pang sarong tao lang 
+
+Cashier: Arug kaini example nag gupit ka tas tig tip pan ka 50 may itatao ako saimo papel  na may plus 50 ka saran mi lang itatao pag sahod mo ta sararoan  lang ang distribute mi or mas maray su tip inabot mismo kan Costumer saimo
+
+
+
+Interview Signature Staff (Nail Technician)
+
+Angelo N.: Sa Nails po ano ang services tas kung ilan oras tig gigibo 
+
+Staff: Ang services jan is pag tanggal ki ingrone tas su sa manicure and pedicure tas nail art nail extension
+
+Angelo N.: Sa bawat services ilan oras man po ang tig aabot
+
+Staff: Ang Nail extension 1 hour ang manicure & pedicure 35-40 mins ang Nail Art depende sa ipa gibo mo pero maximum time is 1 hour 
+
+Kharl: Halimbawa po may tig gigibo dae po kamo pwede avail nin client habang may tig gigibo pa?
+
+Staff: Dapat tapos ka kan tig gigibo dae ka pwede maka proceed  kung dae ka tapos duman sa costumer mo
+
+Angelo N.: Sa Nails Services halimbawa may pinag book lang sya duman sa online tas yaon na sya igdi pwede pa po sya mag avail pa kan iba pang services kung yaon na sya igdi?
+
+Staff:  Opo pwede pa
+
+Kharl: Sa sarong aldaw pira po na Costumer ang kaya mong handle?
+
+Staff: Dipende po yan habang may naga halat tig tatapos mi yan 
+
+Angelo N.: Pero estimate po ilan?
+
+Staff: Minsan 6-7 pero minsan naga sobra pa jan
+
+
+Lash & Brows by Leo Mejillano (Rizal Street , Cabangan West Legazpi City)
+
+
+Angelo N.: Igdi po Cabangan Branch ano ang services sa hair and kung ilan oras nyo po tig gigibo?
+
+Staff: Sa Treatment inabot 3-4 hours maximum  sa haircut 30 mins sa Rebond inaabot 2-5 hours sa Treatment and hair color 2 hours
+
+Kharl: Halimbawa may tig gigibo pa kamo pwede  kamo mag accept ki Client habang dae nyo ito tapos?
+
+Staff: Hindi kasi ang treatment mas ok sya siyang binababad ng matagal 
+
+Kharl: Sa sarong aldaw po naka ilan kang client estimate po?
+
+Staff: Total medyo mabilis ako kaya kung mag rebond ng 4 sa isang araw sarabay
+
+Kharl: Halimbawa po nag book si costumer online pwede tas may gusto syang i dagdag pwede po bai to?
+
+Staff: Halimbawa may naka book man Sakuya tas nag ka sabayan sa oras na madagdag sya pero uyan su masunod inform mi si Client kung maka halat sya ta dae kaya ang pasabay lalo kumay masunod pa ta ako paminsan may tig gigibo pa ako tas mapa add pa sya tig papasalo ko nalang yan sa kaibahan ko ta dapat magibo sa mismong oras na yaon na su client ko
+
+Angelo N.: Ano po mas priority mo su nag book online or su nag walk in?
+
+Staff: Mas priority ko si walk in kung yaon na sya igdi ta ang book online naga bago pa ang isip kaan ta kung wara pa man nata su book online inoton ko muna si walk in
+
+Angelo N.: Pano po kung nag down payment na si nag book online?
+
+Staff: Kung nag down payment pwede gigibon mi ito
+
+Angelo N.: Mga ilan mins po bago mag igdi si nag book online?
+
+Staff: Dipende sa tig avail nya kasi kung rebond  matagal yan mas ok mag book sya ning na pang atab ta pwede sya mga hapon mga 1 pm
+
+Kharl: May maximum client po kamo sa sarong aldaw?
+
+Staff: Wala man kami tig hahabol na time ta gibo hangang matapos talaga
+ 
+Kharl: Halimbawa po wara ka tas ika gusto kan client?
+
+Staff:  Naka dipende sa costumer kung gusto nya sa iba ta kung mayo man su tig hahanap nya ipapasa mi sa naka rotation para walang lamangan
+
+Angelo N.: Sa haircut po ilan oras po nido tig gigibo?
+
+Staff: Pag sa lalaki 30-45 mins
+
+Kharl: Pag sa babae mga ilan oras man po?
+
+Staff: Madali man lang mga 20-30
+
+Kharl: Halimbawa po may nag book po nin haircut online tas igdi na sya pwede  pa ba sya mag nag avail pa nin iba?
+
+Staff: Iyo pwede pa 
+
+Kharl: Sa Per Treatment mga ilan time range ba?
+
+Staff: May 1 hour 2 hours 1 half hours dipende sa tig avail na services halimbawa nalang Amazon 4 hours su gabos nan tig apply ma babad ma plantsa ma  blower mga 4 hours yan
+
+Kharl: May limitation ba su client or costumer mag add ki Treatment?
+
+Staff: Wara man limit dipende saiya kung ano pa ipa dagdag nya basta pwede sa buhok nya shempre tig a analyze man kan staff halimbawa I rebond mo pa graben a ngani ang kulay ta sng mga black color hair dae yan titalaban
+
+Kharl: Ang kada branch nyo po ba may naga access man kan system?
+
+Staff: Saro man sana ang naka access si Sir man lang ang sa gabos na branch ta sya su tag sadiri
+
+Kharl: Halimbawa po nag book sya ki Hair cut pag abot sa saindo pwede pa sya mag pa dagdag ki Treatment
+
+Staff: Pwede dipende sa gusto kan costumer
+
+Kharl: Su sa oras po palan kan staff halimbawa su nag book is haircut man lang tas gusto pa mag pa add su staff na maga gibo yaon na palan jan su costumer na nag book na kasunod
+
+Staff: Dipende kung kaninang costumer is nag treatment man lang shempre ma babad pa ito pwede ito muna I accept kung haircut man lang ang tiga avail btw palan noy ang hair color tas rebonding dae yan pwede pag sabayon
+
+Kharl: Halimbawa si Staff na gusto I book kaso fully book na?
+
+Staff: Dipende sa costumer ta dae talaga pwede I resched nalang or hapotun mi kung gusto sa iba
+
+Kharl: Halimbawa wara si gusto kan costumer na maka service?
+
+Staff: Dipende ta may rotation kami 
+
+
+
+
+Interview Signature Cashier
+
+Angelo N.: Digdi po sa Lash & Brows Cabangan Branch pag mag book online using in fb page kaipuhan po ba mag bayad muna si Client para ma confirm an saiyang tig book?
+
+Cashier: Pwede man mag pa appointment dawa dae pa naka bayad
+
+Kharl: Sisay po mas priority nyo su nag book online o su nag walk in?
+
+Cashier: Dipende kung sisay nainot nag igdi
+
+Kharl: Halimbawa may nag pa reserve sya tas may client kamo igdi same service su client nyo igdi sya into na nag bayad pero online na nag pa reserve dae pa man bayad?
+Cashier: Dipende sainda kung sisay ang na into kung su nag pa appointment or su walk in
+
+Angelo N.: May minimum down payment para ma confirm ang reservation?
+
+Cashier: Sa Hair & Make up igwa 800
+
+Kharl: Halimbawa nag pa reserve sya tas dae pa sya naka bayad tas igdi pirang oras po talaan nindo?
+
+Cashier: Mga sarong oras man 
+
+Kharl: Kung nag cancel pwede po ba i refund su binayad nya?
+
+Cashier: Iyo pinag re refund mi
+
+Kharl: May terms & conditions po ba sa pag finalized kan booking?
+
+Cashier: Igwa man
+
+Angelo N.: Igding branch po pwede ba si costumer pumili nin staff na maka service saiya?
+
+Cashier: Iyo po pwede
+
+Kharl: Halimbawa si napili nya na staff dae available ta may tig gigibo pa pwede pa ba sya pumili ki iba?
+
+Cashier: Pag willing to wait si client or kung dae tig hahapot kung pwede su iba nalang ta dae man mi pwede pag para piritun ang ang client
+
+Kharl: May employee of the month man po kamo igdi?
+
+Cashier: Yearly ang igwa kami
+
+Angelo N.: Pag costumer nyo po halimbawa nagustuhan nya pag pa haircut diba ang iba po ngani kaan nag tatao ki tip so pag abot po sa tip pano ang process nyo kaan or kung sa sarong staff na tinawan kan costumer
+
+Cashier: Kung sisay lang ang tinawan ni costumer iyo lang su may tip
+
+Angelo N.: May insentive mn po ba ang staff?
+
+Cashier: Iyo igwa may quota man sinda every month
+
+Kharl: May Costumer feedback or rating sa mga staff?
+
+Cashier: Iyo igwa
+
+Angelo N.: Pag nag bayad po si  costumer kan tig pa service nya tas may kasabay na tip su binayad halimbawa nag bayad sya ta nag pa gunting ang haircut price is 30 tas sinabay su tip in one payment?
+
+Cashier: Tig tatao mi na yan sa Staff na gunting ngaya na tig tawan tip ni costumer
+
+Angelo N.: Pag abot naman for  payment method ano po tig gagamit nyo?
+
+Cashier: Gcash, Pay Maya, Card & Cash
+
+Angelo N.: Pag abot transaction record tig ma mano mano nyo po ba?
+
+Cashier: Iyo tig mama mano mano mi man minsan online 
+
+Angelo N.: Parehas po ba ang Operational process san 3 branch pag abot sa payment, booking and scheduling?
+
+Cashier: Iyo parehas man
+
+Kharl: Sa operating hours hangang anong oras man po?
+
+Cashier: 8am-8pm pag Sunday lang ang pinag kaiba ta 8am-7pm ta para maka rest man ang staff mi
+
+Angelo N.: Naga allowed man po kamo na halimbawa nag book si costumer sa Daraga tas digdi sya nag pa service pwede po ba to?
+
+Cashier: Iyo allowed man ito 
+
+Angelo N.: Pag abot man po sap ag book online anong info po ang tig hahagad nyo sa Costumer?
+
+Cashier: Name, Contact num tas kung ano ang ipapa gibo nya  
+
+Angelo N.: Naga accept po ba kamo nin home service location po ba within Albay area only din po ba?
+
+Cashier: Yes within Albay area only din
+
+Angelo N.: Mga ilan days or weeks before mag book si Client?
+
+Cashier:  Anytime man 
+
+Angelo N.: Halimbawa ngunyan nag book tas sa aga si service san pwede po ba?
+
+Cashier: Iyo pwede po
+
+
+
+
+Interview Signature Facial
+
+Angelo N.: Pag abot naman saimo ano man ang tig gigibo mong services and gaano man katagal ito gibohon ?
+
+Staff: Si eye lash medyo haluy inabot 30 mins
+
+Angelo N.: Ilan po ba ang services ang tig gigibo mo digdi?
+
+Staff:  Nails, Eyelash, Facial, Massage, Body Scrub Wax Microblading
+
+Kharl: Mga ilang oras man po yan tig gigibo?
+
+Staff: Dipende po pag si facial 4hours dipende pag full package sya si body scrub iyo man ta mina massage pa tas maka rigos pa si eye lash extension more than one hour dipende kung ipa gibo nya si micro naman 1 hour
+
+Skin Brows by Leo Mejillano (2nd Floor, Yashano Malls Legazpi)
+
+
+Angelo N.: Good Afternoon po kami yung taga STI na nag kua kay Sir Leo Client for Capstone Project so hapot mi nalang po su mga services igdi sa Yashano branch na tig gigibo mo para dae na po kami mahaloy dae mi naman i ask saindo ang su mag ka parehas sa 2 branch
+
+Nurse: Ang mga tig gigibo ko yan mga Lazer tas yan na drip sa Cabangan igwa man
+
+Kharl: Nung tig hapot mi kaso hapon dae  man daw duman available 
+
+Nurse: Sa Gluta Drip naman may 2 klase yan may drip and push ang push kasi within 15 mins tapos yan ang Drip naman 35 mins to 1 hour hangang maubos sa Lazer 30 mins babad anesthesia and procedure man is 30 to 1 hour din
+
+Angelo N.: May follow up check up din po ba yan
+
+Nurse: Sa Drip kasi may skin test pag mayong reaction proceed  na kami sa sunod na gigibuhon sa Push madali lang ta mins tapos tulos
+
+Kharl: Pag abot naman po sa Wax mga ilan minutes man po?
+
+Nurse: Sa Wax madali lang yan 15 mins tapos kaagad yan sa eyebrow 1 to 2 hour
+
+Angelo N.: Ano po mas priority nindo su nag book online or si Walk in?
+
+Nurse: Priority naman gabos lalo kung yaon su mag si service
+
+Kharl: Halimbawa po may ka parehas sapag book same and same service ang pinag avail
+
+Nurse: Dakul man kaming staff na pa priority mi mn an ang walk in tas book online
+
+Angelo: Halimbawa po may tig gigibo ka pa tas may mag service saimong client pwede po ito pag sabayon?
+
+Nurse: Dipende sa tig gigibo ko kung nag babad pa man lang pwede ko man ma handle sir an saro ta may rotation man kami bako saro lang ang maka gibo
+

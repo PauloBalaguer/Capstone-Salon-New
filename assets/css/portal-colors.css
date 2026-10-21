@@ -189,3 +189,11 @@ body.salon-portal :is(button,input,select,textarea):disabled:disabled {
   background-image: none !important; background-color: #E8DCC8 !important;
   color: #475569 !important; border-color: #8B8174 !important; opacity: 1 !important;
 }
+/* Profile flyouts use a light surface, including when nested in the dark sidebar. */
+body.salon-portal [x-show="isProfileMenuOpen"] a[href="profile.html"] svg {
+  color: #006D6F !important;
+  opacity: 1 !important;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}

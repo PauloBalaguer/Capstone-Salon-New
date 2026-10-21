@@ -53,6 +53,7 @@
 <script src="../../scripts/booking-validation.js"></script>
   <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=balanced-type-20261020-1" />
   <link rel="stylesheet" href="../../assets/css/portal-colors.css?v=balanced-type-20261020-1" />
+  <script src="../../scripts/portal-presentation.js"></script>
 </head>
 <body class="salon-portal services-page bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
@@ -189,10 +190,12 @@
                   </div>
                   <div class="notification-copy">
                     <div class="notification-title-row"><p class="notification-title" x-text="notificationDetails(notif).title"></p><span x-show="!notif.read" class="notification-dot" aria-label="Unread"></span></div>
-                    <p class="notification-summary" x-text="notificationDetails(notif).summary"></p>
+                    <p class="notification-summary" x-show="notificationDetails(notif).summary" x-text="notificationDetails(notif).summary"></p>
+                    <span class="notification-state-badge" x-show="notificationDetails(notif).status" x-text="notificationDetails(notif).status"></span>
                     <p class="notification-service" x-show="notificationDetails(notif).service" x-text="notificationDetails(notif).service"></p>
+                    <p class="notification-branch" x-show="notificationDetails(notif).branch" x-text="notificationDetails(notif).branch"></p>
                     <p class="notification-schedule" x-show="notificationDetails(notif).schedule" x-text="notificationDetails(notif).schedule"></p>
-                    <time class="notification-time" :datetime="notif.createdAt || ''" :title="notif.time" x-text="notificationTime(notif)"></time>
+                    <time class="notification-time" :datetime="notif.createdAt || ''" :title="notif.time" x-text="'Received ' + notificationTime(notif)"></time>
                   </div>
                 </article>
               </template>
@@ -352,31 +355,32 @@
                       <div class="space-y-4">
                         <div class="bg-slate-800 p-4 rounded-lg">
                           <p class="font-medium text-white mb-2">Selected Services:</p>
-                          <ul class="list-disc list-inside text-slate-300 space-y-1" x-show="selectedServicesForBooking.length > 0">
+                          <ul class="text-slate-300 space-y-3" x-show="selectedServicesForBooking.length > 0">
                             <template x-for="service in selectedServicesForBooking" :key="service.id">
-                              <li x-text="service.name + ' (' + formatPeso(service.price) + ') — ' + formatServiceDuration(service)"></li>
+                              <li><strong class="block text-white" x-text="service.name"></strong><p class="mt-1"><strong>Price:</strong> <span x-text="formatPeso(service.price)"></span> <span aria-hidden="true">·</span> <strong>Duration:</strong> <span x-text="ServiceDuration.format(service.durationMinutes)"></span></p></li>
                             </template>
                           </ul>
                         </div>
                         <div class="bg-slate-800 p-4 rounded-lg space-y-3">
                           <p class="font-bold text-white">Date &amp; Time</p>
                           <p x-show="selectedServicesForBooking.length > 1" class="text-slate-300">Total duration: <span x-text="ServiceDuration.format(bookingDurationMinutes())"></span></p>
-                          <p class="text-slate-300" x-show="bookingForm.time">Estimated End Time: <span x-text="bookingEstimatedEndTime()"></span></p>
+                          <p class="text-slate-300" x-show="bookingForm.time"><strong>Schedule:</strong> <span x-text="formatApptDateLong(bookingForm.date) + ' · ' + bookingForm.time + '–' + bookingEstimatedEndTime() + ' (PH)'"></span></p>
                           <div>
-                            <label for="booking-schedule-date" class="block text-slate-400 mb-1">Date</label>
-                            <input id="booking-schedule-date" type="date" x-model="bookingForm.date" @change="bookingForm.time = ''; refreshAvailableSlots()" :min="getLocalISODate()" required class="w-full text-base bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                            <label for="booking-schedule-date" class="block font-bold text-slate-400 mb-1">Date</label>
+                            <input id="booking-schedule-date" type="date" x-model="bookingForm.date" @change="bookingForm.time = ''; clearScheduleStaff(); refreshAvailableSlots()" :min="getLocalISODate()" required class="w-full text-base bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
                           </div>
                           <div>
-                            <label class="block text-slate-400 mb-1">Time</label>
+                            <p id="booking-time-label" class="block font-bold text-slate-400 mb-1">Time</p>
+                            <p class="text-slate-500 mb-2">Select a time to see available stylists.</p>
                             <p x-show="slotsLoading || staffAvailabilityLoading" role="status" class="text-slate-500 mb-2">Checking availability...</p>
                             <div x-show="(slotsError || staffAvailabilityError) && !slotsLoading && !staffAvailabilityLoading" role="alert" class="rounded-lg border border-rose-300 p-3">
                               <p x-text="slotsError || staffAvailabilityError"></p>
                               <button type="button" @click="refreshAvailableSlots()" class="service-add-button mt-2">Try again</button>
                             </div>
-                            <div x-show="slotsReady && !slotsLoading && !slotsError" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 p-2 border border-slate-700 rounded-lg bg-slate-950">
+                            <div x-show="slotsReady && !slotsLoading && !slotsError" role="group" aria-labelledby="booking-time-label" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 p-2 border border-slate-700 rounded-lg bg-slate-950">
                               <template x-for="slot in getScheduleSlots()" :key="slot">
                                 <button type="button"
-                                        @click="bookingForm.time = slot" :aria-pressed="bookingForm.time === slot"
+                                        @click="selectScheduleTime(slot)" :aria-pressed="bookingForm.time === slot"
                                         :class="bookingForm.time === slot ? 'bg-gold-500 text-slate-950 font-bold' : 'bg-slate-700 hover:bg-slate-600 text-slate-200'"
                                         class="px-3 py-1.5 rounded-md transition-all duration-150 text-xs">
                                   <span x-text="slot"></span>
@@ -389,53 +393,56 @@
                             <p class="text-slate-500 mt-2">Only times that are still open for this branch are shown here.</p>
                           </div>
                         </div>
-                      </div>
-                    </template>
-
-                    <!-- STEP: Choose Your Stylist (skipped automatically when nobody qualifies) -->
-                    <template x-if="bookingStep === 'stylist'">
+                    <!-- Staff availability is part of schedule selection. -->
+                    <template x-if="bookingForm.time">
                       <div class="bg-slate-800 p-4 rounded-lg space-y-3">
                         <p class="font-bold text-white">Preferred Stylist</p>
                         <p x-show="staffAvailabilityLoading" role="status">Checking stylist availability...</p>
                         <div x-show="staffAvailabilityError" role="alert"><p x-text="staffAvailabilityError"></p><button type="button" @click="refreshAvailableStaff()" class="service-add-button mt-2">Try again</button></div>
-                        <p class="text-slate-400">Only stylists free at <strong class="text-white" x-text="bookingForm.time"></strong> on <strong class="text-white" x-text="formatApptDateLong(bookingForm.date)"></strong> are listed.</p>
-                        <select :disabled="staffAvailabilityLoading || !!staffAvailabilityError" x-model="bookingForm.staffId" class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
-                          <option value="">Any Available Staff</option>
-                          <template x-for="staff in getAvailableStaffForBranch()" :key="staff.id">
-                            <option :value="staff.id" x-text="staff.name + ' (' + staff.role + ')'"></option>
+                        <p class="text-slate-400">Availability for <strong x-text="bookingForm.time"></strong> on <strong x-text="formatApptDateLong(bookingForm.date)"></strong>.</p>
+                        <button type="button" @click="bookingForm.staffId = ''" :disabled="staffAvailabilityLoading || !!staffAvailabilityError || !getAvailableStaffForBranch().length" :aria-pressed="!bookingForm.staffId" class="stylist-option stylist-any" :class="{ 'stylist-selected': !bookingForm.staffId }">
+                          <span><strong>Any available stylist</strong><span class="block text-xs">Let the salon assign a qualified available stylist.</span></span>
+                          <span x-show="!bookingForm.staffId" class="text-xs font-bold">Selected</span>
+                        </button>
+                        <div class="stylist-options" aria-label="Qualified stylists">
+                          <template x-for="staff in getStylistOptions()" :key="staff.id">
+                            <article class="stylist-option" :class="{ 'stylist-selected': String(bookingForm.staffId) === String(staff.id), 'stylist-busy': !staff.available }">
+                              <button type="button" class="stylist-choice" :disabled="!staff.available || staffAvailabilityLoading || !!staffAvailabilityError" @click="bookingForm.staffId = staff.id" :aria-pressed="String(bookingForm.staffId) === String(staff.id)">
+                                <strong x-text="staff.name"></strong>
+                                <span class="block text-xs text-slate-500" x-text="staff.role"></span>
+                                <span class="stylist-availability" :class="staff.available ? 'stylist-available-label' : 'stylist-busy-label'" x-text="staff.available ? 'Available' : (staff.busyUntil ? 'Busy until ' + staff.busyUntil : 'Busy')"></span>
+                                <span x-show="staff.currentShift === 'Off Shift'" class="stylist-shift-label">Off duty now</span>
+                                <span x-show="staff.currentShift === 'On Duty'" class="stylist-shift-label">On duty now</span>
+                                <span x-show="staff.currentShift === 'With Client'" class="stylist-shift-label">With a client now</span>
+                                <span x-show="String(bookingForm.staffId) === String(staff.id)" class="block text-xs font-bold mt-1">Selected</span>
+                              </button>
+                              <button type="button" x-show="!staff.available" @click="notifyStylistOpening(staff)" :disabled="isJoiningWaitlist || staffAvailabilityLoading || !!staffAvailabilityError" class="service-add-button">Notify me</button>
+                            </article>
                           </template>
-                        </select>
-                        <div x-show="getBusyStaffForBranch().length > 0" class="border border-dashed border-slate-600 rounded-lg p-3 space-y-2">
-                          <p class="text-slate-400"><strong class="text-white">Preferred stylist booked at this time?</strong> We'll email you if they have an opening on this date.</p>
-                          <div class="flex gap-2">
-                            <select x-model="waitlistStaffId" class="flex-1 bg-slate-950 text-slate-200 rounded-lg p-2 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
-                              <option value="">Choose stylist…</option>
-                              <template x-for="staff in getBusyStaffForBranch()" :key="staff.id">
-                                <option :value="staff.id" x-text="staff.name"></option>
-                              </template>
-                            </select>
-                            <button type="button" @click="joinStylistWaitlist()" :disabled="isJoiningWaitlist" class="px-3 py-2 border border-gold-500 text-gold-400 font-bold rounded-lg hover:bg-gold-500 hover:text-slate-900 transition disabled:opacity-50">Notify me</button>
-                          </div>
                         </div>
+                        <p x-show="!staffAvailabilityLoading && !staffAvailabilityError && !getStylistOptions().length" class="text-slate-500">No qualified stylists found. Please choose another schedule.</p>
+                        <p class="text-xs text-slate-500">Available and Busy refer to your selected appointment, including service duration and cleaning time. Current shift labels describe now; they do not confirm a future work schedule. Notify me does not reserve a stylist.</p>
+                      </div>
+                    </template>
+
                       </div>
                     </template>
 
                     <!-- STEP: Review Your Appointment -->
                     <template x-if="bookingStep === 'review'">
                       <div class="bg-slate-800 p-4 rounded-lg space-y-2">
-                        <p class="font-medium text-white mb-1">Please review your appointment</p>
-                        <div class="flex justify-between"><span class="text-slate-500">Branch:</span><span class="text-white" x-text="selectedBranchForServices.charAt(0).toUpperCase() + selectedBranchForServices.slice(1)"></span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">Service(s):</span><span class="text-white text-right" x-text="selectedServicesForBooking.map(s => s.name).join(', ')"></span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">Date &amp; Time:</span><span class="text-white" x-text="formatApptDateLong(bookingForm.date) + ' @ ' + bookingForm.time"></span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">Estimated Duration:</span><span class="text-white" x-text="ServiceDuration.format(bookingDurationMinutes())"></span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">Estimated End Time:</span><span class="text-white" x-text="bookingEstimatedEndTime()"></span></div>
-                        <div class="flex justify-between" x-show="bookingForm.staffId"><span class="text-slate-500">Stylist:</span><span class="text-white" x-text="(getAvailableStaffForBranch().find(s => String(s.id) === String(bookingForm.staffId)) || {}).name"></span></div>
-                        <div class="flex justify-between pt-2 border-t border-slate-700"><span class="text-slate-500">Subtotal:</span><span class="text-white font-bold" x-text="formatPeso(bookingSubtotal())"></span></div>
+                        <dl class="space-y-2">
+                          <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-3"><dt class="font-bold text-slate-500">Branch:</dt><dd class="text-white break-words" x-text="{'daraga':'Leo Mejillano Salon (Daraga)','yashano':'Skin Brows (Yashano)','cabangan':'Lash &amp; Brows (Cabangan)'}[selectedBranchForServices]"></dd></div>
+                          <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-3"><dt class="font-bold text-slate-500">Service:</dt><dd class="text-white break-words" x-text="selectedServicesForBooking.map(s => s.name).join(', ')"></dd></div>
+                          <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-3"><dt class="font-bold text-slate-500">Date:</dt><dd class="text-white break-words" x-text="formatApptDateLong(bookingForm.date)"></dd></div>
+                          <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-3"><dt class="font-bold text-slate-500">Time:</dt><dd class="text-white break-words" x-text="bookingForm.time + '–' + bookingEstimatedEndTime() + ' (PH)'"></dd></div>
+                          <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-3"><dt class="font-bold text-slate-500">Stylist:</dt><dd class="text-white break-words" x-text="bookingForm.staffId ? (getAvailableStaffForBranch().find(s => String(s.id) === String(bookingForm.staffId)) || {}).name : 'Any available stylist'"></dd></div>
+                        </dl>
 
                         <div class="pt-3 border-t border-slate-700" x-show="customerProfile.loyaltyPoints > 0 && bookingSubtotal() > 0">
                           <div class="flex items-center justify-between">
                             <p class="text-slate-300">Redeem loyalty points (<span x-text="customerProfile.loyaltyPoints"></span> available)</p>
-                            <button type="button" @click="bookingForm.useLoyaltyPoints = !bookingForm.useLoyaltyPoints"
+                            <button type="button" @click="bookingForm.useLoyaltyPoints = !bookingForm.useLoyaltyPoints; loadReservationQuote()"
                                     :class="bookingForm.useLoyaltyPoints ? 'bg-gold-500' : 'bg-slate-700'"
                                     class="relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-gold-500">
                               <span :class="bookingForm.useLoyaltyPoints ? 'translate-x-6' : 'translate-x-1'" class="inline-block w-4 h-4 transform bg-white rounded-full transition-transform"></span>
@@ -448,18 +455,22 @@
                         </div>
 
                         <div class="flex justify-between items-center pt-3 border-t border-slate-700">
-                          <span class="text-base font-bold text-white">Final Total:</span>
+                          <span class="text-base font-bold text-white">Total:</span>
                           <span class="text-lg font-bold text-gold-400" x-text="formatPeso(finalBookingTotal())"></span>
                         </div>
 
+                        <dl class="space-y-2" x-show="reservationQuote &amp;&amp; !reservationQuoteLoading">
+                          <div class="grid grid-cols-[8rem_minmax(0,1fr)] sm:grid-cols-[10rem_minmax(0,1fr)] gap-3"><dt class="font-bold">Pay now:</dt><dd class="font-bold" x-text="formatPeso(requiredDeposit())"></dd></div>
+                          <div class="grid grid-cols-[10rem_minmax(0,1fr)] gap-3"><dt class="font-bold">Balance after payment:</dt><dd x-text="formatPeso(reservationQuote?.remainingBalance ?? 0)"></dd></div>
+                        </dl>
                         <div class="pt-3 border-t border-slate-700 space-y-2">
                           <p class="font-medium text-white">Your Details</p>
                           <div>
-                            <label for="bookingCustomerName" class="block text-slate-300 mb-1">Full Name</label>
+                            <label for="bookingCustomerName" class="block text-slate-300 mb-1">Name</label>
                             <input id="bookingCustomerName" type="text" autocomplete="name" maxlength="255" x-model="bookingForm.customerName" required class="w-full text-base bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
                           </div>
                           <div>
-                            <label for="bookingCustomerPhone" class="block text-slate-300 mb-1">Mobile Number</label>
+                            <label for="bookingCustomerPhone" class="block text-slate-300 mb-1">Mobile</label>
                             <input id="bookingCustomerPhone" type="tel" autocomplete="tel" inputmode="numeric" maxlength="11" x-model="bookingForm.customerPhone" pattern="09[0-9]{9}" placeholder="09XXXXXXXXX" required class="w-full text-base bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
                           </div>
                         </div>
@@ -469,46 +480,43 @@
                     <!-- STEP: Secure Your Appointment (Reservation Payment) -->
                     <template x-if="bookingStep === 'payment'">
                       <div class="bg-slate-800 border border-luxury-700 p-4 rounded-lg space-y-3">
-                        <p class="font-medium text-white">SECURE YOUR APPOINTMENT</p>
-                        <p class="text-slate-400">Your selected schedule is available. Complete the required reservation payment below to continue.</p>
-                        <p class="text-slate-400">Pay a deposit (50% of the total, minimum ₱100 — some services require full payment) or pay the full amount now.</p>
-                        <p class="text-slate-400">Your booking will remain Waiting for Confirmation until the branch verifies your payment.</p>
-                        <dl class="space-y-2 border-y border-slate-700 py-3">
-                          <div><dt class="text-slate-400">Selected Service</dt><dd class="text-white" x-text="reservationQuote?.items.map(s => s.name).join(', ')"></dd></div>
-                          <div class="flex justify-between gap-3"><dt>Service Total</dt><dd class="text-white" x-text="formatPeso(reservationQuote?.serviceTotal ?? 0)"></dd></div>
-                          <div class="flex justify-between gap-3"><dt>Reservation Requirement</dt><dd class="text-white text-right" x-text="reservationQuote?.reservationRequirement"></dd></div>
-                          <div class="flex justify-between gap-3 font-bold text-gold-400"><dt>Pay Now</dt><dd x-text="formatPeso(requiredDeposit())"></dd></div>
-                          <div class="flex justify-between gap-3"><dt>Balance to Pay Later</dt><dd class="text-white" x-text="formatPeso(reservationQuote?.remainingBalance ?? 0)"></dd></div>
+                        <p class="text-slate-400" x-show="reservationQuote?.canChoosePlan">Choose how much to pay.</p>
+                        <p class="text-slate-400" x-show="reservationQuoteLoading" role="status">Updating amount…</p>
+                        <dl class="space-y-3 border-y border-slate-700 py-3" x-show="reservationQuote &amp;&amp; !reservationQuoteLoading">
+                          <div class="grid grid-cols-[10rem_minmax(0,1fr)] gap-3"><dt class="font-bold">Service:</dt><dd class="text-white" x-text="reservationQuote?.items.map(s => s.name).join(', ')"></dd></div>
+                          <div class="grid grid-cols-[10rem_minmax(0,1fr)] gap-3"><dt class="font-bold">Total:</dt><dd class="text-white" x-text="formatPeso(reservationQuote?.serviceTotal ?? 0)"></dd></div>
+                          <div class="grid grid-cols-[10rem_minmax(0,1fr)] gap-3"><dt class="font-bold">Pay now:</dt><dd class="font-bold text-gold-400" x-text="formatPeso(requiredDeposit())"></dd></div>
+                          <div class="grid grid-cols-[10rem_minmax(0,1fr)] gap-3"><dt class="font-bold">Balance after payment:</dt><dd class="text-white" x-text="formatPeso(reservationQuote?.remainingBalance ?? 0)"></dd></div>
                         </dl>
 
                         <template x-if="!depositLocked">
                           <div class="space-y-3">
                             <div x-show="reservationQuote?.canChoosePlan">
-                              <label class="block text-slate-400 mb-1">How much to pay now</label>
+                              <label class="block font-bold text-slate-400 mb-1">Payment option</label>
                               <div class="grid grid-cols-2 gap-2">
                                 <label class="flex items-center gap-2 bg-slate-950 border rounded-lg p-2.5 cursor-pointer" :class="bookingForm.paymentPlan === 'deposit' ? 'border-gold-500 text-white' : 'border-slate-800 text-slate-300'">
-                                  <input type="radio" value="deposit" x-model="bookingForm.paymentPlan" @change="loadReservationQuote()" class="accent-amber-500"> Deposit (min ₱100)
+                                  <input type="radio" value="deposit" x-model="bookingForm.paymentPlan" @change="loadReservationQuote()" class="accent-amber-500"> Deposit
                                 </label>
                                 <label class="flex items-center gap-2 bg-slate-950 border rounded-lg p-2.5 cursor-pointer" :class="bookingForm.paymentPlan === 'full' ? 'border-gold-500 text-white' : 'border-slate-800 text-slate-300'">
-                                  <input type="radio" value="full" x-model="bookingForm.paymentPlan" @change="loadReservationQuote()" class="accent-amber-500"> Full amount
+                                  <input type="radio" value="full" x-model="bookingForm.paymentPlan" @change="loadReservationQuote()" class="accent-amber-500"> Full payment
                                 </label>
                               </div>
                             </div>
                             <div>
-                              <label class="block text-slate-400 mb-1">Payment Method</label>
+                              <label class="block font-bold text-slate-400 mb-1">Payment method</label>
                               <select x-model="bookingForm.paymentMethod" class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
-                                <option value="" disabled>Choose a payment method...</option>
-                                <option value="PayMongo">Pay Online — GCash, Maya or Card</option>
+                                <option value="" disabled>Choose a method</option>
+                                <option value="PayMongo">Online — GCash, Maya or Card</option>
                                 <option value="Cash">Cash — pay at the branch</option>
                               </select>
                             </div>
-                            <p x-show="bookingForm.paymentMethod === 'PayMongo'" class="text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3">After you confirm, you'll be taken to PayMongo's secure checkout to pay with GCash, Maya or card. Your slot is held for 30 minutes while you pay — no reference number needed.</p>
-                            <p x-show="bookingForm.paymentMethod === 'Cash'" class="text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3">Cash deposits can't be verified remotely — bring the deposit amount to the branch. Your booking remains Waiting for Confirmation until you pay in person and staff verify payment.</p>                          </div>
+                            <p x-show="bookingForm.paymentMethod === 'PayMongo'" class="text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3">Pay through PayMongo after confirming. Complete payment within 30 minutes.</p>
+                            <p x-show="bookingForm.paymentMethod === 'Cash'" class="text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3">Pay at the branch. Your booking stays pending until payment is verified.</p>                          </div>
                         </template>
 
                         <div x-show="depositLocked" class="flex items-center justify-between gap-3">
                           <span class="text-white" x-show="reservationQuote?.reservationRequirement === 'No Online Reservation'">No online reservation payment required — confirmed after review.</span>
-                          <span class="text-white" x-show="reservationQuote?.reservationRequirement !== 'No Online Reservation'">Reservation payment: <strong x-text="formatPeso(requiredDeposit()) + ' via ' + bookingForm.paymentMethod + (bookingForm.depositReference ? ' (Ref: ' + bookingForm.depositReference + ')' : '')"></strong></span>
+                          <span class="text-white" x-show="reservationQuote?.reservationRequirement !== 'No Online Reservation'">Payment option: <strong x-text="formatPeso(requiredDeposit()) + ' via ' + bookingForm.paymentMethod + (bookingForm.depositReference ? ' (Ref: ' + bookingForm.depositReference + ')' : '')"></strong></span>
                           <button type="button" @click="changeDeposit()" x-show="reservationQuote?.reservationRequirement !== 'No Online Reservation'" class="text-gold-400 font-bold hover:underline shrink-0">Change</button>
                         </div>
                       </div>
@@ -534,17 +542,27 @@
                     <!-- STEP: Review Terms & Conditions -->
                     <template x-if="bookingStep === 'terms'">
                       <div class="bg-slate-800 p-4 rounded-lg space-y-2">
-                        <div class="space-y-2 break-words text-slate-200" aria-label="Final booking summary">
-                          <p class="font-medium text-white">Your booking summary</p>
-                          <p>Branch: <strong x-text="selectedBranchForServices"></strong></p>
-                          <p>Services: <strong x-text="selectedServicesForBooking.map(s => s.name).join(', ')"></strong></p>
-                          <p>Staff: <strong x-text="bookingForm.staffId ? ((staffList.find(s => String(s.id) === String(bookingForm.staffId)) || {}).name || 'Selected stylist') : 'An available qualified stylist will be assigned'"></strong></p>
-                          <p>Appointment: <strong x-text="formatApptDateLong(bookingForm.date) + ' @ ' + bookingForm.time"></strong></p>
-                          <p>Total: <strong x-text="formatPeso(reservationQuote?.serviceTotal ?? finalBookingTotal())"></strong></p>
-                          <p>Reservation payment: <strong x-text="formatPeso(requiredDeposit()) + ' via ' + bookingForm.paymentMethod"></strong></p>
-                        </div>
+                        <dl class="space-y-2 break-words text-slate-200" aria-label="Final booking summary">
+                          <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-3"><dt class="font-bold">Branch:</dt><dd x-text="{'daraga':'Leo Mejillano Salon (Daraga)','yashano':'Skin Brows (Yashano)','cabangan':'Lash &amp; Brows (Cabangan)'}[selectedBranchForServices]"></dd></div>
+                          <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-3"><dt class="font-bold">Service:</dt><dd x-text="selectedServicesForBooking.map(s => s.name).join(', ')"></dd></div>
+                          <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-3"><dt class="font-bold">Stylist:</dt><dd x-text="bookingForm.staffId ? ((staffList.find(s => String(s.id) === String(bookingForm.staffId)) || {}).name || 'Selected stylist') : 'Any available stylist'"></dd></div>
+                          <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-3"><dt class="font-bold">Date:</dt><dd x-text="formatApptDateLong(bookingForm.date)"></dd></div>
+                          <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-3"><dt class="font-bold">Time:</dt><dd x-text="bookingForm.time + ' (PH)'"></dd></div>
+                          <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-3"><dt class="font-bold">Total:</dt><dd x-text="formatPeso(reservationQuote?.serviceTotal ?? finalBookingTotal())"></dd></div>
+                          <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-3"><dt class="font-bold">Pay now:</dt><dd x-text="formatPeso(requiredDeposit())"></dd></div>
+                          <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-3"><dt class="font-bold">Method:</dt><dd x-text="requiredDeposit() > 0 ? bookingForm.paymentMethod : 'No payment required'"></dd></div>
+                        </dl>
                         <p class="font-medium text-white pt-3">Terms &amp; Conditions</p>
-                        <div class="text-slate-400 leading-relaxed">
+                        <ul class="list-disc pl-5 space-y-2 text-slate-400">
+                          <li>Bookings need branch confirmation.</li>
+                          <li>Pay the amount shown. Payment must be verified.</li>
+                          <li>Deposits are non-refundable and carry over when rescheduled.</li>
+                          <li>Reschedule online at least 24 hours before, or contact the branch. Subject to availability.</li>
+                          <li>Cancelled or missed bookings can be rescheduled using the deposit.</li>
+                        </ul>
+                        <details class="text-slate-400 leading-relaxed">
+                          <summary class="font-bold cursor-pointer py-2">Full terms</summary>
+
                           <ul class="list-disc list-inside space-y-1">
                             <li><strong class="text-slate-300">Reservation payment:</strong> A reservation payment is required to hold your appointment slot.</li>
                             <li><strong class="text-slate-300">50% or full payment:</strong> Depending on the service selected, you must pay either a 50% down payment or the full amount upfront — the required amount is shown before you book.</li>
@@ -555,27 +573,28 @@
                             <li><strong class="text-slate-300">No-show:</strong> Please arrive on time. Repeated no-shows or late cancellations may affect future bookings.</li>
                             <li>Prices and staff availability are confirmed by the branch and may change.</li>
                           </ul>
-                        </div>
+                        </details>
                         <label class="flex items-start gap-2 pt-1 text-slate-300 cursor-pointer">
                           <input type="checkbox" x-model="bookingForm.agreedToTerms" class="mt-0.5 accent-gold-500">
-                          <span>I have read and agree to the Terms &amp; Conditions.</span>
+                          <span>I agree to the Terms &amp; Conditions.</span>
                         </label>
                       </div>
                     </template>
 
                     <p x-show="bookingError" x-text="bookingError" role="alert" class="text-rose-200 bg-rose-950 rounded-lg p-3"></p>
-                    <div class="pt-2 flex flex-wrap gap-3 justify-between border-t border-slate-800">
-                      <button type="button" @click="bookingStep === 'schedule' ? cancelBookingForm() : goToPreviousBookingStep()" :disabled="isSubmittingBooking" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 transition disabled:opacity-50" x-text="bookingStep === 'schedule' ? 'Cancel' : 'Back'"></button>
 
-                      <button type="button" x-show="bookingStep === 'schedule'" @click="proceedFromSchedule()" :disabled="!canContinueSchedule()" :aria-busy="slotsLoading" class="disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2 bg-gradient-to-r from-luxury-600 to-luxury-800 text-white font-bold rounded-lg transition active:scale-95">Continue</button>
-                      <button type="button" x-show="bookingStep === 'stylist'" @click="proceedFromStylist()" :disabled="staffAvailabilityLoading || !!staffAvailabilityError || !getAvailableStaffForBranch().length" class="disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2 bg-gradient-to-r from-luxury-600 to-luxury-800 text-white font-bold rounded-lg transition active:scale-95">Continue</button>
+                          <p id="schedule-continue-hint" x-show="bookingStep === 'schedule' && scheduleContinueHint()" class="text-xs text-slate-500" role="status" x-text="scheduleContinueHint()"></p>
+                    <div class="pt-2 flex flex-wrap gap-3 justify-between border-t border-slate-800">
+                      <button type="button" @click="bookingStep === 'schedule' ? cancelBookingForm() : goToPreviousBookingStep()" :disabled="isSubmittingBooking" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 transition disabled:opacity-50" x-text="bookingStep === 'schedule' ? 'Back to services' : 'Back'"></button>
+
+                      <button type="button" x-show="bookingStep === 'schedule'" @click="proceedFromSchedule()" :disabled="!canContinueSchedule()" :aria-busy="slotsLoading || staffAvailabilityLoading" aria-describedby="schedule-continue-hint" class="disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2 bg-gradient-to-r from-luxury-600 to-luxury-800 text-white font-bold rounded-lg transition active:scale-95">Continue</button>
                       <button type="button" x-show="bookingStep === 'review'" @click="proceedFromReview()" :disabled="!bookingForm.customerName || !bookingForm.customerPhone" class="px-5 py-2 bg-gradient-to-r from-luxury-600 to-luxury-800 text-white font-bold rounded-lg transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">Continue to Payment</button>
-                      <button type="button" x-show="bookingStep === 'payment' && !depositLocked" @click="proceedFromPayment()" class="px-5 py-2 bg-luxury-600 hover:bg-luxury-700 text-white font-bold rounded-lg transition active:scale-95">Submit Deposit &amp; Continue</button>
+                      <button type="button" x-show="bookingStep === 'payment' && !depositLocked" @click="proceedFromPayment()" class="px-5 py-2 bg-luxury-600 hover:bg-luxury-700 text-white font-bold rounded-lg transition active:scale-95" :disabled="reservationQuoteLoading || !reservationQuote || !bookingForm.paymentMethod">Continue</button>
                       <button type="button" x-show="bookingStep === 'payment' && depositLocked" @click="bookingStep = 'notifications'" class="px-5 py-2 bg-gradient-to-r from-luxury-600 to-luxury-800 text-white font-bold rounded-lg transition active:scale-95">Continue</button>
                       <button type="button" x-show="bookingStep === 'notifications'" @click="proceedFromNotifications()" class="px-5 py-2 bg-gradient-to-r from-luxury-600 to-luxury-800 text-white font-bold rounded-lg transition active:scale-95">Continue</button>
                       <button type="button" x-show="bookingStep === 'terms'" @click="submitBooking()" :aria-busy="isSubmittingBooking" :disabled="isSubmittingBooking || !bookingForm.agreedToTerms" class="px-5 py-2 bg-gradient-to-r from-gold-500 to-gold-600 text-slate-900 font-bold rounded-lg transition disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2">
                         <svg x-show="isSubmittingBooking" class="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                        <span x-text="isSubmittingBooking ? 'Processing...' : 'Confirm Booking Request'"></span>
+                        <span x-text="isSubmittingBooking ? 'Processing...' : (bookingForm.paymentMethod === 'PayMongo' &amp;&amp; requiredDeposit() > 0 ? 'Continue to Payment' : 'Submit Request')"></span>
                       </button>
                     </div>
                   </form>

@@ -53,6 +53,7 @@
 <script src="../../scripts/booking-validation.js"></script>
   <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=balanced-type-20261020-1" />
   <link rel="stylesheet" href="../../assets/css/portal-colors.css?v=balanced-type-20261020-1" />
+  <script src="../../scripts/portal-presentation.js"></script>
 </head>
 <body class="salon-portal bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
@@ -194,10 +195,12 @@
                   </div>
                   <div class="notification-copy">
                     <div class="notification-title-row"><p class="notification-title" x-text="notificationDetails(notif).title"></p><span x-show="!notif.read" class="notification-dot" aria-label="Unread"></span></div>
-                    <p class="notification-summary" x-text="notificationDetails(notif).summary"></p>
+                    <p class="notification-summary" x-show="notificationDetails(notif).summary" x-text="notificationDetails(notif).summary"></p>
+                    <span class="notification-state-badge" x-show="notificationDetails(notif).status" x-text="notificationDetails(notif).status"></span>
                     <p class="notification-service" x-show="notificationDetails(notif).service" x-text="notificationDetails(notif).service"></p>
+                    <p class="notification-branch" x-show="notificationDetails(notif).branch" x-text="notificationDetails(notif).branch"></p>
                     <p class="notification-schedule" x-show="notificationDetails(notif).schedule" x-text="notificationDetails(notif).schedule"></p>
-                    <time class="notification-time" :datetime="notif.createdAt || ''" :title="notif.time" x-text="notificationTime(notif)"></time>
+                    <time class="notification-time" :datetime="notif.createdAt || ''" :title="notif.time" x-text="'Received ' + notificationTime(notif)"></time>
                   </div>
                 </article>
               </template>
@@ -239,9 +242,18 @@
             </a>
           </div>
 
+          <section class="appointment-filters" aria-label="Filter appointments">
+            <div><label for="appointment-branch">Branch</label><select id="appointment-branch" x-model="appointmentBranchFilter"><option value="">All branches</option><template x-for="branch in appointmentFilterBranches()" :key="branch"><option :value="branch" x-text="branch"></option></template></select></div>
+            <div><label for="appointment-status">Status</label><select id="appointment-status" x-model="appointmentStatusFilter"><option value="">All statuses</option><template x-for="status in appointmentFilterStatuses()" :key="status"><option :value="status" x-text="getCustomerStatusLabel(status)"></option></template></select></div>
+            <div><label for="appointment-from">Appointment from</label><input id="appointment-from" type="date" x-model="appointmentDateFrom" :aria-invalid="appointmentDateRangeInvalid()" aria-describedby="appointment-date-error"></div>
+            <div><label for="appointment-to">Appointment to</label><input id="appointment-to" type="date" x-model="appointmentDateTo" :aria-invalid="appointmentDateRangeInvalid()" aria-describedby="appointment-date-error"></div>
+            <button type="button" @click="clearAppointmentFilters()" :disabled="!hasAppointmentFilters()" class="service-add-button">Clear filters</button>
+          </section>
+          <p id="appointment-date-error" x-show="appointmentDateRangeInvalid()" role="alert" class="text-xs text-rose-700">The end date must be on or after the start date.</p>
+          <p class="text-xs text-slate-500" role="status" x-text="(appointmentView === 'upcoming' ? getUpcomingAppointments().length : getPastAppointments().length) + ' bookings · Newest bookings first'"></p>
           <div class="relative">
             <svg class="w-4 h-4 text-slate-500 absolute top-1/2 left-3 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            <input type="text" x-model.debounce.300ms="appointmentSearchQuery" placeholder="Search by reference, service, branch, or stylist..." class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 pl-10 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs">
+            <input type="text" aria-label="Search appointments" x-model.debounce.300ms="appointmentSearchQuery" placeholder="Search by reference, service, branch, or stylist..." class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 pl-10 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs">
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -284,8 +296,8 @@
             </template>
             <template x-if="appointmentView === 'upcoming' && getUpcomingAppointments().length === 0">
               <div class="col-span-full text-center py-12 bg-slate-900/50 rounded-lg" x-transition>
-                <p class="text-slate-400 text-base" x-text="appointmentSearchQuery ? 'No appointments match your search.' : 'You have no upcoming appointments.'"></p>
-                <p class="text-xs text-slate-500 mt-1" x-text="appointmentSearchQuery ? 'Try another reference or clear the search field.' : 'Ready for a new look? Book a service now!'"></p>
+                <p class="text-slate-400 text-base" x-text="hasAppointmentFilters() ? 'No appointments match your filters.' : 'You have no upcoming appointments.'"></p>
+                <p class="text-xs text-slate-500 mt-1" x-text="hasAppointmentFilters() ? 'Change or clear the filters to see more bookings.' : 'Ready for a new look? Book a service now!'"></p>
               </div>
             </template>
 
@@ -329,8 +341,8 @@
             </template>
             <template x-if="appointmentView === 'past' && getPastAppointments().length === 0">
               <div class="col-span-full text-center py-12 bg-slate-900/50 rounded-lg" x-transition>
-                <p class="text-slate-400 text-base" x-text="appointmentSearchQuery ? 'No appointments match your search.' : 'You have no past appointments.'"></p>
-                <p x-show="appointmentSearchQuery" class="text-xs text-slate-500 mt-1">Try a different search term or clear the search field.</p>
+                <p class="text-slate-400 text-base" x-text="hasAppointmentFilters() ? 'No appointments match your filters.' : 'You have no past appointments.'"></p>
+                <p x-show="hasAppointmentFilters()" class="text-xs text-slate-500 mt-1">Change or clear the filters to see more bookings.</p>
               </div>
             </template>
           </div>

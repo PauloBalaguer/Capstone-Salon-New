@@ -43,7 +43,7 @@ function formatPeso(amount) {
 // the same status the same way.
 function getCustomerStatusLabel(status) {
   const labels = {
-    'Pending': 'Waiting for Confirmation',
+    'Pending': 'Awaiting confirmation',
     'Confirmed': 'Confirmed',
     'In Progress': 'Service in Progress',
     'Completed': 'Completed',
@@ -63,10 +63,14 @@ function getCustomerStatusLabel(status) {
 // state rather than trusting client input) — a customer can never write it
 // directly.
 function getPaymentStatusLabel(appt) {
+  if (appt && appt.status === 'Cancelled' && ['Payment Required', 'Pending', 'Unpaid', 'Not Paid'].includes(appt.paymentStatus) && !Number(appt.amountPaid || 0)) {
+    if (appt.paymentExpired) return 'Expired';
+    if (!Number(appt.depositAmount || 0)) return 'No payment collected';
+  }
   const labels = {
     'Payment Required': 'Payment Required',
     'Awaiting Verification': 'Payment Being Verified',
-    'Down Payment Verified': 'Reservation Payment Received',
+    'Down Payment Verified': 'Deposit verified',
     'Fully Paid': 'Paid in Full',
     'Rejected': 'Payment Needs Attention',
     'Refund Due': 'Deposit Refund Pending',

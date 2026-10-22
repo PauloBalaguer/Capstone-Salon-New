@@ -11,7 +11,7 @@
   --gold-dark: var(--brand-gold-ink);
   --cream: var(--brand-cream);
   --panel: var(--brand-panel);
-  --sand: #e8dcc8;
+  --sand: var(--brand-sand);
   --charcoal: var(--brand-ink);
   --font-title: Georgia, Cambria, "Times New Roman", serif;
   --font-body: "Segoe UI", Tahoma, Verdana, Arial, sans-serif;

@@ -227,10 +227,10 @@ document.addEventListener('alpine:init', () => {
         // unreadable text. Arbitrary hex values dodge staff-theme.css's
         // emerald/slate remaps so each status keeps its own colour.
         case 'Pending': return 'bg-[#FEF3C7] text-[#92400E] border border-[#FCD34D]';
-        case 'Confirmed': return 'bg-[#E0F2FE] text-[#075985] border border-[#7DD3FC]';
+        case 'Confirmed': return 'bg-[#E0F2FE] text-[#006D6F] border border-[#7DD3FC]';
         case 'In Progress': return 'bg-[#CCFBF1] text-[#115E59] border border-[#5EEAD4]';
         case 'Completed': return 'bg-[#DCFCE7] text-[#166534] border border-[#86EFAC]';
-        case 'Reviewed': return 'bg-[#EDE9FE] text-[#5B21B6] border border-[#C4B5FD]';
+        case 'Reviewed': return 'bg-[#E5F2F0] text-[#06464A] border border-[#A3C9C6]';
         case 'Reschedule Requested': return 'bg-[#FFEDD5] text-[#9A3412] border border-[#FDBA74]';
         case 'Cancelled': case 'No-Show': return 'bg-[#FFE4E6] text-[#9F1239] border border-[#FDA4AF]';
         default: return 'bg-[#F1F5F9] text-[#334155] border border-[#CBD5E1]';

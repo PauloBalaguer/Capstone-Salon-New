@@ -8,7 +8,7 @@
   --cashier-gold-dark: #B8933A;
   --cashier-cream: var(--brand-cream);
   --cashier-panel: var(--brand-panel);
-  --cashier-warm: #F3E9D6;
+  --cashier-warm: var(--brand-sand);
   --cashier-border: #D9C9B4;
   --cashier-ink: var(--brand-ink);
 }

@@ -75,8 +75,8 @@ body.salon-portal .booking-detail-finances dt { font-weight: 700; }
 .portal-notification-panel { max-width: calc(100vw - 2rem); }
 .portal-notification-panel > .overflow-y-auto { min-height: 0; overscroll-behavior: contain; }
 .portal-notification-message { white-space: pre-line; overflow-wrap: anywhere; line-height: 1.5; }
-.portal-notification-unread { background: rgba(0,112,115,.07); box-shadow: inset 3px 0 #00787b; }
-.portal-notification-read-all { padding: 10px; color: #006b70; }
+.portal-notification-unread { background: rgba(0,112,115,.07); box-shadow: inset 3px 0 #006D6F; }
+.portal-notification-read-all { padding: 10px; color: #006D6F; }
 .portal-notification-read-all:disabled { opacity: .5; cursor: default; }
 @media (max-width: 640px) {
   .portal-notification-panel { position: fixed !important; top: 4.5rem; right: 1rem; width: calc(100vw - 2rem); max-height: 70dvh; }

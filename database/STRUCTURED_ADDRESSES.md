@@ -42,10 +42,10 @@ with validated codes, canonical names, and detailed fields. Neither submitting a
 alternate address nor editing the profile updates past requests. Saved-address use
 copies fields into the request form and validates them again on submission.
 
-Checks: `C:\xampp\php\php.exe database/tests/addresses.php` validates the complete
+Checks: `C:\xampp\php\php.exe tests/addresses.php` validates the complete
 local dataset without network access. Existing free-text-only clients must deploy with the updated forms;
 new home-service requests require structured data.
 
-`C:\xampp\php\php.exe database/tests/address_persistence.php --migrate` applies
+`C:\xampp\php\php.exe tests/address_persistence.php --migrate` applies
 migration 050 twice to verify repeatability, then checks snapshot independence using
 temporary tables only. Omit `--migrate` to check an already migrated database.

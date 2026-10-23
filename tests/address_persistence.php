@@ -1,11 +1,11 @@
 <?php
 // Run on a configured development DB. --migrate applies only migration 050.
-require_once __DIR__ . '/../../backend/config/database.php';
+require_once __DIR__ . '/../backend/config/database.php';
 $pdo = Database::getInstance();
 if (in_array('--migrate', $argv, true)) {
     $before = $pdo->query('SELECT COUNT(*) FROM home_service_requests')->fetchColumn();
-    $pdo->exec(file_get_contents(__DIR__ . '/../migrations/050_structured_addresses.sql'));
-    $pdo->exec(file_get_contents(__DIR__ . '/../migrations/050_structured_addresses.sql'));
+    $pdo->exec(file_get_contents(__DIR__ . '/../database/migrations/050_structured_addresses.sql'));
+    $pdo->exec(file_get_contents(__DIR__ . '/../database/migrations/050_structured_addresses.sql'));
     if ($pdo->query('SELECT COUNT(*) FROM home_service_requests')->fetchColumn() != $before) throw new RuntimeException('Migration changed history count.');
     echo "PASS: additive migration applied twice; historical request count unchanged.\n";
 }

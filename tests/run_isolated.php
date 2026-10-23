@@ -93,10 +93,11 @@ try {
     echo "PASS connection / isolated schema: $tableCount tables; actual reference objects; existing account; providers disabled\n";
     $suites = ['scheduling_conflicts.php','booking_workflow_conflicts.php','booking_form_validation.php','payment_workflow.php',
         'arrival_closure_workflow.php','event_availability.php','home_service_address.php','admin_booking_list.php',
-        'customer_notifications.php','loyalty_reports.php','defense_customer_journey.php','booking_otp_delivery.php'];
+        'customer_notifications.php','loyalty_reports.php','defense_customer_journey.php','booking_otp_delivery.php','brevo_mail.php'];
     foreach ($suites as $suite) {
         $output = []; $exit = 0;
-        exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg($sandbox.'/tests/'.$suite).' 2>&1', $output, $exit);
+        exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg($sandbox.'/tests/'.$suite)
+            .($suite === 'brevo_mail.php' ? ' --queue' : '').' 2>&1', $output, $exit);
         $log = implode("\n", $output);
         $ok = $exit === 0 && str_contains($log, 'PASS ') && !preg_match('/FAIL |Fatal error|Warning:|Parse error|Database connection failed/', $log);
         echo ($ok ? 'PASS ' : 'FAIL ').$suite."\n";

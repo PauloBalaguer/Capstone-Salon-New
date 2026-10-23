@@ -44,8 +44,6 @@ try {
     $stmt->execute([$email]);
     $user = $stmt->fetch();
 
-    $local_verification_code = null;
-
     if ($user && !$user['is_active']) {
         $otp_code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         $otp_expires = new DateTime('now + 10 minutes');
@@ -54,18 +52,11 @@ try {
         $stmt = $pdo->prepare("UPDATE users SET otp_code = ?, otp_expiry = ? WHERE id = ?");
         $stmt->execute([$otp_code, $otp_expiry, $user['id']]);
 
-        $email_sent = sendOtpEmail($email, $otp_code);
-        if (!$email_sent && in_array($ip_address, ['127.0.0.1', '::1'], true)) {
-            $local_verification_code = $otp_code;
-        }
+        sendOtpEmail($email, $otp_code);
     }
 
     http_response_code(200);
     $response = ['success' => true, 'message' => 'If that account needs verification, a new code has been sent.'];
-    if ($local_verification_code !== null) {
-        $response['verification_code'] = $local_verification_code;
-        $response['message'] = 'Your new local verification code is ' . $local_verification_code . '.';
-    }
     echo json_encode($response);
 
 } catch (Exception $e) {

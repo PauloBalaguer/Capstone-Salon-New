@@ -31,11 +31,11 @@ compared before/after and remained unchanged. A service backup was written to
 | `backend/customer/getDashboardData.php` | Return consistent catalog duration labels and appointment end times. |
 | `backend/customer/submitBooking.php` | Return authoritative summed duration and estimated end time with the appointment confirmation. |
 | `backend/public/submitGuestBooking.php` | Return authoritative duration and end time with the guest confirmation. |
-| `scripts/admin/promotions.js` | Validate positive whole minutes before Add/Edit Service submission. |
+| `assets/js/admin/promotions.js` | Validate positive whole minutes before Add/Edit Service submission. |
 | `pages/admin/promotions.html` | Estimated Duration numeric input, minimum 1, and readable catalog duration. |
 | `pages/admin/appointments.html` | Readable Estimated Duration and Estimated End Time in the existing booking cards. |
-| `scripts/customer/dashboard-helpers.js` | Format service duration from integer minutes instead of stale/range labels. |
-| `scripts/customer/dashboard-booking.js` | Selected-duration and end-time helpers; use the server's duration after booking. |
+| `assets/js/customer/dashboard-helpers.js` | Format service duration from integer minutes instead of stale/range labels. |
+| `assets/js/customer/dashboard-booking.js` | Selected-duration and end-time helpers; use the server's duration after booking. |
 | `pages/customer/services-promos.html` | Duration on selected services; live estimated end, review, and confirmation details. |
 | `assets/js/main.js` | Guest service durations, live selected-service end time, review, and confirmation details. |
 | `index.html` | Load the shared duration helper for the guest flow. |
@@ -50,11 +50,11 @@ tables continue to store bookings and their selected services.
 | File | Purpose |
 |---|---|
 | `backend/config/ServiceDuration.php` | Integer validation, readable duration, and start-plus-minutes calculation. |
-| `scripts/service-duration.js` | Shared customer/admin duration formatting and end-time previews. |
+| `assets/js/service-duration.js` | Shared customer/admin duration formatting and end-time previews. |
 | `database/data/service-duration-reference.json` | 315 duration rows extracted from the supplied DOCX, retaining branch and section context. |
 | `database/sync_service_durations.php` | Preview/apply the initial duration import; safe branch-aware matching and service backup. |
-| `database/tests/service_duration.php` | Duration formatting, validation, and end-time examples. |
-| `database/tests/service_duration_admin.php` | Actual admin endpoint and customer catalog checks using temporary tables only. |
+| `tests/service_duration.php` | Duration formatting, validation, and end-time examples. |
+| `tests/service_duration_admin.php` | Actual admin endpoint and customer catalog checks using temporary tables only. |
 | `database/SERVICE_DURATION_MATCHES.md` | Complete lists of matched records, unchanged records, and unmatched reference rows. |
 | `database/SERVICE_DURATION_IMPLEMENTATION.md` | This implementation and testing report. |
 
@@ -122,9 +122,9 @@ are saved directly to the chosen service record and need no source-code changes.
 Run:
 
 ```powershell
-C:\xampp\php\php.exe database/tests/service_duration.php
-C:\xampp\php\php.exe database/tests/service_duration_admin.php
-C:\xampp\php\php.exe database/tests/booking_validation.php
+C:\xampp\php\php.exe tests/service_duration.php
+C:\xampp\php\php.exe tests/service_duration_admin.php
+C:\xampp\php\php.exe tests/booking_validation.php
 ```
 
 ## Manual testing steps

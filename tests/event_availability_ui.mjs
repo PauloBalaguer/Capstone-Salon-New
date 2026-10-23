@@ -5,7 +5,7 @@ const base=new URL('../',import.meta.url);
 const read=p=>fs.readFileSync(new URL(p,base),'utf8');
 const pending=[];
 const ctx=vm.createContext({URLSearchParams,console,fetch:()=>new Promise(resolve=>pending.push(resolve))});
-new vm.Script(read('scripts/customer/dashboard-home-service.js')).runInContext(ctx);
+new vm.Script(read('assets/js/customer/dashboard-home-service.js')).runInContext(ctx);
 new vm.Script(`var app=Object.assign(customerHomeServiceMixin(),{homeServiceForm:{eventType:'Wedding',weddingPackage:'D',services:[],preferredDate:'2030-01-01',preferredTime:'10:00'}});`).runInContext(ctx);
 const first=ctx.app.refreshEventAvailability();ctx.app.homeServiceForm.preferredTime='15:00';const second=ctx.app.refreshEventAvailability();
 assert(ctx.app.eventAvailabilityLoading);
@@ -19,13 +19,13 @@ assert.equal(ctx.app.homeServiceAvailability,null);assert(ctx.app.eventAvailabil
 assert.equal(ctx.app.getHomeServiceStatusLabel('Payment Required'),'Awaiting Payment');
 assert.equal(ctx.app.getHomeServiceStatusLabel('Pending Review'),'Pending Review');
 assert.equal(ctx.app.getHomeServiceStatusLabel('Confirmed'),'Confirmed');
-for(const p of ['assets/js/main.js','scripts/customer/dashboard-home-service.js','scripts/payment/result.js'])new vm.Script(read(p));
+for(const p of ['assets/js/main.js','assets/js/customer/dashboard-home-service.js','assets/js/payment/result.js'])new vm.Script(read(p));
 for(const m of read('pages/customer/home-service.html').matchAll(/(?:x-text|x-show|x-if|:aria-busy)="([^"]*)"/g))new vm.Script('void('+m[1].replaceAll('&amp;','&').replaceAll('&gt;','>').replaceAll('&lt;','<')+');');
 for(const status of ['Confirmed','Payment Being Verified','Cancelled']) {
     const elements=new Map();const element=id=>{if(!elements.has(id))elements.set(id,{textContent:'',classList:{remove(){}}});return elements.get(id);};
     const resultCtx=vm.createContext({URLSearchParams,window:{location:{search:'?ref=EVENT&token=test&from=customer'}},document:{getElementById:element},
         fetch:async()=>({json:async()=>({success:true,paid:true,type:'home_service',reference:'EVENT',status,amountPaid:2000})})});
-    new vm.Script(read('scripts/payment/result.js')).runInContext(resultCtx);
+    new vm.Script(read('assets/js/payment/result.js')).runInContext(resultCtx);
     await new Promise(r=>setImmediate(r));
     const message=element('resultMessage').textContent;
     assert(message.includes(status==='Confirmed'?'request is confirmed':status==='Cancelled'?'remains cancelled':'needs staff review'));

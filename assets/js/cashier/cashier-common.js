@@ -174,7 +174,7 @@ const CashierApp = {
   },
 
   /* Highlights the sidebar link matching the current page filename, same
-     pattern as scripts/admin/shared-data.js's adminHighlightNav(). Every
+     pattern as assets/js/admin/shared-data.js's adminHighlightNav(). Every
      nav link carries data-nav-page="<filename>.html". */
   highlightNav() {
     const current = location.pathname.split('/').pop();

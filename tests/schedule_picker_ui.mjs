@@ -3,7 +3,7 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 const root = new URL('../',import.meta.url);
 const ctx=vm.createContext({URLSearchParams,document:{querySelector:()=>null}});
-const app=new vm.Script(fs.readFileSync(new URL('scripts/customer/dashboard-booking.js',root),'utf8')+'; customerBookingMixin()').runInContext(ctx);
+const app=new vm.Script(fs.readFileSync(new URL('assets/js/customer/dashboard-booking.js',root),'utf8')+'; customerBookingMixin()').runInContext(ctx);
 Object.assign(app,{bookingForm:{date:'2030-01-01',time:'10:00'},selectedBranchForServices:'daraga',selectedServicesForBooking:[{id:'1'}],availableTimeSlots:['10:00'],slotAvailabilityMap:{},slotsLoading:false,bookingStep:'schedule',bookingStepOrder:()=>['schedule','stylist','review'],pushToast(){}});
 assert.equal(app.canContinueSchedule(),false,'unverified slot cannot continue');
 let resolveFirst;

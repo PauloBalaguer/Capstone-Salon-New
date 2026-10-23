@@ -1,6 +1,6 @@
 <?php
 // Included by booking_references.php inside its isolated test database.
-require_once __DIR__ . '/../../backend/config/ReservationPayment.php';
+require_once __DIR__ . '/../backend/config/ReservationPayment.php';
 $service = fn($id, $price, $requirement) => ['id' => $id, 'service_name' => 'Test ' . $id, 'price' => $price, 'payment_requirement' => $requirement];
 foreach ([
     [[$service(1, '600.00', '50% Down Payment')], 600, 300, 300],

@@ -17,7 +17,7 @@ const ctx=vm.createContext({document,URLSearchParams,console,
  escapeHtml:s=>String(s??''),statusBadgeClass:()=>'',
  CashierApp:{formatCurrency:n=>'PHP '+Number(n||0).toFixed(2),toast(){},post:()=>{count++;return new Promise(r=>finish=r);}}});
 const run = code => new vm.Script(code).runInContext(ctx);
-run(fs.readFileSync(new URL('scripts/cashier/payment.js',base),'utf8'));
+run(fs.readFileSync(new URL('assets/js/cashier/payment.js',base),'utf8'));
 run(`state.data={bookings:[{id:'PREPAID',paymentStatus:'Fully Paid',checkoutPaid:false,status:'In Progress',price:900},{id:'SETTLED',paymentStatus:'Fully Paid',checkoutPaid:true,status:'Completed',price:900}]};renderCheckoutList();`);
 assert(elements.get('checkoutTableBody').innerHTML.includes('PREPAID'));
 assert(!elements.get('checkoutTableBody').innerHTML.includes('SETTLED'));
@@ -31,7 +31,7 @@ assert(ctx.window.location.href.includes('receipt.html?ref=TEST'));
 const reportCtx=vm.createContext({Alpine:{store:()=>({branches:[{id:'daraga',name:'Test'}],bookings:[
  {id:'PAID',branchId:'daraga',date:'2030-01-01',status:'Completed',checkoutPaid:true,checkoutRevenue:900,price:900},
  {id:'UNPAID',branchId:'daraga',date:'2030-01-01',status:'Completed',checkoutPaid:false,price:900}]})}});
-const report=new vm.Script(fs.readFileSync(new URL('scripts/admin/reports.js',base),'utf8')+';adminReportsApp()').runInContext(reportCtx);
+const report=new vm.Script(fs.readFileSync(new URL('assets/js/admin/reports.js',base),'utf8')+';adminReportsApp()').runInContext(reportCtx);
 report.collections=[{branchId:'daraga',branchName:'Test',amount:450,kind:'Reservation payment'},{branchId:'daraga',branchName:'Test',amount:450,kind:'Cashier checkout'}];
 assert.equal(report.getReportTotalRevenue(),900,'report includes deposit once and excludes unpaid completed visits');
 console.log('PASS UI checks: prepaid checkout list, balance, duplicate click, loading, receipt redirect, report revenue');

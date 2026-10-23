@@ -17,7 +17,7 @@ if($case==='parallel') {
     finally{$other->rollBack();$p->rollBack();}
     if(!$blocked)throw new RuntimeException('FAIL parallel event capacity mutex');echo "PASS parallel event capacity mutex (two connections, rollback only)\n";exit;
 }
-// Never let integration fixtures trigger real SMTP at process shutdown.
+// Never let integration fixtures trigger real email at process shutdown.
 $hook=new ReflectionProperty(EmailOutbox::class,'hookRegistered');$hook->setAccessible(true);$hook->setValue(null,true);
 foreach(['branches','users','customers','employees','services','staff_services','appointments','appointment_services','home_service_requests','home_service_staff','home_service_payments','notifications','email_outbox','payment_transactions','audit_log','rate_limit'] as $table) {
     $ddl=$p->query("SHOW CREATE TABLE $table")->fetch(PDO::FETCH_NUM)[1];

@@ -1,7 +1,7 @@
 ﻿/* Arrival review uses the existing staff, scheduling and rescheduling APIs.
    A review alone never cancels a booking or changes a payment. */
 (() => {
-  const backend = new URL('../backend/', document.currentScript.src);
+  const backend = new URL('../../backend/', document.currentScript.src);
   let active = false;
   async function request(path, data, method = 'POST') {
     const params = new URLSearchParams(data);

@@ -1,6 +1,6 @@
 <?php
 /** CLI: queue reminders for confirmed appointments in the next 24 hours.
- * reminder_sent means queued/handled; SMTP retries belong to EmailOutbox.
+ * reminder_sent means queued/handled; Brevo API retries belong to EmailOutbox.
  * No SMS provider is configured, so this job never sends SMS.
  */
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit(); }

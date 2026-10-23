@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../backend/config/Address.php';
+require_once __DIR__ . '/../backend/config/Address.php';
 function check($condition, $message) { if (!$condition) throw new RuntimeException($message); }
 $lookup = function ($level, $parent) {
     $rows = [

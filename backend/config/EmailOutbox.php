@@ -52,7 +52,7 @@ final class EmailOutbox
         if ($pdo->inTransaction()) return 0;
         $locked = false;
         try {
-            // Connection-scoped mutex also covers the SMTP send, so two workers
+            // Connection-scoped mutex also covers the Brevo request, so two workers
             // cannot deliver the same pending row. No schema change is needed.
             $locked = (int) $pdo->query("SELECT GET_LOCK(CONCAT('salon-mail-', DATABASE()), 0)")->fetchColumn() === 1;
             if (!$locked) return 0;
@@ -105,7 +105,7 @@ final class EmailOutbox
                     $sent++;
                 } else {
                     $pdo->prepare("UPDATE email_outbox SET status = IF(attempts + 1 >= ?, 'Failed', 'Pending'),
-                                   attempts = attempts + 1, last_error = 'SMTP send failed or is not configured (see PHP error log)' WHERE id IN ($marks)")
+                                   attempts = attempts + 1, last_error = 'Brevo API send failed or is not configured (see PHP error log)' WHERE id IN ($marks)")
                         ->execute([self::MAX_ATTEMPTS, ...$ids]);
                 }
             }

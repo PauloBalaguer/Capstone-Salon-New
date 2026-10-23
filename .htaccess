@@ -11,3 +11,8 @@
     Header set Expires 0
   </FilesMatch>
 </IfModule>
+
+# Private Brevo configuration is include-only, never a public endpoint.
+<FilesMatch "^brevo_credentials\.php(?:\..*)?$">
+  Require all denied
+</FilesMatch>

@@ -5,7 +5,7 @@
    mutation, so an update made on one page (e.g. starting a service on
    Assigned Appointments) is visible after navigating to another (e.g. the
    Dashboard's "today" list). Mirrors the pattern already used by
-   scripts/admin/shared-data.js. */
+   assets/js/admin/shared-data.js. */
 
 const STAFF_API_BASE = '../../backend/';
 

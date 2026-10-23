@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../backend/config/HomeServiceRequest.php';
+require_once __DIR__ . '/../backend/config/HomeServiceRequest.php';
 function checkHomeService(bool $result, string $label): void {
     if (!$result) throw new RuntimeException($label);
     echo "PASS: $label\n";

@@ -1,7 +1,7 @@
 /* Shared profile / service-address control. No frontend geography dataset. */
 (() => {
   const script = document.currentScript;
-  const endpoint = new URL('../backend/public/getAddressLocations.php', script.src);
+  const endpoint = new URL('../../backend/public/getAddressLocations.php', script.src);
   const forms = new Map();
   const cache = new Map();
   let saved = null;

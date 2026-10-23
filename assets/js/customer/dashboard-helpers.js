@@ -125,7 +125,7 @@ function mergeMixins(...sources) {
 }
 
 // Highlights the sidebar/mobile-nav links matching the current page filename.
-// Mirrors scripts/admin/shared-data.js's adminHighlightNav(). Call from init().
+// Mirrors assets/js/admin/shared-data.js's adminHighlightNav(). Call from init().
 function customerHighlightNav() {
   const current = location.pathname.split('/').pop();
 

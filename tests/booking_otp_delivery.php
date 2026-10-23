@@ -6,7 +6,7 @@ if (!preg_match('/^leo_defense_test_[a-f0-9]{12}$/D', (string)$p->query('SELECT 
     fwrite(STDERR, "Refusing OTP tests outside a disposable defense database.\n"); exit(1);
 }
 if (!isset($argv[1])) {
-    foreach (['missing_credentials','incomplete_credentials','smtp_failed','failed_resend','sent','invalid_email','array_email','invalid_method','cooldown_30','cooldown_59','cooldown_expired','legacy_hour'] as $case) {
+    foreach (['missing_credentials','incomplete_credentials','api_failed','failed_resend','sent','invalid_email','array_email','invalid_method','cooldown_30','cooldown_59','cooldown_expired','legacy_hour'] as $case) {
         passthru(escapeshellarg(PHP_BINARY).' '.escapeshellarg(__FILE__).' '.$case, $exit);
         if ($exit) exit($exit);
     }
@@ -28,10 +28,10 @@ if ($case === 'failed_resend') {
 }
 $before = $p->query('SELECT * FROM booking_verifications')->fetchAll();
 if (in_array($case, ['missing_credentials','incomplete_credentials'], true)) {
-    // The isolated runner omits credentials. Never risk an actual SMTP request.
-    if (is_file(__DIR__.'/../backend/config/mail_credentials.php')) throw new RuntimeException('Credentials must be absent from test sandbox');
+    // The isolated runner omits credentials. Never risk an actual API request.
+    if (is_file(__DIR__.'/../backend/config/brevo_credentials.php')) throw new RuntimeException('Credentials must be absent from test sandbox');
     if ($case === 'incomplete_credentials') {
-        file_put_contents(__DIR__.'/../backend/config/mail_credentials.php', "<?php return ['smtp_host'=>'smtp.gmail.com','smtp_username'=>'sender@example.invalid','smtp_password'=>'','from_email'=>'sender@example.invalid'];");
+        file_put_contents(__DIR__.'/../backend/config/brevo_credentials.php', "<?php return ['api_key'=>'','sender_email'=>'sender@example.invalid','sender_name'=>'Test','api_url'=>'https://api.brevo.com/v3/smtp/email'];");
     }
     require __DIR__.'/../backend/config/mail.php';
 } else {
@@ -45,7 +45,7 @@ $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
 $_POST = ['email'=>$case === 'invalid_email' ? 'bad@' : ($case === 'array_email' ? ['bad'] : 'guest@example.invalid')];
 ob_start();
 register_shutdown_function(function () use ($p, $case, $before) {
-    if ($case === 'incomplete_credentials') unlink(__DIR__.'/../backend/config/mail_credentials.php');
+    if ($case === 'incomplete_credentials') unlink(__DIR__.'/../backend/config/brevo_credentials.php');
     $body = json_decode(ob_get_clean(), true);
     $after = $p->query('SELECT * FROM booking_verifications')->fetchAll();
     $sent = in_array($case, ['sent','cooldown_expired','legacy_hour'], true);

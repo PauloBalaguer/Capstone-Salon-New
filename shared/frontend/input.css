@@ -1,0 +1,85 @@
+/* Tailwind v4 entry. Build: npm run build (or npm run dev to watch).
+   Output: shared/frontend/output.css — every page links that file. */
+@import "tailwindcss" source(none);
+
+@source "../../index.html";
+@source "../../{admin,auth,cashier,customer,public,shared,staff}/**/*.{html,php,js}";
+
+/* index.html toggles .dark on <html> (public/function/main.js) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Teal — primary brand */
+  --color-teal-50: #F4FBFA;
+  --color-teal-100: #E5F2F0;
+  --color-teal-200: #C7E0DD;
+  --color-teal-300: #83B9B8;
+  --color-teal-400: #287F80;
+  --color-teal-500: #006D6F;
+  --color-teal-700: #06464A;
+  --color-teal-900: #043437;
+
+  /* Gold — accent */
+  --color-gold-100: #FAF2DC;
+  --color-gold-200: #F5E7C4;
+  --color-gold-300: #ECD184;
+  --color-gold-500: #E0B84C;
+  --color-gold-600: #B8933A;
+  --color-gold-800: #805B0B; /* gold text on light backgrounds */
+
+  /* Warm neutrals */
+  --color-cream: #FFF8EE;  /* page background */
+  --color-panel: #FFFDF9;  /* cards */
+  --color-sand: #E8DCC8;   /* borders, soft surfaces */
+  --color-bronze: #D9C9B4;
+  --color-ink: #222222;    /* body text */
+  --color-muted: #475569;  /* secondary text */
+
+  /* Status */
+  --color-ok: #166534;
+  --color-ok-text: #17603A;
+  --color-ok-soft: #EDF8F1;
+  --color-danger: #B91C1C;
+  --color-danger-text: #9F2D2D;
+  --color-danger-soft: #FFF0F0;
+  --color-warn-text: #7A5200;
+  --color-warn-soft: #FFF7E2;
+
+  /* Auth pages keep their own look */
+  --color-gold-auth: #C9A24E;
+  --color-ink-auth: #1F2937;
+  --color-muted-auth: #5B6472;
+  --color-field-auth: #F6F0E6;
+  --color-line-auth: #E4D7C0;
+  --color-ok-auth: #2F7D4F;
+  --color-err-auth: #A12B2B;
+  --color-teal-glow-auth: #0B8C8E;
+
+  --font-body: "Segoe UI", Tahoma, Verdana, Arial, sans-serif;
+  --font-display: Georgia, Cambria, "Times New Roman", serif;
+  --font-auth-body: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-auth-display: "Playfair Display", Georgia, serif;
+}
+
+@layer base {
+  /* Dark mode for index.html (values from public/frontend/home-theme.css) */
+  .dark {
+    --color-teal-500: #20A8AA;
+    --color-gold-500: #E8C56C;
+    --color-gold-200: #3E3318;
+    --color-gold-800: #ECD18F;
+    --color-bronze: #4A5C5A;
+    --color-ink: #EDE9E1;
+    --color-panel: #162121;
+    --color-cream: #0D1616;
+    --color-sand: #1B2828;
+  }
+
+  /* v3 defaults the pages were designed with (Tailwind's official compat rules) */
+  *, ::after, ::before, ::backdrop, ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+  button:not(:disabled), [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}

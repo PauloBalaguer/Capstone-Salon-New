@@ -36,11 +36,11 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="assets/css/home-theme.css?v=teal-gold-20261021" />
-<script src="assets/js/booking-validation.js"></script>
-  <link rel="stylesheet" href="assets/css/responsive-base.css?v=teal-gold-20261021" />
-  <link rel="stylesheet" href="assets/css/public-colors.css?v=teal-gold-20261021" />
-  <script src="assets/js/portal-presentation.js"></script>
+  <link rel="stylesheet" href="public/frontend/home-theme.css?v=teal-gold-20261021" />
+<script src="shared/function/booking-validation.js"></script>
+  <link rel="stylesheet" href="shared/frontend/responsive-base.css?v=teal-gold-20261021" />
+  <link rel="stylesheet" href="public/frontend/public-colors.css?v=teal-gold-20261021" />
+  <script src="shared/function/portal-presentation.js"></script>
 </head>
 
 <body class="bg-sand-100 text-ink font-body antialiased">
@@ -54,7 +54,7 @@
       <button onclick="switchTab('home-tab')" class="brand-lockup shrink-0 text-left focus:outline-none"
         aria-label="Leo Mejillano Salon and Beauty — Home">
         <div class="brand-logo-wrap">
-          <img id="brandLogo" src="assets/icon/header icon.png" alt="Leo Mejillano logo" class="brand-logo" />
+          <img id="brandLogo" src="shared/frontend/icon/header icon.png" alt="Leo Mejillano logo" class="brand-logo" />
         </div>
         <div class="brand-names">
           <div class="brand-main">Leo Mejillano</div>
@@ -516,7 +516,7 @@
           </svg>
         </span>
         <h3 class="font-display text-2xl mt-5">Booking request received</h3>
-        <p class="text-base text-ink/60 mt-2">For future visits, <a href="pages/login/register.html" class="text-plum font-bold">create an account</a> to book from your dashboard.</p>
+        <p class="text-base text-ink/60 mt-2">For future visits, <a href="auth/frontend/register.html" class="text-plum font-bold">create an account</a> to book from your dashboard.</p>
         <p class="text-base text-plum mt-2 font-bold">Pending confirmation</p>
         <p class="text-base text-ink/60 mt-2">The branch will review your request and deposit. Check your booking status before your visit.</p>
         <p class="text-base text-ink/60 mt-2">
@@ -799,7 +799,7 @@
             <div
               class="aspect-[4/4.8] rounded-[26px] overflow-hidden shadow-[0_30px_80px_-28px_rgba(0,109,111,.48)] relative border border-white/70">
               <img
-                src="assets/image/Salon BG 2.png"
+                src="shared/frontend/image/Salon BG 2.png"
                 alt="Leo Mejillano Salon interior" class="w-full h-full object-cover" />
               <div class="absolute inset-0 bg-linear-to-t from-black/55 via-transparent to-transparent"></div>
 
@@ -883,7 +883,7 @@
               <div
                 class="rounded-[28px] overflow-hidden border border-bronze/30 shadow-[0_28px_70px_-40px_rgba(34,34,34,.65)]">
                 <img
-                  src="assets/image/Salon BG.png"
+                  src="shared/frontend/image/Salon BG.png"
                   alt="Stylists working on the salon floor" class="w-full h-full object-cover aspect-[4/4.6]" />
               </div>
               <div
@@ -1044,11 +1044,11 @@
               class="reveal aspect-16/10 sm:aspect-video border border-white/25 shadow-[0_36px_90px_-40px_rgba(0,0,0,.7)]"
               style="--pos: 50%">
               <img id="baBefore"
-                src="assets/image/after rebond.jpg rebond.jpg"
+                src="shared/frontend/image/after rebond.jpg"
                 alt="Before the service" />
               <div class="reveal-top">
                 <img id="baAfter"
-                  src="assets/image/Before rebond.jpg"
+                  src="shared/frontend/image/Before rebond.jpg"
                   alt="After the service" />
               </div>
               <span class="ba-chip left-4 top-4">Before</span>
@@ -1157,7 +1157,7 @@
                 Log in or create an account to book appointments, view your
                 bookings, and manage your profile.
               </p>
-              <a href="pages/login/login.html"
+              <a href="auth/frontend/login.html"
                 class="inline-block mt-5 rounded-full bg-plum text-white font-bold text-base px-6 py-3 hover:brightness-110 transition">
                 Client Portal
               </a>
@@ -1658,7 +1658,7 @@
               </div>
             </div>
             <div class="branch-details-photo">
-              <img id="bImg" src="assets/image/Daraga.png" class="w-full h-full object-cover" alt="Leo Mejillano Salon &amp; Make-Up Studio, Daraga Main branch" />
+              <img id="bImg" src="shared/frontend/image/Daraga.png" class="w-full h-full object-cover" alt="Leo Mejillano Salon &amp; Make-Up Studio, Daraga Main branch" />
             </div>
           </article>
         </div>
@@ -1697,7 +1697,7 @@
           <div class="lg:col-span-6">
             <div class="rounded-[28px] overflow-hidden border border-white/15 shadow-2xl aspect-square">
               <img
-                src="assets/image/Home%20Service.png"
+                src="shared/frontend/image/Home%20Service.png"
                 class="w-full h-full object-contain" alt="Leo Mejillano home and event service clients" />
             </div>
           </div>
@@ -2522,55 +2522,55 @@
           <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
             <figure class="gallery-video-card relative overflow-hidden rounded-2xl bg-ink shadow-lg">
               <video class="w-full h-full object-cover" preload="metadata" playsinline muted data-preview-duration="10" aria-label="Salon gallery video 1">
-                <source src="assets/video/gallery-01.mp4#t=0,10" type="video/mp4" />
+                <source src="shared/frontend/video/gallery-01.mp4#t=0,10" type="video/mp4" />
               </video>
               <button type="button" class="gallery-video-toggle absolute inset-0 flex items-center justify-center text-white" aria-label="Play gallery video 1"><span class="flex items-center justify-center w-14 h-14 rounded-full bg-black/60">&#9654;</span></button>
             </figure>
             <figure class="gallery-video-card relative overflow-hidden rounded-2xl bg-ink shadow-lg">
               <video class="w-full h-full object-cover" preload="metadata" playsinline muted data-preview-duration="10" aria-label="Salon gallery video 2">
-                <source src="assets/video/gallery-02.mp4#t=0,10" type="video/mp4" />
+                <source src="shared/frontend/video/gallery-02.mp4#t=0,10" type="video/mp4" />
               </video>
               <button type="button" class="gallery-video-toggle absolute inset-0 flex items-center justify-center text-white" aria-label="Play gallery video 2"><span class="flex items-center justify-center w-14 h-14 rounded-full bg-black/60">&#9654;</span></button>
             </figure>
             <figure class="gallery-video-card relative overflow-hidden rounded-2xl bg-ink shadow-lg">
               <video class="w-full h-full object-cover" preload="metadata" playsinline muted data-preview-duration="10" aria-label="Salon gallery video 3">
-                <source src="assets/video/gallery-03.mp4#t=0,10" type="video/mp4" />
+                <source src="shared/frontend/video/gallery-03.mp4#t=0,10" type="video/mp4" />
               </video>
               <button type="button" class="gallery-video-toggle absolute inset-0 flex items-center justify-center text-white" aria-label="Play gallery video 3"><span class="flex items-center justify-center w-14 h-14 rounded-full bg-black/60">&#9654;</span></button>
             </figure>
             <figure class="gallery-video-card relative overflow-hidden rounded-2xl bg-ink shadow-lg">
               <video class="w-full h-full object-cover" preload="metadata" playsinline muted data-preview-duration="10" aria-label="Salon gallery video 4">
-                <source src="assets/video/gallery-04.mp4#t=0,10" type="video/mp4" />
+                <source src="shared/frontend/video/gallery-04.mp4#t=0,10" type="video/mp4" />
               </video>
               <button type="button" class="gallery-video-toggle absolute inset-0 flex items-center justify-center text-white" aria-label="Play gallery video 4"><span class="flex items-center justify-center w-14 h-14 rounded-full bg-black/60">&#9654;</span></button>
             </figure>
             <figure class="gallery-video-card relative overflow-hidden rounded-2xl bg-ink shadow-lg">
               <video class="w-full h-full object-cover" preload="metadata" playsinline muted data-preview-duration="10" aria-label="Salon gallery video 5">
-                <source src="assets/video/gallery-05.mp4#t=0,10" type="video/mp4" />
+                <source src="shared/frontend/video/gallery-05.mp4#t=0,10" type="video/mp4" />
               </video>
               <button type="button" class="gallery-video-toggle absolute inset-0 flex items-center justify-center text-white" aria-label="Play gallery video 5"><span class="flex items-center justify-center w-14 h-14 rounded-full bg-black/60">&#9654;</span></button>
             </figure>
             <figure class="gallery-video-card relative overflow-hidden rounded-2xl bg-ink shadow-lg">
               <video class="w-full h-full object-cover" preload="metadata" playsinline muted data-preview-duration="10" aria-label="Salon gallery video 6">
-                <source src="assets/video/gallery-06.mp4#t=0,10" type="video/mp4" />
+                <source src="shared/frontend/video/gallery-06.mp4#t=0,10" type="video/mp4" />
               </video>
               <button type="button" class="gallery-video-toggle absolute inset-0 flex items-center justify-center text-white" aria-label="Play gallery video 6"><span class="flex items-center justify-center w-14 h-14 rounded-full bg-black/60">&#9654;</span></button>
             </figure>
             <figure class="gallery-video-card relative overflow-hidden rounded-2xl bg-ink shadow-lg">
               <video class="w-full h-full object-cover" preload="metadata" playsinline muted data-preview-duration="10" aria-label="Salon gallery video 7">
-                <source src="assets/video/gallery-07.mp4#t=0,10" type="video/mp4" />
+                <source src="shared/frontend/video/gallery-07.mp4#t=0,10" type="video/mp4" />
               </video>
               <button type="button" class="gallery-video-toggle absolute inset-0 flex items-center justify-center text-white" aria-label="Play gallery video 7"><span class="flex items-center justify-center w-14 h-14 rounded-full bg-black/60">&#9654;</span></button>
             </figure>
             <figure class="gallery-video-card relative overflow-hidden rounded-2xl bg-ink shadow-lg">
               <video class="w-full h-full object-cover" preload="metadata" playsinline muted data-preview-duration="10" aria-label="Salon gallery video 8">
-                <source src="assets/video/gallery-08.mp4#t=0,10" type="video/mp4" />
+                <source src="shared/frontend/video/gallery-08.mp4#t=0,10" type="video/mp4" />
               </video>
               <button type="button" class="gallery-video-toggle absolute inset-0 flex items-center justify-center text-white" aria-label="Play gallery video 8"><span class="flex items-center justify-center w-14 h-14 rounded-full bg-black/60">&#9654;</span></button>
             </figure>
             <figure class="gallery-video-card relative overflow-hidden rounded-2xl bg-ink shadow-lg">
               <video class="w-full h-full object-cover" preload="metadata" playsinline muted data-preview-duration="10" aria-label="Salon gallery video 9">
-                <source src="assets/video/gallery-09.mp4#t=0,10" type="video/mp4" />
+                <source src="shared/frontend/video/gallery-09.mp4#t=0,10" type="video/mp4" />
               </video>
               <button type="button" class="gallery-video-toggle absolute inset-0 flex items-center justify-center text-white" aria-label="Play gallery video 9"><span class="flex items-center justify-center w-14 h-14 rounded-full bg-black/60">&#9654;</span></button>
             </figure>
@@ -2687,9 +2687,9 @@
     </div>
   </footer>
 
-  <script src="assets/js/address-form.js"></script>
-  <script src="assets/js/service-duration.js"></script>
-  <script src="assets/js/main.js?v=header18-20261020-4"></script>
+  <script src="shared/function/address-form.js"></script>
+  <script src="shared/function/service-duration.js"></script>
+  <script src="public/function/main.js?v=header18-20261020-4"></script>
 </body>
 
 </html>

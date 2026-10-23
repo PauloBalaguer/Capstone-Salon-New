@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leo Mejillano Salon - Checkout &amp; Payments</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style type="text/tailwindcss">
+        ::-webkit-scrollbar { @apply w-1.5 h-1.5; }
+        ::-webkit-scrollbar-track { @apply bg-transparent; }
+        ::-webkit-scrollbar-thumb { @apply bg-slate-300 rounded-full; }
+
+        @keyframes fade-up {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .stagger-item { animation: fade-up 0.35s ease-out both; }
+
+        .skeleton { @apply bg-slate-200 animate-pulse rounded-lg; }
+        .skeleton-line { @apply h-3.5; }
+
+        #sidebarNav .nav-item, button, .pay-method-card { @apply transition duration-150; }
+        #sidebarNav .nav-item:active,
+        button:active:not(:disabled) { @apply scale-[0.97]; }
+
+        button[id^="btnClose"] { @apply w-7 h-7 inline-flex items-center justify-center rounded-full transition duration-150; }
+        button[id^="btnClose"]:hover { @apply bg-white/10; }
+
+        /* Small uppercase section label used across the checkout cards. */
+        .section-label { @apply text-xs font-bold uppercase tracking-wider text-slate-500; }
+
+        /* Payment method, tip and quick-cash choices share one "chip" look;
+           the selected one gets .is-active (set in cashier/function/payment.js). */
+        .pay-method-card { @apply flex items-center justify-center gap-2 rounded-xl border border-[#D9C9B4] bg-white py-2.5 text-base font-semibold text-slate-600 cursor-pointer select-none hover:border-[#006D6F]; }
+        .pay-method-card.is-active { @apply border-[#006D6F] bg-[#006D6F]/10 text-[#06464A] ring-1 ring-[#006D6F]; }
+        .chip-btn { @apply rounded-lg border border-[#D9C9B4] bg-white py-2 text-base font-semibold text-slate-700 hover:border-[#006D6F]; }
+        .chip-btn.is-active { @apply border-[#006D6F] bg-[#006D6F]/10 text-[#06464A] ring-1 ring-[#006D6F]; }
+    </style>
+    <link rel="stylesheet" href="../../cashier/frontend/cashier-theme.css?v=teal-gold-20261021">
+<script src="../../shared/function/booking-validation.js"></script>
+  <link rel="stylesheet" href="../../shared/frontend/responsive-base.css?v=teal-gold-20261021" />
+  <link rel="stylesheet" href="../../shared/frontend/portal-colors.css?v=teal-gold-20261021" />
+  <script src="../../shared/function/toast.js"></script>
+  <script src="../../shared/function/portal-presentation.js"></script>
+</head>
+<body class="salon-portal bg-gray-100 font-sans antialiased flex h-screen overflow-hidden text-slate-800">
+
+
+    <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between shadow-xl shrink-0">
+        <div>
+            <div class="p-4 bg-slate-950 flex items-center space-x-3 border-b border-slate-800">
+                <div class="bg-amber-500 text-slate-950 font-bold rounded-full w-10 h-10 flex items-center justify-center">LM</div>
+                <div>
+                    <h1 class="font-bold text-base tracking-wide uppercase text-amber-400">Leo Mejillano</h1>
+                    <p id="cashierBranchSubtitle" class="text-xs text-slate-400">Loading branch...</p>
+                </div>
+            </div>
+
+            <div class="p-3 bg-slate-800/50 m-3 rounded-lg border border-slate-700 text-xs">
+                <div class="flex items-center space-x-2 text-slate-300 font-bold">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    <span id="sidebarBranchTitle">Leo Mejillano Salon &amp; Makeup Studio</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-1 pl-4" id="sidebarTerminalId">Terminal: #DAR-01</p>
+            </div>
+
+            <nav class="px-3 space-y-1" id="sidebarNav">
+                <a href="dashboard.html" data-nav-page="dashboard.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
+                    <i class="fa-solid fa-cash-register w-5 text-center"></i>
+                    <span class="text-base">Cashier Panel</span>
+                </a>
+                <a href="appointments.html" data-nav-page="appointments.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
+                    <i class="fa-solid fa-calendar-check w-5 text-center text-slate-400"></i>
+                    <span class="text-base flex-1 flex justify-between items-center">Appointments <span id="appointmentCountBadge" class="bg-amber-500/20 text-amber-400 text-xs px-1.5 rounded-full font-bold">0</span></span>
+                </a>
+                <a href="payment.html" data-nav-page="payment.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
+                    <i class="fa-solid fa-money-check-dollar w-5 text-center text-slate-400"></i>
+                    <span class="text-base">Checkout &amp; Payments</span>
+                </a>
+                <a href="inventory.html" data-nav-page="inventory.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
+                    <i class="fa-solid fa-boxes-stacked w-5 text-center text-slate-400"></i>
+                    <span class="text-base">Inventory Tracking</span>
+                </a>
+                <a href="staff.html" data-nav-page="staff.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
+                    <i class="fa-solid fa-users-gear w-5 text-center text-slate-400"></i>
+                    <span class="text-base">Staff Assignments</span>
+                </a>
+                <a href="profile.html" data-nav-page="profile.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
+                    <i class="fa-solid fa-user-shield w-5 text-center text-amber-400"></i>
+                    <span class="text-base">Profile &amp; Security</span>
+                </a>
+            </nav>
+        </div>
+
+        <div>
+            <div class="px-3 pb-2">
+                <a href="../../auth/backend/logout.php?portal=cashier" id="btnSignOut" class="w-full text-left flex items-center space-x-3 px-4 py-2.5 rounded-lg text-xs transition-all text-rose-400 hover:bg-rose-900/40 hover:text-rose-300">
+                    <i class="fa-solid fa-right-from-bracket w-5 text-center"></i>
+                    <span>Sign Out</span>
+                </a>
+            </div>
+            <div class="p-4 bg-slate-950 border-t border-slate-800 text-xs text-slate-400 space-y-0.5">
+                <div><i class="fa-solid fa-circle-nodes text-green-400 mr-1"></i> Multi-branch Sync Online</div>
+                <div class="text-slate-500">v2.0.0 (RAD Prototype)</div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-hidden">
+        <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 z-10 shrink-0">
+            <div class="flex items-center gap-4 min-w-0">
+                <a href="dashboard.html" class="text-slate-500 hover:text-slate-900 text-base font-semibold flex items-center gap-1.5 shrink-0">
+                    <i class="fa-solid fa-arrow-left"></i><span>Queue</span>
+                </a>
+                <div class="h-6 w-px bg-gray-200"></div>
+                <h2 class="font-bold text-xl text-gray-800 shrink-0">Checkout</h2>
+                <span id="invoiceIdDisplay" class="hidden font-mono text-base font-semibold text-slate-600 bg-white border border-gray-200 rounded-lg px-2.5 py-1 truncate"></span>
+                <span id="ticketStatusBadge" class="hidden text-xs font-bold px-2.5 py-1 rounded-full"></span>
+            </div>
+            <p class="text-base font-semibold text-gray-600 shrink-0" id="liveClock">--</p>
+        </header>
+
+        <!-- No ?ref= in the URL: list of self-reported payments waiting on a cashier. -->
+        <section id="verifyListSection" class="flex-1 p-6 overflow-y-auto hidden space-y-6">
+            <div class="stagger-item max-w-6xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-200">
+                <div class="px-5 py-4 border-b border-gray-200">
+                    <h3 class="font-bold text-slate-800">Ready for Checkout</h3>
+                    <p class="text-base text-slate-500 mt-0.5">Today's confirmed, in-progress, and completed visits that still have a balance. Open one to take payment.</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-base text-slate-600">
+                        <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold border-b border-gray-200">
+                            <tr>
+                                <th class="px-5 py-3">Booking</th>
+                                <th class="px-5 py-3">Customer</th>
+                                <th class="px-5 py-3">Service(s)</th>
+                                <th class="px-5 py-3">Stylist</th>
+                                <th class="px-5 py-3">Status</th>
+                                <th class="px-5 py-3 text-right">Total</th>
+                                <th class="px-5 py-3"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="checkoutTableBody" class="divide-y divide-gray-100">
+                            <tr><td class="px-5 py-4" colspan="7"><div class="skeleton skeleton-line w-full"></div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="stagger-item max-w-6xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-200">
+                <div class="px-5 py-4 border-b border-gray-200">
+                    <h3 class="font-bold text-slate-800">Payments to Verify</h3>
+                    <p class="text-base text-slate-500 mt-0.5">Reservation payments customers reported. Check each one against the cash drawer or GCash/Maya account, then verify it to confirm the booking. To take payment for a visit, open it from the queue.</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-base text-slate-600">
+                        <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold border-b border-gray-200">
+                            <tr>
+                                <th class="px-5 py-3">Booking</th>
+                                <th class="px-5 py-3">Customer</th>
+                                <th class="px-5 py-3 text-right">Paid / Required</th>
+                                <th class="px-5 py-3">Method</th>
+                                <th class="px-5 py-3">Submitted</th>
+                                <th class="px-5 py-3"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="verifyTableBody" class="divide-y divide-gray-100">
+                            <tr><td class="px-5 py-4" colspan="6"><div class="skeleton skeleton-line w-full"></div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ?ref=<booking> : single-ticket checkout. -->
+        <div id="ticketTerminal" class="flex-1 overflow-y-auto p-6">
+            <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+                <div id="ticketNotFound" class="hidden lg:col-span-12 bg-white p-10 rounded-2xl shadow-sm border border-gray-200 text-center">
+                    <i class="fa-solid fa-ticket text-3xl text-gray-300 mb-3"></i>
+                    <p class="font-bold text-slate-700">Booking not found</p>
+                    <p class="text-base text-gray-500 mt-1">This booking reference isn't in your branch's active queue.</p>
+                    <a href="dashboard.html" class="inline-block mt-4 bg-slate-900 text-white text-base font-bold px-4 py-2 rounded-lg">Back to Queue</a>
+                </div>
+
+                <!-- LEFT: who and what -->
+                <div id="ticketSummaryCard" class="hidden lg:col-span-7 space-y-6">
+
+                    <section class="stagger-item bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-5">
+                        <div class="flex flex-wrap items-start justify-between gap-4">
+                            <div class="min-w-0">
+                                <p class="section-label">Customer</p>
+                                <h3 id="ticketClientName" class="font-bold text-2xl text-slate-900 capitalize truncate">-</h3>
+                                <p id="ticketClientPhone" class="text-base text-slate-500">-</p>
+                            </div>
+                            <dl class="grid grid-cols-2 gap-x-6 gap-y-1 text-base">
+                                <dt class="section-label">Stylist</dt>
+                                <dt class="section-label">Branch</dt>
+                                <dd id="ticketStaffName" class="font-semibold text-slate-800 capitalize">-</dd>
+                                <dd id="ticketBranchName" class="font-semibold text-slate-800">-</dd>
+                            </dl>
+                        </div>
+
+                        <div>
+                            <p class="section-label mb-2">Services</p>
+                            <div id="ticketServices" class="flex flex-wrap gap-2">-</div>
+                        </div>
+
+                        <!-- Service progress: Confirmed -> In Progress -> Completed -->
+                        <dl class="text-sm space-y-1 text-slate-600">
+                            <div class="flex flex-wrap justify-between gap-2"><dt class="font-bold">Payment status</dt><dd id="ticketPaymentStatus" class="font-semibold">—</dd></div>
+                            <div class="flex flex-wrap justify-between gap-2"><dt class="font-bold">Payment method</dt><dd id="ticketPaymentMethod" class="font-semibold">—</dd></div>
+                        </dl>
+                        <div id="workflowActionBlock" class="rounded-xl border border-gray-200 bg-slate-50 p-4">
+                            <p class="section-label mb-3">Service progress</p>
+                            <ol class="grid grid-cols-3 gap-2 mb-4" aria-label="Service progress">
+                                <li class="flex items-center gap-2">
+                                    <span class="progress-seg" data-seg="0">1</span>
+                                    <span class="progress-seg-label" title="Confirmed with deposit via the Appointments page's Admit Client action">Confirmed</span>
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <span class="progress-seg" data-seg="1">2</span>
+                                    <span class="progress-seg-label">In Progress</span>
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <span class="progress-seg" data-seg="2">3</span>
+                                    <span class="progress-seg-label">Completed</span>
+                                </li>
+                            </ol>
+                            <button type="button" id="btnWorkflowAction" class="w-full font-bold py-2.5 px-3 rounded-xl text-base flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-scissors"></i><span>Start Service</span>
+                            </button>
+                            <div id="serviceCompletedNotice" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl py-2.5 px-3 text-base font-semibold text-emerald-800 items-center justify-center gap-2">
+                                <i class="fa-solid fa-circle-check"></i>
+                                <span>Service completed. Payment is tracked separately; finish checkout to issue a receipt.</span>
+                            </div>
+                        </div>
+
+                        <div id="alreadyPaidNotice" class="hidden"></div>
+                    </section>
+
+                    <section class="stagger-item bg-white rounded-2xl shadow-sm border border-gray-200">
+                        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                            <h3 class="font-bold text-slate-800">Items</h3>
+                            <button id="btnSellProduct" disabled class="text-base font-semibold text-[#06464A] border border-[#006D6F]/40 hover:bg-[#006D6F]/10 rounded-lg px-3 py-1.5 flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed">
+                                <i class="fa-solid fa-plus"></i><span>Add product</span>
+                            </button>
+                        </div>
+                        <div id="cartItemsContainer" class="divide-y divide-gray-100">
+                            <p class="text-base text-gray-400 text-center py-8 italic">Loading&hellip;</p>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- RIGHT: take the payment -->
+                <section id="paymentPanel" class="stagger-item lg:col-span-5 lg:sticky lg:top-0 bg-white rounded-2xl shadow-sm border border-gray-200 flex flex-col">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="font-bold text-slate-800">Payment</h3>
+                        <p class="text-base text-slate-500">for <span id="customerNameDisplay" class="font-semibold text-slate-700 capitalize">&mdash;</span></p>
+                    </div>
+
+                    <div id="paymentForm" class="p-6 space-y-6">
+                        <!-- 1. Method -->
+                        <div>
+                            <p class="section-label mb-2">Payment method</p>
+                            <div class="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Payment method">
+                                <button type="button" id="method-Cash" data-method="Cash" class="pay-method-card" role="radio"><i class="fa-solid fa-money-bill-wave text-emerald-600"></i>Cash</button>
+                                <button type="button" id="method-GCash" data-method="GCash" class="pay-method-card" role="radio"><i class="fa-solid fa-wallet text-blue-600"></i>GCash</button>
+                                <button type="button" id="method-Maya" data-method="Maya" class="pay-method-card" role="radio"><i class="fa-solid fa-wallet text-emerald-700"></i>Maya</button>
+                            </div>
+                            <p id="methodNote" class="hidden text-xs text-slate-500 mt-2"><i class="fa-solid fa-circle-info mr-1"></i>Check that the payment arrived on the salon's account before completing.</p>
+                        </div>
+
+                        <!-- 2. Tip (cash only) -->
+                        <div id="tipSection">
+                            <p class="section-label mb-2">Tip for stylist <span class="normal-case font-medium text-slate-400">(optional, cash only)</span></p>
+                            <div class="grid grid-cols-5 gap-2">
+                                <button type="button" data-tip="0" class="tip-btn chip-btn">None</button>
+                                <button type="button" data-tip="50" class="tip-btn chip-btn">₱50</button>
+                                <button type="button" data-tip="100" class="tip-btn chip-btn">₱100</button>
+                                <button type="button" data-tip="200" class="tip-btn chip-btn">₱200</button>
+                                <input id="customTipInput" type="number" min="0" inputmode="decimal" placeholder="Other" aria-label="Other tip amount" class="rounded-lg border text-base font-semibold text-center py-2 focus:outline-none focus:ring-2">
+                            </div>
+                        </div>
+
+                        <!-- 3. Summary -->
+                        <div class="rounded-xl bg-slate-50 border border-gray-200 p-4 space-y-2 text-base">
+                            <div class="flex justify-between text-slate-600">
+                                <span>Services</span>
+                                <span id="serviceChargesDisplay" class="font-medium">₱0.00</span>
+                            </div>
+                            <div id="reservationReceivedRow" class="hidden flex justify-between text-emerald-700">
+                                <span>Reservation already paid</span>
+                                <span id="reservationReceivedDisplay" class="font-medium">&minus; ₱0.00</span>
+                            </div>
+                            <div id="productsChargeRow" class="hidden flex justify-between text-slate-600">
+                                <span>Remaining balance</span>
+                                <span id="remainingServiceDisplay" class="font-medium">₱0.00</span>
+                            </div>
+                            <div id="productsTotalRow" class="hidden flex justify-between text-slate-600">
+                                <span>Products</span>
+                                <span id="subtotalDisplay" class="font-medium">₱0.00</span>
+                            </div>
+                            <div id="tipRow" class="hidden flex justify-between text-slate-600">
+                                <span>Tip</span>
+                                <span id="tipDisplay" class="font-medium">₱0.00</span>
+                            </div>
+                            <div class="flex justify-between items-baseline pt-3 mt-1 border-t border-gray-300">
+                                <span class="font-bold text-slate-800">Amount due</span>
+                                <span id="totalDisplay" class="text-3xl font-black text-[#06464A]">₱0.00</span>
+                            </div>
+                        </div>
+
+                        <!-- 4. Cash received -> change -->
+                        <div id="cashSection" class="space-y-3">
+                            <div>
+                                <label for="cashReceivedInput" class="section-label block mb-2">Cash received</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">₱</span>
+                                    <input id="cashReceivedInput" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0.00" class="w-full rounded-xl border pl-8 pr-3 py-3 text-2xl font-bold focus:outline-none focus:ring-2">
+                                </div>
+                                <div class="grid grid-cols-3 gap-2 mt-2">
+                                    <button type="button" class="cash-quick-btn chip-btn" data-exact="1">Exact</button>
+                                    <button type="button" class="cash-quick-btn chip-btn" data-amount="500">₱500</button>
+                                    <button type="button" class="cash-quick-btn chip-btn" data-amount="1000">₱1,000</button>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-baseline rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3">
+                                <span class="font-semibold text-emerald-900">Change</span>
+                                <span id="changeDueDisplay" class="text-2xl font-black text-emerald-700">₱0.00</span>
+                            </div>
+                        </div>
+
+                        <!-- 5. Complete -->
+                        <div class="space-y-2">
+                            <button id="btnProcessPayment" disabled class="w-full bg-[#006D6F] hover:bg-[#06464A] text-white font-bold py-3.5 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed">
+                                <i class="fa-solid fa-receipt"></i>
+                                <span id="payButtonLabel">Complete payment</span>
+                            </button>
+                            <p id="payHint" role="status" aria-live="polite" class="text-xs text-center text-slate-500 min-h-[1rem]"></p>
+                        </div>
+                    </div>
+
+                    <!-- Shown instead of the form when this visit already has a receipt. -->
+                    <div id="paymentPaidState" class="hidden p-6 text-center space-y-3">
+                        <div class="mx-auto w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-2xl"><i class="fa-solid fa-check"></i></div>
+                        <p class="font-bold text-lg text-slate-800">Paid</p>
+                        <p class="text-base text-slate-500">Nothing more to collect for this visit.</p>
+                        <a id="paymentPaidReceiptLink" href="receipt.html" class="inline-flex items-center gap-2 bg-slate-900 text-white text-base font-bold px-4 py-2.5 rounded-xl"><i class="fa-solid fa-receipt"></i>View receipt</a>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <div id="productSaleModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-gray-100 transform scale-95 transition-transform duration-300">
+            <div class="bg-slate-950 p-4 text-white flex justify-between items-center">
+                <h4 class="font-bold text-base tracking-wide"><i class="fa-solid fa-tags text-amber-400 mr-2"></i>Add Product</h4>
+                <button id="btnCloseProductModal" class="text-gray-400 hover:text-white transition-all text-lg" aria-label="Close">&times;</button>
+            </div>
+            <div class="p-5 space-y-3.5 text-base">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400 text-xs"></i>
+                    <input id="productSearchInput" type="text" placeholder="Search product name..." class="w-full bg-gray-50 border border-gray-300 rounded-xl pl-9 pr-4 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-amber-500">
+                </div>
+                <div id="productListContainer" class="max-h-80 overflow-y-auto space-y-2 border border-gray-200 rounded-xl p-2 bg-gray-50">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="verifyModal" role="dialog" aria-modal="true" aria-labelledby="verifyTitle" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-center justify-center hidden opacity-0 transition-opacity duration-300 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-100 transform scale-95 transition-transform duration-300">
+            <div class="bg-slate-950 p-4 text-white flex justify-between items-center">
+                <h4 id="verifyTitle" class="font-bold text-base tracking-wide"><i class="fa-solid fa-hand-holding-dollar text-amber-400 mr-2"></i>Payment Details</h4>
+                <button id="btnCloseVerifyModal" class="text-gray-400 hover:text-white transition-all text-lg" aria-label="Close">&times;</button>
+            </div>
+            <div class="p-5 space-y-3.5 text-base">
+                <p id="verifyDetails" class="text-slate-700 break-words"></p>
+                <p class="text-gray-500">Viewing details does not verify payment. Check the received cash or wallet transaction first. PayMongo amounts must match the confirmed online payment. Verify Payment confirms Pending bookings only when staff and schedule are available; other bookings keep their status.</p>
+                <div>
+                    <label for="verifyAmountInput" class="block text-xs text-gray-500 font-bold uppercase mb-1">Amount received</label>
+                    <input id="verifyAmountInput" type="number" step="0.01" min="0.01" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-amber-500">
+                </div>
+                <div>
+                    <label for="verifyMethodInput" class="block text-xs text-gray-500 font-bold uppercase mb-1">Payment method</label>
+                    <select id="verifyMethodInput" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-amber-500">
+                        <option value="" disabled selected>-- Select --</option>
+                        <option value="Cash">Cash</option>
+                        <option value="GCash">GCash</option>
+                        <option value="Maya">Maya</option>
+                        <option value="PayMongo">PayMongo (online)</option>
+                    </select>
+                </div>
+                <button id="btnConfirmVerify" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base py-2.5 rounded-xl transition duration-150">Verify Payment</button>
+                <button id="btnNeedsAttention" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-base py-2.5 rounded-xl transition duration-150">Payment Needs Attention</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../cashier/function/cashier-common.js"></script>
+    <script src="../../shared/function/appointment-arrival.js"></script>
+    <script src="../../cashier/function/payment.js"></script>
+</body>
+</html>

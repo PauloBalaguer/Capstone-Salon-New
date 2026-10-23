@@ -6,7 +6,7 @@
 -- (Under Review -> Quote Ready -> Payment Required -> Payment Being
 -- Verified -> Confirmed -> Staff Assigned -> Service in Progress ->
 -- Completed). Old status values are kept in the enum so existing rows and
--- the customer-facing label mapping (scripts/customer/dashboard-home-service.js,
+-- the customer-facing label mapping (assets/js/customer/dashboard-home-service.js,
 -- which already falls back to the raw value for anything it doesn't know)
 -- keep working untouched.
 --

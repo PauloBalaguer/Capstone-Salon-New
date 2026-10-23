@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leo Mejillano Salon - Staff Portal | Dashboard</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+
+  <style>
+    [x-cloak] { display: none !important; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #059669; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #10b981; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .stagger-item { animation: fadeUp .45s cubic-bezier(.16,1,.3,1) both; }
+
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    .skeleton { background: linear-gradient(90deg, #0f172a 25%, #16302a 37%, #0f172a 63%); background-size: 400% 100%; animation: shimmer 1.4s ease infinite; }
+
+    @keyframes pulseDot { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.35); opacity: 0.55; } }
+    .pulse-dot { animation: pulseDot 1.6s ease-in-out infinite; }
+
+    @keyframes topbarShine { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+    .topbar-shine { background-size: 200% 100%; animation: topbarShine 7s linear infinite; }
+
+    .card-lift { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+    .card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(5, 150, 105, 0.25); }
+
+    @keyframes shiftPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(244,63,94,0.35);} 50% { box-shadow: 0 0 0 8px rgba(244,63,94,0);} }
+    .shift-glow { animation: shiftPulse 2.2s ease-in-out infinite; }
+
+    .star-fill { transition: color .3s ease, transform .3s ease; }
+
+    /* Mobile-only hero card: swipeable, tiltable "featured appointment". */
+    #mobile-hero-card { transition: transform .15s ease-out, box-shadow .3s ease; will-change: transform; }
+    .hero-dot { transition: all .25s ease; }
+
+    @keyframes floatSlow { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-6px, 8px); } }
+    .blob-float { animation: floatSlow 6s ease-in-out infinite; }
+
+    /* Slide transition played (via JS class toggling) whenever the mobile
+       hero card's featured appointment changes -- swipe, dot-tap, or tab
+       switch -- so content changes glide in instead of snapping. */
+    @keyframes slideInRight { from { opacity: 0; transform: translateX(28px) scale(0.98); } to { opacity: 1; transform: translateX(0) scale(1); } }
+    @keyframes slideInLeft { from { opacity: 0; transform: translateX(-28px) scale(0.98); } to { opacity: 1; transform: translateX(0) scale(1); } }
+    @keyframes slideInFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .slide-in-right { animation: slideInRight .38s cubic-bezier(.16,1,.3,1) both; }
+    .slide-in-left { animation: slideInLeft .38s cubic-bezier(.16,1,.3,1) both; }
+    .slide-in-fade { animation: slideInFade .3s ease both; }
+  </style>
+  <link rel="stylesheet" href="../../staff/frontend/staff-theme.css?v=teal-gold-20261021">
+  <link rel="stylesheet" href="../../shared/frontend/responsive-base.css?v=teal-gold-20261021" />
+  <link rel="stylesheet" href="../../shared/frontend/portal-colors.css?v=teal-gold-20261021" />
+  <script src="../../shared/function/toast.js"></script>
+  <script src="../../shared/function/portal-presentation.js"></script>
+</head>
+<body class="salon-portal bg-slate-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-emerald-500 selection:text-white"
+      x-data="staffDashboardApp()" x-init="init()" x-cloak>
+
+  <div class="h-1.5 w-full bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-800 topbar-shine"></div>
+
+
+  <div class="flex h-screen overflow-hidden flex-col md:flex-row">
+
+    <aside class="hidden md:flex md:w-64 bg-slate-900 border-r border-emerald-900/40 flex-col justify-between shrink-0 h-full z-20">
+      <div class="p-5">
+        <div class="flex items-center space-x-3 mb-8">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center font-serif text-white font-bold text-lg shadow-lg shadow-emerald-500/20">LM</div>
+          <div>
+            <h1 class="text-base font-bold tracking-wider uppercase text-emerald-400 font-serif">Leo Mejillano</h1>
+            <p class="text-xs text-slate-400 uppercase tracking-widest font-sans" x-text="$store.staff.profile.role || 'Staff'"></p>
+          </div>
+        </div>
+
+        <nav class="space-y-1.5">
+          <a href="dashboard.html" data-nav-page="dashboard.html" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150">
+            <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z"></path></svg>
+            <span>Dashboard</span>
+          </a>
+          <a href="assignedAppointments.html" data-nav-page="assignedAppointments.html" class="text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150">
+            <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            <span>My Assignments</span>
+          </a>
+          <a href="inventory.html" data-nav-page="inventory.html" class="text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150">
+            <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 11m8 4V4m0 11V18"></path></svg>
+            <span>Supplies & Usage</span>
+          </a>
+          <a href="attendance.html" data-nav-page="attendance.html" class="text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150">
+            <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span>Attendance</span>
+          </a>
+          <a href="profile.html" data-nav-page="profile.html" class="text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150">
+            <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            <span>Profile</span>
+          </a>
+        </nav>
+      </div>
+
+      <div>
+        <div class="p-4 border-t border-slate-800">
+          <a href="../../auth/backend/logout.php?portal=staff" onclick="handleLogoutConfirmation(event)" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4"></path></svg>
+            <span>Sign Out</span>
+          </a>
+        </div>
+        <div class="p-4 bg-slate-950 border-t border-slate-800/80 text-xs text-slate-400 space-y-1">
+          <p class="font-bold text-slate-300">STI College Legazpi</p>
+          <p>Capstone Project Proposal &copy; 2026</p>
+          <p class="text-xs text-emerald-400 italic">Centralized Digital Multi-Branch Solution</p>
+        </div>
+      </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full bg-slate-950 overflow-y-auto">
+
+      <div class="md:hidden px-5 pt-5 pb-1 space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-lg font-bold text-white">Hello, <span x-text="$store.staff.firstName()"></span></p>
+            <p class="text-xs text-slate-400" x-text="$store.staff.profile.branchName || 'Welcome back'"></p>
+          </div>
+          <a href="profile.html" class="relative w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-base shadow-lg"
+                  :class="$store.staff.isClockedIn() ? 'bg-gradient-to-tr from-emerald-500 to-teal-500 shift-glow' : 'bg-gradient-to-tr from-slate-600 to-slate-700'">
+            <span x-text="$store.staff.initials()"></span>
+            <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-slate-950" :class="$store.staff.isClockedIn() ? 'bg-emerald-400 pulse-dot' : 'bg-slate-500'"></span>
+          </a>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <div class="flex-1 flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-full px-4 py-2.5 transition-colors duration-200 focus-within:border-emerald-600">
+            <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"></path></svg>
+            <input type="text" x-model="mobileSearch" placeholder="Search today's clients..." class="bg-transparent flex-1 text-xs text-slate-200 placeholder-slate-500 focus:outline-none">
+          </div>
+          <div class="relative">
+            <button @click="mobileFilterOpen = !mobileFilterOpen" class="w-10 h-10 shrink-0 rounded-full bg-emerald-600 flex items-center justify-center text-white shadow-lg active:scale-90 transition-transform duration-150">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M7 12h10M10 18h4"></path></svg>
+            </button>
+            <div x-show="mobileFilterOpen" @click.outside="mobileFilterOpen = false" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                 class="absolute right-0 mt-2 w-44 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-40 p-2 space-y-1 text-xs">
+              <p class="text-slate-500 font-semibold uppercase tracking-wide text-xs px-2 pt-1 pb-1.5">Quick Actions</p>
+              <button @click="mobileSearch = ''; mobileFilterOpen = false" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-slate-200 transition-colors">Clear search</button>
+              <button @click="mobileTab = 'today'; mobileFilterOpen = false" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-slate-200 transition-colors">Jump to Today</button>
+              <button @click="openPerformanceModal(); mobileFilterOpen = false" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-slate-200 transition-colors">View Performance</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 overflow-x-auto pb-1" style="scrollbar-width:none;">
+          <template x-for="tab in mobileTabs" :key="tab.key">
+            <button @click="mobileTab = tab.key" class="shrink-0 px-4 py-2 rounded-full text-xs font-semibold transition-all duration-200"
+                    :class="mobileTab === tab.key ? 'bg-white text-slate-900' : 'bg-slate-900 text-slate-400 border border-slate-800'"
+                    x-text="tab.label"></button>
+          </template>
+        </div>
+
+        <template x-if="!$store.staff.loading && mobileFeatured()">
+          <div>
+            <div id="mobile-hero-card" @touchstart="onHeroTouchStart($event)" @touchmove="onHeroTouchMove($event)" @touchend="onHeroTouchEnd($event)"
+                 @mousemove="tiltCard($event)" @mouseleave="resetTilt()"
+                 :style="tiltStyle"
+                 class="stagger-item relative rounded-3xl overflow-hidden h-64 shadow-2xl shadow-emerald-950/50">
+              <div class="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-700 to-slate-900"></div>
+              <div class="absolute -right-8 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl blob-float"></div>
+              <div class="absolute -left-14 bottom-6 w-40 h-40 bg-black/20 rounded-full blur-2xl blob-float" style="animation-delay: 2s"></div>
+
+              <a :href="mobileFeatured().clientPhone ? ('tel:' + mobileFeatured().clientPhone) : '#'" @click.stop
+                 class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/15 backdrop-blur flex items-center justify-center text-white active:scale-90 transition-transform duration-150">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.774a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+              </a>
+
+              <span class="absolute top-4 left-4 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide" :class="$store.staff.getStatusBadgeClass(mobileFeatured().status)" x-text="mobileFeatured().status"></span>
+
+              <div class="absolute bottom-0 inset-x-0 p-5 bg-gradient-to-t from-black/75 via-black/20 to-transparent">
+                <p class="text-xs uppercase tracking-widest text-emerald-200 font-semibold" x-text="mobileFeatured().date + ' &bull; ' + mobileFeatured().time"></p>
+                <p class="text-xl font-bold text-white font-serif truncate" x-text="mobileFeatured().clientName"></p>
+                <div class="flex items-center gap-1.5 mt-1">
+                  <svg class="w-3.5 h-3.5 text-amber-400 fill-current shrink-0" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                  <span class="text-xs text-white/90 truncate" x-text="mobileFeatured().serviceName"></span>
+                </div>
+                <div class="flex items-center justify-between mt-4">
+                  <span class="text-white/80 text-xs font-semibold" x-text="$store.staff.formatCurrency(mobileFeatured().price)"></span>
+                  <button @click="handleMobileHeroAction()" :disabled="$store.staff.busy"
+                          class="flex items-center gap-2 bg-white text-slate-900 text-xs font-bold pl-4 pr-2 py-2 rounded-full active:scale-95 transition-transform duration-150 disabled:opacity-50">
+                    <span x-text="mobileHeroActionLabel()"></span>
+                    <span class="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center">
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-center gap-1.5 mt-3" x-show="mobileCandidates().length > 1">
+              <template x-for="(item, i) in mobileCandidates()" :key="item.id">
+                <button @click="goToSlide(i)" class="hero-dot rounded-full" :class="i === mobileIndex ? 'w-5 h-1.5 bg-emerald-400' : 'w-1.5 h-1.5 bg-slate-700'"></button>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <template x-if="!$store.staff.loading && !mobileFeatured()">
+          <div class="rounded-3xl bg-slate-900 border border-slate-800 p-8 text-center text-slate-500 text-xs italic">Nothing matches here right now.</div>
+        </template>
+
+        <template x-if="$store.staff.loading">
+          <div class="skeleton rounded-3xl h-64 border border-slate-800"></div>
+        </template>
+      </div>
+
+      <header class="hidden md:flex bg-slate-900 border-b border-emerald-900/40 px-6 py-4 shrink-0 items-center justify-between flex-wrap gap-4">
+        <div>
+          <h2 class="text-lg font-serif font-bold text-white">Good day, <span x-text="$store.staff.profile.name || 'there'"></span></h2>
+          <p class="text-xs text-slate-400">
+            <span x-text="$store.staff.profile.branchName || 'Loading branch...'"></span>
+            <span x-show="$store.staff.profile.role"> &bull; <span x-text="$store.staff.profile.role"></span></span>
+          </p>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <div class="text-right">
+            <p class="text-xs uppercase tracking-wider text-slate-500">Status</p>
+            <p class="text-base font-bold" :class="$store.staff.isClockedIn() ? 'text-emerald-400' : 'text-slate-500'" x-text="$store.staff.isClockedIn() ? 'On Shift • ' + $store.staff.getShiftDurationLabel() : 'Off Shift'"></p>
+          </div>
+          <div class="relative" @click.outside="$store.staff.isNotificationPanelOpen = false">
+            <button @click="$store.staff.toggleNotificationPanel()" class="relative text-slate-400 hover:text-white transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+              <template x-if="$store.staff.unreadNotificationCount() > 0">
+                <span class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white" x-text="$store.staff.unreadNotificationCount()"></span>
+              </template>
+            </button>
+            <div x-show="$store.staff.isNotificationPanelOpen" x-transition role="region" aria-label="Staff notifications" class="portal-notification-panel absolute top-full right-0 mt-2 w-80 bg-slate-800 border border-slate-700 rounded-lg shadow-lg z-30 flex flex-col max-h-96" style="display:none">
+              <div class="p-3 border-b border-slate-700 shrink-0"><h4 class="text-base font-bold text-white">Notifications</h4></div>
+              <div class="divide-y divide-slate-700 overflow-y-auto flex-1">
+                <template x-if="$store.staff.notifications.length === 0"><p class="text-xs text-slate-400 text-center p-8">No notifications yet.</p></template>
+                <template x-for="notif in $store.staff.notifications" :key="notif.id">
+                  <div class="portal-notification-card p-3 hover:bg-slate-700/40" :class="{ 'portal-notification-unread': !notif.isRead }">
+                    <p class="text-xs font-bold" x-text="PortalPresentation.notificationTitle(notif.type)"></p>
+                    <span x-show="!notif.isRead" class="text-xs font-semibold text-emerald-600">Unread</span>
+                    <p class="portal-notification-message text-xs text-slate-200" x-text="PortalPresentation.notificationDetails(notif).summary"></p>
+                    <span class="notification-state-badge" x-show="PortalPresentation.notificationDetails(notif).status" x-text="PortalPresentation.notificationDetails(notif).status"></span>
+                    <p class="portal-notification-service" x-show="PortalPresentation.notificationDetails(notif).service" x-text="PortalPresentation.notificationDetails(notif).service"></p>
+                    <p class="portal-notification-meta" x-show="PortalPresentation.notificationDetails(notif).branch" x-text="PortalPresentation.notificationDetails(notif).branch"></p>
+                    <p class="portal-notification-meta" x-show="PortalPresentation.notificationDetails(notif).schedule" x-text="PortalPresentation.notificationDetails(notif).schedule"></p>
+                    <p class="text-xs text-slate-500 mt-0.5" x-text="'Received ' + notif.time"></p>
+                  </div>
+                </template>
+              </div>
+            <div class="p-2 border-t border-slate-700 shrink-0"><button type="button" @click="$store.staff.markAllNotificationsAsRead()" :disabled="$store.staff.unreadNotificationCount() === 0" class="portal-notification-read-all w-full text-xs font-semibold">Mark all as read</button></div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="p-6 pb-28 md:pb-6 space-y-6">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <template x-if="$store.staff.loading">
+            <template x-for="i in 4" :key="i">
+              <div class="skeleton rounded-2xl h-32 border border-slate-800"></div>
+            </template>
+          </template>
+
+          <template x-if="!$store.staff.loading">
+            <div class="stagger-item bg-gradient-to-br from-slate-900 to-slate-950 border border-emerald-900/50 rounded-2xl p-5 shadow-xl card-lift">
+              <div class="flex justify-between items-start mb-3">
+                <div class="bg-emerald-950/80 p-2.5 rounded-xl border border-emerald-800">
+                  <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </div>
+              </div>
+              <p class="text-2xl font-bold text-white" x-text="$store.staff.getTodayAppointments().length"></p>
+              <p class="text-xs text-slate-400 mt-1">Assigned Today</p>
+            </div>
+          </template>
+
+          <template x-if="!$store.staff.loading">
+            <div class="stagger-item bg-gradient-to-br from-slate-900 to-slate-950 border border-emerald-900/50 rounded-2xl p-5 shadow-xl card-lift" style="animation-delay: 60ms">
+              <div class="flex justify-between items-start mb-3">
+                <div class="bg-teal-950/80 p-2.5 rounded-xl border border-teal-800">
+                  <svg class="w-5 h-5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+              </div>
+              <p class="text-2xl font-bold text-white" x-text="$store.staff.performance.completedThisMonth"></p>
+              <p class="text-xs text-slate-400 mt-1">Completed This Month</p>
+            </div>
+          </template>
+
+          <template x-if="!$store.staff.loading">
+            <div class="stagger-item bg-gradient-to-br from-slate-900 to-slate-950 border border-emerald-900/50 rounded-2xl p-5 shadow-xl card-lift" style="animation-delay: 120ms">
+              <div class="flex justify-between items-start mb-3">
+                <div class="bg-amber-950/80 p-2.5 rounded-xl border border-amber-800">
+                  <svg class="w-5 h-5 text-amber-400 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                </div>
+              </div>
+              <p class="text-2xl font-bold text-white" x-text="$store.staff.performance.totalReviews > 0 ? Number($store.staff.performance.avgRating).toFixed(1) : 'No rating yet'"></p>
+              <p class="text-xs text-slate-400 mt-1" x-show="$store.staff.performance.totalReviews > 0" x-text="$store.staff.performance.totalReviews + ' client review' + ($store.staff.performance.totalReviews === 1 ? '' : 's')"></p>
+            </div>
+          </template>
+
+          <template x-if="!$store.staff.loading">
+            <div class="stagger-item bg-gradient-to-br from-slate-900 to-slate-950 border border-emerald-900/50 rounded-2xl p-5 shadow-xl card-lift" style="animation-delay: 180ms">
+              <div class="flex justify-between items-start mb-3">
+                <div class="bg-rose-950/80 p-2.5 rounded-xl border border-rose-800">
+                  <svg class="w-5 h-5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                </div>
+              </div>
+              <p class="text-2xl font-bold text-white" x-text="$store.staff.getLowStockItems().length"></p>
+              <p class="text-xs text-slate-400 mt-1">Low Stock Alerts</p>
+            </div>
+          </template>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          <div class="bg-slate-900 border border-emerald-900/40 rounded-2xl p-5 lg:col-span-2 space-y-4">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <h3 class="font-serif text-base font-bold text-white">Today's Assignments</h3>
+                <p class="text-xs text-slate-400">Review each client's service, then start and complete as you go.</p>
+              </div>
+              <a href="assignedAppointments.html" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300">View all &rarr;</a>
+            </div>
+
+            <div class="space-y-3">
+              <template x-if="$store.staff.loading">
+                <template x-for="i in 3" :key="i"><div class="skeleton rounded-xl h-20 border border-slate-800"></div></template>
+              </template>
+
+              <template x-if="!$store.staff.loading && $store.staff.getTodayAppointments().length === 0">
+                <div class="text-center py-10 text-slate-500 text-xs italic">No appointments assigned to you today. Enjoy the calm!</div>
+              </template>
+
+              <template x-for="(appt, idx) in $store.staff.getTodayAppointments()" :key="appt.id">
+                <div class="stagger-item p-4 bg-slate-950 rounded-xl border border-slate-800 hover:border-emerald-700 transition-colors duration-200" :style="'animation-delay: ' + Math.min(idx * 40, 300) + 'ms'">
+                  <div class="flex justify-between items-start gap-3 flex-wrap">
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-white" x-text="appt.clientName"></span>
+                        <span :class="$store.staff.getStatusBadgeClass(appt.status)" class="px-2 py-0.5 rounded text-xs font-bold" x-text="appt.status"></span>
+                      </div>
+                      <p class="text-xs text-slate-400 mt-0.5" x-text="appt.serviceName"></p>
+                      <p class="text-xs text-slate-500 mt-1" x-text="appt.time + ' &bull; ' + appt.id"></p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <button x-show="appt.isMainStylist !== false && ['Pending', 'Confirmed'].includes(appt.status)" @click="$store.staff.startService(appt.id)" :disabled="$store.staff.busy"
+                        class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase bg-teal-600 hover:bg-teal-700 text-white transition-all active:scale-95 disabled:opacity-50">Start</button>
+                      <button x-show="appt.isMainStylist !== false && appt.status === 'In Progress'" @click="$store.staff.completeService(appt.id)" :disabled="$store.staff.busy"
+                        class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase bg-emerald-600 hover:bg-emerald-700 text-white transition-all active:scale-95 disabled:opacity-50">Complete</button>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <div class="bg-slate-900 border border-emerald-900/40 rounded-2xl p-5 space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="font-serif text-base font-bold text-white">My Performance</h3>
+              <button @click="openPerformanceModal()" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300">Details &rarr;</button>
+            </div>
+
+            <div class="flex items-center gap-1" x-show="!$store.staff.loading && $store.staff.performance.totalReviews > 0">
+              <template x-for="star in 5" :key="star">
+                <svg class="w-5 h-5 star-fill" :class="star <= Math.round($store.staff.performance.avgRating) ? 'text-amber-400' : 'text-slate-700'" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+              </template>
+              <span class="ml-2 text-base font-bold text-white" x-text="Number($store.staff.performance.avgRating).toFixed(1)"></span>
+            </div>
+            <p class="text-xs text-slate-500 italic" x-show="!$store.staff.loading && $store.staff.performance.totalReviews === 0">No rating yet</p>
+
+            <div class="grid grid-cols-3 gap-3 border-t border-slate-800 pt-3 text-xs">
+              <div>
+                <span class="text-xs text-slate-400 block">Completed (All Time)</span>
+                <span class="text-base font-bold text-white" x-text="$store.staff.performance.completedCount"></span>
+              </div>
+              <div>
+                <span class="text-xs text-slate-400 block">Client Reviews</span>
+                <span class="text-base font-bold text-white" x-text="$store.staff.performance.totalReviews"></span>
+              </div>
+              <div>
+                <span class="text-xs text-slate-400 block">Attendance (30d)</span>
+                <span class="text-base font-bold text-white" x-text="($store.staff.performance.attendanceRate || 0) + '%'"></span>
+              </div>
+            </div>
+
+            <div class="border-t border-slate-800 pt-3 space-y-2">
+              <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wide">Recent Feedback</h4>
+              <template x-if="!$store.staff.loading && $store.staff.recentFeedback.length === 0">
+                <p class="text-xs text-slate-500 italic py-2">No client feedback yet.</p>
+              </template>
+              <template x-for="fb in $store.staff.recentFeedback.slice(0, 3)" :key="fb.id">
+                <div class="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-200" x-text="fb.clientName"></span>
+                    <span class="text-xs font-bold text-amber-400" x-text="fb.rating + ' ★'"></span>
+                  </div>
+                  <p class="text-xs text-slate-400 mt-1 line-clamp-2" x-text="fb.comment || 'No comment left.'"></p>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <nav class="md:hidden fixed bottom-4 inset-x-0 flex justify-center z-30 px-6 pointer-events-none">
+    <div class="relative flex items-center gap-1 bg-slate-900/95 backdrop-blur-lg border border-slate-800 rounded-full px-2 py-2 shadow-2xl pointer-events-auto">
+      <div id="mobile-nav-slider" class="absolute top-2 bottom-2 rounded-full bg-emerald-600 transition-all duration-300 ease-out"></div>
+      <a href="dashboard.html" data-mobile-nav-page="dashboard.html" class="relative z-10 w-11 h-11 flex items-center justify-center rounded-full text-white transition-colors duration-200">
+        <svg style="width:1.1rem;height:1.1rem" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z"></path></svg>
+      </a>
+      <a href="assignedAppointments.html" data-mobile-nav-page="assignedAppointments.html" class="relative z-10 w-11 h-11 flex items-center justify-center rounded-full text-slate-400 transition-colors duration-200">
+        <svg style="width:1.1rem;height:1.1rem" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+      </a>
+      <a href="inventory.html" data-mobile-nav-page="inventory.html" class="relative z-10 w-11 h-11 flex items-center justify-center rounded-full text-slate-400 transition-colors duration-200">
+        <svg style="width:1.1rem;height:1.1rem" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 11m8 4V4m0 11V18"></path></svg>
+      </a>
+      <a href="attendance.html" data-mobile-nav-page="attendance.html" class="relative z-10 w-11 h-11 flex items-center justify-center rounded-full text-slate-400 transition-colors duration-200">
+        <svg style="width:1.1rem;height:1.1rem" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      </a>
+      <a href="profile.html" data-mobile-nav-page="profile.html" class="relative z-10 w-11 h-11 flex items-center justify-center rounded-full text-slate-400 transition-colors duration-200">
+        <svg style="width:1.1rem;height:1.1rem" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+      </a>
+    </div>
+  </nav>
+
+  <div x-show="performanceModalOpen" x-cloak class="fixed inset-0 z-[80] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" @click="performanceModalOpen = false" x-transition.opacity></div>
+    <div x-show="performanceModalOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+         class="relative bg-slate-900 border border-emerald-900/50 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto p-6 space-y-5">
+      <div class="flex items-center justify-between">
+        <h3 class="font-serif text-lg font-bold text-white">My Performance &amp; Feedback</h3>
+        <button @click="performanceModalOpen = false" class="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
+      </div>
+
+      <template x-if="loadingPerformance">
+        <div class="space-y-3">
+          <div class="skeleton rounded-xl h-24 border border-slate-800"></div>
+          <div class="skeleton rounded-xl h-24 border border-slate-800"></div>
+        </div>
+      </template>
+
+      <template x-if="!loadingPerformance">
+        <div class="space-y-5">
+          <div class="grid grid-cols-2 gap-3">
+            <div class="p-3 bg-slate-950 rounded-lg border border-slate-800">
+              <span class="text-xs text-slate-400 block">Attendance (Last 30 Days)</span>
+              <span class="text-base font-bold text-white" x-text="modalAttendanceRate + '%'"></span>
+              <span class="text-xs text-slate-500 ml-1" x-text="'(' + modalAttendanceDays + ' of last 30 days)'"></span>
+            </div>
+          </div>
+
+          <div>
+            <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wide mb-2">Last 6 Months <span class="text-slate-500 font-normal normal-case">(completed services, days attended)</span></h4>
+            <div class="flex items-end gap-3 h-28 border-b border-slate-800 pb-1" x-show="monthlyTrend.length">
+              <template x-for="m in monthlyTrend" :key="m.label">
+                <div class="flex-1 flex flex-col items-center justify-end gap-1">
+                  <span class="text-xs text-slate-400" x-text="m.completed"></span>
+                  <div class="w-full bg-gradient-to-t from-emerald-600 to-teal-500 rounded-t-md transition-all duration-700" :style="'height: ' + Math.max(4, (m.completed / Math.max(...monthlyTrend.map(x => x.completed), 1)) * 100) + '%'"></div>
+                  <span class="text-xs text-slate-500" x-text="m.label"></span>
+                  <span class="text-xs text-indigo-400 font-semibold" x-text="m.daysAttended + 'd'"></span>
+                </div>
+              </template>
+            </div>
+            <p class="text-xs text-slate-500 italic py-4 text-center" x-show="!monthlyTrend.length">No appointment history in the last 6 months.</p>
+          </div>
+
+          <div>
+            <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wide mb-2">All Client Feedback</h4>
+            <div class="space-y-2 max-h-64 overflow-y-auto">
+              <template x-for="fb in allFeedback" :key="fb.id">
+                <div class="p-3 bg-slate-950 rounded-lg border border-slate-800">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-200" x-text="fb.clientName"></span>
+                    <span class="text-xs font-bold text-amber-400" x-text="fb.rating + ' ★'"></span>
+                  </div>
+                  <p class="text-xs text-slate-500 mt-0.5" x-text="fb.serviceName + ' &bull; ' + fb.date"></p>
+                  <p class="text-xs text-slate-400 mt-1" x-text="fb.comment || 'No comment left.'"></p>
+                </div>
+              </template>
+              <p class="text-xs text-slate-500 italic py-4 text-center" x-show="!allFeedback.length">No feedback submitted yet.</p>
+            </div>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <script>
+    function handleLogoutConfirmation(event) {
+      event.preventDefault();
+      if (window.confirm('Are you sure you want to log out?')) {
+        window.location.href = event.target.closest('a').href;
+      }
+    }
+  </script>
+  <script src="../../shared/function/appointment-arrival.js"></script>
+  <script src="../../staff/function/shared-data.js"></script>
+  <script src="../../staff/function/dashboard.js"></script>
+</body>
+</html>

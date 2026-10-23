@@ -11,12 +11,12 @@
 *.sln.docstates
 *.env
 
-# Real SMTP/App Password credentials for OTP email sending (see
-# backend/config/mail_credentials.example.php for the template).
-backend/config/mail_credentials.php
+# Private email credentials. Keep the legacy path ignored for old local copies.
+shared/backend/config/mail_credentials.php
+shared/backend/config/brevo_credentials.php
 
-# Real PayMongo API keys (see backend/config/paymongo_credentials.example.php).
-backend/config/paymongo_credentials.php
+# Real PayMongo API keys (see shared/backend/config/paymongo_credentials.example.php).
+shared/backend/config/paymongo_credentials.php
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -436,5 +436,9 @@ FodyWeavers.xsd
 *.msp
 
 # PHP login sessions (live admin/cashier/staff/customer logins) -- never commit.
-backend/storage/sessions/*
-!backend/storage/sessions/.gitkeep
+shared/backend/storage/sessions/*
+!shared/backend/storage/sessions/.gitkeep
+
+# Local AI agent skills (per-developer tooling, not part of the app).
+.agents/
+.claude/

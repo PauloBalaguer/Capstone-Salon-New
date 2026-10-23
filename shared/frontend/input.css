@@ -1,0 +1,191 @@
+/* Tailwind v4 entry. Build: npm run build (or npm run dev to watch).
+   Output: shared/frontend/output.css — every page links that file. */
+@import "tailwindcss" source(none);
+@import "./legacy.css" layer(components);
+
+@source "../../index.html";
+@source "../../{admin,auth,cashier,customer,public,shared,staff}/**/*.{html,php,js}";
+
+/* index.html toggles .dark on <html> (public/function/main.js) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Teal — primary brand */
+  --color-teal-50: #F4FBFA;
+  --color-teal-100: #E5F2F0;
+  --color-teal-200: #C7E0DD;
+  --color-teal-300: #83B9B8;
+  --color-teal-400: #287F80;
+  --color-teal-500: #006D6F;
+  --color-teal-700: #06464A;
+  --color-teal-900: #043437;
+
+  /* Gold — accent */
+  --color-gold-100: #FAF2DC;
+  --color-gold-200: #F5E7C4;
+  --color-gold-300: #ECD184;
+  --color-gold-500: #E0B84C;
+  --color-gold-600: #B8933A;
+  --color-gold-800: #805B0B; /* gold text on light backgrounds */
+
+  /* Warm neutrals */
+  --color-cream: #FFF8EE;  /* page background */
+  --color-panel: #FFFDF9;  /* cards */
+  --color-sand: #E8DCC8;   /* borders, soft surfaces */
+  --color-bronze: #D9C9B4;
+  --color-ink: #222222;    /* body text */
+  --color-muted: #475569;  /* secondary text */
+
+  /* Status */
+  --color-ok: #166534;
+  --color-ok-text: #17603A;
+  --color-ok-soft: #EDF8F1;
+  --color-danger: #B91C1C;
+  --color-danger-text: #9F2D2D;
+  --color-danger-soft: #FFF0F0;
+  --color-warn-text: #7A5200;
+  --color-warn-soft: #FFF7E2;
+
+  /* Auth pages keep their own look */
+  --color-gold-auth: #C9A24E;
+  --color-ink-auth: #1F2937;
+  --color-muted-auth: #5B6472;
+  --color-field-auth: #F6F0E6;
+  --color-line-auth: #E4D7C0;
+  --color-ok-auth: #2F7D4F;
+  --color-err-auth: #A12B2B;
+  --color-teal-glow-auth: #0B8C8E;
+
+  --font-body: "Segoe UI", Tahoma, Verdana, Arial, sans-serif;
+  --font-display: Georgia, Cambria, "Times New Roman", serif;
+  --font-auth-body: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-auth-display: "Playfair Display", Georgia, serif;
+
+  /* Auth page background and card motion (auth/function/auth-ui.js) */
+  --animate-drift: drift 18s ease-in-out infinite;
+  --animate-drift2: drift2 22s ease-in-out infinite;
+  --animate-rise: rise linear infinite;
+  --animate-sweep: sweep 4s cubic-bezier(.6,0,.2,1) forwards;
+  --animate-shimmer: shimmer 9s ease-in-out infinite;
+  --animate-spin-slow: spin 60s linear infinite;
+  --animate-pop: pop .4s ease-out both;
+  --animate-fan: fan .9s cubic-bezier(.2,.8,.2,1) both;
+
+  @keyframes drift { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(60px, -40px) scale(1.12); } }
+  @keyframes drift2 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-70px, 50px) scale(.9); } }
+  @keyframes rise { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: .7; } 100% { transform: translateY(-110vh); opacity: 0; } }
+  @keyframes sweep { 0% { stroke-dashoffset: 2400; } 100% { stroke-dashoffset: 0; } }
+  @keyframes shimmer { 0% { transform: translateX(-120%) rotate(12deg); } 100% { transform: translateX(320%) rotate(12deg); } }
+  @keyframes pop { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: none; } }
+  @keyframes fan { 0% { transform: rotate(0deg); } 100% { transform: rotate(var(--r)); } }
+}
+
+@layer base {
+  /* Dark mode for index.html (values from public/frontend/home-theme.css) */
+  .dark {
+    --color-teal-500: #20A8AA;
+    --color-gold-500: #E8C56C;
+    --color-gold-200: #3E3318;
+    --color-gold-800: #ECD18F;
+    --color-bronze: #4A5C5A;
+    --color-ink: #EDE9E1;
+    --color-panel: #162121;
+    --color-cream: #0D1616;
+    --color-sand: #1B2828;
+  }
+
+  /* v3 defaults the pages were designed with (Tailwind's official compat rules) */
+  *, ::after, ::before, ::backdrop, ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+  button:not(:disabled), [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  input::placeholder, textarea::placeholder {
+    color: #9CA3AF;
+  }
+}
+
+/* Auth pages (auth/frontend/*.html, <body class="auth-page">). Scoped so the
+   short names (.card, .btn, label) never reach the portals. JS hooks:
+   common.js toggles .is-wrong/.show, auth-ui.js sets data-level and li.on. */
+@layer components {
+  .auth-page {
+    --toast-font: var(--font-auth-display); /* toast headings match the page */
+
+    /* Card: cream sheet under the teal header on phones, floating card on desktop */
+    .card { @apply relative -mt-6 flex flex-1 flex-col gap-4 rounded-t-[26px] bg-panel px-5 pb-8 pt-6 sm:px-10 lg:mt-0 lg:flex-none lg:rounded-[28px] lg:p-10 lg:shadow-[0_40px_80px_-40px_rgba(0,0,0,.6)] motion-safe:animate-pop; }
+    .card form { @apply flex flex-col gap-4; }
+    .logo { @apply flex items-center justify-center gap-2.5 max-lg:hidden; }
+    .logo .mark { @apply grid h-11 w-11 place-items-center rounded-full bg-teal-500 font-auth-display text-panel ring-4 ring-teal-500/15; }
+    .logo strong { @apply font-auth-display text-xl; }
+    .back { @apply self-start text-sm font-semibold text-teal-500 no-underline; }
+    .title { @apply text-center font-auth-display text-3xl font-semibold [text-wrap:balance] max-lg:hidden; }
+    .sub { @apply -mt-1 text-center leading-relaxed text-muted-auth max-lg:text-left max-lg:text-sm; }
+    .sub b { @apply break-all text-ink-auth; }
+    & label { @apply mb-1.5 block text-sm font-medium text-muted-auth; }
+    .two { @apply grid grid-cols-2 gap-3; }
+
+    /* .inp is also .field-box: common.js adds .is-wrong to it */
+    .inp { @apply relative; }
+    .inp svg { @apply pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-auth; }
+    .inp input { @apply min-h-[44px] w-full rounded-2xl border-2 border-transparent bg-field-auth py-3 pl-12 pr-4 text-ink-auth outline-hidden transition focus:border-teal-500 focus:bg-white lg:py-3.5; }
+    .inp:has(.eye) input { @apply pr-16; }
+    .inp.plain input { @apply pl-4; }
+    .inp.ph input { @apply pl-14; }
+    .inp .pre { @apply absolute left-4 top-1/2 -translate-y-1/2 font-medium text-muted-auth; }
+    .inp.is-wrong input { @apply border-err-auth bg-err-auth/5; }
+    .field-error { @apply mt-1 hidden text-sm text-err-auth; }
+    .field-error.show { @apply block; }
+
+    /* Show/Hide: common.js flips aria-label and the [data-eye-slash] span */
+    .eye { @apply absolute right-2 top-1/2 min-h-[44px] -translate-y-1/2 px-2 text-xs font-semibold text-teal-500; }
+    .eye[aria-label="Hide password"] .eye-show { @apply hidden; }
+
+    /* Strength bar: auth-ui.js sets data-level 1-4 */
+    .meter { @apply mt-2 flex gap-1; }
+    .meter i { @apply h-1 flex-1 rounded bg-line-auth transition-colors; }
+    .meter[data-level="1"] i:nth-child(-n+1) { @apply bg-err-auth; }
+    .meter[data-level="2"] i:nth-child(-n+2) { @apply bg-gold-auth; }
+    .meter[data-level="3"] i:nth-child(-n+3), .meter[data-level="4"] i { @apply bg-ok-auth; }
+
+    .rules { @apply m-0 grid list-none gap-1.5 rounded-2xl bg-field-auth p-3.5 text-sm text-muted-auth; }
+    .rules li::before { content: "○ "; }
+    .rules li.on { @apply text-ok-auth; }
+    .rules li.on::before { content: "✓ "; }
+
+    .check { @apply m-0 flex min-h-[44px] cursor-pointer items-center gap-2 text-sm font-normal text-muted-auth; }
+    .check input { @apply h-4 w-4 accent-teal-500; }
+    .terms { @apply m-0 flex cursor-pointer items-start gap-2 text-sm font-normal leading-relaxed text-muted-auth; }
+    .terms input { @apply mt-0.5 h-4 w-4 flex-none accent-teal-500; }
+    .terms a, .foot a, .resend button, .link { @apply font-semibold text-teal-500 underline; }
+
+    .otp { @apply flex justify-center gap-1.5 sm:gap-2; }
+    .otp input { @apply h-12 w-10 min-w-0 rounded-xl border-2 border-transparent bg-field-auth text-center text-xl font-semibold text-ink-auth outline-hidden focus:border-teal-500 focus:bg-white sm:h-14 sm:w-12; }
+    .resend { @apply text-center text-sm text-muted-auth [font-variant-numeric:tabular-nums]; }
+    .resend button:disabled { @apply cursor-default font-normal text-muted-auth no-underline; }
+
+    .steps { @apply flex justify-center gap-1.5; }
+    .steps i { @apply h-1.5 w-7 rounded bg-line-auth; }
+    .steps i.on { @apply bg-teal-500; }
+
+    .btn { @apply grid min-h-[44px] place-items-center rounded-2xl bg-teal-500 py-4 font-semibold text-panel shadow-[0_12px_24px_-12px_rgba(0,109,111,.9)] transition hover:bg-teal-700 disabled:opacity-60; }
+    .foot { @apply text-center text-sm text-muted-auth; }
+    .badge { @apply mx-auto grid h-16 w-16 place-items-center rounded-full bg-teal-500/10 text-teal-500; }
+    .badge.warn { @apply bg-err-auth/10 text-err-auth; }
+
+    /* Left column step cards */
+    .pts { @apply mt-8 flex max-w-md flex-col gap-2.5; }
+    .pts li { @apply flex items-center gap-3 rounded-2xl border border-sand/20 bg-panel/5 px-4 py-3 text-sm backdrop-blur-xs; }
+    .pts li > span { @apply grid h-8 w-8 flex-none place-items-center rounded-xl bg-gold-auth/20 text-xs font-semibold text-sand; }
+    .pts b { @apply block font-semibold; }
+    .pts small { @apply text-[#a9cbc7]; }
+
+    /* Loading spinner (common.js toggles .show). Toasts: shared/function/toast.js */
+    .loading { @apply fixed inset-0 z-[70] hidden place-items-center bg-panel/80; }
+    .loading.show { @apply grid; }
+    .spinner { @apply h-12 w-12 rounded-full border-4 border-line-auth border-t-teal-500 motion-safe:animate-spin; }
+
+    & :focus-visible { @apply outline-2 outline-offset-2 outline-gold-auth; }
+  }
+}

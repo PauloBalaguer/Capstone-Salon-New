@@ -20,8 +20,8 @@ const document={head:{appendChild(){}},getElementById:get,querySelector:()=>null
 class FormDataStub { constructor(){this.values=[];} append(k,v){this.values.push([k,v]);} }
 const ctx=vm.createContext({document,window:{location:{}},HTMLInputElement:Input,HTMLTextAreaElement:Input,FormData:FormDataStub,Promise,console});
 const run = s => new vm.Script(s).runInContext(ctx);
-for(const p of ['assets/js/main.js','scripts/booking-validation.js','scripts/customer/dashboard-booking.js']) new vm.Script(read(p));
-run(read('scripts/booking-validation.js'));
+for(const p of ['assets/js/main.js','assets/js/booking-validation.js','assets/js/customer/dashboard-booking.js']) new vm.Script(read(p));
+run(read('assets/js/booking-validation.js'));
 const validator=ctx.window.BookingFormValidation;
 for(const [value,kind,ok] of [['','name',false],['123','name',false],["María O’Neil",'name',true],['09123456789','mobile',true],['09ABC456789','mobile',false],['a@','email',false],['2030-02-30','date',false]]) {
  assert.equal(validator.check(new Input(value),kind),ok,kind+' '+value);
@@ -32,7 +32,7 @@ assert.equal(phone.value,'09123456789','mobile sanitized before model update');
 ctx.BookingFormValidation=validator;
 let requestCount=0, rejectRequest;
 ctx.fetch=()=>{requestCount++;return new Promise((_,reject)=>rejectRequest=reject);};
-run(read('scripts/customer/dashboard-booking.js'));
+run(read('assets/js/customer/dashboard-booking.js'));
 run(`var app=Object.assign(customerBookingMixin(),{isSubmittingBooking:false,bookingStep:'terms',
 selectedBranchForServices:'main', selectedServicesForBooking:[{id:'1'}],depositLocked:true,
 bookingForm:{date:'2030-01-01',time:'13:00',staffId:'1',customerName:'Mary Jane',customerPhone:'09123456789',paymentMethod:'Cash',agreedToTerms:true},

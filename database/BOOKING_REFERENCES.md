@@ -34,7 +34,7 @@ the reference; this step does not add an email or SMS delivery provider.
 Run integration checks from the project root:
 
 ```powershell
-& C:/xampp/php/php.exe database/tests/booking_references.php
+& C:/xampp/php/php.exe tests/booking_references.php
 ```
 
 The test uses the local XAMPP root connection and an isolated temporary database,

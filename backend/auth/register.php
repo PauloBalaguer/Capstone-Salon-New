@@ -123,12 +123,9 @@ try {
         'email' => $email,
     ];
 
-    // Local demos intentionally fall back to logs when SMTP credentials are
-    // absent. Surface that simulated code only to requests from this machine
-    // so the verification flow remains usable without weakening production.
-    if (!$email_sent && in_array($ip_address, ['127.0.0.1', '::1'], true)) {
-        $response['verification_code'] = $otp_code;
-        $response['message'] = 'Registration successful! Your local verification code is ' . $otp_code . '.';
+    // The account exists, but only provider acceptance counts as email delivery.
+    if (!$email_sent) {
+        $response['message'] = 'Registration successful, but we could not send your verification email. Please try resending the code later.';
     }
 
     http_response_code(201); // Created

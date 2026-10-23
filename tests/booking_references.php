@@ -1,7 +1,7 @@
 <?php
 // CLI integration test. Uses an isolated, disposable database; no real bookings.
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
-require_once __DIR__ . '/../../backend/config/database.php';
+require_once __DIR__ . '/../backend/config/database.php';
 
 function connectTest(string $name): PDO {
     return new PDO('mysql:host=localhost;dbname=' . $name . ';charset=utf8mb4', 'root', '', [
@@ -14,7 +14,7 @@ function check(bool $condition, string $message): void {
 }
 function migrate(PDO $pdo): void {
     $delimiter = ';'; $sql = '';
-    foreach (file(__DIR__ . '/../migrations/024_booking_references.sql') as $line) {
+    foreach (file(__DIR__ . '/../database/migrations/024_booking_references.sql') as $line) {
         if (preg_match('/^DELIMITER (.+)/', trim($line), $match)) { $delimiter = $match[1]; continue; }
         if (str_starts_with(trim($line), '--')) continue;
         $sql .= $line;
@@ -44,12 +44,12 @@ if (($argv[1] ?? '') === 'endpoint') {
     check((bool) preg_match('/^capstone_ref_test_[a-f0-9]+$/', $argv[2]), 'Unsafe test database');
     $property = new ReflectionProperty(Database::class, 'instance');
     $property->setAccessible(true); $property->setValue(null, connectTest($argv[2]));
-    require_once __DIR__ . '/../../backend/config/session.php';
+    require_once __DIR__ . '/../backend/config/session.php';
     $_SESSION = ['user_id' => 1, 'user_role' => $argv[5], 'branch_id' => 1];
     register_shutdown_function(function () { session_destroy(); });
     $_POST = $_GET = json_decode(base64_decode($argv[4]), true);
     $_SERVER['REQUEST_METHOD'] = 'POST'; $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-    $file = realpath(__DIR__ . '/../../backend/' . $argv[3]);
+    $file = realpath(__DIR__ . '/../backend/' . $argv[3]);
     chdir(dirname($file)); require $file; exit;
 }
 if (($argv[1] ?? '') === 'concurrent') {

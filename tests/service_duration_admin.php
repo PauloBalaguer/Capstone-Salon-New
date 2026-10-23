@@ -15,7 +15,7 @@ if (($argv[1] ?? '') !== '--case') {
     exit;
 }
 $case = $argv[2] ?? '';
-require_once __DIR__ . '/../../backend/config/database.php';
+require_once __DIR__ . '/../backend/config/database.php';
 $pdo = Database::getInstance();
 $fixtures = $pdo->query("SELECT s.*, b.branch_key FROM services s JOIN branches b ON b.id=s.branch_id WHERE s.service_name='Haircut' AND b.branch_key IN ('daraga','yashano') ORDER BY b.branch_key")->fetchAll();
 if (count($fixtures) !== 2) throw new RuntimeException('Expected separate Daraga and Yashano haircut records.');
@@ -38,7 +38,7 @@ $second = $pdo->query('SELECT * FROM services ORDER BY id DESC LIMIT 1')->fetch(
 $branch = $pdo->query('SELECT branch_key FROM branches WHERE id=' . (int) $first['branch_id'])->fetchColumn();
 $_SERVER['REQUEST_METHOD'] = 'POST';
 $_SERVER['SCRIPT_NAME'] = '/backend/admin/saveService.php';
-require_once __DIR__ . '/../../backend/config/session.php';
+require_once __DIR__ . '/../backend/config/session.php';
 $_SESSION['user_id'] = 1; $_SESSION['user_role'] = 'Admin';
 $_POST = ['id' => (string) $first['id'], 'branchId' => $branch, 'name' => $first['service_name'], 'description' => $first['description'] ?? '', 'category' => $first['category'] ?? '', 'price' => $first['price'], 'durationMinutes' => '30', 'loyaltyMultiplier' => $first['loyalty_multiplier'], 'paymentRequirement' => $first['payment_requirement'] === 'Half Payment' ? '50% Down Payment' : $first['payment_requirement'], 'active' => (string) $first['is_active'], 'preview' => '1'];
 $expectSuccess = in_array($case, ['edit-duration', 'edit-price', 'edit-price-omitted-duration', 'add-short'], true);
@@ -69,12 +69,12 @@ register_shutdown_function(function () use ($pdo, $case, $first, $second, $expec
         // Verify the public/customer catalog immediately exposes the admin change.
         $_GET['branch'] = $first['branch_id'];
         $_SERVER['REQUEST_METHOD'] = 'GET';
-        chdir(__DIR__ . '/../../backend/public');
+        chdir(__DIR__ . '/../backend/public');
         ob_start(); require 'getBranchServices.php'; $catalog = json_decode(ob_get_clean(), true);
         $updated = array_values(array_filter($catalog['services'] ?? [], fn($service) => (int) $service['id'] === (int) $first['id']));
         if (!$updated || $updated[0]['durationMinutes'] !== 45 || $updated[0]['duration'] !== '45 minutes') $fail('Customer catalog did not reflect the duration edit.');
     }
     echo "PASS: $case\n";
 });
-chdir(__DIR__ . '/../../backend/admin');
+chdir(__DIR__ . '/../backend/admin');
 require 'saveService.php';

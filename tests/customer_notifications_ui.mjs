@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
-const source=fs.readFileSync(new URL('../scripts/customer/dashboard-notifications.js',import.meta.url),'utf8');
+const source=fs.readFileSync(new URL('../assets/js/customer/dashboard-notifications.js',import.meta.url),'utf8');
 let ready,styles='';const panel={attrs:{},setAttribute(k,v){this.attrs[k]=v;}};
 const ctx=vm.createContext({document:{addEventListener:(_,f)=>ready=f,createElement:()=>({}),head:{appendChild:s=>styles=s.textContent},querySelectorAll:()=>[panel]}});
 new vm.Script(source).runInContext(ctx);

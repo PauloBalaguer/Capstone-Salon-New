@@ -31,17 +31,17 @@
         .section-label { @apply text-xs font-bold uppercase tracking-wider text-slate-500; }
 
         /* Payment method, tip and quick-cash choices share one "chip" look;
-           the selected one gets .is-active (set in scripts/cashier/payment.js). */
+           the selected one gets .is-active (set in assets/js/cashier/payment.js). */
         .pay-method-card { @apply flex items-center justify-center gap-2 rounded-xl border border-[#D9C9B4] bg-white py-2.5 text-base font-semibold text-slate-600 cursor-pointer select-none hover:border-[#006D6F]; }
         .pay-method-card.is-active { @apply border-[#006D6F] bg-[#006D6F]/10 text-[#06464A] ring-1 ring-[#006D6F]; }
         .chip-btn { @apply rounded-lg border border-[#D9C9B4] bg-white py-2 text-base font-semibold text-slate-700 hover:border-[#006D6F]; }
         .chip-btn.is-active { @apply border-[#006D6F] bg-[#006D6F]/10 text-[#06464A] ring-1 ring-[#006D6F]; }
     </style>
     <link rel="stylesheet" href="../../assets/css/cashier-theme.css?v=balanced-type-20261020-1">
-<script src="../../scripts/booking-validation.js"></script>
+<script src="../../assets/js/booking-validation.js"></script>
   <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=balanced-type-20261020-1" />
   <link rel="stylesheet" href="../../assets/css/portal-colors.css?v=balanced-type-20261020-1" />
-  <script src="../../scripts/portal-presentation.js"></script>
+  <script src="../../assets/js/portal-presentation.js"></script>
 </head>
 <body class="salon-portal bg-gray-100 font-sans antialiased flex h-screen overflow-hidden text-slate-800">
 
@@ -400,8 +400,8 @@
         </div>
     </div>
 
-    <script src="../../scripts/cashier/cashier-common.js"></script>
-    <script src="../../scripts/appointment-arrival.js"></script>
-    <script src="../../scripts/cashier/payment.js"></script>
+    <script src="../../assets/js/cashier/cashier-common.js"></script>
+    <script src="../../assets/js/appointment-arrival.js"></script>
+    <script src="../../assets/js/cashier/payment.js"></script>
 </body>
 </html>

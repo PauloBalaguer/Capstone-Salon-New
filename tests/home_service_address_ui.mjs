@@ -22,7 +22,7 @@ const root=new Element();root.id='service-address';root.dataset={addressTarget:'
 const target=new Element('input');
 let ready,failCity='';
 const ctx=vm.createContext({window:{},URL,console,
-  document:{currentScript:{src:'http://localhost/scripts/address-form.js'},createElement:t=>new Element(t),
+  document:{currentScript:{src:'http://localhost/assets/js/address-form.js'},createElement:t=>new Element(t),
     getElementById:()=>target,querySelectorAll:()=>[root],addEventListener:(_,f)=>ready=f},
   Event:class {constructor(type){this.type=type;}},
   Option:class {constructor(text,value){this.textContent=text;this.value=value;}},
@@ -33,7 +33,7 @@ const ctx=vm.createContext({window:{},URL,console,
   }});
 const run=s=>new vm.Script(s).runInContext(ctx);
 const settle=async()=>{for(let i=0;i<4;i++)await new Promise(r=>setImmediate(r));};
-run(read('scripts/address-form.js'));ready();await settle();
+run(read('assets/js/address-form.js'));ready();await settle();
 const addressForms=ctx.window.AddressForms;
 const province=data.provinces[0].code,city=data.cities[province][0].code,barangay=data.barangays[city][0].code;
 const profile={address:'12 Test Street, Albay',structuredAddress:{province,city,barangay,house:'12',street:'Test Street',subdivision:'Building A',landmark:'Blue gate'}};
@@ -72,16 +72,16 @@ ctx.BookingFormValidation={fields:()=>true};
 ctx.AddressForms={prepare:()=>true,errors(){},setSaved:p=>ctx.latestSaved=p};
 let calls=0,rejectRequest;
 ctx.fetch=()=>{calls++;return new Promise((_,reject)=>rejectRequest=reject);};
-run(read('scripts/customer/dashboard-home-service.js'));
+run(read('assets/js/customer/dashboard-home-service.js'));
 run(`var app=Object.assign(customerHomeServiceMixin(),{isSubmittingHomeService:false,
 homeServiceForm:{address:'Test Street',eventType:'Standard Home Service',services:['Hair Styling'],clients:'1',preferredDate:'2030-01-01',preferredTime:'09:00',agreedToTerms:true},pushToast(){}});app.submitHomeServiceRequest();app.submitHomeServiceRequest();`);
 assert.equal(calls,1);rejectRequest(Error('offline'));await settle();
 assert.equal(ctx.app.homeServiceForm.address,'Test Street');assert.equal(ctx.app.isSubmittingHomeService,false);
 assert(ctx.app.homeServiceError.includes('connection'));
 ctx.fetch=async()=>({status:200,json:async()=>({success:true,addressProfile:{address:'New Saved Address',structuredAddress:{province,city,barangay,street:'New Saved Street'}}})});
-run(read('scripts/customer/dashboard-profile.js'));
+run(read('assets/js/customer/dashboard-profile.js'));
 run(`var profileApp=Object.assign(customerProfileMixin(),{customerProfile:{name:'Test Customer',email:'test@example.com',phone:'09123456789',notificationPrefs:{email:true,sms:true}},pushToast(){}});profileApp.saveProfile();`);
 await settle();assert.equal(ctx.profileApp.customerProfile.address,'New Saved Address');assert.equal(ctx.latestSaved.address,'New Saved Address');
-for(const file of ['scripts/customer/dashboard-state.js','scripts/customer/dashboard-home-service.js','scripts/customer/dashboard-profile.js'])new vm.Script(read(file));
+for(const file of ['assets/js/customer/dashboard-state.js','assets/js/customer/dashboard-home-service.js','assets/js/customer/dashboard-profile.js'])new vm.Script(read(file));
 for(const m of read('pages/customer/home-service.html').matchAll(/(?:x-text|x-show|x-if)="([^"]*)"/g))new vm.Script('void('+m[1].replaceAll('&amp;','&').replaceAll('&gt;','>').replaceAll('&lt;','<')+');');
 console.log('PASS saved/no-saved/legacy autofill, dropdown dependencies, alternate draft switching, profile isolation, location retry, duplicate submission, failed-request retention, saved-profile refresh, JS/Alpine syntax.');

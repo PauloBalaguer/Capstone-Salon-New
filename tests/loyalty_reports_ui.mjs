@@ -7,7 +7,7 @@ let exported,requested;
 const store={bookings:[{id:'A',branchId:'daraga',serviceName:'Service',date:'2030-01-01',status:'Completed',checkoutPaid:true,price:1000},{id:'HOME',branchId:'home-service',date:'2030-01-01'}],branches:[],exportRowsToCSV:(...args)=>exported=args};
 const ctx=vm.createContext({URLSearchParams,Alpine:{store:()=>store},ADMIN_API_BASE:'/admin/',console,
  fetch:async url=>{requested=url;return{json:async()=>({success:true,collections:[{id:'deposit',reference:'A',branchId:'daraga',branchName:'Daraga',collectedAt:'2026-01-03 10:00:00',kind:'Reservation payment',amount:400},{id:'checkout',reference:'A',branchId:'daraga',branchName:'Daraga',collectedAt:'2026-01-03 11:00:00',kind:'Cashier checkout',amount:600}]})};}});
-const app=new vm.Script(read('scripts/admin/reports.js')+';adminReportsApp()').runInContext(ctx);
+const app=new vm.Script(read('assets/js/admin/reports.js')+';adminReportsApp()').runInContext(ctx);
 Object.assign(app,{reportType:'revenue',reportFilterBranch:'daraga',reportDateFrom:'2026-01-03',reportDateTo:'2026-01-03'});
 await app.loadCollections();assert(requested.includes('branch=daraga')&&requested.includes('from=2026-01-03'));
 assert.equal(app.getReportTotalRevenue(),1000,'collections use payment date even if service is years later');
@@ -29,6 +29,6 @@ app.reportDateFrom='2026-01-03';app.reportDateTo='2026-01-03';app.reportFilterBr
 app.reportType='payments';app.paymentLogLoaded=true;app.paymentLog=[{reference:'A',createdAt:'2026-01-03 12:00',amount:100,event:'payment_paid',status:'paid'},{reference:'HOME',createdAt:'2026-01-03 12:00',amount:500},{reference:'A',createdAt:'2026-01-04 12:00',amount:300}];
 assert.equal(app.getFilteredPaymentLog().length,1);app.exportReportToCSV();assert.equal(exported[0],'payment-log.csv');assert.equal(exported[2][0][0],'A');
 app.reportType='activity';app.activityLogLoaded=true;app.activityLog=[{createdAt:'2026-01-03',actor:'Admin',role:'Admin',label:'Checkout',reference:'A',outcome:'success'}];app.exportReportToCSV();assert.equal(exported[0],'activity-log.csv');
-for(const file of ['scripts/admin/reports.js','scripts/admin/shared-data.js','scripts/customer/dashboard-appointments.js'])new vm.Script(read(file));
+for(const file of ['assets/js/admin/reports.js','assets/js/admin/shared-data.js','assets/js/customer/dashboard-appointments.js'])new vm.Script(read(file));
 for(const file of ['pages/admin/reports.html','pages/admin/dashboard.html','pages/customer/dashboard.html'])for(const m of read(file).matchAll(/(?:x-text|x-show|x-if|:disabled)="([^"]*)"/g))new vm.Script('void('+m[1].replaceAll('&amp;','&').replaceAll('&gt;','>').replaceAll('&lt;','<')+');');
 console.log('PASS collection-date filters, CSV/visible totals, stale response protection, loading guards, payment/activity exports, JS/Alpine syntax.');

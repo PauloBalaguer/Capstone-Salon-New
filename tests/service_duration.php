@@ -1,6 +1,6 @@
 <?php
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
-require_once __DIR__ . '/../../backend/config/ServiceDuration.php';
+require_once __DIR__ . '/../backend/config/ServiceDuration.php';
 function durationCheck(bool $ok, string $message): void { if (!$ok) throw new RuntimeException($message); }
 foreach ([['09:00', 30, '09:30'], ['13:00', 60, '14:00'], ['10:00', 120, '12:00'], ['09:00', 240, '13:00']] as [$start, $minutes, $expected]) {
     durationCheck(ServiceDuration::end('2026-10-20 ' . $start, $minutes)->format('H:i') === $expected, 'Incorrect estimated end time.');

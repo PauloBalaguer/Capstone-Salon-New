@@ -7,7 +7,7 @@
  * the logged-in staff member's profile, every appointment ever assigned to
  * them, their attendance log, a compact performance summary, their most
  * recent client feedback, and their branch's inventory (for the "prepare
- * supplies" / "log usage" flows). scripts/staff/shared-data.js calls this
+ * supplies" / "log usage" flows). assets/js/staff/shared-data.js calls this
  * once on load and again after every mutation to refresh the Alpine store.
  */
 

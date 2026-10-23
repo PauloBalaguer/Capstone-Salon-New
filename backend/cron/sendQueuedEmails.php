@@ -6,7 +6,7 @@
  * Customer emails (booking received, status changes, waitlist openings) are
  * normally sent right after the request that queued them (see
  * backend/config/EmailOutbox.php). This retries anything still Pending --
- * e.g. when Gmail SMTP was briefly unreachable -- up to
+ * e.g. when the Brevo API was briefly unreachable -- up to
  * EmailOutbox::MAX_ATTEMPTS times. Run every few minutes from Windows Task
  * Scheduler alongside sendAppointmentReminders.php. Not web-exposed.
  *

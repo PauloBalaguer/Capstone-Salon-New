@@ -21,8 +21,8 @@ date_default_timezone_set('Asia/Manila');
 class Database
 {
     private static string $host = '127.0.0.1';
-    private static string $port = '3306'; // Matches mysql/bin/my.ini in this XAMPP install.
-    private static string $db_name = 'new_capstone_salon';
+    private static string $port = '3307'; // Matches the [mysqld] port in this XAMPP install.
+    private static string $db_name = 'new capstone_salon'; // Existing schema name includes a space.
     private static string $username = 'root';
     private static string $password = ''; // Default for XAMPP
     private static string $charset = 'utf8mb4';

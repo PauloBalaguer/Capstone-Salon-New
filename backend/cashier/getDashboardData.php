@@ -14,7 +14,7 @@
  * their own cross-branch view in pages/admin/*, so this page doesn't need
  * to support switching for them either.
  *
- * scripts/cashier/cashier-common.js calls this once on load and again after
+ * assets/js/cashier/cashier-common.js calls this once on load and again after
  * every mutation.
  */
 

@@ -1,6 +1,6 @@
 <?php
 // Pure request-validation regression checks. No database or session writes.
-require_once __DIR__ . '/../../backend/config/BookingValidation.php';
+require_once __DIR__ . '/../backend/config/BookingValidation.php';
 
 $cases = [
     ['mobile', '09171234567', true], ['mobile', '12345678901', false],

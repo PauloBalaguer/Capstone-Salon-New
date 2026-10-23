@@ -11,9 +11,9 @@
 *.sln.docstates
 *.env
 
-# Real SMTP/App Password credentials for OTP email sending (see
-# backend/config/mail_credentials.example.php for the template).
+# Private email credentials. Keep the legacy path ignored for old local copies.
 backend/config/mail_credentials.php
+backend/config/brevo_credentials.php
 
 # Real PayMongo API keys (see backend/config/paymongo_credentials.example.php).
 backend/config/paymongo_credentials.php

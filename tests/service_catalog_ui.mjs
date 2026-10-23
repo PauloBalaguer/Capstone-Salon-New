@@ -3,7 +3,7 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 const root = new URL('../', import.meta.url);
 const ctx = vm.createContext({formatPeso:n=>'PHP '+Number(n).toFixed(2),document:{getElementById:()=>null}});
-const app = new vm.Script(fs.readFileSync(new URL('scripts/customer/dashboard-booking.js', root),'utf8')+'; customerBookingMixin()').runInContext(ctx);
+const app = new vm.Script(fs.readFileSync(new URL('assets/js/customer/dashboard-booking.js', root),'utf8')+'; customerBookingMixin()').runInContext(ctx);
 Object.assign(app, {selectedBranchForServices:'daraga', servicesCatalog:{daraga:Array.from({length:14},(_,i)=>({id:String(i),name:'Service '+i,category:i%2?'Hair':'Skin',price:499})), yashano:[{id:'Y1',name:'Facial',category:'Skin'}]},selectedServicesForBooking:[],bookingForm:{date:''},$nextTick:f=>f()});
 assert.equal(app.pagedServices().length,6);
 assert.equal(app.servicePageCount(),3);

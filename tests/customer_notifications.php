@@ -1,5 +1,5 @@
 <?php
-// Mock SMTP transport and connection-local SQL fixtures: never send real mail/SMS.
+// Mock email transport and connection-local SQL fixtures: never send real mail/SMS.
 require __DIR__.'/../backend/config/database.php';
 $GLOBALS['delivered']=[];$GLOBALS['deliveryOK']=true;
 function sendNotificationEmail(string $to,string $subject,string $body):bool {

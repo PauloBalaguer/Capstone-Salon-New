@@ -9,7 +9,7 @@
  * promotions, feedback, notifications, the aggregated
  * customer directory, the admin's own profile, a per-branch service
  * catalog (used by the New Booking form), and the full service catalog
- * (active + inactive, used by the Service Menu manager). scripts/admin/shared-data.js
+ * (active + inactive, used by the Service Menu manager). assets/js/admin/shared-data.js
  * calls this once on load and again after every mutation to refresh the
  * Alpine store.
  */

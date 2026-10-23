@@ -55,6 +55,16 @@
   --color-ok-auth: #2F7D4F;
   --color-err-auth: #A12B2B;
   --color-teal-glow-auth: #0B8C8E;
+  /* Phone layout: dark sheet under the teal header */
+  --color-sheet-auth: #162525;
+  --color-sheet-field-auth: #1F3433;
+  --color-sheet-ink-auth: #EEF3F2;
+  --color-sheet-label-auth: #C9D5D3;
+  --color-sheet-mute-auth: #9DB0AE;
+  --color-sheet-placeholder-auth: #8CA09E;
+  --color-sheet-link-auth: #3AAEB0;
+  --color-sheet-err-auth: #F2A0A0;
+  --color-sheet-ok-auth: #7DD3A0;
 
   --font-body: "Segoe UI", Tahoma, Verdana, Arial, sans-serif;
   --font-display: Georgia, Cambria, "Times New Roman", serif;
@@ -114,7 +124,7 @@
     --toast-font: var(--font-auth-display); /* toast headings match the page */
 
     /* Card: cream sheet under the teal header on phones, floating card on desktop */
-    .card { @apply relative -mt-6 flex flex-1 flex-col gap-4 rounded-t-[26px] bg-panel px-5 pb-8 pt-6 sm:px-10 lg:mt-0 lg:flex-none lg:rounded-[28px] lg:p-10 lg:shadow-[0_40px_80px_-40px_rgba(0,0,0,.6)] motion-safe:animate-pop; }
+    .card { @apply relative -mt-6 flex flex-1 flex-col gap-4 rounded-t-[28px] bg-panel px-6 pb-8 pt-8 sm:px-10 lg:mt-0 lg:flex-none lg:rounded-[28px] lg:p-10 lg:shadow-[0_40px_80px_-40px_rgba(0,0,0,.6)] motion-safe:animate-pop; }
     .card form { @apply flex flex-col gap-4; }
     .logo { @apply flex items-center justify-center gap-2.5 max-lg:hidden; }
     .logo .mark { @apply grid h-11 w-11 place-items-center rounded-full bg-teal-500 font-auth-display text-panel ring-4 ring-teal-500/15; }
@@ -122,7 +132,7 @@
     .back { @apply self-start text-sm font-semibold text-teal-500 no-underline; }
     .title { @apply text-center font-auth-display text-3xl font-semibold [text-wrap:balance] max-lg:hidden; }
     .sub { @apply -mt-1 text-center leading-relaxed text-muted-auth max-lg:text-left max-lg:text-sm; }
-    .sub b { @apply break-all text-ink-auth; }
+    .sub b { @apply break-words text-ink-auth; }
     & label { @apply mb-1.5 block text-sm font-medium text-muted-auth; }
     .two { @apply grid grid-cols-2 gap-3; }
 
@@ -187,5 +197,25 @@
     .spinner { @apply h-12 w-12 rounded-full border-4 border-line-auth border-t-teal-500 motion-safe:animate-spin; }
 
     & :focus-visible { @apply outline-2 outline-offset-2 outline-gold-auth; }
+
+    /* Phones and tablets: the form sits on a dark sheet under the teal header.
+       Desktop (lg+) keeps the cream card above. */
+    @variant max-lg {
+      .card { @apply bg-sheet-auth text-sheet-ink-auth [color-scheme:dark]; }
+      .sub, .check, .terms, .foot, .resend, .resend button:disabled { @apply text-sheet-mute-auth; }
+      .sub b { @apply text-sheet-ink-auth; }
+      & label { @apply text-sheet-label-auth; }
+      .back, .eye, .terms a, .foot a, .resend button:not(:disabled), .link { @apply text-sheet-link-auth; }
+      .inp svg, .inp .pre { @apply text-sheet-mute-auth; }
+      .inp input, .otp input { @apply bg-sheet-field-auth text-sheet-ink-auth placeholder:text-sheet-placeholder-auth focus:border-sheet-link-auth focus:bg-sheet-field-auth autofill:shadow-[inset_0_0_0_100px_var(--color-sheet-field-auth)] autofill:[-webkit-text-fill-color:var(--color-sheet-ink-auth)]; }
+      .inp.is-wrong input { @apply border-sheet-err-auth bg-sheet-err-auth/10; }
+      .field-error { @apply text-sheet-err-auth; }
+      .meter i, .steps i { @apply bg-white/10; }
+      .rules { @apply bg-sheet-field-auth; }
+      .rules li.on { @apply text-sheet-ok-auth; }
+      .badge { @apply bg-sheet-link-auth/15 text-sheet-link-auth; }
+      .badge.warn { @apply bg-sheet-err-auth/15 text-sheet-err-auth; }
+      .btn { @apply shadow-[0_14px_30px_-14px_rgba(0,0,0,.85)]; }
+    }
   }
 }

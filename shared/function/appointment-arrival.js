@@ -18,7 +18,7 @@
       active = true;
       let result;
       try { result = await request(endpoint, { id: reference, status: 'In Progress', arrivalReview: '1' }); }
-      catch (error) { active = false; window.alert(error.message); return false; }
+      catch (error) { active = false; LMToast.show(error.message, 'error'); return false; }
       const review = result.review;
       const dialog = document.createElement('dialog');
       dialog.className = 'rounded-2xl border border-slate-300 bg-white text-slate-800 p-5 shadow-2xl';

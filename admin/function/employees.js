@@ -138,7 +138,7 @@ function adminStaffApp() {
       });
       this.savingStaff = false;
       if (!result.success) {
-        alert(result.message || 'Failed to save staff member.');
+        LMToast.show(result.message || 'Failed to save staff member.', 'error');
         return;
       }
       await store.refresh();
@@ -149,7 +149,7 @@ function adminStaffApp() {
       const store = Alpine.store('admin');
       const result = await store.post('removeStaff.php', { id: staffId });
       if (!result.success) {
-        alert(result.message || 'Failed to remove staff member.');
+        LMToast.show(result.message || 'Failed to remove staff member.', 'error');
         return;
       }
       await store.refresh();

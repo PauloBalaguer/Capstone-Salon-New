@@ -45,7 +45,7 @@ function adminSettingsApp() {
       });
       this.savingCashier = false;
       if (!result.success) {
-        alert(result.message || 'Failed to save cashier account.');
+        LMToast.show(result.message || 'Failed to save cashier account.', 'error');
         return;
       }
       await store.refresh();
@@ -57,7 +57,7 @@ function adminSettingsApp() {
       const store = Alpine.store('admin');
       const result = await store.post('removeCashier.php', { id: cashierId });
       if (!result.success) {
-        alert(result.message || 'Failed to remove cashier account.');
+        LMToast.show(result.message || 'Failed to remove cashier account.', 'error');
         return;
       }
       await store.refresh();
@@ -78,7 +78,7 @@ function adminSettingsApp() {
         slotLimit: branch.slotLimit
       });
       if (!result.success) {
-        alert(result.message || 'Failed to update branch info.');
+        LMToast.show(result.message || 'Failed to update branch info.', 'error');
         return;
       }
       await store.refresh();
@@ -98,7 +98,7 @@ function adminSettingsApp() {
         staffConflictAlerts: store.notificationPrefs.staffConflictAlerts
       });
       if (!result.success) {
-        alert(result.message || 'Failed to update profile.');
+        LMToast.show(result.message || 'Failed to update profile.', 'error');
         return;
       }
       await store.refresh();
@@ -120,7 +120,7 @@ function adminSettingsApp() {
         staffConflictAlerts: store.notificationPrefs.staffConflictAlerts
       });
       if (!result.success) {
-        alert(result.message || 'Failed to update notification preferences.');
+        LMToast.show(result.message || 'Failed to update notification preferences.', 'error');
       }
     }
   };

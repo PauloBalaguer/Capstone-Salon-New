@@ -148,21 +148,9 @@
     renderProducts();
   }
 
-  let toastHideTimer;
-  function showToast(msg) {
-    const toast = document.getElementById('toast');
-    clearTimeout(toastHideTimer);
-    toast.textContent = msg;
-    if (typeof toast.showPopover === 'function' && !toast.matches(':popover-open')) {
-      toast.showPopover();
-    }
-    toast.classList.remove('opacity-0');
-    toast.classList.add('opacity-100');
-    toastHideTimer = setTimeout(() => {
-      toast.classList.remove('opacity-100');
-      toast.classList.add('opacity-0');
-      if (typeof toast.hidePopover === 'function' && toast.matches(':popover-open')) toast.hidePopover();
-    }, 6000);
+  // Most landing-page messages are validation errors; pass 'success' for good news.
+  function showToast(msg, kind = 'error') {
+    LMToast.show(msg, kind, { duration: 6000 });
   }
 
   const bookingModalOverlay = document.getElementById('bookingModalOverlay');
@@ -1584,7 +1572,7 @@
     fetch('public/backend/submitGuestFeedback.php', { method: 'POST', body: formData })
       .then(r => r.json())
       .then(res => {
-        showToast(res.message);
+        showToast(res.message, res.success ? 'success' : 'error');
         if (!res.success) return;
         document.getElementById('fbText').value = '';
         hsRatings.service = 0; hsRatings.staff = 0;
@@ -2149,7 +2137,7 @@
     formData.append('phone', document.getElementById('bookPhone')?.value.trim() || '');
     fetch('public/backend/joinWaitlist.php', { method: 'POST', body: formData })
       .then(r => r.json())
-      .then(res => showToast(res.message || (res.success ? "You're on the waitlist." : 'Could not join the waitlist.')))
+      .then(res => showToast(res.message || (res.success ? "You're on the waitlist." : 'Could not join the waitlist.'), res.success ? 'success' : 'error'))
       .catch(() => showToast('A network error occurred. Please try again.'))
       .finally(() => { btn.disabled = false; });
   });
@@ -2633,7 +2621,7 @@
     fetch('public/backend/sendBookingOtp.php', { method: 'POST', body: formData })
       .then(r => r.json())
       .then(res => {
-        showToast(res.message);
+        showToast(res.message, res.success ? 'success' : 'error');
         if (res.success) resetBookOtpInputs();
         if (res.retryAfter || res.success) startBookOtpCooldown(res.retryAfter || 60);
         else btn.disabled = false;
@@ -2852,7 +2840,7 @@
     fetch('public/backend/submitGuestFeedback.php', { method: 'POST', body: formData })
       .then(r => r.json())
       .then(res => {
-        showToast(res.message);
+        showToast(res.message, res.success ? 'success' : 'error');
         if (!res.success) return;
         document.getElementById('apptFbText').value = '';
         apptRatings = { service: 0, staff: 0 };

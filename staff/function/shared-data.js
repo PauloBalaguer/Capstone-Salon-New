@@ -24,13 +24,9 @@ document.addEventListener('alpine:init', () => {
     isNotificationPanelOpen: false,
     now: new Date(),
     busy: false,
-    toasts: [],
-    toastSeq: 0,
 
     toast(message, type = 'success') {
-      const id = ++this.toastSeq;
-      this.toasts.push({ id, message, type });
-      setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 3600);
+      LMToast.show(message, type, { duration: 3600 });
     },
 
     async refresh() {

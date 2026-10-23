@@ -7,58 +7,48 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,500&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap">
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="../../auth/function/tailwind-config.js"></script>
-  <style>
-    /* Swatch fan: strips rotate around the gold ring at the bottom-left */
-    .swatch { transform-origin: 32px calc(100% - 32px); transform: rotate(var(--r)); }
-    @media (prefers-reduced-motion: no-preference) {
-      .swatch { animation: fan .9s cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--d); }
-    }
-    @keyframes fan { from { transform: rotate(0deg); } to { transform: rotate(var(--r)); } }
-    .strand { background-image: repeating-linear-gradient(100deg, rgba(255,255,255,.14) 0 2px, transparent 2px 7px), linear-gradient(180deg, rgba(255,255,255,.18), transparent 40%, rgba(0,0,0,.18)); }
-  </style>
+  <link rel="stylesheet" href="../../shared/frontend/output.css">
 </head>
-<body class="min-h-screen bg-teal-dark font-body text-ink antialiased">
+<body class="auth-page min-h-screen bg-teal-700 font-auth-body text-ink-auth antialiased">
   <main class="mx-auto flex min-h-screen max-w-[1280px] flex-col lg:grid lg:grid-cols-[1.15fr_1fr] lg:items-center lg:gap-16 lg:px-12 lg:py-12">
 
     <!-- Left: swatch fan (desktop) -->
-    <section class="hidden min-w-0 text-cream lg:block">
-      <a href="../../index.html" class="flex w-fit items-center gap-3 font-display text-xl" aria-label="Leo Mejillano — back to website">
-        <span class="grid h-11 w-11 place-items-center rounded-full border border-gold text-base text-sand">LM</span>Leo Mejillano
+    <section class="hidden min-w-0 text-panel lg:block">
+      <a href="../../index.html" class="flex w-fit items-center gap-3 font-auth-display text-xl" aria-label="Leo Mejillano — back to website">
+        <span class="grid h-11 w-11 place-items-center rounded-full border border-gold-auth text-base text-sand">LM</span>Leo Mejillano
       </a>
-      <p class="mt-8 max-w-[14ch] font-display text-[clamp(2.4rem,4.8vw,4.2rem)] font-semibold leading-[1.05] [text-wrap:balance]">Find your shade, then book your chair.</p>
+      <p class="mt-8 max-w-[14ch] font-auth-display text-[clamp(2.4rem,4.8vw,4.2rem)] font-semibold leading-[1.05] [text-wrap:balance]">Find your shade, then book your chair.</p>
       <p class="mt-5 max-w-[42ch] text-[1.05rem] leading-relaxed text-[#cfe3e0]">Browse our colour range, pick a stylist, and reserve with a deposit. Your account keeps every visit and every shade you've had.</p>
 
       <div class="relative mt-10 h-[300px]" aria-label="Example hair colour swatches">
         <div class="absolute bottom-0 left-[150px] h-[280px] w-[64px]">
-          <div class="swatch strand absolute bottom-0 left-0 flex h-[270px] w-[64px] flex-col justify-start rounded-[32px] bg-[#2B1D16] p-2 shadow-xl" style="--r:-42deg;--d:.05s"><span class="rounded-full bg-black/30 px-2 py-1 text-center text-[10px] font-semibold">1.0</span></div>
-          <div class="swatch strand absolute bottom-0 left-0 flex h-[270px] w-[64px] flex-col justify-start rounded-[32px] bg-[#5A3A26] p-2 shadow-xl" style="--r:-28deg;--d:.1s"><span class="rounded-full bg-black/30 px-2 py-1 text-center text-[10px] font-semibold">4.3</span></div>
-          <div class="swatch strand absolute bottom-0 left-0 flex h-[270px] w-[64px] flex-col justify-start rounded-[32px] bg-[#8C2F2A] p-2 shadow-xl" style="--r:-14deg;--d:.15s"><span class="rounded-full bg-black/30 px-2 py-1 text-center text-[10px] font-semibold">5.62</span></div>
-          <div class="swatch strand absolute bottom-0 left-0 flex h-[270px] w-[64px] flex-col justify-start rounded-[32px] bg-[#B5713A] p-2 shadow-xl" style="--r:0deg;--d:.2s"><span class="rounded-full bg-black/30 px-2 py-1 text-center text-[10px] font-semibold">7.34</span></div>
-          <div class="swatch strand absolute bottom-0 left-0 flex h-[270px] w-[64px] flex-col justify-start rounded-[32px] bg-[#D9B07A] p-2 shadow-xl" style="--r:14deg;--d:.25s"><span class="rounded-full bg-black/25 px-2 py-1 text-center text-[10px] font-semibold">9.3</span></div>
-          <div class="swatch strand absolute bottom-0 left-0 flex h-[270px] w-[64px] flex-col justify-start rounded-[32px] bg-[#EEDDC2] p-2 text-teal-dark shadow-xl" style="--r:28deg;--d:.3s"><span class="rounded-full bg-black/10 px-2 py-1 text-center text-[10px] font-semibold">10.1</span></div>
-          <div class="swatch strand absolute bottom-0 left-0 flex h-[270px] w-[64px] flex-col justify-start rounded-[32px] bg-[#7E8FB8] p-2 shadow-xl" style="--r:42deg;--d:.35s"><span class="rounded-full bg-black/25 px-2 py-1 text-center text-[10px] font-semibold">Ash</span></div>
-          <span class="absolute bottom-[18px] left-[18px] z-10 grid h-7 w-7 place-items-center rounded-full border-2 border-gold bg-teal-deep"></span>
+          <div class="origin-[32px_calc(100%-32px)] [transform:rotate(var(--r))] motion-safe:animate-fan motion-safe:[animation-delay:var(--d)] strand absolute bottom-0 left-0 flex h-[270px] w-[64px] flex-col justify-start rounded-[32px] bg-[#2B1D16] p-2 shadow-xl [--r:-42deg] [--d:.05s]"><span class="rounded-full bg-black/30 px-2 py-1 text-center text-[10px] font-semibold">1.0</span></div>
+          <div class="origin-[32px_calc(100%-32px)] [transform:rotate(var(--r))] motion-safe:animate-fan motion-safe:[animation-delay:var(--d)] strand absolute bottom-0 left-0 flex h-[270px] w-[64px] flex-col justify-start rounded-[32px] bg-[#5A3A26] p-2 shadow-xl [--r:-28deg] [--d:.1s]"><span class="rounded-full bg-black/30 px-2 py-1 text-center text-[10px] font-semibold">4.3</span></div>
+          <div class="origin-[32px_calc(100%-32px)] [transform:rotate(var(--r))] motion-safe:animate-fan motion-safe:[animation-delay:var(--d)] strand absolute bottom-0 left-0 flex h-[270px] w-[64px] flex-col justify-start rounded-[32px] bg-[#8C2F2A] p-2 shadow-xl [--r:-14deg] [--d:.15s]"><span class="rounded-full bg-black/30 px-2 py-1 text-center text-[10px] font-semibold">5.62</span></div>
+          <div class="origin-[32px_calc(100%-32px)] [transform:rotate(var(--r))] motion-safe:animate-fan motion-safe:[animation-delay:var(--d)] strand absolute bottom-0 left-0 flex h-[270px] w-[64px] flex-col justify-start rounded-[32px] bg-[#B5713A] p-2 shadow-xl [--r:0deg] [--d:.2s]"><span class="rounded-full bg-black/30 px-2 py-1 text-center text-[10px] font-semibold">7.34</span></div>
+          <div class="origin-[32px_calc(100%-32px)] [transform:rotate(var(--r))] motion-safe:animate-fan motion-safe:[animation-delay:var(--d)] strand absolute bottom-0 left-0 flex h-[270px] w-[64px] flex-col justify-start rounded-[32px] bg-[#D9B07A] p-2 shadow-xl [--r:14deg] [--d:.25s]"><span class="rounded-full bg-black/25 px-2 py-1 text-center text-[10px] font-semibold">9.3</span></div>
+          <div class="origin-[32px_calc(100%-32px)] [transform:rotate(var(--r))] motion-safe:animate-fan motion-safe:[animation-delay:var(--d)] strand absolute bottom-0 left-0 flex h-[270px] w-[64px] flex-col justify-start rounded-[32px] bg-[#EEDDC2] p-2 text-teal-700 shadow-xl [--r:28deg] [--d:.3s]"><span class="rounded-full bg-black/10 px-2 py-1 text-center text-[10px] font-semibold">10.1</span></div>
+          <div class="origin-[32px_calc(100%-32px)] [transform:rotate(var(--r))] motion-safe:animate-fan motion-safe:[animation-delay:var(--d)] strand absolute bottom-0 left-0 flex h-[270px] w-[64px] flex-col justify-start rounded-[32px] bg-[#7E8FB8] p-2 shadow-xl [--r:42deg] [--d:.35s]"><span class="rounded-full bg-black/25 px-2 py-1 text-center text-[10px] font-semibold">Ash</span></div>
+          <span class="absolute bottom-[18px] left-[18px] z-10 grid h-7 w-7 place-items-center rounded-full border-2 border-gold-auth bg-teal-900"></span>
         </div>
-        <div class="absolute bottom-6 right-0 max-w-[220px] rounded-2xl border border-sand/20 bg-cream/5 p-4 backdrop-blur-sm">
-          <p class="font-display text-lg italic text-sand">7.34 Golden Copper</p>
+        <div class="absolute bottom-6 right-0 max-w-[220px] rounded-2xl border border-sand/20 bg-panel/5 p-4 backdrop-blur-xs">
+          <p class="font-auth-display text-lg italic text-sand">7.34 Golden Copper</p>
           <p class="mt-1 text-sm text-[#a9cbc7]">Most booked shade this month, Legazpi branch</p>
         </div>
       </div>
     </section>
 
     <!-- Phone header -->
-    <header class="px-6 pb-12 pt-[max(2rem,env(safe-area-inset-top))] text-cream sm:px-10 lg:hidden">
-      <a href="../../index.html" class="grid h-10 w-10 place-items-center rounded-full border border-gold font-display text-sm text-sand" aria-label="Leo Mejillano — back to website">LM</a>
-      <h1 class="mt-3 font-display text-2xl font-semibold leading-tight">Welcome back</h1>
+    <header class="px-6 pb-12 pt-[max(2rem,env(safe-area-inset-top))] text-panel sm:px-10 lg:hidden">
+      <a href="../../index.html" class="grid h-10 w-10 place-items-center rounded-full border border-gold-auth font-auth-display text-sm text-sand" aria-label="Leo Mejillano — back to website">LM</a>
+      <h1 class="mt-3 font-auth-display text-2xl font-semibold leading-tight">Welcome back</h1>
       <p class="mt-1 text-sm text-[#cfe3e0]">Sign in to see your bookings.</p>
     </header>
 
     <!-- Right: sign-in form -->
     <div class="card lg:p-11">
-      <h1 class="font-display text-[2.2rem] font-semibold leading-tight max-lg:hidden">Welcome back</h1>
-      <p class="-mt-2 mb-1 text-mute max-lg:-mt-1 max-lg:mb-0 max-lg:text-sm">Sign in to your salon account</p>
+      <h1 class="font-auth-display text-[2.2rem] font-semibold leading-tight max-lg:hidden">Welcome back</h1>
+      <p class="-mt-2 mb-1 text-muted-auth max-lg:-mt-1 max-lg:mb-0 max-lg:text-sm">Sign in to your salon account</p>
 
       <form id="login-form" novalidate>
         <div>
@@ -80,7 +70,7 @@
           <p class="field-error" id="login-password-error"></p>
         </div>
 
-        <div class="-my-2 flex items-center justify-between text-sm text-mute">
+        <div class="-my-2 flex items-center justify-between text-sm text-muted-auth">
           <label for="remember-me" class="check"><input type="checkbox" id="remember-me" name="remember"> Remember me</label>
           <a href="forgot-password.html" class="link">Forgot password?</a>
         </div>

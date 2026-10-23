@@ -10,6 +10,13 @@
    own script talks to those endpoints directly with fetch().
    ========================================================== */
 
+/* Full class names (never built from pieces) for each toast kind. */
+const TOAST_CLASS = {
+  good: 'toast show is-good',
+  wrong: 'toast show is-wrong',
+  note: 'toast show is-note'
+};
+
 /* Everything is kept inside one object so the five page
    scripts do not accidentally overwrite each other. */
 const LM = {
@@ -22,7 +29,7 @@ const LM = {
     if (!box) return;
 
     box.textContent = message;
-    box.className = 'toast show is-' + (kind || 'good');
+    box.className = TOAST_CLASS[kind] || TOAST_CLASS.good;
 
     clearTimeout(LM._toastTimer);
     LM._toastTimer = setTimeout(function () {

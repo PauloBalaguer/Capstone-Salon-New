@@ -152,7 +152,7 @@ function adminReportsApp() {
     },
     async syncPayment(row) {
       const result = await Alpine.store('admin').post('reconcilePaymongo.php', { action: 'sync', reference: row.reference });
-      alert(result.message || (result.success ? 'Synced.' : 'Could not sync this payment.'));
+      LMToast.show(result.message || (result.success ? 'Synced.' : 'Could not sync this payment.'), result.success ? 'success' : 'error');
       if (result.success) await this.runReconciliation();
     },
 

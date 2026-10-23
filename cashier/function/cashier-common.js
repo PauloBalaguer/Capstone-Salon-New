@@ -105,29 +105,7 @@ const CashierApp = {
   },
 
   toast(message, type = 'info') {
-    const container = document.getElementById('notificationContainer');
-    if (!container) return;
-    const palette = {
-      success: 'bg-emerald-600 border-emerald-700',
-      error: 'bg-rose-600 border-rose-700',
-      info: 'bg-slate-800 border-slate-900'
-    };
-    const icon = {
-      success: 'fa-circle-check',
-      error: 'fa-triangle-exclamation',
-      info: 'fa-circle-info'
-    };
-    const toastEl = document.createElement('div');
-    toastEl.className = `pointer-events-auto text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-lg border flex items-start space-x-2 transition-all duration-300 ease-[cubic-bezier(.16,1,.3,1)] opacity-0 translate-x-4 scale-95 ${palette[type] || palette.info}`;
-    toastEl.innerHTML = `<i class="fa-solid ${icon[type] || icon.info} mt-0.5"></i><span>${message}</span>`;
-    container.appendChild(toastEl);
-    requestAnimationFrame(() => {
-      toastEl.classList.remove('opacity-0', 'translate-x-4', 'scale-95');
-    });
-    setTimeout(() => {
-      toastEl.classList.add('opacity-0', 'translate-x-4');
-      setTimeout(() => toastEl.remove(), 300);
-    }, 4000);
+    LMToast.show(message, type, { duration: 4000 });
   },
 
   showModal(modalId) {

@@ -14,8 +14,6 @@ function customerDashboardState() {
     appointmentToCancelId: null,
     viewingAppointment: null,
     notifications: [],
-    toasts: [],
-    toastSeq: 0,
     isBooting: true,
     isSubmittingBooking: false,
     isSubmittingHomeService: false,

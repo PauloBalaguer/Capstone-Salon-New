@@ -130,7 +130,7 @@ function adminInventoryApp() {
         supplier: this.itemForm.supplier
       });
       if (!result.success) {
-        alert(result.message || 'Failed to save inventory item.');
+        LMToast.show(result.message || 'Failed to save inventory item.', 'error');
         return;
       }
       await store.refresh();
@@ -141,7 +141,7 @@ function adminInventoryApp() {
       const store = Alpine.store('admin');
       const result = await store.post('adjustStock.php', { id: itemId, delta });
       if (!result.success) {
-        alert(result.message || 'Failed to adjust stock.');
+        LMToast.show(result.message || 'Failed to adjust stock.', 'error');
         return;
       }
       await store.refresh();
@@ -155,7 +155,7 @@ function adminInventoryApp() {
       const store = Alpine.store('admin');
       const result = await store.post('toggleInventoryItemActive.php', { id: item.id, active: goingActive ? 1 : 0 });
       if (!result.success) {
-        alert(result.message || 'Failed to update item status.');
+        LMToast.show(result.message || 'Failed to update item status.', 'error');
         return;
       }
       await store.refresh();

@@ -3,13 +3,8 @@
 function customerNotificationsMixin() {
   return {
     pushToast(type, message) {
-      const id = ++this.toastSeq;
-      this.toasts.push({ id, type, message });
       // Long messages (e.g. refund/cancellation details) get more reading time.
-      setTimeout(() => this.dismissToast(id), Math.max(5000, Math.min(10000, message.length * 70)));
-    },
-    dismissToast(id) {
-      this.toasts = this.toasts.filter(t => t.id !== id);
+      LMToast.show(message, type, { duration: Math.max(5000, Math.min(10000, String(message).length * 70)) });
     },
 
     animateCount(prop, target, duration = 900) {

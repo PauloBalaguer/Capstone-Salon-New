@@ -43,7 +43,7 @@
   <script src="shared/function/portal-presentation.js"></script>
 </head>
 
-<body class="bg-sand-100 text-ink font-body antialiased">
+<body data-toast="bottom" class="bg-sand-100 text-ink font-body antialiased">
   <div id="scroll-progress-bar"
     class="fixed top-0 left-0 h-0.75 bg-linear-to-r from-copper-dark via-copper to-plum z-60" style="width: 0%">
   </div>
@@ -699,9 +699,6 @@
       alt="Enlarged view" />
   </div>
 
-  <div id="toast" popover="manual" role="status" aria-live="polite" aria-atomic="true"
-    class="fixed left-1/2 -translate-x-1/2 bottom-7 bg-ink text-white text-base font-semibold px-5 py-3 rounded-2xl opacity-0 pointer-events-none transition-all duration-300">
-  </div>
 
   <button onclick="openBookingModal()"
     class="lg:hidden fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 bg-plum text-white pl-4 pr-5 py-3 rounded-full shadow-xl shadow-plum/40 text-xs font-bold uppercase tracking-wide active:scale-90 transition-transform animate-pulse-ring">
@@ -2689,6 +2686,7 @@
 
   <script src="shared/function/address-form.js"></script>
   <script src="shared/function/service-duration.js"></script>
+  <script src="shared/function/toast.js"></script>
   <script src="public/function/main.js?v=header18-20261020-4"></script>
 </body>
 

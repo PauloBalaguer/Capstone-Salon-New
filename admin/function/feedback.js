@@ -29,7 +29,7 @@ function adminFeedbackApp() {
       const store = Alpine.store('admin');
       const result = await store.post('setFeedbackStatus.php', { id: review.id, status });
       if (!result.success) {
-        alert(result.message || 'Failed to update review status.');
+        LMToast.show(result.message || 'Failed to update review status.', 'error');
         return;
       }
       await store.refresh();

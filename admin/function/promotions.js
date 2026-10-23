@@ -88,7 +88,7 @@ function adminPromotionsApp() {
 
     async saveService() {
       if (!Number.isInteger(Number(this.serviceForm.durationMinutes)) || Number(this.serviceForm.durationMinutes) <= 0 || Number(this.serviceForm.durationMinutes) > 2147483647) {
-        alert('Estimated duration must be a positive whole number of minutes.');
+        LMToast.show('Estimated duration must be a positive whole number of minutes.', 'error');
         return;
       }
       const store = Alpine.store('admin');
@@ -107,7 +107,7 @@ function adminPromotionsApp() {
       });
       this.savingService = false;
       if (!result.success) {
-        alert(result.message || 'Failed to save service.');
+        LMToast.show(result.message || 'Failed to save service.', 'error');
         return;
       }
       await store.refresh();
@@ -118,7 +118,7 @@ function adminPromotionsApp() {
       const store = Alpine.store('admin');
       const result = await store.post('toggleService.php', { id: serviceId });
       if (!result.success) {
-        alert(result.message || 'Failed to update service.');
+        LMToast.show(result.message || 'Failed to update service.', 'error');
         return;
       }
       await store.refresh();
@@ -129,7 +129,7 @@ function adminPromotionsApp() {
       const store = Alpine.store('admin');
       const result = await store.post('deleteService.php', { id: service.id });
       if (!result.success) {
-        alert(result.message || 'Failed to delete service.');
+        LMToast.show(result.message || 'Failed to delete service.', 'error');
         return;
       }
       await store.refresh();
@@ -176,7 +176,7 @@ function adminPromotionsApp() {
         active: this.promoForm.active
       });
       if (!result.success) {
-        alert(result.message || 'Failed to save promotion.');
+        LMToast.show(result.message || 'Failed to save promotion.', 'error');
         return;
       }
       await store.refresh();
@@ -187,7 +187,7 @@ function adminPromotionsApp() {
       const store = Alpine.store('admin');
       const result = await store.post('togglePromotion.php', { id: promoId });
       if (!result.success) {
-        alert(result.message || 'Failed to update promotion.');
+        LMToast.show(result.message || 'Failed to update promotion.', 'error');
         return;
       }
       await store.refresh();
@@ -197,7 +197,7 @@ function adminPromotionsApp() {
       const store = Alpine.store('admin');
       const result = await store.post('deletePromotion.php', { id: promoId });
       if (!result.success) {
-        alert(result.message || 'Failed to delete promotion.');
+        LMToast.show(result.message || 'Failed to delete promotion.', 'error');
         return;
       }
       await store.refresh();
@@ -238,7 +238,7 @@ function adminPromotionsApp() {
         active: this.packageForm.active
       });
       if (!result.success) {
-        alert(result.message || 'Failed to save wedding package.');
+        LMToast.show(result.message || 'Failed to save wedding package.', 'error');
         return;
       }
       await store.refresh();
@@ -249,7 +249,7 @@ function adminPromotionsApp() {
       const store = Alpine.store('admin');
       const result = await store.post('toggleWeddingPackage.php', { id: packageId });
       if (!result.success) {
-        alert(result.message || 'Failed to update wedding package.');
+        LMToast.show(result.message || 'Failed to update wedding package.', 'error');
         return;
       }
       await store.refresh();
@@ -259,7 +259,7 @@ function adminPromotionsApp() {
       const store = Alpine.store('admin');
       const result = await store.post('deleteWeddingPackage.php', { id: packageId });
       if (!result.success) {
-        alert(result.message || 'Failed to delete wedding package.');
+        LMToast.show(result.message || 'Failed to delete wedding package.', 'error');
         return;
       }
       await store.refresh();

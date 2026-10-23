@@ -53,29 +53,14 @@
 <script src="../../shared/function/booking-validation.js"></script>
   <link rel="stylesheet" href="../../shared/frontend/responsive-base.css?v=teal-gold-20261021" />
   <link rel="stylesheet" href="../../shared/frontend/portal-colors.css?v=teal-gold-20261021" />
+  <script src="../../shared/function/toast.js"></script>
   <script src="../../shared/function/portal-presentation.js"></script>
 </head>
 <body class="salon-portal bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
 
   <div class="h-1.5 w-full bg-gradient-to-r from-luxury-600 via-gold-500 to-luxury-800 topbar-shine"></div>
-
-  <div class="fixed top-24 right-4 left-4 sm:left-auto z-[9999] sm:w-80 space-y-2" aria-live="polite">
-    <template x-for="toast in toasts" :key="toast.id">
-      <div x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-6"
-           x-transition:enter-end="opacity-100 translate-x-0" x-transition:leave="transition ease-in duration-200"
-           x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-           :class="{
-             'border-[#86EFAC] bg-[#F0FDF4] text-[#14532D]': toast.type === 'success',
-             'border-[#FDA4AF] bg-[#FFF1F2] text-[#881337]': toast.type === 'error',
-             'border-[#99D5D6] bg-[#F0FAFA] text-[#06464A]': toast.type === 'info' || toast.type === 'system'
-           }"
-           class="border-2 rounded-xl px-4 py-3 shadow-2xl flex items-start gap-2 text-xs font-semibold">
-        <span x-text="toast.message" class="flex-1 leading-relaxed"></span>
-        <button @click="dismissToast(toast.id)" class="opacity-60 hover:opacity-100 shrink-0 leading-none text-lg" aria-label="Dismiss">&times;</button>
-      </div>
-    </template>
-  </div>
+
 
   <div class="flex h-screen overflow-hidden flex-col md:flex-row">
 

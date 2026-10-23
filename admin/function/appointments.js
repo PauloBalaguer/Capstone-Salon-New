@@ -146,12 +146,12 @@ function adminBookingsApp() {
         ? { id: this.staffAssignBooking.id, staffIds: this.selectedStaffIds }
         : { id: this.staffAssignBooking.id, staffId: this.selectedStaffId });
       if (!result.success) {
-        alert(result.message || 'Failed to assign staff.');
+        LMToast.show(result.message || 'Failed to assign staff.', 'error');
         return;
       }
       await store.refresh();
       this.openStaffAssignModal = false;
-      if (isHome && result.message) alert(result.message);
+      if (isHome && result.message) LMToast.show(result.message, 'success');
     },
 
     // A cancelled booking whose deposit is 'Refund Due' (cancellation policy).
@@ -176,7 +176,7 @@ function adminBookingsApp() {
       }
       const store = Alpine.store('admin');
       const result = await store.post('refundDeposit.php', { reference: booking.id });
-      alert(result.message || (result.success ? 'Done.' : 'Failed to refund the deposit.'));
+      LMToast.show(result.message || (result.success ? 'Done.' : 'Failed to refund the deposit.'), result.success ? 'success' : 'error');
       if (result.success) await store.refresh();
     },
 
@@ -190,7 +190,7 @@ function adminBookingsApp() {
         `Mark this booking ${newStatus}? Confirm the customer is absent before choosing No-Show; an arrived-but-late customer should use Review Arrival instead. The existing non-refundable deposit policy applies only if you confirm this closure.`)) return;
       const result = await store.post('updateBookingStatus.php', { id, status: newStatus });
       if (!result.success) {
-        alert(result.message || 'Failed to update booking status.');
+        LMToast.show(result.message || 'Failed to update booking status.', 'error');
         return;
       }
       await store.refresh();
@@ -231,7 +231,7 @@ function adminBookingsApp() {
             depositMethod: this.depositMethod
           });
       if (!result.success) {
-        alert(result.message || 'Failed to confirm booking.');
+        LMToast.show(result.message || 'Failed to confirm booking.', 'error');
         return;
       }
       await store.refresh();
@@ -256,13 +256,13 @@ function adminBookingsApp() {
         reservationFee: this.reservationFee || 0
       });
       if (!result.success) {
-        alert(result.message || 'Failed to save quote.');
+        LMToast.show(result.message || 'Failed to save quote.', 'error');
         return;
       }
       await store.refresh();
       this.openHomeServiceQuoteModal = false;
       // Tells the admin whether a PayMongo link went out (or why not).
-      if (result.message) alert(result.message);
+      if (result.message) LMToast.show(result.message, 'info');
     },
 
     /* ---- Home service remaining balance (admin/backend/homeServiceBalance.php) ---- */
@@ -291,7 +291,7 @@ function adminBookingsApp() {
         id: booking.id, action: 'collect', amount: this.collectBalanceAmount,
         method: this.collectBalanceMethod, reference: this.collectBalanceReference
       });
-      alert(result.message || (result.success ? 'Payment recorded.' : 'Failed to record the payment.'));
+      LMToast.show(result.message || (result.success ? 'Payment recorded.' : 'Failed to record the payment.'), result.success ? 'success' : 'error');
       if (!result.success) return;
       this.collectBalanceBooking = null;
       await store.refresh();
@@ -310,7 +310,7 @@ function adminBookingsApp() {
       if (!confirm(`Send ${booking.clientName} a PayMongo link to pay the remaining ${amount} online?`)) return;
       const store = Alpine.store('admin');
       const result = await store.post('homeServiceBalance.php', { id: booking.id, action: 'sendLink' });
-      alert(result.message || (result.success ? 'Link sent.' : 'Failed to send the link.'));
+      LMToast.show(result.message || (result.success ? 'Link sent.' : 'Failed to send the link.'), result.success ? 'success' : 'error');
       if (result.success) await store.refresh();
     },
     async editHomeServiceQuote(booking) {
@@ -318,7 +318,7 @@ function adminBookingsApp() {
       const value = prompt(`Correct the final quote for ${booking.id} (already paid: ${store.formatCurrency(booking.amountPaid)}):`, booking.quotePrice);
       if (value === null) return;
       const result = await store.post('homeServiceBalance.php', { id: booking.id, action: 'editQuote', quotePrice: value.trim() });
-      alert(result.message || (result.success ? 'Quote updated.' : 'Failed to update the quote.'));
+      LMToast.show(result.message || (result.success ? 'Quote updated.' : 'Failed to update the quote.'), result.success ? 'success' : 'error');
       if (result.success) await store.refresh();
     },
 
@@ -333,7 +333,7 @@ function adminBookingsApp() {
       const store = Alpine.store('admin');
       const result = await store.post('setHomeServiceQuote.php', { id: booking.id, action: 'requestScheduleChange', note });
       if (!result.success) {
-        alert(result.message || 'Failed to notify the customer.');
+        LMToast.show(result.message || 'Failed to notify the customer.', 'error');
         return;
       }
       await store.refresh();
@@ -349,7 +349,7 @@ function adminBookingsApp() {
       if (!this.checkoutBooking) return;
       const result = await store.post('completeCheckout.php', { id: this.checkoutBooking.id });
       if (!result.success) {
-        alert(result.message || 'Failed to complete checkout.');
+        LMToast.show(result.message || 'Failed to complete checkout.', 'error');
         return;
       }
       await store.refresh();
@@ -380,7 +380,7 @@ function adminBookingsApp() {
       store.exportRowsToCSV('bookings-export.csv',
         ['Ref ID', 'Branch', 'Client', 'Phone', 'Service', 'Staff', 'Date', 'Start Time', 'End Time', 'Duration (min)', 'Type', 'Status', 'Payment Status', 'Price'],
         rows);
-      } catch (error) { alert(error.message || 'Could not export bookings.'); }
+      } catch (error) { LMToast.show(error.message || 'Could not export bookings.', 'error'); }
       finally { this.exporting = false; }
     }
   };

@@ -2,6 +2,32 @@
 
 function customerAppointmentsMixin() {
   return {
+    appointmentBranchFilter: '',
+    appointmentStatusFilter: '',
+    appointmentDateFrom: '',
+    appointmentDateTo: '',
+    appointmentFilterBranches() {
+      return [...new Set(this.appointments.map(a => a.branchName).filter(Boolean))].sort();
+    },
+    appointmentFilterStatuses() {
+      return [...new Set(this.appointments.map(a => a.status === 'Reviewed' ? 'Completed' : a.status).filter(Boolean))].sort();
+    },
+    hasAppointmentFilters() {
+      return !!((this.appointmentSearchQuery || '').trim() || this.appointmentBranchFilter || this.appointmentStatusFilter || this.appointmentDateFrom || this.appointmentDateTo);
+    },
+    appointmentDateRangeInvalid() {
+      return !!(this.appointmentDateFrom && this.appointmentDateTo && this.appointmentDateFrom > this.appointmentDateTo);
+    },
+    clearAppointmentFilters() {
+      this.appointmentSearchQuery = '';
+      this.appointmentBranchFilter = '';
+      this.appointmentStatusFilter = '';
+      this.appointmentDateFrom = '';
+      this.appointmentDateTo = '';
+    },
+    getRecentAppointments() {
+      return [...this.appointments].sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || ''))).slice(0, 5);
+    },
     appointmentScheduleLabel(appt) {
       const date = new Date(appt.date + 'T00:00:00+08:00');
       if (Number.isNaN(date.getTime())) return [appt.date, appt.time].filter(Boolean).join(' · ');
@@ -16,6 +42,11 @@ function customerAppointmentsMixin() {
       return appt.paymentStatus;
     },
     matchesAppointmentSearch(appt) {
+      if (this.appointmentDateRangeInvalid()) return false;
+      if (this.appointmentBranchFilter && appt.branchName !== this.appointmentBranchFilter) return false;
+      if (this.appointmentStatusFilter && (appt.status === 'Reviewed' ? 'Completed' : appt.status) !== this.appointmentStatusFilter) return false;
+      if (this.appointmentDateFrom && appt.date < this.appointmentDateFrom) return false;
+      if (this.appointmentDateTo && appt.date > this.appointmentDateTo) return false;
       const query = (this.appointmentSearchQuery || '').toLowerCase().trim();
       return [appt.id, appt.serviceName, appt.branchName, appt.staffName]
         .some(value => String(value || '').toLowerCase().includes(query));
@@ -28,7 +59,7 @@ function customerAppointmentsMixin() {
         // leaving them out hid them from both Upcoming and History.
         return apptDateTime >= now && ['Pending', 'Confirmed', 'In Progress', 'Reschedule Requested', 'Reschedule Required'].includes(appt.status)
           && this.matchesAppointmentSearch(appt);
-      }).sort((a, b) => parseApptDateTime(a.date, a.time) - parseApptDateTime(b.date, b.time));
+      }).sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
     },
 
     getPastAppointments() {
@@ -38,15 +69,13 @@ function customerAppointmentsMixin() {
         return apptDateTime < now || ['Completed', 'Cancelled', 'Reviewed'].includes(appt.status);
       });
 
-      if (this.appointmentSearchQuery.trim() !== '') {
-        past = past.filter(appt => this.matchesAppointmentSearch(appt));
-      }
+      past = past.filter(appt => this.matchesAppointmentSearch(appt));
 
-      return past.sort((a, b) => parseApptDateTime(b.date, b.time) - parseApptDateTime(a.date, a.time));
+      return past.sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
     },
 
     getNextAppointment() {
-      return this.getUpcomingAppointments()[0] || null;
+      return this.getUpcomingAppointments().sort((a, b) => parseApptDateTime(a.date, a.time) - parseApptDateTime(b.date, b.time))[0] || null;
     },
 
     // Asks the backend what the cancellation policy would do to this

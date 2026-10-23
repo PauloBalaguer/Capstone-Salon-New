@@ -403,15 +403,18 @@ try {
     }, $stmt->fetchAll());
 
     $stmt = $pdo->prepare("
-        SELECT id, type, message, DATE_FORMAT(created_at, '%Y-%m-%d %h:%i %p') AS time
-        FROM notifications
-        WHERE user_id IS NULL OR user_id = ?
-        ORDER BY created_at DESC
+        SELECT n.id, n.type, n.message, DATE_FORMAT(n.created_at, '%Y-%m-%d %h:%i %p') AS time,
+            DATE_FORMAT(n.created_at, '%Y-%m-%dT%H:%i:%s+08:00') AS createdAt,
+            EXISTS(SELECT 1 FROM admin_notification_reads r WHERE r.user_id = ? AND r.notification_id = n.id) AS isRead
+        FROM notifications n
+        WHERE n.user_id IS NULL OR n.user_id = ?
+        ORDER BY n.created_at DESC, n.id DESC
         LIMIT 30
     ");
-    $stmt->execute([$userId]);
+    $stmt->execute([$userId, $userId]);
     $notifications = array_map(function ($row) {
         $row['id'] = (string) $row['id'];
+        $row['isRead'] = (bool) $row['isRead'];
         return $row;
     }, $stmt->fetchAll());
 

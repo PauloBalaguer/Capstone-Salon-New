@@ -22,6 +22,22 @@ document.addEventListener('alpine:init', () => {
     weddingPackages: [],
     feedback: [],
     notifications: [],
+    notificationsReadBusy: false,
+    notificationReadError: '',
+    unreadNotifications() { return this.notifications.filter(n => !n.isRead).length; },
+    async markAllNotificationsAsRead() {
+      if (this.notificationsReadBusy || !this.unreadNotifications()) return;
+      const through = Math.max(...this.notifications.map(n => Number(n.id)));
+      this.notificationsReadBusy = true;
+      this.notificationReadError = '';
+      try {
+        const result = await this.post('markNotificationsRead.php', {through});
+        if (!result.success) throw new Error('Read update failed');
+        this.notifications.forEach(n => { if (Number(n.id) <= through) n.isRead = true; });
+      } catch {
+        this.notificationReadError = 'Could not update. Try again.';
+      } finally { this.notificationsReadBusy = false; }
+    },
     notificationPrefs: { bookingAlerts: true, inventoryAlerts: true, orderAlerts: true, marketingAlerts: false },
     customerDirectory: [],
     adminProfile: { name: '', email: '', role: '' },

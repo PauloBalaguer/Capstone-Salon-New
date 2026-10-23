@@ -130,7 +130,7 @@ main table thead.bg-slate-950 { background-color: var(--admin-warm-surface) !imp
 :not(aside *):not(#mobile-hero-card *):is(.text-emerald-200, .text-teal-400) { color: var(--admin-dark-teal) !important; }
 :not(aside *):not(#mobile-hero-card *):is(.text-rose-200, .text-rose-300, .text-rose-400) { color: #B91C1C !important; }
 :not(aside *):not(#mobile-hero-card *):is(.text-amber-300, .text-amber-400):not(svg) { color: #B45309 !important; }
-:not(aside *):not(#mobile-hero-card *).text-indigo-400 { color: #4338CA !important; }
+:not(aside *):not(#mobile-hero-card *).text-indigo-400 { color: #06464A !important; }
 :not(aside *)[class*="hover:text-rose-3"]:hover { color: #991B1B !important; }
 
 /* --- Chips, icon tiles & toasts: pastel fill + dark text ---------------- */

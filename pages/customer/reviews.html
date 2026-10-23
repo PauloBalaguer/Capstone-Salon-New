@@ -15,15 +15,15 @@
         extend: {
           colors: {
             luxury: {
-              50: "#faf5ff",
-              100: "#f3e8ff",
-              200: "#e9d5ff",
-              500: "#a855f7",
-              600: "#9333ea",
-              700: "#7e22ce",
-              800: "#6b21a8",
-              900: "#581c87",
-              950: "#1e112c",
+              50: "#F4FBFA",
+              100: "#E5F2F0",
+              200: "#C7E0DD",
+              500: "#006D6F",
+              600: "#006D6F",
+              700: "#06464A",
+              800: "#06464A",
+              900: "#06464A",
+              950: "#FFF8EE",
             },
             gold: {
               100: "#fef08a",
@@ -48,16 +48,16 @@
     }
 
     ::-webkit-scrollbar-track {
-      background: #1e112c;
+      background: #FFF8EE;
     }
 
     ::-webkit-scrollbar-thumb {
-      background: #7e22ce;
+      background: #006D6F;
       border-radius: 4px;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-      background: #9333ea;
+      background: #06464A;
     }
 
     @keyframes fadeUp {
@@ -88,9 +88,9 @@
 
     .skeleton {
       background: linear-gradient(90deg,
-          #1e112c 25%,
-          #2a1740 37%,
-          #1e112c 63%);
+          #FFF8EE 25%,
+          #E8DCC8 37%,
+          #FFF8EE 63%);
       background-size: 400% 100%;
       animation: shimmer 1.4s ease infinite;
     }
@@ -135,13 +135,14 @@
 
     .card-lift:hover {
       transform: translateY(-3px);
-      box-shadow: 0 12px 24px -8px rgba(126, 34, 206, 0.35);
+      box-shadow: 0 12px 24px -8px rgba(0, 109, 111, 0.35);
     }
   </style>
-  <link rel="stylesheet" href="../../assets/css/customer-theme.css?v=balanced-type-20261020-1">
+  <link rel="stylesheet" href="../../assets/css/customer-theme.css?v=teal-gold-20261021">
   <script src="../../assets/js/customer/theme-config.js"></script>
-  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=balanced-type-20261020-1" />
-  <link rel="stylesheet" href="../../assets/css/portal-colors.css?v=balanced-type-20261020-1" />
+  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=teal-gold-20261021" />
+  <link rel="stylesheet" href="../../assets/css/portal-colors.css?v=teal-gold-20261021" />
+  <script src="../../assets/js/portal-presentation.js"></script>
 </head>
 
 <body
@@ -344,10 +345,12 @@
                   </div>
                   <div class="notification-copy">
                     <div class="notification-title-row"><p class="notification-title" x-text="notificationDetails(notif).title"></p><span x-show="!notif.read" class="notification-dot" aria-label="Unread"></span></div>
-                    <p class="notification-summary" x-text="notificationDetails(notif).summary"></p>
+                    <p class="notification-summary" x-show="notificationDetails(notif).summary" x-text="notificationDetails(notif).summary"></p>
+                    <span class="notification-state-badge" x-show="notificationDetails(notif).status" x-text="notificationDetails(notif).status"></span>
                     <p class="notification-service" x-show="notificationDetails(notif).service" x-text="notificationDetails(notif).service"></p>
+                    <p class="notification-branch" x-show="notificationDetails(notif).branch" x-text="notificationDetails(notif).branch"></p>
                     <p class="notification-schedule" x-show="notificationDetails(notif).schedule" x-text="notificationDetails(notif).schedule"></p>
-                    <time class="notification-time" :datetime="notif.createdAt || ''" :title="notif.time" x-text="notificationTime(notif)"></time>
+                    <time class="notification-time" :datetime="notif.createdAt || ''" :title="notif.time" x-text="'Received ' + notificationTime(notif)"></time>
                   </div>
                 </article>
               </template>

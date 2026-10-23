@@ -21,6 +21,16 @@ function customerHomeServiceMixin() {
       const original = this.homeServiceDetails(request).originalPrice;
       return original !== null && request.quotePrice != null && Math.abs(Number(request.quotePrice) - original) > .01;
     },
+    homeServiceDate(request) {
+      if (!request.preferredDate) return 'Not scheduled';
+      const date = new Date(request.preferredDate + 'T00:00:00+08:00');
+      return Number.isNaN(date.getTime()) ? request.preferredDate : new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric' }).format(date);
+    },
+    homeServiceTime(request) {
+      if (!request.preferredTime) return 'Not set';
+      const date = new Date('2000-01-01T' + request.preferredTime + '+08:00');
+      return Number.isNaN(date.getTime()) ? request.preferredTime : new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Manila', hour: 'numeric', minute: '2-digit' }).format(date);
+    },
     homeServiceSchedule(request) {
       if (!request.preferredDate) return 'Not scheduled';
       const date = new Date(request.preferredDate + 'T' + (request.preferredTime || '00:00:00') + '+08:00');

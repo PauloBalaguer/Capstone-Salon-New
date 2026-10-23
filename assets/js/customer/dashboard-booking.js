@@ -129,7 +129,16 @@ function customerBookingMixin() {
       return this.slotsReady && !this.slotsLoading && !this.slotsError && this.slotAvailabilityMap[slot] === true;
     },
     canContinueSchedule() {
-      return !!(this.bookingForm.date && this.bookingForm.time && this.selectedServicesForBooking.length && !this.staffAvailabilityLoading && this.isSlotAvailableNow(this.bookingForm.time));
+      return !!(this.bookingForm.date && this.bookingForm.time && this.selectedServicesForBooking.length && !this.staffAvailabilityLoading && !this.staffAvailabilityError && this.liveAvailableStaff.length && (!this.bookingForm.staffId || this.liveAvailableStaff.some(s => String(s.id) === String(this.bookingForm.staffId))) && this.isSlotAvailableNow(this.bookingForm.time));
+    },
+    scheduleContinueHint() {
+      if (this.slotsLoading) return 'Checking available times...';
+      if (this.slotsError) return 'Retry the time check to continue.';
+      if (!this.bookingForm.time) return 'Select a time to see available stylists.';
+      if (this.staffAvailabilityLoading) return 'Checking available stylists...';
+      if (this.staffAvailabilityError) return 'Retry the stylist check to continue.';
+      if (!this.liveAvailableStaff.length) return 'No stylist is free. Choose another time.';
+      return '';
     },
     scrollBookingToTop() {
       this.$nextTick(() => { const main = document.querySelector('.services-page main'); if (main) main.scrollTop = 0; });
@@ -195,18 +204,16 @@ function customerBookingMixin() {
     // preview of Scheduling::branchWindowIsFull()/staffHasConflict()) before
     // the customer ever reaches the payment step.
     bookingStepOrder() {
-      return this.getAvailableStaffForBranch().length > 0
-        ? ['schedule', 'stylist', 'review', 'payment', 'notifications', 'terms']
-        : ['schedule', 'review', 'payment', 'notifications', 'terms'];
+      return ['schedule', 'review', 'payment', 'notifications', 'terms'];
     },
     bookingStepTitle(step) {
       const titles = {
         schedule: 'Choose Your Schedule',
         stylist: 'Choose Your Stylist',
-        review: 'Review Your Appointment',
-        payment: 'Secure Your Appointment — Reservation Payment',
+        review: 'Review Booking',
+        payment: 'Payment',
         notifications: 'Choose How to Receive Updates',
-        terms: 'Review Terms & Conditions'
+        terms: 'Review & Confirm'
       };
       return titles[step] || '';
     },
@@ -219,32 +226,21 @@ function customerBookingMixin() {
       if (!this.bookingForm.date || !this.bookingForm.time) {
         return this.pushToast('error', 'Please select a date and time for your appointment.');
       }
-      if (this.slotsLoading) return;
+      if (this.slotsLoading || this.staffAvailabilityLoading) return;
+      const preferredStaff = this.bookingForm.staffId;
       if (!await this.refreshAvailableSlots()) return;
       if (!this.isSlotAvailableNow(this.bookingForm.time)) {
         this.bookingForm.time = '';
         return this.pushToast('error', 'Selected time slot is unavailable. Please choose another schedule.');
       }
       if (!await this.refreshAvailableStaff()) return this.pushToast('error', this.staffAvailabilityError);
+      if (preferredStaff && !this.bookingForm.staffId) return this.pushToast('error', 'Your selected stylist is no longer available. Please choose another stylist.');
       if (!this.liveAvailableStaff.length) {
         this.bookingForm.time = '';
         return this.pushToast('error', 'No qualified stylist is available. Please choose another schedule.');
       }
-      this.bookingStep = 'stylist';
-    },
-    async proceedFromStylist() {
-      if (this.staffAvailabilityLoading) return;
-      const preferredStaff = this.bookingForm.staffId;
-      if (!await this.refreshAvailableStaff()) return;
-      if (preferredStaff && !this.bookingForm.staffId) return this.pushToast('error', 'Your selected stylist is no longer available. Please choose another stylist.');
-      if (!this.liveAvailableStaff.length) { this.bookingStep = 'schedule'; this.bookingForm.time = ''; return this.pushToast('error', 'Selected time slot is unavailable. Please choose another schedule.'); }
-      // The chosen date/time might have just become unavailable for this
-      // stylist while the customer was deciding — re-check before moving on.
-      if (!this.isSlotAvailableNow(this.bookingForm.time)) {
-        this.bookingForm.staffId = '';
-        return this.pushToast('error', 'That schedule is no longer available for the selected stylist. Please choose another.');
-      }
       this.bookingStep = 'review';
+      await this.loadReservationQuote();
     },
     async proceedFromReview() {
       if (!BookingFormValidation.fields([['[x-model="bookingForm.customerName"]', 'name'], ['[x-model="bookingForm.customerPhone"]', 'mobile']])) return;
@@ -278,7 +274,7 @@ function customerBookingMixin() {
     bookingProgressIndex() {
       if (this.showBookingSuccess) return 5;
       if (!this.showBookingForm) return this.selectedServicesForBooking.length > 0 ? 1 : 0;
-      const map = { schedule: 2, stylist: 3, review: 3, payment: 4, notifications: 4, terms: 4 };
+      const map = { schedule: 2, stylist: 3, review: 3, payment: 4, notifications: 4, terms: 5 };
       return map[this.bookingStep] ?? 2;
     },
 
@@ -447,8 +443,30 @@ function customerBookingMixin() {
         if (request === this.staffAvailabilityRequest) this.staffAvailabilityLoading = false;
       }
     },
+    clearScheduleStaff() {
+      this.staffAvailabilityRequest++;
+      this.bookingForm.staffId = '';
+      this.waitlistStaffId = '';
+      this.liveAvailableStaff = [];
+      this.liveBusyStaff = [];
+      this.staffAvailabilityLoading = false;
+      this.staffAvailabilityError = '';
+    },
+    selectScheduleTime(slot) {
+      this.clearScheduleStaff();
+      this.bookingForm.time = slot;
+      return this.refreshAvailableStaff();
+    },
     getAvailableStaffForBranch() { return this.liveAvailableStaff; },
     getBusyStaffForBranch() { return this.liveBusyStaff; },
+    getStylistOptions() {
+      return [...this.liveAvailableStaff, ...this.liveBusyStaff].sort((a, b) => a.name.localeCompare(b.name));
+    },
+    notifyStylistOpening(staff) {
+      if (staff.available || this.isJoiningWaitlist) return;
+      this.waitlistStaffId = staff.id;
+      return this.joinStylistWaitlist();
+    },
 
     waitlistStaffId: '',
     isJoiningWaitlist: false,

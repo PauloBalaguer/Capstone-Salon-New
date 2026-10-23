@@ -34,7 +34,7 @@ tailwind.config = {
           600: '#9F9586',
           700: '#BEB09A',
           800: '#E8DCC8',
-          850: '#F3E9D6',
+          850: '#E8DCC8',
           900: '#FFFDF9',
           950: '#FFF8EE'
         },

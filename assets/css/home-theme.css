@@ -53,7 +53,7 @@
   --c-panel: 255 253 249;
   --c-plum: 0 109 111;
   --c-sand-100: 255 248 238;
-  --c-sand-200: 243 233 214;
+  --c-sand-200: 232 220 200;
   --shimmer-mid: #E8DCC8;
   color-scheme: light;
 }
@@ -428,15 +428,14 @@ html { scroll-behavior: smooth; }
   .brand-tagline{font-size:1rem;}
 }
 
-/* Use the available desktop width instead of leaving large side margins. */
+/* Use the full desktop width with a wide, even gutter on both sides. */
 @media (min-width: 1024px){
-  .max-w-7xl{max-width:1800px !important;}
-  #siteHeader > div{padding-left:24px !important;padding-right:24px !important;}
-  .hero-revised > div{padding-left:24px !important;padding-right:24px !important;gap:32px !important;}
+  .max-w-7xl{max-width:none !important;padding-left:clamp(24px,4vw,80px) !important;padding-right:clamp(24px,4vw,80px) !important;}
+  #siteHeader > div{padding-left:clamp(24px,4vw,80px) !important;padding-right:clamp(24px,4vw,80px) !important;}
+  .hero-revised > div{gap:32px !important;}
 }
 @media (min-width: 1440px){
-  #siteHeader > div{padding-left:32px !important;padding-right:32px !important;}
-  .hero-revised > div{padding-left:32px !important;padding-right:32px !important;gap:40px !important;}
+  .hero-revised > div{gap:40px !important;}
 }
 
 /* Landing page typography matches the role portals. */
@@ -517,7 +516,7 @@ button, input:not([type="checkbox"]):not([type="radio"]), select { min-height: 2
 @media (min-width: 1536px) {
   #siteHeader > div {
     max-width: none !important;
-    padding-inline: 1rem !important;
+    padding-inline: clamp(24px,4vw,80px) !important;
     gap: .75rem;
     flex-wrap: nowrap;
   }
@@ -545,7 +544,7 @@ button, input:not([type="checkbox"]):not([type="radio"]), select { min-height: 2
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-rows: 4.5rem 3rem;
     gap: 0 1rem;
-    padding-inline: 1rem !important;
+    padding-inline: clamp(24px,4vw,80px) !important;
   }
   #siteHeader > div > nav {
     display: flex;

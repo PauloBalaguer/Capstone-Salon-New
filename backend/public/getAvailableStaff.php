@@ -73,7 +73,7 @@ try {
 
     $servicePlaceholders = implode(',', array_fill(0, count($serviceIds), '?'));
     $stmt = $pdo->prepare("
-        SELECT e.id, e.first_name, e.last_name, e.position
+        SELECT e.id, e.first_name, e.last_name, e.position, e.shift_status
         FROM employees e
         WHERE e.branch_id = ? AND e.is_active = 1
           AND (SELECT COUNT(DISTINCT service_id) FROM staff_services WHERE employee_id = e.id AND service_id IN ($servicePlaceholders)) = ?
@@ -104,14 +104,17 @@ try {
             'id' => (string) $candidate['id'],
             'name' => trim($candidate['first_name'] . ' ' . $candidate['last_name']),
             'role' => $candidate['position'] ?: '',
+            'currentShift' => $candidate['shift_status'],
         ];
-        if (!Scheduling::staffHasConflict($pdo, (int) $candidate['id'], $appointmentDateTime, $durationMinutes)) {
+        $busyUntil = Scheduling::staffConflictUntil($pdo, (int) $candidate['id'], $appointmentDateTime, $durationMinutes);
+        if ($busyUntil === null) {
             $entry['available'] = true;
             $entry['status'] = 'Available';
             $staff[] = $entry;
         } else {
             $entry['available'] = false;
             $entry['status'] = 'Busy';
+            $entry['busyUntil'] = $busyUntil->format('h:i A');
             $busy[] = $entry;
         }
     }

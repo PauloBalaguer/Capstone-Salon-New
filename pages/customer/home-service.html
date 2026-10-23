@@ -14,8 +14,8 @@
         extend: {
           colors: {
             luxury: {
-              50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff', 500: '#a855f7',
-              600: '#9333ea', 700: '#7e22ce', 800: '#6b21a8', 900: '#581c87', 950: '#1e112c',
+              50: '#F4FBFA', 100: '#E5F2F0', 200: '#C7E0DD', 500: '#006D6F',
+              600: '#006D6F', 700: '#06464A', 800: '#06464A', 900: '#06464A', 950: '#FFF8EE',
             },
             gold: {
               100: '#fef08a', 400: '#facc15', 500: '#eab308', 600: '#ca8a04',
@@ -29,15 +29,15 @@
   <style>
     [x-cloak] { display: none !important; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #1e112c; }
-    ::-webkit-scrollbar-thumb { background: #7e22ce; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #9333ea; }
+    ::-webkit-scrollbar-track { background: #FFF8EE; }
+    ::-webkit-scrollbar-thumb { background: #006D6F; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #06464A; }
 
     @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     .stagger-item { animation: fadeUp .45s cubic-bezier(.16,1,.3,1) both; }
 
     @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-    .skeleton { background: linear-gradient(90deg, #1e112c 25%, #2a1740 37%, #1e112c 63%); background-size: 400% 100%; animation: shimmer 1.4s ease infinite; }
+    .skeleton { background: linear-gradient(90deg, #FFF8EE 25%, #E8DCC8 37%, #FFF8EE 63%); background-size: 400% 100%; animation: shimmer 1.4s ease infinite; }
 
     @keyframes gentlePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
     .pulse-badge { animation: gentlePulse 1.6s ease-in-out infinite; }
@@ -46,13 +46,14 @@
     .topbar-shine { background-size: 200% 100%; animation: topbarShine 7s linear infinite; }
 
     .card-lift { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
-    .card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(126, 34, 206, 0.35); }
+    .card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(0, 109, 111, 0.35); }
   </style>
-  <link rel="stylesheet" href="../../assets/css/customer-theme.css?v=balanced-type-20261020-1">
+  <link rel="stylesheet" href="../../assets/css/customer-theme.css?v=teal-gold-20261021">
   <script src="../../assets/js/customer/theme-config.js"></script>
 <script src="../../assets/js/booking-validation.js"></script>
-  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=balanced-type-20261020-1" />
-  <link rel="stylesheet" href="../../assets/css/portal-colors.css?v=balanced-type-20261020-1" />
+  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=teal-gold-20261021" />
+  <link rel="stylesheet" href="../../assets/css/portal-colors.css?v=teal-gold-20261021" />
+  <script src="../../assets/js/portal-presentation.js"></script>
 </head>
 <body class="salon-portal bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
@@ -194,10 +195,12 @@
                   </div>
                   <div class="notification-copy">
                     <div class="notification-title-row"><p class="notification-title" x-text="notificationDetails(notif).title"></p><span x-show="!notif.read" class="notification-dot" aria-label="Unread"></span></div>
-                    <p class="notification-summary" x-text="notificationDetails(notif).summary"></p>
+                    <p class="notification-summary" x-show="notificationDetails(notif).summary" x-text="notificationDetails(notif).summary"></p>
+                    <span class="notification-state-badge" x-show="notificationDetails(notif).status" x-text="notificationDetails(notif).status"></span>
                     <p class="notification-service" x-show="notificationDetails(notif).service" x-text="notificationDetails(notif).service"></p>
+                    <p class="notification-branch" x-show="notificationDetails(notif).branch" x-text="notificationDetails(notif).branch"></p>
                     <p class="notification-schedule" x-show="notificationDetails(notif).schedule" x-text="notificationDetails(notif).schedule"></p>
-                    <time class="notification-time" :datetime="notif.createdAt || ''" :title="notif.time" x-text="notificationTime(notif)"></time>
+                    <time class="notification-time" :datetime="notif.createdAt || ''" :title="notif.time" x-text="'Received ' + notificationTime(notif)"></time>
                   </div>
                 </article>
               </template>
@@ -232,7 +235,7 @@
           <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
             <h3 class="font-serif text-base font-bold text-white">Your Home Service Requests</h3>
             <button @click="openHomeServiceModal()" class="w-full sm:w-auto text-center bg-gradient-to-r from-gold-500 to-gold-600 text-slate-900 font-semibold text-xs px-4 py-2 rounded-lg hover:shadow-lg hover:shadow-gold-500/20 transition active:scale-95">
-              + Request New Home Service
+              + New Request
             </button>
           </div>
 
@@ -254,12 +257,13 @@
                 </div>
                 <dl class="home-request-fields text-xs border-t border-slate-800 pt-3">
                   <div x-show="request.weddingPackage"><dt>Package</dt><dd x-text="'Package ' + request.weddingPackage"></dd></div>
-                  <div><dt x-text="['Confirmed','Staff Assigned','Service in Progress','Completed'].includes(request.status) ? 'Event schedule' : 'Preferred schedule'"></dt><dd x-text="homeServiceSchedule(request)"></dd></div>
+                  <div><dt>Date</dt><dd x-text="homeServiceDate(request)"></dd></div>
+                  <div><dt>Time (PH)</dt><dd x-text="homeServiceTime(request)"></dd></div>
                   <div x-show="homeServiceDetails(request).clients"><dt>Clients</dt><dd x-text="homeServiceDetails(request).clients"></dd></div>
                 </dl>
-                <p x-show="homeServiceFutureCompleted(request)" class="text-xs rounded-lg p-3 bg-[#FEF3C7] text-[#78350F]">This booking is marked completed before its scheduled event. Please contact the branch to confirm the record.</p>
+                <p x-show="homeServiceFutureCompleted(request)" class="text-xs rounded-lg p-3 bg-[#FEF3C7] text-[#78350F]">Please contact the branch to check this booking’s status.</p>
                 <details class="home-request-details border border-slate-700 rounded-lg p-3 text-xs">
-                  <summary class="font-bold cursor-pointer">Request details</summary>
+                  <summary class="font-bold cursor-pointer">View details</summary>
                   <dl class="home-request-fields mt-3">
                     <div><dt>Submitted</dt><dd x-text="formatApptDateLong(request.submittedDate)"></dd></div>
                     <div x-show="homeServiceDetails(request).services"><dt>Services</dt><dd x-text="homeServiceDetails(request).services"></dd></div>
@@ -270,13 +274,13 @@
                 <section class="rounded-lg bg-slate-800 p-3 text-xs space-y-3" aria-label="Current quote and payments">
                   <h4 class="font-bold">Payment summary</h4>
                   <dl class="home-request-fields">
-                    <div><dt>Current quote</dt><dd class="font-bold" x-text="request.quotePrice != null ? formatPeso(request.quotePrice) : 'Awaiting quote'"></dd></div>
-                    <div><dt>Amount paid</dt><dd x-text="formatPeso(request.amountPaid || 0)"></dd></div>
-                    <div x-show="request.quotePrice != null && request.status !== 'Cancelled'"><dt>Remaining balance</dt><dd class="font-bold" x-text="formatPeso(request.balanceDue || 0)"></dd></div>
-                    <div x-show="request.paymentMethod"><dt>Deposit method</dt><dd x-text="request.paymentMethod"></dd></div>
+                    <div><dt>Quoted total</dt><dd class="font-bold" x-text="request.quotePrice != null ? formatPeso(request.quotePrice) : 'Awaiting quote'"></dd></div>
+                    <div><dt>Paid</dt><dd x-text="formatPeso(request.amountPaid || 0)"></dd></div>
+                    <div x-show="request.quotePrice != null && request.status !== 'Cancelled'"><dt>Balance</dt><dd class="font-bold" x-text="formatPeso(request.balanceDue || 0)"></dd></div>
+                    <div x-show="request.paymentMethod"><dt>Method</dt><dd x-text="request.paymentMethod"></dd></div>
                     <div><dt>Payment status</dt><dd x-text="homeServicePaymentLabel(request)"></dd></div>
                   </dl>
-                  <p x-show="homeServiceQuoteChanged(request)" class="text-xs text-amber-800" x-text="'The current quote differs from the original package estimate of ' + formatPeso(homeServiceDetails(request).originalPrice) + '. Please confirm the quote with the branch if this is unexpected.'"></p>
+                  <p x-show="homeServiceQuoteChanged(request)" class="text-xs text-amber-800" x-text="'Quote changed from ' + formatPeso(homeServiceDetails(request).originalPrice) + ' to ' + formatPeso(request.quotePrice) + '. Please confirm with the branch.'"></p>
                 </section>
                 <!-- Reservation fee (down payment) set with the quote, paid online through PayMongo. -->
                 <div x-show="request.status === 'Payment Required' && request.depositAmount && !request.paymentMethod" class="rounded-xl p-3 bg-[#FEF3C7] border border-[#FCD34D] text-[#78350F] text-xs space-y-2">
@@ -290,7 +294,7 @@
                      :class="request.balanceDue > 0 ? 'bg-[#FEF3C7] border-[#FCD34D] text-[#78350F]' : 'bg-[#DCFCE7] border-[#86EFAC] text-[#166534]'">
                   <a x-show="request.balancePayUrl" :href="request.balancePayUrl" class="inline-flex items-center justify-center w-full rounded-lg bg-[#006D6F] hover:bg-[#06464A] text-white font-bold py-2 transition"
                      x-text="'Pay ' + formatPeso(request.balanceDue) + ' now (GCash, Maya or card)'"></a>
-                  <p x-show="request.balanceDue > 0 && !request.balancePayUrl" class="text-xs">Pay the remaining balance at the branch. If an online payment link is available, it will appear here.</p>
+                  <p x-show="request.balanceDue > 0 && !request.balancePayUrl" class="text-xs">Pay the balance at the branch.</p>
                 </div>
                 <!-- Online reschedule -->
                 <div x-show="!['Completed', 'Cancelled'].includes(request.status)" class="pt-3 border-t border-slate-800 text-xs space-y-2">
@@ -351,29 +355,29 @@
       </div>
 
       <form @submit.prevent="submitHomeServiceRequest()" @change.debounce.250ms="refreshEventAvailability()" class="space-y-4 text-xs min-h-0 overflow-y-auto overscroll-contain pr-3 pb-1">
-        <p class="text-slate-400">Please provide the details for your home service request. Our team will review it and contact you to confirm availability, pricing, staff, and any required payment.</p>
+        <p class="text-slate-400">Send your details. We’ll review your request and send a quote.</p>
 
         <section aria-label="Contact details from your profile" class="rounded-xl bg-slate-800 border border-slate-700 p-4 space-y-2 break-words">
-          <h4 class="font-bold text-white text-sm">Your contact details</h4>
-          <dl class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-            <div><dt class="text-slate-400">Full Name</dt><dd class="text-white" x-text="customerProfile.name || 'Not saved in your profile'"></dd></div>
-            <div><dt class="text-slate-400">Email Address</dt><dd class="text-white break-all" x-text="customerProfile.email || 'Not saved in your profile'"></dd></div>
-            <div><dt class="text-slate-400">Mobile Number</dt><dd class="text-white" x-text="customerProfile.phone || 'Not saved in your profile'"></dd></div>
+          <h4 class="font-bold text-white text-sm">Contact details</h4>
+          <dl class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div><dt class="font-bold text-slate-400">Name</dt><dd class="text-white" x-text="customerProfile.name || 'Not saved'"></dd></div>
+            <div><dt class="font-bold text-slate-400">Email</dt><dd class="text-white break-all" x-text="customerProfile.email || 'Not saved'"></dd></div>
+            <div><dt class="font-bold text-slate-400">Mobile</dt><dd class="text-white" x-text="customerProfile.phone || 'Not saved'"></dd></div>
           </dl>
-          <p class="text-slate-300">We use your account details for this request. You do not need to type them again.</p>
-          <a href="profile.html" class="inline-block py-2 text-gold-400 underline">Update my profile details</a>
+
+          <a href="profile.html" class="inline-block py-2 text-gold-400 underline">Edit profile</a>
         </section>
         <p x-show="homeServiceError" x-text="homeServiceError" role="alert" class="text-rose-200 bg-rose-950 rounded-lg p-3"></p>
 
         <div>
-          <label class="block text-slate-400 mb-1">Venue Address</label>
+          <label class="block font-bold text-slate-400 mb-1">Venue Address</label>
           <input id="serviceAddressText" type="hidden" x-model="homeServiceForm.address">
           <div id="service-address" data-address-target="serviceAddressText" data-address-saved="true"></div>
-          <p class="text-slate-500 mt-1">Home Service is available only within Albay Province.</p>
+
         </div>
 
         <div>
-          <label class="block text-slate-400 mb-1">Event / Service Type</label>
+          <label class="block font-bold text-slate-400 mb-1">Event type</label>
           <select x-model="homeServiceForm.eventType" class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
             <option>Standard Home Service</option>
             <option>Wedding</option>
@@ -388,20 +392,20 @@
         </div>
 
         <div x-show="homeServiceForm.eventType === 'Other'" x-transition>
-          <label class="block text-slate-400 mb-1">Please Specify Event</label>
+          <label class="block font-bold text-slate-400 mb-1">Please Specify Event</label>
           <input type="text" x-model="homeServiceForm.otherEventType" placeholder="e.g., Corporate Event" class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
         </div>
 
         <div>
-          <label class="block text-slate-400 mb-1">Number of Clients</label>
+          <label class="block font-bold text-slate-400 mb-1">Clients</label>
           <input type="number" min="1" step="1" required x-model="homeServiceForm.clients" placeholder="Enter number of people" class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800">
         </div>
         <div>
-          <label class="block text-slate-400 mb-1">Venue Details (optional)</label>
-          <input type="text" x-model="homeServiceForm.venueDetails" placeholder="Landmark, building, floor, room, or other instructions" class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800">
+          <label class="block font-bold text-slate-400 mb-1">Venue notes (optional)</label>
+          <input type="text" x-model="homeServiceForm.venueDetails" placeholder="Floor, room, or access instructions" class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800">
         </div>
         <div x-show="homeServiceForm.eventType !== 'Wedding'" class="space-y-2">
-          <p class="font-medium text-white">What Services Do You Need?</p>
+          <p class="font-medium text-white">Services</p>
           <p class="text-slate-400">Select all that apply.</p>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <template x-for="service in ['Hair Styling', 'Event Makeup', 'Brow Services', 'Lash Services', 'Hair & Makeup Package']" :key="service">
@@ -457,27 +461,30 @@
           </div>
         </div>
 
-        <p x-show="homeServiceForm.eventType !== 'Wedding'" class="text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3">Final price and reservation payment will be confirmed after review.</p>
+        <p x-show="homeServiceForm.eventType !== 'Wedding'" class="text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3">Price and deposit are confirmed after review.</p>
 
         <div>
-          <label class="block text-slate-400 mb-1">Preferred Date</label>
+          <label class="block font-bold text-slate-400 mb-1">Date</label>
           <input type="date" x-model="homeServiceForm.preferredDate" :min="getLocalISODate()" required class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
         </div>
 
         <div>
-          <label class="block text-slate-400 mb-1">Preferred Time</label>
+          <label class="block font-bold text-slate-400 mb-1">Time (PH)</label>
           <input type="time" x-model="homeServiceForm.preferredTime" required class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
           <p role="status" aria-live="polite" class="mt-2 text-sm text-slate-200" :aria-busy="eventAvailabilityLoading" x-text="eventAvailabilityLoading ? 'Checking staff availability...' : eventAvailabilityMessage"></p>
         </div>
-        <p class="text-slate-500 -mt-2">Our team will review your preferred date, time, venue, and service requirements. Your request remains Under Review until we contact you and confirm the arrangements.</p>
+        <p class="text-slate-500 -mt-2">Your schedule needs approval and any required payment.</p>
 
         <!-- How payment works + estimated DP -->
         <div class="rounded-xl bg-[#F0FAFA] border border-[#99D5D6] text-[#1F2937] p-4 space-y-2.5">
-          <p class="font-bold text-[#06464A] text-xs">How payment works</p>
+          <p class="font-bold text-[#06464A]">No payment now</p>
+          <p>We’ll review your request and send a quote.</p>
+          <details>
+            <summary class="font-bold cursor-pointer py-2">Payment details</summary>
           <ol class="list-decimal list-inside space-y-1 text-xs text-[#374151] leading-relaxed">
             <li><b>No payment now</b> — just send this request.</li>
             <li>We review it and send your <b>quote</b> with a <b>reservation fee (DP)</b> by notification and email.</li>
-            <li>Pay the DP <b>online via GCash, Maya or card</b> (PayMongo) from this page — your request is then <b>confirmed automatically</b>.</li>
+            <li>After approval, pay the deposit via <b>GCash, Maya or card</b> (PayMongo). Confirmation follows payment and availability checks.</li>
             <li>Pay the <b>remaining balance on the event day</b>.</li>
           </ol>
           <div class="rounded-lg bg-white border border-[#99D5D6] p-3 text-xs">
@@ -491,12 +498,13 @@
             </template>
             <p class="mt-1 text-xs text-[#6B7280]">The final amount is confirmed in your quote.</p>
           </div>
+          </details>
           <p class="text-xs text-[#6B7280]">The DP is <b>non-refundable</b>, but it carries over if you <b>reschedule</b> (online, at least 3 days before the event).</p>
         </div>
 
         <div>
-          <label class="block text-slate-400 mb-1">Additional Requirements (optional)</label>
-          <textarea x-model="homeServiceForm.requests" rows="3" placeholder="e.g., Number of people, specific styles needed..." class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500"></textarea>
+          <label class="block font-bold text-slate-400 mb-1">Service notes (optional)</label>
+          <textarea x-model="homeServiceForm.requests" rows="3" placeholder="Preferred styles or special requests" class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500"></textarea>
         </div>
 
         <div x-show="homeServiceForm.eventType !== 'Wedding'" class="bg-slate-800 border border-luxury-700 p-4 rounded-lg space-y-2 text-slate-300">
@@ -512,7 +520,9 @@
 
         <div class="bg-slate-800 p-4 rounded-lg space-y-2">
           <p class="font-medium text-white">Terms &amp; Conditions</p>
-          <div class="max-h-24 overflow-y-auto text-slate-400 leading-relaxed pr-1">
+          <p class="text-slate-400">Subject to staff availability and approval. Your schedule is not guaranteed until confirmed.</p>
+          <details class="text-slate-400 leading-relaxed">
+            <summary class="font-bold cursor-pointer py-2">Full terms</summary>
             <ul class="list-disc list-inside space-y-1">
               <li>Home Service requests are subject to staff availability and approval.</li>
               <li>Your preferred date and time are not guaranteed until confirmed.</li>
@@ -523,10 +533,10 @@
               <li>Cancellation or rescheduling should be requested as early as possible.</li>
               <li>Wedding Package D has a ₱2,000 reservation fee.</li>
             </ul>
-          </div>
+          </details>
           <label class="flex items-start gap-2 pt-1 text-slate-300 cursor-pointer">
             <input type="checkbox" x-model="homeServiceForm.agreedToTerms" class="mt-0.5 accent-gold-500">
-            <span>I have read and agree to the Home Service Terms &amp; Conditions.</span>
+            <span>I agree to the Terms &amp; Conditions.</span>
           </label>
         </div>
 
@@ -534,7 +544,7 @@
           <button type="button" @click="closeHomeServiceModal()" :disabled="isSubmittingHomeService" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 transition disabled:opacity-50">Cancel</button>
           <button type="submit" :disabled="isSubmittingHomeService" class="px-5 py-2 bg-gradient-to-r from-gold-500 to-gold-600 text-slate-900 font-bold rounded-lg transition disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2">
             <svg x-show="isSubmittingHomeService" class="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-            <span x-text="isSubmittingHomeService ? 'Sending...' : 'Submit Home Service Request'"></span>
+            <span x-text="isSubmittingHomeService ? 'Sending...' : 'Submit Request'"></span>
           </button>
         </div>
       </form>
@@ -575,11 +585,11 @@
 
       <form @submit.prevent="trackBooking()" class="space-y-3 text-xs">
         <div>
-          <label class="block text-slate-400 mb-1">Booking Reference</label>
+          <label class="block font-bold text-slate-400 mb-1">Booking Reference</label>
           <input type="text" x-model="trackForm.reference" required placeholder="LM-DAR-2026-000145" class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500 uppercase">
         </div>
         <div>
-          <label class="block text-slate-400 mb-1">Mobile Number Used</label>
+          <label class="block font-bold text-slate-400 mb-1">Mobile Number Used</label>
           <input type="tel" x-model="trackForm.phone" required placeholder="09XXXXXXXXX" class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
         </div>
 

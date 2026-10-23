@@ -14,8 +14,8 @@
         extend: {
           colors: {
             luxury: {
-              50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff', 500: '#a855f7',
-              600: '#9333ea', 700: '#7e22ce', 800: '#6b21a8', 900: '#581c87', 950: '#1e112c',
+              50: '#F4FBFA', 100: '#E5F2F0', 200: '#C7E0DD', 500: '#006D6F',
+              600: '#006D6F', 700: '#06464A', 800: '#06464A', 900: '#06464A', 950: '#FFF8EE',
             },
             gold: {
               100: '#fef08a', 400: '#facc15', 500: '#eab308', 600: '#ca8a04',
@@ -29,15 +29,15 @@
   <style>
     [x-cloak] { display: none !important; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #1e112c; }
-    ::-webkit-scrollbar-thumb { background: #7e22ce; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #9333ea; }
+    ::-webkit-scrollbar-track { background: #FFF8EE; }
+    ::-webkit-scrollbar-thumb { background: #006D6F; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #06464A; }
 
     @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     .stagger-item { animation: fadeUp .45s cubic-bezier(.16,1,.3,1) both; }
 
     @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-    .skeleton { background: linear-gradient(90deg, #1e112c 25%, #2a1740 37%, #1e112c 63%); background-size: 400% 100%; animation: shimmer 1.4s ease infinite; }
+    .skeleton { background: linear-gradient(90deg, #FFF8EE 25%, #E8DCC8 37%, #FFF8EE 63%); background-size: 400% 100%; animation: shimmer 1.4s ease infinite; }
 
     @keyframes gentlePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
     .pulse-badge { animation: gentlePulse 1.6s ease-in-out infinite; }
@@ -46,12 +46,13 @@
     .topbar-shine { background-size: 200% 100%; animation: topbarShine 7s linear infinite; }
 
     .card-lift { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
-    .card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(126, 34, 206, 0.35); }
+    .card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(0, 109, 111, 0.35); }
   </style>
-  <link rel="stylesheet" href="../../assets/css/customer-theme.css?v=balanced-type-20261020-1">
+  <link rel="stylesheet" href="../../assets/css/customer-theme.css?v=teal-gold-20261021">
   <script src="../../assets/js/customer/theme-config.js"></script>
-  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=balanced-type-20261020-1" />
-  <link rel="stylesheet" href="../../assets/css/portal-colors.css?v=balanced-type-20261020-1" />
+  <link rel="stylesheet" href="../../assets/css/responsive-base.css?v=teal-gold-20261021" />
+  <link rel="stylesheet" href="../../assets/css/portal-colors.css?v=teal-gold-20261021" />
+  <script src="../../assets/js/portal-presentation.js"></script>
 </head>
 <body class="salon-portal bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
@@ -170,14 +171,15 @@
           </div>
           <h2 class="text-lg font-serif font-bold text-white">Dashboard</h2>
         </div>
-        <div class="relative" @click.outside="isNotificationPanelOpen = false">
-          <button @click="toggleNotificationPanel()" class="relative text-slate-400 hover:text-white transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-            <template x-if="unreadNotificationCount > 0">
-              <span class="pulse-badge absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white" x-text="unreadNotificationCount"></span>
-            </template>
-          </button>
-          <div x-show="isNotificationPanelOpen" x-transition class="customer-notification-panel absolute top-full right-0 mt-2 w-80 bg-slate-800 border border-luxury-800 rounded-lg shadow-lg z-30 flex flex-col" style="display: none;">
+
+<div class="relative" @click.outside="isNotificationPanelOpen = false">
+            <button @click="toggleNotificationPanel()" class="relative text-slate-400 hover:text-white transition-colors">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+              <template x-if="unreadNotificationCount > 0">
+                <span class="pulse-badge absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white" x-text="unreadNotificationCount"></span>
+              </template>
+            </button>
+            <div x-show="isNotificationPanelOpen" x-transition class="customer-notification-panel absolute top-full right-0 mt-2 w-80 bg-slate-800 border border-luxury-800 rounded-lg shadow-lg z-30 flex flex-col" style="display: none;">
             <div class="p-3 border-b border-slate-700 shrink-0 flex items-center justify-between">
               <h4 class="text-base font-bold text-white">Notifications</h4>
               <button type="button" @click="isNotificationPanelOpen = false" aria-label="Close notifications" class="notification-close">&times;</button>
@@ -191,10 +193,12 @@
                   </div>
                   <div class="notification-copy">
                     <div class="notification-title-row"><p class="notification-title" x-text="notificationDetails(notif).title"></p><span x-show="!notif.read" class="notification-dot" aria-label="Unread"></span></div>
-                    <p class="notification-summary" x-text="notificationDetails(notif).summary"></p>
+                    <p class="notification-summary" x-show="notificationDetails(notif).summary" x-text="notificationDetails(notif).summary"></p>
+                    <span class="notification-state-badge" x-show="notificationDetails(notif).status" x-text="notificationDetails(notif).status"></span>
                     <p class="notification-service" x-show="notificationDetails(notif).service" x-text="notificationDetails(notif).service"></p>
+                    <p class="notification-branch" x-show="notificationDetails(notif).branch" x-text="notificationDetails(notif).branch"></p>
                     <p class="notification-schedule" x-show="notificationDetails(notif).schedule" x-text="notificationDetails(notif).schedule"></p>
-                    <time class="notification-time" :datetime="notif.createdAt || ''" :title="notif.time" x-text="notificationTime(notif)"></time>
+                    <time class="notification-time" :datetime="notif.createdAt || ''" :title="notif.time" x-text="'Received ' + notificationTime(notif)"></time>
                   </div>
                 </article>
               </template>
@@ -203,7 +207,7 @@
               <button type="button" @click="markAllNotificationsAsRead()" :disabled="unreadNotificationCount === 0" class="notification-read-all w-full text-center font-semibold">Mark all as read</button>
             </div>
           </div>
-        </div>
+          </div>
       </header>
 
       <div x-show="isBooting" class="p-6 space-y-6">
@@ -219,33 +223,10 @@
 
         <div class="p-6 space-y-6 pb-24 md:pb-6">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="card-lift bg-gradient-to-br from-slate-900 to-slate-950 border border-luxury-900 rounded-2xl p-5 shadow-xl">
+<div class="card-lift bg-gradient-to-br from-slate-900 to-slate-950 border border-luxury-900 rounded-2xl p-5 shadow-xl">
               <h3 class="text-xs font-semibold text-gold-400 uppercase mb-2">Next Appointment</h3>
-              <template x-if="getNextAppointment()">
-                <div class="space-y-2.5">
-                  <div>
-                    <p class="text-base font-bold text-white" x-text="getNextAppointment().serviceName"></p>
-                    <p class="text-xs text-slate-700" x-text="getNextAppointment().branchName"></p>
-                  </div>
-                  <div>
-                    <p class="text-base font-bold text-slate-700" x-text="formatApptDateLong(getNextAppointment().date)"></p>
-                    <p class="text-xs text-slate-600" x-text="formatApptTimeRange(getNextAppointment())"></p>
-                  </div>
-                  <div class="text-xs text-slate-600">
-                    <span class="text-slate-500">Booking Reference:</span>
-                    <span class="block font-mono text-slate-700" x-text="getNextAppointment().id"></span>
-                  </div>
-                  <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-                    <span><span class="text-slate-500">Appointment:</span> <span :class="getStatusBadgeClass(getNextAppointment().status)" x-text="getCustomerStatusLabel(getNextAppointment().status)"></span></span>
-                  </div>
-                  <p class="text-xs"><span class="text-slate-500">Payment:</span> <span class="text-slate-700 font-medium" x-text="getPaymentStatusLabel(getNextAppointment())"></span></p>
-                  <button @click="openAppointmentDetails(getNextAppointment())" class="w-full mt-1 bg-luxury-700 hover:bg-luxury-600 text-white text-xs font-bold py-2 rounded-lg transition active:scale-95">View Appointment</button>
-                </div>
-              </template>
-              <template x-if="!getNextAppointment()">
-                <p class="text-slate-600 text-base italic">No upcoming appointments.</p>
-              </template>
             </div>
+
             <div class="card-lift bg-gradient-to-br from-slate-900 to-slate-950 border border-luxury-900 rounded-2xl p-5 shadow-xl">
               <h3 class="text-xs font-semibold text-gold-400 uppercase mb-2">Total Services Availed</h3>
               <p class="text-3xl font-bold font-serif text-white" x-text="displayServiceCount"></p>
@@ -287,7 +268,7 @@
           </div>
 
           <div class="bg-slate-900 border border-luxury-900 rounded-2xl p-5">
-            <h3 class="font-serif text-base font-bold text-white mb-4">Recent Appointments</h3>
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4"><h3 class="font-serif text-base font-bold text-white">Recent Appointments</h3><a href="appointments.html" class="text-xs font-semibold text-luxury-700">View all appointments</a></div>
 
             <!-- Desktop/tablet: table -->
             <div class="overflow-x-auto hidden sm:block">
@@ -295,6 +276,7 @@
                 <thead class="bg-slate-950 text-slate-400 uppercase text-xs">
                   <tr>
                     <th class="p-3">Date</th>
+                    <th class="p-3">Time (PH)</th>
                     <th class="p-3">Booking Reference</th>
                     <th class="p-3">Service</th>
                     <th class="p-3">Branch</th>
@@ -304,21 +286,22 @@
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-800/85">
-                  <template x-for="(appt, i) in appointments.slice(0, 5)" :key="appt.id">
+                  <template x-for="(appt, i) in getRecentAppointments()" :key="appt.id">
                     <tr class="hover:bg-slate-800/30 transition stagger-item" :style="'animation-delay:' + (i * 60) + 'ms'">
-                      <td class="p-3 whitespace-nowrap" x-text="appt.date"></td>
+                      <td class="p-3 whitespace-nowrap" x-text="formatApptDateLong(appt.date)"></td>
+                      <td class="p-3 whitespace-nowrap" x-text="appt.time || 'Not scheduled'"></td>
                       <td class="p-3 font-mono text-slate-600" x-text="appt.id"></td>
                       <td class="p-3 font-medium text-white" x-text="appt.serviceName"></td>
                       <td class="p-3 text-slate-700" x-text="appt.branchName"></td>
                       <td class="p-3"><span :class="getStatusBadgeClass(appt.status)" x-text="getCustomerStatusLabel(appt.status)"></span></td>
                       <td class="p-3" x-text="getPaymentStatusLabel(appt)"></td>
                       <td class="p-3">
-                        <button @click="openAppointmentDetails(appt)" class="text-luxury-700 hover:text-luxury-900 font-semibold">View</button>
+                        <a :href="'appointments.html?reference=' + encodeURIComponent(appt.id)" :aria-label="'View booking ' + appt.id" class="text-luxury-700 hover:text-luxury-900 font-semibold">View</a>
                       </td>
                     </tr>
                   </template>
                   <template x-if="appointments.length === 0">
-                    <tr><td colspan="7" class="p-6 text-center text-slate-500 italic">You have no appointments yet.</td></tr>
+                    <tr><td colspan="8" class="p-6 text-center text-slate-500 italic">You have no appointments yet.</td></tr>
                   </template>
                 </tbody>
               </table>
@@ -326,17 +309,18 @@
 
             <!-- Mobile: stacked cards -->
             <div class="sm:hidden space-y-3">
-              <template x-for="(appt, i) in appointments.slice(0, 5)" :key="'m-' + appt.id">
+              <template x-for="(appt, i) in getRecentAppointments()" :key="'m-' + appt.id">
                 <div class="border border-luxury-900 rounded-xl p-3 space-y-1.5 stagger-item" :style="'animation-delay:' + (i * 60) + 'ms'">
                   <div class="flex justify-between items-start gap-2">
                     <p class="font-medium text-white text-base" x-text="appt.serviceName"></p>
                     <span :class="getStatusBadgeClass(appt.status)" x-text="getCustomerStatusLabel(appt.status)"></span>
                   </div>
                   <p class="text-xs text-slate-700" x-text="appt.branchName"></p>
-                  <p class="text-xs text-slate-600" x-text="appt.date"></p>
+                  <p class="text-xs text-slate-600"><strong>Date:</strong> <span x-text="formatApptDateLong(appt.date)"></span></p>
+                  <p class="text-xs text-slate-600"><strong>Time (PH):</strong> <span x-text="appt.time || 'Not scheduled'"></span></p>
                   <p class="text-xs text-slate-600 font-mono" x-text="appt.id"></p>
                   <p class="text-xs text-slate-600" x-text="getPaymentStatusLabel(appt)"></p>
-                  <button @click="openAppointmentDetails(appt)" class="w-full mt-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold py-1.5 rounded-lg transition active:scale-95">View Appointment</button>
+                  <a :href="'appointments.html?reference=' + encodeURIComponent(appt.id)" class="block text-center w-full mt-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold py-1.5 rounded-lg transition active:scale-95">View Appointment</a>
                 </div>
               </template>
               <template x-if="appointments.length === 0">

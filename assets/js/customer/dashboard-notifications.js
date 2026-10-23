@@ -51,11 +51,19 @@ function customerNotificationsMixin() {
       const titles = { CANCELLED: 'Booking cancelled', CONFIRMED: 'Booking confirmed', BOOKING_SUBMITTED: 'Booking request received', PAYMENT_RECEIVED: 'Payment received', PAYMENT_VERIFIED: 'Payment verified', PAYMENT_SUBMITTED: 'Payment submitted', PAYMENT_ATTENTION: 'Payment needs attention', PAYMENT_FORFEITED: 'Deposit forfeited', REFUND_DUE: 'Refund pending', PAYMENT_REFUNDED: 'Payment refunded', RESCHEDULE: 'Schedule updated', COMPLETED: 'Appointment completed', REMINDER: 'Appointment reminder', WAITLIST_OPENING: 'Stylist available', QUOTE_READY: 'Your quote is ready', PAYMENT_REMINDER: 'Payment reminder' };
       let summary = message.split(/\n\s*\n|\nBooking reference:/)[0].replace(reference, '').replace(/\s+([.,:])/g, '$1').replace(/\s{2,}/g, ' ').trim();
       if (notif.type === 'CANCELLED' && /within 30 minutes/i.test(message)) summary = 'Your payment wasn’t completed within 30 minutes.';
+      const bookingStatus = field('Booking status');
+      const legacy = notif.type === 'BOOKING_SUBMITTED' && typeof PortalPresentation !== 'undefined' ? PortalPresentation.legacyBookingDetails(message) : null;
+      const recordedStatus = bookingStatus || legacy?.status || '';
+      const status = notif.type === 'BOOKING_SUBMITTED'
+        ? (/^(Pending|Pending Review|Waiting for Confirmation)$/i.test(recordedStatus) || !recordedStatus ? 'Awaiting confirmation' : recordedStatus)
+        : '';
+      if (notif.type === 'BOOKING_SUBMITTED' && field('Service / Event')) summary = 'Your request has been received.';
+      if (legacy) summary = '';
       const scheduled = field('Scheduled time').match(/^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})/);
       const date = scheduled ? new Date(scheduled[1] + 'T' + scheduled[2] + ':00+08:00') : null;
       const schedule = date && !Number.isNaN(date.getTime()) ? new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }).format(date) + ' (PH)' : '';
       const home = reference.startsWith('LM-HOM-');
-      return { title: titles[notif.type] || 'Booking update', summary: summary.split('\n')[0], service: field('Service / Event'), schedule, reference, href: (home ? 'home-service.html' : 'appointments.html') + '?reference=' + encodeURIComponent(reference), bookHref: home ? 'home-service.html' : 'services-promos.html' };
+      return { title: titles[notif.type] || 'Booking update', summary: summary.split('\n')[0], status, branch: field('Branch') || legacy?.branch || '', service: field('Service / Event') || legacy?.service || '', schedule: schedule || legacy?.schedule || '', reference, href: (home ? 'home-service.html' : 'appointments.html') + '?reference=' + encodeURIComponent(reference), bookHref: home ? 'home-service.html' : 'services-promos.html' };
     },
     notificationTime(notif) {
       if (!notif.createdAt) return notif.time;

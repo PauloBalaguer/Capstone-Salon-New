@@ -13,6 +13,36 @@ Progress:
 -Database
 -login
 
+## Project structure
+
+Each panel has the same three folders: `frontend/` (HTML pages and their CSS),
+`function/` (JavaScript) and `backend/` (PHP endpoints). Anything used by more
+than one panel lives in `shared/`.
+
+```
+index.html          landing page
+public/             landing / guest panel (guest booking, tracking, PayMongo result + webhook)
+auth/               login, register, OTP, password reset
+customer/           customer portal
+admin/              admin portal
+cashier/            cashier portal
+staff/              staff (employee) portal
+shared/
+  frontend/         shared CSS, image/, icon/, video/
+  function/         shared JS (booking validation, arrival review, address form, ...)
+  backend/config/   database, session, mail, PayMongo and business-rule classes
+  backend/cron/     scheduled workers (email queue, reminders)
+  backend/data/     static data (Albay locations)
+  backend/storage/  PHP session files (ignored by Git)
+database/
+  schema/           capstone.sql (full schema)
+  migrations/       numbered SQL migrations
+  seeders/          demo / landing data
+  scripts/          CLI helpers (create_admin, create_cashier, sync_*, refresh_*)
+  data/             import reference data
+  docs/             database implementation notes
+```
+
 ## Transactional email (Brevo API)
 
 The existing email helpers now use PHP cURL and Brevo's HTTPS API. No Composer
@@ -23,9 +53,9 @@ it does not prove inbox delivery.
 
 ### Local XAMPP setup
 
-1. Open `backend/config/brevo_credentials.php`. It has already been created
+1. Open `shared/backend/config/brevo_credentials.php`. It has already been created
    locally with empty placeholders. On another clone, copy
-   `backend/config/brevo_credentials.example.php` to that private filename.
+   `shared/backend/config/brevo_credentials.example.php` to that private filename.
 2. Enter your regular Brevo API key in `api_key` and your Brevo-verified Gmail
    sender address in `sender_email`. Do this in your editor, never in chat.
    Leave `sender_name` as `Leo Mejillano Salon & Beauty` and `api_url` as
@@ -50,7 +80,7 @@ failures return false; they never mark a row Sent. Run the existing worker
 every few minutes with Windows Task Scheduler:
 
 ```powershell
-& C:/xampp/php/php.exe C:/xampp/htdocs/Capstone-Salon/backend/cron/sendQueuedEmails.php
+& C:/xampp/php/php.exe C:/xampp/htdocs/Capstone-Salon/shared/backend/cron/sendQueuedEmails.php
 ```
 
 Use `C:/xampp/php/php.exe` as the task's program, the script's absolute path as
@@ -58,7 +88,7 @@ its argument, and the project folder as its starting directory. Keep the
 existing appointment reminder task:
 
 ```powershell
-& C:/xampp/php/php.exe C:/xampp/htdocs/Capstone-Salon/backend/cron/sendAppointmentReminders.php
+& C:/xampp/php/php.exe C:/xampp/htdocs/Capstone-Salon/shared/backend/cron/sendAppointmentReminders.php
 ```
 
 These workers send real pending mail once credentials are configured. Inspect
@@ -73,7 +103,7 @@ acceptance can cause a duplicate on retry.
 
 1. Configure the two private values above and confirm that Brevo permits
    transactional sending for your account.
-2. Register through `pages/login/register.html` using a Gmail inbox you control,
+2. Register through `auth/frontend/register.html` using a Gmail inbox you control,
    a new test account and a unique test contact number. This creates a real
    account in your local application.
 3. Check that inbox and Spam for the verification email. Enter its six-digit
@@ -94,42 +124,6 @@ current flow; use Brevo logs/PHP error logs to investigate delivery failures.
 Mailer diagnostics include HTTP status or numeric cURL error only, never
 keys, OTPs, message bodies or raw provider responses.
 
-### Automated verification
-
-Run the offline suite (synthetic addresses, namespaced cURL mocks, temporary
-placeholder configuration, in-memory SQLite queue fixtures):
-
-```powershell
-& C:/xampp/php/php.exe tests/brevo_mail.php
-```
-
-111 checks passed during the migration. Coverage includes all seven public
-mail helpers, all four OTP email types, Staff/Cashier setup, reminders,
-notifications, invalid/missing configuration, invalid recipients, invalid API
-key, API failures, rate limiting, timeouts, TLS/DNS failure, malformed success
-responses, HTML escaping, UTF-8, diagnostic redaction, queue retries/recovery,
-deduplication, batching, rollback, email opt-out and superseded reminders.
-
-For actual MySQL queue behavior and the existing guest OTP endpoint,
-notification preference, booking/payment and home-service regression suites:
-
-```powershell
-& C:/xampp/php/php.exe tests/run_isolated.php
-```
-
-The existing runner copies schema only into a disposable database, excludes
-credentials, disables external transports and cleans up its test schema.
-It now includes the Brevo tests with MySQL queue fixtures. During this
-migration it stopped at `Database connection failed. Please check your
-configuration.` A read-only diagnostic reported connection error 2002.
-Therefore MySQL integration, endpoint OTP flows, concurrent
-worker locking and browser/inbox delivery have not been validated here.
-The in-memory suite does not validate MySQL's lock implementation.
-PHP syntax checks passed for all migration PHP files. Apache configuration
-validation passed, and a direct request for the private file returned HTTP 403.
-No real email or
-real customer data was used.
-
 ### Gmail sender limitations
 
 Your verified Gmail sender can be entered in the config, but you cannot
@@ -145,17 +139,17 @@ References: [Brevo send API](https://developers.brevo.com/reference/send-transac
 
 ### Migration file inventory
 
-- Created: `backend/config/brevo_credentials.php` (private, ignored),
-  `backend/config/brevo_credentials.example.php`, `tests/brevo_mail.php`.
-- Modified: `backend/config/mail.php`, `backend/config/EmailOutbox.php`,
-  `backend/cron/sendQueuedEmails.php`, `backend/cron/sendAppointmentReminders.php`,
-  `backend/auth/register.php`, `backend/auth/resendOtp.php`, `.gitignore`,
+- Created: `shared/backend/config/brevo_credentials.php` (private, ignored),
+  `shared/backend/config/brevo_credentials.example.php`, `tests/brevo_mail.php`.
+- Modified: `shared/backend/config/mail.php`, `shared/backend/config/EmailOutbox.php`,
+  `shared/backend/cron/sendQueuedEmails.php`, `shared/backend/cron/sendAppointmentReminders.php`,
+  `auth/backend/register.php`, `auth/backend/resendOtp.php`, `.gitignore`,
   `.htaccess`, `README.md`, `tests/booking_otp_delivery.php`,
   `tests/customer_notifications.php`, `tests/event_availability.php`,
   `tests/run_isolated.php`. The customer notification and event tests only
   needed SMTP wording updated; the runner includes the new Brevo suite.
 - Removed after dependency checks and mocked tests:
-  `backend/config/mail_credentials.example.php` and
+  `shared/backend/config/mail_credentials.example.php` and
   `backend/lib/PHPMailer/{Exception.php,PHPMailer.php,SMTP.php,LICENSE}`.
   These tracked files are recoverable from Git history. The old private
   `mail_credentials.php` did not exist locally.

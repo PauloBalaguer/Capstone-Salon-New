@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leo Mejillano Salon - Receipt</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style type="text/tailwindcss">
+        /* Converted from assets/css/cashier.css. Tailwind has no utility for
+           ::-webkit-scrollbar, so that part stays as plain CSS; everything
+           else below uses @apply with normal Tailwind classes. */
+        ::-webkit-scrollbar { @apply w-1.5 h-1.5; }
+        ::-webkit-scrollbar-track { @apply bg-transparent; }
+        ::-webkit-scrollbar-thumb { @apply bg-slate-300 rounded-full; }
+        ::-webkit-scrollbar-thumb:hover { @apply bg-slate-400; }
+
+        @keyframes fade-up {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .stagger-item { animation: fade-up 0.4s ease-out both; }
+
+        .card-lift { @apply transition duration-200 hover:-translate-y-0.5 hover:shadow-lg; }
+
+        /* Skeleton placeholder shown while a page's first fetch is in flight. */
+        .skeleton { @apply bg-slate-200 animate-pulse rounded-lg; }
+        .skeleton-line { @apply h-3.5; }
+        .skeleton-row { @apply flex items-center gap-3 p-4; }
+        .skeleton-avatar { @apply w-9 h-9 rounded-full shrink-0; }
+
+        #sidebarNav .nav-item, button, .pay-method-card { @apply transition duration-150; }
+        #sidebarNav .nav-item:active,
+        button:active:not(:disabled) { @apply scale-[0.97]; }
+
+        button[id^="btnClose"] { @apply w-7 h-7 inline-flex items-center justify-center rounded-full transition duration-150; }
+        button[id^="btnClose"]:hover { @apply bg-white/10; }
+
+        .badge-live { @apply animate-pulse; }
+    </style>
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { background: #fff !important; }
+            #receiptCard { box-shadow: none !important; border: none !important; }
+        }
+    </style>
+    <link rel="stylesheet" href="../../cashier/frontend/cashier-theme.css?v=teal-gold-20261021">
+  <link rel="stylesheet" href="../../shared/frontend/responsive-base.css?v=teal-gold-20261021" />
+  <link rel="stylesheet" href="../../shared/frontend/portal-colors.css?v=teal-gold-20261021" />
+  <script src="../../shared/function/portal-presentation.js"></script>
+</head>
+<body class="salon-portal bg-gray-100 font-sans antialiased min-h-screen flex flex-col items-center py-10 px-4">
+
+    <div id="notificationContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none w-80 no-print"></div>
+
+    <div class="w-full max-w-sm no-print flex justify-between items-center mb-4">
+        <a href="dashboard.html" class="text-slate-500 hover:text-slate-900 text-xs font-bold flex items-center space-x-1">
+            <i class="fa-solid fa-arrow-left"></i><span>Back to Dashboard</span>
+        </a>
+        <button id="btnPrint" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center space-x-2 shadow-sm hover:shadow-md">
+            <i class="fa-solid fa-print"></i><span>Print Receipt</span>
+        </button>
+    </div>
+
+    <div id="receiptNotFound" class="hidden bg-white p-8 rounded-xl shadow-sm border border-gray-200 text-center max-w-sm w-full">
+        <i class="fa-solid fa-receipt text-3xl text-gray-300 mb-3"></i>
+        <p class="text-base font-bold text-slate-700">Receipt not found</p>
+        <p class="text-xs text-gray-400 mt-1">This transaction could not be located.</p>
+        <a href="dashboard.html" class="inline-block mt-4 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-lg">Return to Queue</a>
+    </div>
+
+    <div id="receiptCard" class="stagger-item hidden bg-white w-full max-w-sm rounded-2xl shadow-lg border border-gray-200 p-6 text-xs text-slate-700 space-y-4">
+        <div class="text-center space-y-1 border-b border-dashed border-gray-300 pb-4">
+            <div class="bg-amber-500 text-slate-950 font-bold rounded-full w-12 h-12 flex items-center justify-center mx-auto text-lg shadow-sm">LM</div>
+            <h2 class="font-black text-slate-900 text-base uppercase tracking-wide">Leo Mejillano Salon</h2>
+            <p id="receiptBranchName" class="text-xs text-gray-500">-</p>
+            <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full mt-1"><i class="fa-solid fa-circle-check"></i> PAID</span>
+        </div>
+
+        <div class="flex justify-between text-xs">
+            <div>
+                <p class="text-gray-400">Invoice No.</p>
+                <p id="receiptInvoiceId" class="font-bold text-slate-800">-</p>
+            </div>
+            <div class="text-right">
+                <p class="text-gray-400">Date &amp; Time</p>
+                <p id="receiptDate" class="font-bold text-slate-800">-</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-xs border-t border-b border-dashed border-gray-300 py-3">
+            <div>
+                <p class="text-gray-400">Client</p>
+                <p id="receiptClientName" class="font-bold text-slate-800 capitalize">-</p>
+            </div>
+            <div>
+                <p class="text-gray-400">Stylist</p>
+                <p id="receiptStylistName" class="font-bold text-slate-800 capitalize">-</p>
+            </div>
+            <div class="col-span-2">
+                <p class="text-gray-400">Served By (Cashier)</p>
+                <p id="receiptCashierName" class="font-bold text-slate-800 capitalize">-</p>
+            </div>
+        </div>
+
+        <div>
+            <div class="flex justify-between text-xs font-bold uppercase text-gray-400 pb-1 border-b border-gray-200">
+                <span>Item</span>
+                <span>Amount</span>
+            </div>
+            <div id="receiptItemsContainer" class="divide-y divide-gray-100"></div>
+        </div>
+
+        <div class="space-y-1 border-t border-dashed border-gray-300 pt-3">
+            <div class="flex justify-between text-gray-500">
+                <span>Subtotal</span>
+                <span id="receiptSubtotal">₱0.00</span>
+            </div>
+            <div id="receiptReservationRow" class="hidden flex justify-between text-emerald-700">
+                <span>Reservation Payment Received</span>
+                <span id="receiptReservation">₱0.00</span>
+            </div>
+            <div class="flex justify-between text-gray-500">
+                <span>Staff Tip</span>
+                <span id="receiptTip">₱0.00</span>
+            </div>
+            <div class="flex justify-between items-baseline font-black text-slate-900 text-base pt-1.5 border-t border-gray-200">
+                <span>Total Paid</span>
+                <span id="receiptTotal">₱0.00</span>
+            </div>
+            <div class="flex justify-between text-gray-500 pt-1">
+                <span>Payment Method</span>
+                <span id="receiptMethod" class="font-bold text-slate-800">-</span>
+            </div>
+            <div id="receiptCashRow" class="hidden flex justify-between text-gray-500">
+                <span>Cash Received</span>
+                <span id="receiptCashReceived">₱0.00</span>
+            </div>
+            <div id="receiptChangeRow" class="hidden flex justify-between text-gray-700 font-semibold">
+                <span>Change</span>
+                <span id="receiptChange">₱0.00</span>
+            </div>
+        </div>
+
+        <div class="text-center pt-3 border-t border-dashed border-gray-300">
+            <p class="text-xs text-gray-400">Thank you for visiting Leo Mejillano Salon!</p>
+            <p class="text-xs text-gray-300 mt-0.5">This receipt was generated by the Centralized Cashier Hub.</p>
+        </div>
+    </div>
+
+    <script src="../../cashier/function/cashier-common.js"></script>
+    <script src="../../cashier/function/receipt.js"></script>
+</body>
+</html>

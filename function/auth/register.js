@@ -26,25 +26,25 @@ document.addEventListener('DOMContentLoaded', function () {
     let ok = true;
 
     if (!firstName) {
-      LM.markWrong('reg-firstname', 'Please enter your first name.');
+      LM.markWrong('reg-firstname', 'Enter your first name.');
       ok = false;
     }
 
     if (!lastName) {
-      LM.markWrong('reg-lastname', 'Please enter your last name.');
+      LM.markWrong('reg-lastname', 'Enter your last name.');
       ok = false;
     }
 
     if (!email) {
-      LM.markWrong('reg-email', 'Please enter your email address.');
+      LM.markWrong('reg-email', 'Enter your email, like name@email.com.');
       ok = false;
     } else if (!LM.isEmail(email)) {
-      LM.markWrong('reg-email', 'That does not look like an email address.');
+      LM.markWrong('reg-email', 'Enter your email, like name@email.com.');
       ok = false;
     }
 
     if (!contact) {
-      LM.markWrong('reg-contact', 'Please enter your mobile number.');
+      LM.markWrong('reg-contact', 'Enter your mobile number, like 917 123 4567.');
       ok = false;
     } else if (!LM.isMobile(contact)) {
       LM.markWrong('reg-contact', 'Enter the 10 digits after +63, starting with 9, like 917 123 4567.');
@@ -52,25 +52,25 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (password.length < 8) {
-      LM.markWrong('reg-password', 'Password must be at least 8 characters.');
+      LM.markWrong('reg-password', 'Use at least 8 characters.');
       ok = false;
     }
 
     if (!confirm) {
-      LM.markWrong('reg-confirm-password', 'Please type your password again.');
+      LM.markWrong('reg-confirm-password', 'Type your password again.');
       ok = false;
     } else if (password !== confirm) {
-      LM.markWrong('reg-confirm-password', 'The two passwords do not match.');
+      LM.markWrong('reg-confirm-password', 'Type the same password in both fields.');
       ok = false;
     }
 
     if (!document.getElementById('reg-terms').checked) {
-      LM.markWrong('reg-terms', 'Please agree to the terms and the reservation and deposit policy.');
+      LM.markWrong('reg-terms', 'Tick the box to agree to the terms and deposit policy.');
       ok = false;
     }
 
     if (!ok) {
-      LM.toast('Please check the highlighted fields.', 'wrong');
+      LM.reportWrong();
       return;
     }
 

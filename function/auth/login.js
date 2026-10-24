@@ -24,15 +24,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let ok = true;
     if (!LM.isEmail(email)) {
-      LM.markWrong('login-email', 'Please enter a valid email address.');
+      LM.markWrong('login-email', 'Enter your email, like name@email.com.');
       ok = false;
     }
     if (!password) {
-      LM.markWrong('login-password', 'Please enter your password.');
+      LM.markWrong('login-password', 'Enter your password.');
       ok = false;
     }
     if (!ok) {
-      LM.toast('Please check the highlighted fields.', 'wrong');
+      LM.reportWrong();
       return;
     }
 
@@ -61,7 +61,8 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
 
-      LM.toast(result.message || 'Unable to sign in. Please try again.', 'wrong');
+      LM.toast(result.message || 'Unable to sign in. Please try again.', 'wrong',
+        response.status === 429 ? 'Too many attempts' : 'Couldn’t sign you in');
     } catch {
       LM.loading(false);
       LM.toast('Could not reach the server. Please try again.', 'wrong');

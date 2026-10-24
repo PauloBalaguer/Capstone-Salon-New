@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/EmailOutbox.php';
+require_once __DIR__ . '/SmsOutbox.php';
 
 /**
  * Customer notifications for every booking write path.
@@ -15,6 +16,11 @@ require_once __DIR__ . '/EmailOutbox.php';
  * customers.email) unless they turned email notifications off. Queued via
  * EmailOutbox so it only goes out if the surrounding change commits.
  * Reminders use the same queue, with scheduling handled by the reminder cron.
+ *
+ * SMS: types with a template in SMS_TEMPLATES (backend/shared/config/setup/sms.php)
+ * also queue a short text to customers.phone_number unless the customer
+ * turned SMS off (notify_sms). Best-effort: an SMS problem is logged and
+ * never undoes the booking change or the email.
  */
 final class CustomerNotifier
 {
@@ -44,7 +50,7 @@ final class CustomerNotifier
         else $pdo->exec('SAVEPOINT customer_notification');
         try {
         $stmt = $pdo->prepare('
-            SELECT c.user_id, c.notify_email, c.first_name, c.last_name, COALESCE(NULLIF(u.email, \'\'), c.email) AS email
+            SELECT c.user_id, c.notify_email, c.notify_sms, c.phone_number, c.first_name, c.last_name, COALESCE(NULLIF(u.email, \'\'), c.email) AS email
             FROM customers c LEFT JOIN users u ON u.id = c.user_id
             WHERE c.id = ? LIMIT 1 FOR UPDATE
         ');
@@ -80,6 +86,21 @@ final class CustomerNotifier
             $subject = $type === 'PAYMENT_VERIFIED' && ($details['paymentStatus'] ?? '') === 'Fully Paid' ? 'Your full payment was received' : self::EMAIL_SUBJECTS[$type];
             EmailOutbox::queue($pdo, $customer['email'], $subject . ($reference ? " ({$reference})" : ''), $body, $reference);
         }
+        if (isset(SMS_TEMPLATES[$type]) && (int) $customer['notify_sms'] === 1) {
+            $pdo->exec('SAVEPOINT customer_sms');
+            try {
+                $vars = [];
+                if ($reference) $vars['{ref}'] = $reference;
+                if ($details) $vars['{when}'] = formatSmsWhen($details['scheduled']);
+                $sms = renderSms($type, $vars);
+                if ($sms) SmsOutbox::queue($pdo, $customer['phone_number'], $type, $sms, $reference);
+                else error_log("SMS not queued ({$type}): no booking details for the message.");
+                $pdo->exec('RELEASE SAVEPOINT customer_sms');
+            } catch (Throwable $e) {
+                try { $pdo->exec('ROLLBACK TO SAVEPOINT customer_sms'); } catch (Throwable $ignored) {}
+                error_log('Customer SMS could not be queued: ' . $e->getMessage());
+            }
+        }
         if ($ownsTransaction) $pdo->commit();
         else $pdo->exec('RELEASE SAVEPOINT customer_notification');
         return true;
@@ -108,7 +129,7 @@ final class CustomerNotifier
         }
         if (!$row) return null;
         $when = new DateTimeImmutable($row['scheduled'],new DateTimeZone('Asia/Manila'));
-        return ['homeService'=>$home,'contactEmail'=>$row['contact_email']??null,'paymentStatus'=>$row['payment_status'],
+        return ['homeService'=>$home,'scheduled'=>$row['scheduled'],'contactEmail'=>$row['contact_email']??null,'paymentStatus'=>$row['payment_status'],
             'text'=>"Booking reference: {$row['reference_code']}\nService / Event: ".($row['services'] ?: 'Service details available in your booking').
             "\nScheduled time: ".$when->format('Y-m-d H:i')." (Philippine time)\nAppointment: ".$when->format('l, F j, Y, g:i A').
             "\nBranch: {$row['branch_name']}\nBooking status: {$row['status']}\nPayment status: {$row['payment_status']}"];

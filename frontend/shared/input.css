@@ -55,16 +55,16 @@
   --color-ok-auth: #2F7D4F;
   --color-err-auth: #A12B2B;
   --color-teal-glow-auth: #0B8C8E;
-  /* Phone layout: dark sheet under the teal header */
-  --color-sheet-auth: #162525;
-  --color-sheet-field-auth: #1F3433;
-  --color-sheet-ink-auth: #EEF3F2;
-  --color-sheet-label-auth: #C9D5D3;
-  --color-sheet-mute-auth: #9DB0AE;
-  --color-sheet-placeholder-auth: #8CA09E;
-  --color-sheet-link-auth: #3AAEB0;
-  --color-sheet-err-auth: #F2A0A0;
-  --color-sheet-ok-auth: #7DD3A0;
+  /* Dark mode (prefers-color-scheme): the form sheet turns deep teal */
+  --color-sheet-auth: #0E2224;
+  --color-sheet-field-auth: #1D3739;
+  --color-sheet-ink-auth: #FFFDF9;
+  --color-sheet-label-auth: #A9CBC7;
+  --color-sheet-mute-auth: #A9CBC7;
+  --color-sheet-placeholder-auth: #8FB0AD;
+  --color-sheet-link-auth: #E8DCC8;
+  --color-sheet-err-auth: #F2A3A3; /* soft red, readable on the dark teal */
+  --color-sheet-ok-auth: #8BE0AE;
 
   --font-body: "Segoe UI", Tahoma, Verdana, Arial, sans-serif;
   --font-display: Georgia, Cambria, "Times New Roman", serif;
@@ -80,6 +80,7 @@
   --animate-spin-slow: spin 60s linear infinite;
   --animate-pop: pop .4s ease-out both;
   --animate-fan: fan .9s cubic-bezier(.2,.8,.2,1) both;
+  --animate-shake: shake .4s ease-in-out;
 
   @keyframes drift { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(60px, -40px) scale(1.12); } }
   @keyframes drift2 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-70px, 50px) scale(.9); } }
@@ -88,6 +89,7 @@
   @keyframes shimmer { 0% { transform: translateX(-120%) rotate(12deg); } 100% { transform: translateX(320%) rotate(12deg); } }
   @keyframes pop { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: none; } }
   @keyframes fan { 0% { transform: rotate(0deg); } 100% { transform: rotate(var(--r)); } }
+  @keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
 }
 
 @layer base {
@@ -123,8 +125,21 @@
   .auth-page {
     --toast-font: var(--font-auth-display); /* toast headings match the page */
 
-    /* Card: cream sheet under the teal header on phones, floating card on desktop */
-    .card { @apply relative -mt-6 flex flex-1 flex-col gap-4 rounded-t-[28px] bg-panel px-6 pb-8 pt-8 sm:px-10 lg:mt-0 lg:flex-none lg:rounded-[28px] lg:p-10 lg:shadow-[0_40px_80px_-40px_rgba(0,0,0,.6)] motion-safe:animate-pop; }
+    /* Phone header: grows to fill the spare height (flex-1) so the form
+       sheet below keeps its natural height and never shows an empty gap.
+       The mark's mb-auto keeps it at the top, under the notch, and pushes
+       the headline down. auth-ui.js adds the swatch fan. On tablets the
+       text lines up with the centred form column. */
+    .hero { @apply relative isolate flex min-h-[230px] flex-1 flex-col justify-end overflow-hidden bg-[radial-gradient(120%_110%_at_0%_0%,#0E8C8D_0%,rgba(14,140,141,0)_70%)] px-6 pb-12 pt-[max(16px,calc(env(safe-area-inset-top)+8px))] text-panel sm:px-[max(2.5rem,calc((100%-28rem)/2))] lg:hidden; }
+    .hero .mark { @apply mb-auto grid h-11 w-11 place-items-center rounded-full border border-gold-auth font-auth-display text-sm text-sand; }
+    .hero h1 { @apply mt-5 max-w-[12ch] font-auth-display text-[clamp(1.75rem,8vw,2.4rem)] font-semibold leading-[1.08] [text-wrap:balance]; }
+    .hero p { @apply mt-2 max-w-[24ch] text-[0.95rem] leading-snug text-[#cfe3e0]; }
+
+    /* Card: cream sheet under the teal header on phones. It shares the
+       spare height with the header and centres the form in it, so the
+       button sits mid-screen, clear of Safari's floating toolbar.
+       From sm the form is a centred 28rem column. Floating card on desktop. */
+    .card { @apply relative -mt-7 flex flex-col gap-4 max-lg:flex-1 max-lg:justify-center rounded-t-[28px] bg-panel px-6 pt-7 pb-[max(28px,calc(env(safe-area-inset-bottom)+20px))] sm:px-[max(2.5rem,calc((100%-28rem)/2))] lg:mt-0 lg:rounded-[28px] lg:p-10 lg:shadow-[0_40px_80px_-40px_rgba(0,0,0,.6)] motion-safe:animate-pop; }
     .card form { @apply flex flex-col gap-4; }
     .logo { @apply flex items-center justify-center gap-2.5 max-lg:hidden; }
     .logo .mark { @apply grid h-11 w-11 place-items-center rounded-full bg-teal-500 font-auth-display text-panel ring-4 ring-teal-500/15; }
@@ -139,17 +154,23 @@
     /* .inp is also .field-box: common.js adds .is-wrong to it */
     .inp { @apply relative; }
     .inp svg { @apply pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-auth; }
-    .inp input { @apply min-h-[44px] w-full rounded-2xl border-2 border-transparent bg-field-auth py-3 pl-12 pr-4 text-ink-auth outline-hidden transition focus:border-teal-500 focus:bg-white lg:py-3.5; }
+    /* About 56px tall; 16px text so iPhones don't zoom in on focus */
+    .inp input { @apply min-h-14 w-full rounded-2xl border-2 border-transparent bg-field-auth py-3.5 pl-12 pr-4 text-base text-ink-auth outline-hidden transition placeholder:text-muted-auth/70 focus:border-teal-500 focus:bg-white; }
     .inp:has(.eye) input { @apply pr-16; }
     .inp.plain input { @apply pl-4; }
     .inp.ph input { @apply pl-14; }
     .inp .pre { @apply absolute left-4 top-1/2 -translate-y-1/2 font-medium text-muted-auth; }
-    .inp.is-wrong input { @apply border-err-auth bg-err-auth/5; }
-    .field-error { @apply mt-1 hidden text-sm text-err-auth; }
-    .field-error.show { @apply block; }
+    .inp.is-wrong { @apply motion-safe:animate-shake; }
+    .inp.is-wrong input { @apply border-err-auth/70 bg-err-auth/5; }
+    .field-error { @apply mt-1.5 hidden items-start gap-1.5 text-sm text-err-auth; }
+    .field-error.show { @apply flex; }
+    .field-error::before {
+      content: ""; @apply mt-[3px] h-3.5 w-3.5 flex-none bg-current;
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 8v5M12 16.5v.5'/%3E%3C/svg%3E") center / contain no-repeat;
+    }
 
     /* Show/Hide: common.js flips aria-label and the [data-eye-slash] span */
-    .eye { @apply absolute right-2 top-1/2 min-h-[44px] -translate-y-1/2 px-2 text-xs font-semibold text-teal-500; }
+    .eye { @apply absolute right-1.5 top-1/2 min-h-11 min-w-11 -translate-y-1/2 px-2 text-xs font-semibold text-teal-500; }
     .eye[aria-label="Hide password"] .eye-show { @apply hidden; }
 
     /* Strength bar: auth-ui.js sets data-level 1-4 */
@@ -165,21 +186,23 @@
     .rules li.on::before { content: "✓ "; }
 
     .check { @apply m-0 flex min-h-[44px] cursor-pointer items-center gap-2 text-sm font-normal text-muted-auth; }
-    .check input { @apply h-4 w-4 accent-teal-500; }
+    .check input { @apply h-[18px] w-[18px] accent-teal-500; }
     .terms { @apply m-0 flex cursor-pointer items-start gap-2 text-sm font-normal leading-relaxed text-muted-auth; }
-    .terms input { @apply mt-0.5 h-4 w-4 flex-none accent-teal-500; }
+    .terms input { @apply mt-0.5 h-[18px] w-[18px] flex-none accent-teal-500; }
     .terms a, .foot a, .resend button, .link { @apply font-semibold text-teal-500 underline; }
+    .link { @apply inline-flex min-h-11 items-center; }
 
     .otp { @apply flex justify-center gap-1.5 sm:gap-2; }
-    .otp input { @apply h-12 w-10 min-w-0 rounded-xl border-2 border-transparent bg-field-auth text-center text-xl font-semibold text-ink-auth outline-hidden focus:border-teal-500 focus:bg-white sm:h-14 sm:w-12; }
-    .resend { @apply text-center text-sm text-muted-auth [font-variant-numeric:tabular-nums]; }
+    .otp input { @apply h-14 min-w-0 max-w-12 flex-1 rounded-xl border-2 border-transparent bg-field-auth text-center text-xl font-semibold text-ink-auth outline-hidden focus:border-teal-500 focus:bg-white; }
+    .resend { @apply flex flex-wrap items-center justify-center gap-x-1 text-sm text-muted-auth [font-variant-numeric:tabular-nums]; }
+    .resend button { @apply min-h-11; }
     .resend button:disabled { @apply cursor-default font-normal text-muted-auth no-underline; }
 
     .steps { @apply flex justify-center gap-1.5; }
     .steps i { @apply h-1.5 w-7 rounded bg-line-auth; }
     .steps i.on { @apply bg-teal-500; }
 
-    .btn { @apply grid min-h-[44px] place-items-center rounded-2xl bg-teal-500 py-4 font-semibold text-panel shadow-[0_12px_24px_-12px_rgba(0,109,111,.9)] transition hover:bg-teal-700 disabled:opacity-60; }
+    .btn { @apply grid h-14 flex-none place-items-center rounded-2xl bg-teal-500 font-semibold text-panel shadow-[0_14px_28px_-14px_rgba(0,109,111,.9)] transition hover:bg-teal-700 active:scale-[.98] disabled:opacity-60 motion-reduce:transition-none; }
     .foot { @apply text-center text-sm text-muted-auth; }
     .badge { @apply mx-auto grid h-16 w-16 place-items-center rounded-full bg-teal-500/10 text-teal-500; }
     .badge.warn { @apply bg-err-auth/10 text-err-auth; }
@@ -198,24 +221,25 @@
 
     & :focus-visible { @apply outline-2 outline-offset-2 outline-gold-auth; }
 
-    /* Phones and tablets: the form sits on a dark sheet under the teal header.
-       Desktop (lg+) keeps the cream card above. */
-    @variant max-lg {
+    /* Dark mode follows the device setting. Errors switch to the soft red. */
+    @media (prefers-color-scheme: dark) {
       .card { @apply bg-sheet-auth text-sheet-ink-auth [color-scheme:dark]; }
+      .meter i, .steps i { @apply bg-white/10; }
       .sub, .check, .terms, .foot, .resend, .resend button:disabled { @apply text-sheet-mute-auth; }
       .sub b { @apply text-sheet-ink-auth; }
       & label { @apply text-sheet-label-auth; }
       .back, .eye, .terms a, .foot a, .resend button:not(:disabled), .link { @apply text-sheet-link-auth; }
       .inp svg, .inp .pre { @apply text-sheet-mute-auth; }
       .inp input, .otp input { @apply bg-sheet-field-auth text-sheet-ink-auth placeholder:text-sheet-placeholder-auth focus:border-sheet-link-auth focus:bg-sheet-field-auth autofill:shadow-[inset_0_0_0_100px_var(--color-sheet-field-auth)] autofill:[-webkit-text-fill-color:var(--color-sheet-ink-auth)]; }
-      .inp.is-wrong input { @apply border-sheet-err-auth bg-sheet-err-auth/10; }
+      .inp.is-wrong input { @apply border-sheet-err-auth/70 bg-sheet-err-auth/10; }
       .field-error { @apply text-sheet-err-auth; }
-      .meter i, .steps i { @apply bg-white/10; }
       .rules { @apply bg-sheet-field-auth; }
       .rules li.on { @apply text-sheet-ok-auth; }
       .badge { @apply bg-sheet-link-auth/15 text-sheet-link-auth; }
       .badge.warn { @apply bg-sheet-err-auth/15 text-sheet-err-auth; }
-      .btn { @apply shadow-[0_14px_30px_-14px_rgba(0,0,0,.85)]; }
+      .btn { @apply bg-sheet-link-auth text-teal-900 shadow-none hover:bg-sheet-link-auth/85; }
+      .loading { @apply bg-sheet-auth/80; }
+      .spinner { @apply border-white/10 border-t-sheet-link-auth; }
     }
   }
 }

@@ -93,20 +93,20 @@ document.addEventListener('DOMContentLoaded', function () {
     let ok = true;
 
     if (password.length < 8) {
-      LM.markWrong('new-password', 'Password must be at least 8 characters.');
+      LM.markWrong('new-password', 'Use at least 8 characters.');
       ok = false;
     }
 
     if (!confirm) {
-      LM.markWrong('confirm-password', 'Please type your password again.');
+      LM.markWrong('confirm-password', 'Type your password again.');
       ok = false;
     } else if (password !== confirm) {
-      LM.markWrong('confirm-password', 'The two passwords do not match.');
+      LM.markWrong('confirm-password', 'Type the same password in both fields.');
       ok = false;
     }
 
     if (!ok) {
-      LM.toast('Please check the highlighted fields.', 'wrong');
+      LM.reportWrong();
       return;
     }
 

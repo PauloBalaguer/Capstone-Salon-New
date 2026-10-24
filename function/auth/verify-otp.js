@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (res.status === 429) {
-          LM.toast(res.body.message || 'Too many attempts. Please try again later.', 'wrong');
+          LM.toast(res.body.message || 'Too many attempts. Please try again later.', 'wrong', 'Too many attempts');
           return;
         }
 

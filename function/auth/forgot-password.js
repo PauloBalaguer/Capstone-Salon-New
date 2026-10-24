@@ -17,13 +17,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const email = LM.value('forgot-email').toLowerCase();
 
     if (!email) {
-      LM.markWrong('forgot-email', 'Please enter your email address.');
-      LM.toast('Please enter your email address.', 'wrong');
+      LM.markWrong('forgot-email', 'Enter your email, like name@email.com.');
+      LM.reportWrong();
       return;
     }
     if (!LM.isEmail(email)) {
-      LM.markWrong('forgot-email', 'That does not look like an email address.');
-      LM.toast('Please check the email address.', 'wrong');
+      LM.markWrong('forgot-email', 'Enter your email, like name@email.com.');
+      LM.reportWrong();
       return;
     }
 

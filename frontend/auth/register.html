@@ -9,8 +9,8 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,500&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="../../frontend/shared/output.css">
 </head>
-<body data-toast="bottom" class="auth-page min-h-screen bg-teal-700 font-auth-body text-ink-auth antialiased">
-  <main class="mx-auto flex min-h-screen max-w-[1280px] flex-col lg:grid lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-16 lg:px-12 lg:py-12">
+<body class="auth-page min-h-[100dvh] bg-teal-700 font-auth-body text-ink-auth antialiased">
+  <main class="mx-auto flex min-h-[100dvh] max-w-[1280px] flex-col lg:grid lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-16 lg:px-12 lg:py-12">
 
     <section class="hidden min-w-0 text-panel lg:block">
       <a href="../../index.html" class="flex w-fit items-center gap-3 font-auth-display text-xl" aria-label="Leo Mejillano — back to website">
@@ -26,10 +26,10 @@
       </ul>
     </section>
 
-    <header class="bg-[radial-gradient(120%_110%_at_0%_0%,#0E8C8D_0%,rgba(14,140,141,0)_70%)] px-6 pb-12 pt-[max(2rem,env(safe-area-inset-top))] text-panel sm:px-10 lg:hidden">
-      <a href="../../index.html" class="grid h-11 w-11 place-items-center rounded-full bg-panel font-auth-display text-base font-semibold text-teal-500 shadow-[0_8px_18px_-8px_rgba(0,0,0,.6)]" aria-label="Leo Mejillano — back to website">LM</a>
-      <h1 class="mt-5 font-auth-display text-[1.85rem] font-semibold leading-[1.15] [text-wrap:balance]">Create your salon account</h1>
-      <p class="mt-2 text-[0.95rem] text-[#cfe3e0]">It takes about a minute.</p>
+    <header class="hero">
+      <a href="../../index.html" class="mark" aria-label="Leo Mejillano — back to website">LM</a>
+      <h1>Create your salon account</h1>
+      <p>It takes about a minute.</p>
     </header>
 
     <div class="card">
@@ -97,8 +97,12 @@
         </div>
 
         <div>
-          <label class="terms" for="reg-terms"><input type="checkbox" id="reg-terms"><span>I agree to the <a href="../../index.html" target="_blank" rel="noopener">Terms</a> and the <a href="../../index.html" target="_blank" rel="noopener">reservation and deposit policy</a>.</span></label>
+          <label class="terms" for="reg-terms"><input type="checkbox" id="reg-terms" data-field="agreement to the terms"><span>I agree to the <a href="../../index.html" target="_blank" rel="noopener">Terms</a> and the <a href="../../index.html" target="_blank" rel="noopener">reservation and deposit policy</a>.</span></label>
           <p class="field-error" id="reg-terms-error"></p>
+        </div>
+
+        <div>
+          <label class="terms" for="reg-notify-sms"><input type="checkbox" id="reg-notify-sms" name="notify_sms" value="1" checked><span>Text me booking updates and reminders by SMS. You can turn this off later in your profile.</span></label>
         </div>
 
         <button type="submit" class="btn">Create account</button>

@@ -1,14 +1,13 @@
 <?php
 /** CLI: queue reminders for confirmed appointments in the next 24 hours.
- * reminder_sent means queued/handled; Brevo API retries belong to EmailOutbox.
- * No SMS provider is configured, so this job never sends SMS.
+ * reminder_sent means queued/handled, so each appointment is reminded once.
+ * CustomerNotifier queues both the email (EmailOutbox) and, for customers
+ * with SMS on, the reminder text (SmsOutbox -> sendQueuedSms.php).
  */
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit(); }
 require_once __DIR__ . '/../config/setup/database.php';
 require_once __DIR__ . '/../config/notifications/CustomerNotifier.php';
 require_once __DIR__ . '/sendPaymentReminders.php';
-
-function sendAppointmentReminderSms(string $phone, string $message): bool { return false; }
 
 function queueAppointmentReminders(PDO $pdo): int
 {

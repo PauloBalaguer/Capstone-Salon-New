@@ -2538,6 +2538,7 @@
 
     const formData = new FormData();
     formData.append('email', email);
+    formData.append('phone', pendingBooking.phone);
 
     fetch('backend/public/sendBookingOtp.php', { method: 'POST', body: formData })
       .then(r => r.json())
@@ -2617,6 +2618,7 @@
 
     const formData = new FormData();
     formData.append('email', pendingBooking.email);
+    formData.append('phone', pendingBooking.phone);
 
     fetch('backend/public/sendBookingOtp.php', { method: 'POST', body: formData })
       .then(r => r.json())

@@ -2,14 +2,14 @@
 /**
  * One-time CLI helper: creates a new Admin login, or promotes/updates an
  * existing account to Admin. There is no public-facing way to become an
- * admin by design (auth/backend/register.php always assigns the Customer
+ * admin by design (backend/auth/register.php always assigns the Customer
  * role), so this is the supported way to add another admin account.
  *
  * Run from the command line:
  *   php database/scripts/create_admin.php admin2@leomejillanosalon.ph "SomeStrongPass1!" "Second Admin"
  */
 
-require_once __DIR__ . '/../../shared/backend/config/setup/database.php';
+require_once __DIR__ . '/../../backend/shared/config/setup/database.php';
 
 [, $email, $password, $displayName] = array_pad($argv, 4, null);
 

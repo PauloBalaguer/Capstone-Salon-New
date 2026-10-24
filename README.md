@@ -14,7 +14,7 @@ branches across five panels (guest, customer, admin, cashier, staff).
 
 ## How the project is organized
 
-Every panel has the same three folders:
+The project is split into three layers, and each layer has one folder per panel:
 
 | Folder      | Holds                  | Meaning                  |
 |-------------|------------------------|--------------------------|
@@ -23,31 +23,31 @@ Every panel has the same three folders:
 | `backend/`  | PHP endpoints          | what the server does     |
 
 Panel order everywhere: **Guest → Login → Customer → Admin → Cashier → Staff → Shared**
+(`public/` = Guest, `auth/` = Login).
 
 ```
-index.html              Landing page
-public/                 GUEST     booking, tracking, feedback, PayMongo result + webhook
-auth/                   LOGIN     login, register, OTP, set/forgot/reset password
-customer/               CUSTOMER  customer portal
-admin/                  ADMIN     admin portal
-cashier/                CASHIER   cashier portal
-staff/                  STAFF     staff (stylist) portal
-shared/                 SHARED    code used by more than one panel
-  frontend/               Tailwind (input.css → output.css), palettes, image/, icon/, video/
-  function/               shared JS (toast, address form, booking validation, ...)
-  backend/
+index.html                Landing page
+frontend/                 🎨 what the user sees
+  public/  auth/  customer/  admin/  cashier/  staff/
+  shared/                   Tailwind (input.css → output.css), palettes, image/, icon/, video/
+function/                 ⚡ what the page does
+  public/  auth/  customer/  admin/  cashier/  staff/
+  shared/                   shared JS (toast, address form, booking validation, ...)
+backend/                  🖥️ what the server does
+  public/  auth/  customer/  admin/  cashier/  staff/
+  shared/
     config/
-      setup/              database, session, mail, cors, url
-      booking/            scheduling, validation, reschedule, cancellation, waitlist, home service
-      payments/           reservation & home-service payments, PayMongo, payment log, revenue report
-      notifications/      customer/staff notifiers, email outbox
-      security/           audit log, end-of-day lock, rate limiter, account setup
-      helpers/            loyalty tier, address, admin booking list
-      credentials/        *.example.php templates (real keys are git-ignored)
-    cron/                 scheduled workers (email queue, reminders)
-    data/                 static data (Albay locations)
-    storage/sessions/     PHP session files (git-ignored)
-database/
+      setup/                database, session, mail, cors, url
+      booking/              scheduling, validation, reschedule, cancellation, waitlist, home service
+      payments/             reservation & home-service payments, PayMongo, payment log, revenue report
+      notifications/        customer/staff notifiers, email outbox
+      security/             audit log, end-of-day lock, rate limiter, account setup
+      helpers/              loyalty tier, address, admin booking list
+      credentials/          *.example.php templates (real keys are git-ignored)
+    cron/                   scheduled workers (email queue, reminders)
+    data/                   static data (Albay locations)
+    storage/sessions/       PHP session files (git-ignored)
+database/                 🗄️ database
   schema/                 capstone.sql (full schema)
   migrations/             002_… → 051_… numbered changes
   seeders/                demo / landing data
@@ -58,12 +58,14 @@ database/
 
 ## The panels
 
-- **Guest** (`public/`): browse services, book an appointment or home service, pay online, track a booking, leave feedback.
-- **Login** (`auth/`): register with email OTP, log in, set up an account and reset a forgotten password.
-- **Customer** (`customer/`): dashboard, booking, appointments, home service, reviews, profile and notifications.
-- **Admin** (`admin/`): bookings, customers, employees, promotions, inventory, feedback, reports and settings for all branches.
-- **Cashier** (`cashier/`): one branch's front desk: walk-ins, appointment status, staff assignment, payment, receipts, stock and end-of-day close.
-- **Staff** (`staff/`): assigned appointments, attendance, inventory use, ranking and profile.
+Each panel lives in `frontend/<panel>/`, `function/<panel>/` and `backend/<panel>/`.
+
+- **Guest** (`public`): browse services, book an appointment or home service, pay online, track a booking, leave feedback.
+- **Login** (`auth`): register with email OTP, log in, set up an account and reset a forgotten password.
+- **Customer** (`customer`): dashboard, booking, appointments, home service, reviews, profile and notifications.
+- **Admin** (`admin`): bookings, customers, employees, promotions, inventory, feedback, reports and settings for all branches.
+- **Cashier** (`cashier`): one branch's front desk: walk-ins, appointment status, staff assignment, payment, receipts, stock and end-of-day close.
+- **Staff** (`staff`): assigned appointments, attendance, inventory use, ranking and profile.
 
 ## Local setup (XAMPP)
 
@@ -73,12 +75,12 @@ database/
 3. In phpMyAdmin create a database named `new capstone_salon` (with the space)
    and import `database/schema/capstone.sql`. Connection settings (host,
    port `3307`, user `root`, empty password) are in
-   `shared/backend/config/setup/database.php`; change the port if your MySQL uses 3306.
+   `backend/shared/config/setup/database.php`; change the port if your MySQL uses 3306.
 4. Create the private credential files from the templates and fill in your keys
    in your editor (they are git-ignored and blocked from the web by `.htaccess`):
    ```
-   shared/backend/config/credentials/brevo_credentials.example.php    → brevo_credentials.php
-   shared/backend/config/credentials/paymongo_credentials.example.php → paymongo_credentials.php
+   backend/shared/config/credentials/brevo_credentials.example.php    → brevo_credentials.php
+   backend/shared/config/credentials/paymongo_credentials.example.php → paymongo_credentials.php
    ```
 5. Create staff-side accounts from the command line:
    ```powershell
@@ -93,9 +95,9 @@ database/
 Run these every few minutes with `C:\xampp\php\php.exe` as the program:
 
 ```powershell
-C:\xampp\php\php.exe C:\xampp\htdocs\Capstone-Salon\shared\backend\cron\sendQueuedEmails.php
-C:\xampp\php\php.exe C:\xampp\htdocs\Capstone-Salon\shared\backend\cron\sendAppointmentReminders.php
+C:\xampp\php\php.exe C:\xampp\htdocs\Capstone-Salon\backend\shared\cron\sendQueuedEmails.php
+C:\xampp\php\php.exe C:\xampp\htdocs\Capstone-Salon\backend\shared\cron\sendAppointmentReminders.php
 ```
 
 `sendAppointmentReminders.php` also queues PayMongo payment reminders; see
-`shared/backend/cron/PAYMENT_REMINDERS.md`.
+`backend/shared/cron/PAYMENT_REMINDERS.md`.

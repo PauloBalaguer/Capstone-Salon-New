@@ -13,8 +13,8 @@
 
 # Private credentials (Brevo, PayMongo, legacy mail). Only the *.example.php
 # templates in this folder are tracked; copy one and fill in real keys locally.
-shared/backend/config/credentials/*.php
-!shared/backend/config/credentials/*.example.php
+backend/shared/config/credentials/*.php
+!backend/shared/config/credentials/*.example.php
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -434,8 +434,8 @@ FodyWeavers.xsd
 *.msp
 
 # PHP login sessions (live admin/cashier/staff/customer logins) -- never commit.
-shared/backend/storage/sessions/*
-!shared/backend/storage/sessions/.gitkeep
+backend/shared/storage/sessions/*
+!backend/shared/storage/sessions/.gitkeep
 
 # Local AI agent skills (per-developer tooling, not part of the app).
 .agents/

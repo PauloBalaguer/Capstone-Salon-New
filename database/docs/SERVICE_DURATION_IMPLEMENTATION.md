@@ -26,22 +26,22 @@ compared before/after and remained unchanged. A service backup was written to
 
 | File | Change |
 |---|---|
-| `admin/backend/saveService.php` | Strict positive-integer duration validation; retain stored duration when omitted on edit; derive the compatibility label from minutes. |
-| `public/backend/getBranchServices.php` | Return readable duration derived from stored minutes, so admin edits appear in the public service selector. |
-| `customer/backend/getDashboardData.php` | Return consistent catalog duration labels and appointment end times. |
-| `customer/backend/submitBooking.php` | Return authoritative summed duration and estimated end time with the appointment confirmation. |
-| `public/backend/submitGuestBooking.php` | Return authoritative duration and end time with the guest confirmation. |
-| `admin/function/promotions.js` | Validate positive whole minutes before Add/Edit Service submission. |
-| `admin/frontend/promotions.html` | Estimated Duration numeric input, minimum 1, and readable catalog duration. |
-| `admin/frontend/appointments.html` | Readable Estimated Duration and Estimated End Time in the existing booking cards. |
-| `customer/function/dashboard-helpers.js` | Format service duration from integer minutes instead of stale/range labels. |
-| `customer/function/dashboard-booking.js` | Selected-duration and end-time helpers; use the server's duration after booking. |
-| `customer/frontend/services-promos.html` | Duration on selected services; live estimated end, review, and confirmation details. |
-| `public/function/main.js` | Guest service durations, live selected-service end time, review, and confirmation details. |
+| `backend/admin/saveService.php` | Strict positive-integer duration validation; retain stored duration when omitted on edit; derive the compatibility label from minutes. |
+| `backend/public/getBranchServices.php` | Return readable duration derived from stored minutes, so admin edits appear in the public service selector. |
+| `backend/customer/getDashboardData.php` | Return consistent catalog duration labels and appointment end times. |
+| `backend/customer/submitBooking.php` | Return authoritative summed duration and estimated end time with the appointment confirmation. |
+| `backend/public/submitGuestBooking.php` | Return authoritative duration and end time with the guest confirmation. |
+| `function/admin/promotions.js` | Validate positive whole minutes before Add/Edit Service submission. |
+| `frontend/admin/promotions.html` | Estimated Duration numeric input, minimum 1, and readable catalog duration. |
+| `frontend/admin/appointments.html` | Readable Estimated Duration and Estimated End Time in the existing booking cards. |
+| `function/customer/dashboard-helpers.js` | Format service duration from integer minutes instead of stale/range labels. |
+| `function/customer/dashboard-booking.js` | Selected-duration and end-time helpers; use the server's duration after booking. |
+| `frontend/customer/services-promos.html` | Duration on selected services; live estimated end, review, and confirmation details. |
+| `function/public/main.js` | Guest service durations, live selected-service end time, review, and confirmation details. |
 | `index.html` | Load the shared duration helper for the guest flow. |
 
-The existing `shared/backend/config/booking/Scheduling.php::totalDurationMinutes()` and
-`admin/backend/getDashboardData.php` calculations were reused without modifying
+The existing `backend/shared/config/booking/Scheduling.php::totalDurationMinutes()` and
+`backend/admin/getDashboardData.php` calculations were reused without modifying
 their scheduling/conflict logic. The existing appointment and appointment-service
 tables continue to store bookings and their selected services.
 
@@ -49,8 +49,8 @@ tables continue to store bookings and their selected services.
 
 | File | Purpose |
 |---|---|
-| `shared/backend/config/booking/ServiceDuration.php` | Integer validation, readable duration, and start-plus-minutes calculation. |
-| `shared/function/service-duration.js` | Shared customer/admin duration formatting and end-time previews. |
+| `backend/shared/config/booking/ServiceDuration.php` | Integer validation, readable duration, and start-plus-minutes calculation. |
+| `function/shared/service-duration.js` | Shared customer/admin duration formatting and end-time previews. |
 | `database/data/service-duration-reference.json` | 315 duration rows extracted from the supplied DOCX, retaining branch and section context. |
 | `database/scripts/sync_service_durations.php` | Preview/apply the initial duration import; safe branch-aware matching and service backup. |
 | `tests/service_duration.php` | Duration formatting, validation, and end-time examples. |

@@ -2,12 +2,12 @@
 /**
  * One-time CLI helper: creates a new Cashier login locked to one branch, or
  * promotes/updates an existing account to a branch-locked Cashier. There is
- * no public-facing way to become a cashier by design (auth/backend/register.php
+ * no public-facing way to become a cashier by design (backend/auth/register.php
  * always assigns the Customer role), so this is the supported way to add a
  * cashier terminal account. Each Cashier account is tied to exactly one
  * branch (users.branch_id) -- see database/migrations/007_cashier_branch_lock.sql
- * and auth/backend/login.php, which stores it in the session at login
- * and every cashier/backend/*.php endpoint enforces from there.
+ * and backend/auth/login.php, which stores it in the session at login
+ * and every backend/cashier/*.php endpoint enforces from there.
  *
  * Run from the command line:
  *   php database/scripts/create_cashier.php cashier.daraga@leomejillanosalon.ph "SomeStrongPass1!" daraga "Daraga Front Desk"
@@ -15,7 +15,7 @@
  * <branch> must be one of: daraga, yashano, cabangan (branches.branch_key).
  */
 
-require_once __DIR__ . '/../../shared/backend/config/setup/database.php';
+require_once __DIR__ . '/../../backend/shared/config/setup/database.php';
 
 [, $email, $password, $branchKey, $displayName] = array_pad($argv, 5, null);
 

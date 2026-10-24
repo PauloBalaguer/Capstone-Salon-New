@@ -1,8 +1,8 @@
 <?php
 // CLI only. Preview by default; --apply changes duration fields only.
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
-require_once __DIR__ . '/../../shared/backend/config/setup/database.php';
-require_once __DIR__ . '/../../shared/backend/config/booking/ServiceDuration.php';
+require_once __DIR__ . '/../../backend/shared/config/setup/database.php';
+require_once __DIR__ . '/../../backend/shared/config/booking/ServiceDuration.php';
 
 function durationNameKey(string $name): string
 {

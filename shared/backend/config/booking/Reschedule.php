@@ -1,7 +1,7 @@
 <?php
 
 require_once __DIR__ . '/Scheduling.php';
-require_once __DIR__ . '/CustomerNotifier.php';
+require_once __DIR__ . '/../notifications/CustomerNotifier.php';
 require_once __DIR__ . '/Waitlist.php';
 require_once __DIR__ . '/CancellationPolicy.php';
 

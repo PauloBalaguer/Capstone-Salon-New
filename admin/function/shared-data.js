@@ -200,7 +200,7 @@ document.addEventListener('alpine:init', () => {
 
     /* Customer loyalty tier (VIP / Gold / Silver / Member) comes from the
        backend -- completed visits in the last 12 months, see
-       shared/backend/config/LoyaltyTier.php. This only picks the badge style. */
+       shared/backend/config/helpers/LoyaltyTier.php. This only picks the badge style. */
     getCustomerTierBadgeClass(tier) {
       switch (tier) {
         case 'VIP': return 'admin-badge admin-tier--vip';

@@ -141,7 +141,7 @@ function customerAppointmentsMixin() {
     },
 
     // RESCHEDULE -- same open-slot rules as the cashier's reschedule
-    // (shared/backend/config/Reschedule.php); the backend also enforces the
+    // (shared/backend/config/booking/Reschedule.php); the backend also enforces the
     // 24-hour cut-off unless the salon itself asked for the change.
     rescheduleAppt: null,
     // null until the first slot load tells us the booking's current stylist;
@@ -161,7 +161,7 @@ function customerAppointmentsMixin() {
       return ['Pending', 'Confirmed', 'Reschedule Requested'].includes(appt.status) || this.hasKeptDeposit(appt);
     },
     // Cancelled, but the non-refundable deposit was kept -- rescheduling
-    // reinstates the booking with it (shared/backend/config/Reschedule.php).
+    // reinstates the booking with it (shared/backend/config/booking/Reschedule.php).
     hasKeptDeposit(appt) {
       return appt.status === 'Cancelled' && ['Forfeited', 'Refund Due'].includes(appt.paymentStatus) && Number(appt.depositAmount) > 0;
     },

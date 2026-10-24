@@ -122,7 +122,7 @@ final class ReservationPayment
             // Informational only: the customer pays this amountDue either in
             // Cash at the branch or online through PayMongo -- the booking
             // endpoints pick the path from the chosen payment method (see
-            // shared/backend/config/PayMongo.php). This quote stays gateway-agnostic.
+            // shared/backend/config/payments/PayMongo.php). This quote stays gateway-agnostic.
             'provider' => 'manual'];
         // Detect a changed quote on submission; never use this token as a price input.
         $quote['quoteToken'] = hash('sha256', json_encode($quote));

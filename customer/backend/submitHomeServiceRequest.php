@@ -13,11 +13,11 @@
  * 'Payment Required' (both column defaults).
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/session.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/AuditLog.php';
-require_once '../../shared/backend/config/HomeServiceRequest.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/session.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/security/AuditLog.php';
+require_once '../../shared/backend/config/booking/HomeServiceRequest.php';
 
 sendCorsHeaders();
 AuditLog::captureRequest();
@@ -35,8 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-require_once __DIR__ . '/../../shared/backend/config/BookingValidation.php';
-require_once __DIR__ . '/../../shared/backend/config/Address.php';
+require_once __DIR__ . '/../../shared/backend/config/booking/BookingValidation.php';
+require_once __DIR__ . '/../../shared/backend/config/helpers/Address.php';
 $structuredAddress = Address::fromPost(true);
 $_POST['address'] = $structuredAddress['formatted'];
 BookingValidation::enforce($_POST, [

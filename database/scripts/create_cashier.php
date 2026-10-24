@@ -15,7 +15,7 @@
  * <branch> must be one of: daraga, yashano, cabangan (branches.branch_key).
  */
 
-require_once __DIR__ . '/../../shared/backend/config/database.php';
+require_once __DIR__ . '/../../shared/backend/config/setup/database.php';
 
 [, $email, $password, $branchKey, $displayName] = array_pad($argv, 5, null);
 

@@ -9,13 +9,13 @@
  * branch) and a branch-wide booking list used for time-slot availability.
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/session.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/LoyaltyTier.php';
-require_once '../../shared/backend/config/HomeServiceRequest.php';
-require_once '../../shared/backend/config/ServiceDuration.php';
-require_once '../../shared/backend/config/ReservationPayment.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/session.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/helpers/LoyaltyTier.php';
+require_once '../../shared/backend/config/booking/HomeServiceRequest.php';
+require_once '../../shared/backend/config/booking/ServiceDuration.php';
+require_once '../../shared/backend/config/payments/ReservationPayment.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -58,7 +58,7 @@ try {
         'phone' => $customer['phone_number'],
         'memberSince' => date('Y-m-d', strtotime($customer['created_at'])),
         'loyaltyPoints' => (int) $customer['loyalty_points'],
-        // Frequency-based status (shared/backend/config/LoyaltyTier.php).
+        // Frequency-based status (shared/backend/config/helpers/LoyaltyTier.php).
         'loyaltyTier' => LoyaltyTier::forCustomer($pdo, $customerId) + ['ladder' => LoyaltyTier::ladder()],
         'profilePicture' => $customer['profile_picture'],
         'notificationPrefs' => [
@@ -279,7 +279,7 @@ try {
     }, $stmt->fetchAll());
 
     // Real, backend-generated notifications (booking submitted, payment
-    // verified, confirmed, etc. -- see shared/backend/config/CustomerNotifier.php)
+    // verified, confirmed, etc. -- see shared/backend/config/notifications/CustomerNotifier.php)
     // for this customer's own account, newest first.
     $stmt = $pdo->prepare("
         SELECT id, type, message, is_read AS isRead, DATE_FORMAT(created_at, '%Y-%m-%dT%H:%i:%s+08:00') AS createdAt, DATE_FORMAT(created_at, '%Y-%m-%d %h:%i %p') AS time

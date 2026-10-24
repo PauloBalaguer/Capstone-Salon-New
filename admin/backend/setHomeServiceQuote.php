@@ -25,13 +25,13 @@
  * service (see migration 031's status enum).
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/session.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/AuditLog.php';
-require_once '../../shared/backend/config/CustomerNotifier.php';
-require_once '../../shared/backend/config/PayMongo.php';
-require_once '../../shared/backend/config/HomeServiceRequest.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/session.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/security/AuditLog.php';
+require_once '../../shared/backend/config/notifications/CustomerNotifier.php';
+require_once '../../shared/backend/config/payments/PayMongo.php';
+require_once '../../shared/backend/config/booking/HomeServiceRequest.php';
 
 sendCorsHeaders();
 AuditLog::captureRequest();
@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-require_once __DIR__ . '/../../shared/backend/config/BookingValidation.php';
+require_once __DIR__ . '/../../shared/backend/config/booking/BookingValidation.php';
 BookingValidation::enforce($_POST, [
     'quotePrice' => ['money', false, 'an amount with at most two decimal places'],
     'reservationFee' => ['money', false, 'an amount with at most two decimal places'],

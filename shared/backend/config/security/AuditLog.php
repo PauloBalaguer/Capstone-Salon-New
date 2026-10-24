@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/../setup/database.php';
 
 /**
  * Activity / audit log (audit_log table, Admin -> Reports -> Activity Log).

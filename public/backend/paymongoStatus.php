@@ -10,9 +10,9 @@
  * reach this server (e.g. plain localhost without ngrok).
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/PayMongo.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/payments/PayMongo.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -41,7 +41,7 @@ try {
 
     // Home service remaining balance (HomeServicePayment::sendBalanceLink).
     if ($homeService && $homeService['balance_payment_token'] && hash_equals($homeService['balance_payment_token'], $token)) {
-        require_once '../../shared/backend/config/HomeServicePayment.php';
+        require_once '../../shared/backend/config/payments/HomeServicePayment.php';
         $paid = false;
         try {
             $paid = HomeServicePayment::syncBalance($pdo, $homeService);

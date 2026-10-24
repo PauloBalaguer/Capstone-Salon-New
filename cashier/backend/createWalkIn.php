@@ -10,12 +10,12 @@
  * and sums their prices for total_price (never trusted from the client).
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/session.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/AuditLog.php';
-require_once '../../shared/backend/config/Scheduling.php';
-require_once '../../shared/backend/config/EodLock.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/session.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/security/AuditLog.php';
+require_once '../../shared/backend/config/booking/Scheduling.php';
+require_once '../../shared/backend/config/security/EodLock.php';
 
 sendCorsHeaders();
 AuditLog::captureRequest();
@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-require_once __DIR__ . '/../../shared/backend/config/BookingValidation.php';
+require_once __DIR__ . '/../../shared/backend/config/booking/BookingValidation.php';
 BookingValidation::enforce($_POST, [
     'clientName' => ['text', true, 'the client full name'],
     'clientPhone' => ['mobile', true, 'a mobile number (09XXXXXXXXX)'],

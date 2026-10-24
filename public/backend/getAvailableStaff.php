@@ -10,17 +10,17 @@
  * appointment during the selected window. Mirrors the qualification and
  * conflict checks already used by admin/assignStaff.php,
  * cashier/assignStaff.php, and submitGuestBooking.php's auto-assignment —
- * see shared/backend/config/Scheduling.php for the shared duration/overlap logic.
+ * see shared/backend/config/booking/Scheduling.php for the shared duration/overlap logic.
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/Scheduling.php';
-require_once '../../shared/backend/config/PayMongo.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/booking/Scheduling.php';
+require_once '../../shared/backend/config/payments/PayMongo.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
-require_once __DIR__ . '/../../shared/backend/config/BookingValidation.php';
+require_once __DIR__ . '/../../shared/backend/config/booking/BookingValidation.php';
 BookingValidation::enforce($_GET, [
     'branch' => ['id', false, 'a staff or branch selection'],
     'date' => ['date', true, 'an appointment date'],

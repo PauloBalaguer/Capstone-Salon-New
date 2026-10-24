@@ -1,15 +1,15 @@
 <?php
 
-require_once __DIR__ . '/CustomerNotifier.php';
-require_once __DIR__ . '/PaymentLog.php';
+require_once __DIR__ . '/../notifications/CustomerNotifier.php';
+require_once __DIR__ . '/../payments/PaymentLog.php';
 require_once __DIR__ . '/Waitlist.php';
-require_once __DIR__ . '/PayMongo.php';
+require_once __DIR__ . '/../payments/PayMongo.php';
 
 /**
  * Reservation deposit policy (shown to customers in the booking Terms, the
  * booking confirmation, and the cancel dialog): deposits are NON-REFUNDABLE.
  *
- *   - Need a different time? Reschedule instead (shared/backend/config/Reschedule.php):
+ *   - Need a different time? Reschedule instead (shared/backend/config/booking/Reschedule.php):
  *     the booking keeps its deposit. Customers can do it online up to
  *     FREE_CANCEL_HOURS before the appointment; the salon can anytime.
  *   - Cancelling (by the customer or the salon) or a no-show keeps the

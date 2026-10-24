@@ -7,10 +7,10 @@
  * on the public landing page.
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/ServiceDuration.php';
-require_once '../../shared/backend/config/ReservationPayment.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/booking/ServiceDuration.php';
+require_once '../../shared/backend/config/payments/ReservationPayment.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');

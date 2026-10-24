@@ -1,14 +1,14 @@
 <?php
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/url.php';
-require_once '../../shared/backend/config/session.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/AuditLog.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/url.php';
+require_once '../../shared/backend/config/setup/session.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/security/AuditLog.php';
 
 sendCorsHeaders();
 AuditLog::captureRequest();
 
-// config/session.php already started the session (with the project's real
+// config/setup/session.php already started the session (with the project's real
 // save path/cookie settings) -- a plain session_start() here previously read
 // from PHP's default session store instead, so it never saw the real
 // session data and this Time Out step silently never ran.

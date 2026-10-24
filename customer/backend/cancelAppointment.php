@@ -4,9 +4,9 @@
  * Cancel Appointment API Endpoint
  *
  * Marks one of the logged-in customer's own appointments as Cancelled and
- * applies the deposit policy (shared/backend/config/CancellationPolicy.php): a held
+ * applies the deposit policy (shared/backend/config/booking/CancellationPolicy.php): a held
  * deposit is non-refundable and is kept, but the cancelled booking can still
- * be rescheduled later to use it (shared/backend/config/Reschedule.php).
+ * be rescheduled later to use it (shared/backend/config/booking/Reschedule.php).
  * Ownership is enforced by joining through the session's customer_id —
  * a customer can never cancel someone else's appointment by guessing an id.
  *
@@ -14,12 +14,12 @@
  * cancelling, so the cancel dialog can warn the customer first.
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/session.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/AuditLog.php';
-require_once '../../shared/backend/config/CancellationPolicy.php';
-require_once '../../shared/backend/config/StaffNotifier.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/session.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/security/AuditLog.php';
+require_once '../../shared/backend/config/booking/CancellationPolicy.php';
+require_once '../../shared/backend/config/notifications/StaffNotifier.php';
 
 sendCorsHeaders();
 AuditLog::captureRequest();

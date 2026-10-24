@@ -5,13 +5,13 @@
  *
  * Returns the newest payment_transactions rows (PayMongo checkouts,
  * payments, expiries, webhook deliveries, deposit forfeits/refunds -- see
- * shared/backend/config/PaymentLog.php) for Reports -> Online Payment Log.
+ * shared/backend/config/payments/PaymentLog.php) for Reports -> Online Payment Log.
  * GET reference=<booking ref> narrows it to one booking's history.
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/session.php';
-require_once '../../shared/backend/config/database.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/session.php';
+require_once '../../shared/backend/config/setup/database.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -22,7 +22,7 @@ if (!isLoggedIn() || ($_SESSION['user_role'] ?? '') !== 'Admin') {
     exit();
 }
 
-require_once __DIR__.'/../../shared/backend/config/RevenueReport.php';
+require_once __DIR__.'/../../shared/backend/config/payments/RevenueReport.php';
 $reference = is_string($_GET['reference'] ?? '') ? trim($_GET['reference'] ?? '') : '';
 
 try {

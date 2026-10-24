@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__.'/../../shared/backend/config/database.php';
-require_once __DIR__.'/../../shared/backend/config/HomeServiceRequest.php';
+require_once __DIR__.'/../../shared/backend/config/setup/database.php';
+require_once __DIR__.'/../../shared/backend/config/booking/HomeServiceRequest.php';
 header('Content-Type: application/json');
 try {
     $date = $_GET['date'] ?? '';

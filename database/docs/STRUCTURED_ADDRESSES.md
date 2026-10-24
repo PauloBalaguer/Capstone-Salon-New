@@ -1,6 +1,6 @@
 # Customer and home-service addresses
 
-Apply `migrations/050_structured_addresses.sql` before deploying the updated endpoints.
+Apply `migrations/051_structured_addresses.sql` before deploying the updated endpoints.
 The migration adds nullable JSON snapshots to `customers` and `home_service_requests`.
 It never rewrites or parses old free-text addresses. Existing profile addresses remain
 visible and are preserved when saving other profile fields. Customers can replace
@@ -20,7 +20,7 @@ The dataset records its source and retrieval time; it is not an official live PS
 
 ## Business rule
 
-`shared/backend/config/ServiceArea.php` documents the pre-existing **Albay-only home-service**
+`shared/backend/config/booking/ServiceArea.php` documents the pre-existing **Albay-only home-service**
 rule found in `index.html` (notice and terms) and `customer/frontend/home-service.html`.
 The user subsequently confirmed **Albay only** for both profile and service address
 forms and supplied a reference list covering its 18 cities/municipalities.

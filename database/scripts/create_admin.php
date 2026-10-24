@@ -9,7 +9,7 @@
  *   php database/scripts/create_admin.php admin2@leomejillanosalon.ph "SomeStrongPass1!" "Second Admin"
  */
 
-require_once __DIR__ . '/../../shared/backend/config/database.php';
+require_once __DIR__ . '/../../shared/backend/config/setup/database.php';
 
 [, $email, $password, $displayName] = array_pad($argv, 4, null);
 

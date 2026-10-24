@@ -5,7 +5,7 @@
 -- (deposit_paid = 0, payment_status 'Payment Required') and a PayMongo
 -- Checkout Session is created for its reservation_amount_due. Once PayMongo
 -- reports the session paid (webhook or the result page's status check, see
--- backend/config/PayMongo.php), the deposit is recorded and the booking moves
+-- backend/config/payments/PayMongo.php), the deposit is recorded and the booking moves
 -- to 'Awaiting Verification' like any other self-reported deposit -- staff
 -- still confirm the appointment through the existing flow.
 --

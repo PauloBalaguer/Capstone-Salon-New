@@ -3,14 +3,14 @@
 /**
  * Admin: Activity Log
  *
- * Returns the newest audit_log rows (see shared/backend/config/AuditLog.php) for
+ * Returns the newest audit_log rows (see shared/backend/config/security/AuditLog.php) for
  * Reports -> Activity Log. Optional GET filters: q (matches person, action,
  * record reference or message), role, from / to (YYYY-MM-DD).
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/session.php';
-require_once '../../shared/backend/config/database.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/session.php';
+require_once '../../shared/backend/config/setup/database.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');

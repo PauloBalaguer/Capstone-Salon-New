@@ -18,9 +18,9 @@
  * Returns the newest 300 matching rows.
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/session.php';
-require_once '../../shared/backend/config/database.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/session.php';
+require_once '../../shared/backend/config/setup/database.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');

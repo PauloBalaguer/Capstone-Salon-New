@@ -6,18 +6,18 @@
  * GET  ?id=<reference>&date=<Y-m-d>  -> that day's slots for this booking
  * POST id, date, time[, reason]      -> moves the booking there
  *
- * Rules live in shared/backend/config/Reschedule.php (shared with the customer
+ * Rules live in shared/backend/config/booking/Reschedule.php (shared with the customer
  * portal). A "Reschedule Requested" booking goes back to Confirmed if its
  * payment is already verified, else Pending; the optional reason is
  * included in the customer's notification.
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/session.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/AuditLog.php';
-require_once '../../shared/backend/config/EodLock.php';
-require_once '../../shared/backend/config/Reschedule.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/session.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/security/AuditLog.php';
+require_once '../../shared/backend/config/security/EodLock.php';
+require_once '../../shared/backend/config/booking/Reschedule.php';
 
 // php.ini on this XAMPP install is Europe/Berlin; "no slots in the past"
 // must compare against the salon's local time.
@@ -35,7 +35,7 @@ if (!isLoggedIn() || !in_array($_SESSION['user_role'] ?? '', ['Cashier', 'Admin'
 
 $isPost = $_SERVER['REQUEST_METHOD'] === 'POST';
 $input = $isPost ? $_POST : $_GET;
-require_once __DIR__ . '/../../shared/backend/config/BookingValidation.php';
+require_once __DIR__ . '/../../shared/backend/config/booking/BookingValidation.php';
 BookingValidation::enforce($input, [
     'id' => ['text', true, 'a booking reference'],
     'date' => ['date', true, 'an appointment date'],

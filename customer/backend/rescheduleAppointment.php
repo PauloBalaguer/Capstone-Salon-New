@@ -7,17 +7,17 @@
  * POST id, date, time                -> moves the booking there
  *
  * Only the customer's own booking. Same rules as the cashier's reschedule
- * (shared/backend/config/Reschedule.php), plus a cut-off: at least
+ * (shared/backend/config/booking/Reschedule.php), plus a cut-off: at least
  * Reschedule::CUSTOMER_CUTOFF_HOURS ahead, unless the salon itself asked
  * for the change ("Reschedule Requested"). The deposit carries over.
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/session.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/AuditLog.php';
-require_once '../../shared/backend/config/EodLock.php';
-require_once '../../shared/backend/config/Reschedule.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/session.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/security/AuditLog.php';
+require_once '../../shared/backend/config/security/EodLock.php';
+require_once '../../shared/backend/config/booking/Reschedule.php';
 
 date_default_timezone_set('Asia/Manila');
 
@@ -33,7 +33,7 @@ if (!isLoggedIn() || ($_SESSION['user_role'] ?? null) !== 'Customer') {
 
 $isPost = $_SERVER['REQUEST_METHOD'] === 'POST';
 $input = $isPost ? $_POST : $_GET;
-require_once __DIR__ . '/../../shared/backend/config/BookingValidation.php';
+require_once __DIR__ . '/../../shared/backend/config/booking/BookingValidation.php';
 BookingValidation::enforce($input, [
     'id' => ['text', true, 'a booking reference'],
     'date' => ['date', true, 'an appointment date'],

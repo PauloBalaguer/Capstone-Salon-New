@@ -12,13 +12,13 @@
  * temp password relayed by the admin.
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/session.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/AuditLog.php';
-require_once '../../shared/backend/config/url.php';
-require_once '../../shared/backend/config/mail.php';
-require_once '../../shared/backend/config/AccountSetup.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/session.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/security/AuditLog.php';
+require_once '../../shared/backend/config/setup/url.php';
+require_once '../../shared/backend/config/setup/mail.php';
+require_once '../../shared/backend/config/security/AccountSetup.php';
 
 sendCorsHeaders();
 AuditLog::captureRequest();

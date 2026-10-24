@@ -19,11 +19,11 @@
  * never arrived and the customer closed the tab).
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/session.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/AuditLog.php';
-require_once '../../shared/backend/config/PayMongo.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/session.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/security/AuditLog.php';
+require_once '../../shared/backend/config/payments/PayMongo.php';
 
 sendCorsHeaders();
 AuditLog::captureRequest();
@@ -36,7 +36,7 @@ if (!isLoggedIn() || ($_SESSION['user_role'] ?? '') !== 'Admin') {
 }
 if (!PayMongo::isConfigured()) {
     http_response_code(503);
-    echo json_encode(['success' => false, 'message' => 'PayMongo keys are not set up (shared/backend/config/paymongo_credentials.php).']);
+    echo json_encode(['success' => false, 'message' => 'PayMongo keys are not set up (shared/backend/config/credentials/paymongo_credentials.php).']);
     exit();
 }
 

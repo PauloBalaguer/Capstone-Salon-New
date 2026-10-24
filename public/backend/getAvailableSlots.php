@@ -16,10 +16,10 @@
  * the logged-in customer dashboard, which only knows branches by key).
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/Scheduling.php';
-require_once '../../shared/backend/config/PayMongo.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/booking/Scheduling.php';
+require_once '../../shared/backend/config/payments/PayMongo.php';
 
 // php.ini on this XAMPP install is Europe/Berlin; "no slots in the past"
 // must be judged on the salon's clock.
@@ -27,7 +27,7 @@ date_default_timezone_set('Asia/Manila');
 
 sendCorsHeaders();
 header('Content-Type: application/json');
-require_once __DIR__ . '/../../shared/backend/config/BookingValidation.php';
+require_once __DIR__ . '/../../shared/backend/config/booking/BookingValidation.php';
 BookingValidation::enforce($_GET, [
     'branch' => ['id', false, 'a staff or branch selection'],
     'date' => ['date', true, 'an appointment date'],

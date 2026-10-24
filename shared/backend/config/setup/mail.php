@@ -11,7 +11,7 @@ function sendBrevoEmail(string $email, string $subject, string $text, ?string $h
         return false;
     }
 
-    $credentialsPath = __DIR__ . '/brevo_credentials.php';
+    $credentialsPath = __DIR__ . '/../credentials/brevo_credentials.php';
     if (!is_file($credentialsPath)) {
         error_log('Brevo email not sent: private configuration is missing.');
         return false;

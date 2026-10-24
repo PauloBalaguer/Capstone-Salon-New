@@ -11,15 +11,15 @@
  * admin-only action (admin/backend/updateBookingStatus.php).
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/session.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/AuditLog.php';
-require_once '../../shared/backend/config/CustomerNotifier.php';
-require_once '../../shared/backend/config/EodLock.php';
-require_once '../../shared/backend/config/CancellationPolicy.php';
-require_once '../../shared/backend/config/Scheduling.php';
-require_once '../../shared/backend/config/ReservationPayment.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/session.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/security/AuditLog.php';
+require_once '../../shared/backend/config/notifications/CustomerNotifier.php';
+require_once '../../shared/backend/config/security/EodLock.php';
+require_once '../../shared/backend/config/booking/CancellationPolicy.php';
+require_once '../../shared/backend/config/booking/Scheduling.php';
+require_once '../../shared/backend/config/payments/ReservationPayment.php';
 
 sendCorsHeaders();
 AuditLog::captureRequest();
@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-require_once __DIR__ . '/../../shared/backend/config/BookingValidation.php';
+require_once __DIR__ . '/../../shared/backend/config/booking/BookingValidation.php';
 BookingValidation::enforce($_POST, [
     'depositAmount' => ['money', false, 'an amount with at most two decimal places'],
 ]);

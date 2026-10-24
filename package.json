@@ -4,8 +4,8 @@
   "private": true,
   "description": "Salon Management System Capstone Project",
   "scripts": {
-    "dev": "tailwindcss -i shared/frontend/input.css -o shared/frontend/output.css --watch",
-    "build": "tailwindcss -i shared/frontend/input.css -o shared/frontend/output.css --minify"
+    "dev": "tailwindcss -i frontend/shared/input.css -o frontend/shared/output.css --watch",
+    "build": "tailwindcss -i frontend/shared/input.css -o frontend/shared/output.css --minify"
   },
   "repository": {
     "type": "git",

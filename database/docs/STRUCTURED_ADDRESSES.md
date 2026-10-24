@@ -6,7 +6,7 @@ It never rewrites or parses old free-text addresses. Existing profile addresses 
 visible and are preserved when saving other profile fields. Customers can replace
 them explicitly with structured fields. Old service requests retain their original text.
 
-`shared/backend/data/albay-locations.json` is the only runtime location dataset. It contains
+`backend/shared/data/albay-locations.json` is the only runtime location dataset. It contains
 Albay, its 18 cities/municipalities, and 720 barangays with PSGC codes. No other
 provinces or region groups are included. Forms and backend validation use this same
 local file, so location selection does not depend on an external API or cached
@@ -20,8 +20,8 @@ The dataset records its source and retrieval time; it is not an official live PS
 
 ## Business rule
 
-`shared/backend/config/booking/ServiceArea.php` documents the pre-existing **Albay-only home-service**
-rule found in `index.html` (notice and terms) and `customer/frontend/home-service.html`.
+`backend/shared/config/booking/ServiceArea.php` documents the pre-existing **Albay-only home-service**
+rule found in `index.html` (notice and terms) and `frontend/customer/home-service.html`.
 The user subsequently confirmed **Albay only** for both profile and service address
 forms and supplied a reference list covering its 18 cities/municipalities.
 `address_provinces` now limits both forms and server validation to Albay;

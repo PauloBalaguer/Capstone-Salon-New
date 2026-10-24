@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Sign in — Leo Mejillano Salon &amp; Beauty</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,500&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="../../frontend/shared/output.css">
+</head>
+<body data-toast="bottom" class="auth-page min-h-screen bg-teal-700 font-auth-body text-ink-auth antialiased">
+  <main class="mx-auto flex min-h-screen max-w-[1280px] flex-col lg:grid lg:grid-cols-[1.15fr_1fr] lg:items-center lg:gap-16 lg:px-12 lg:py-12">
+
+    <!-- Left: swatch fan (desktop) -->
+    <section class="hidden min-w-0 text-panel lg:block">
+      <a href="../../index.html" class="flex w-fit items-center gap-3 font-auth-display text-xl" aria-label="Leo Mejillano — back to website">
+        <span class="grid h-11 w-11 place-items-center rounded-full border border-gold-auth text-base text-sand">LM</span>Leo Mejillano
+      </a>
+      <p class="mt-8 max-w-[14ch] font-auth-display text-[clamp(2.4rem,4.8vw,4.2rem)] font-semibold leading-[1.05] [text-wrap:balance]">Find your shade, then book your chair.</p>
+      <p class="mt-5 max-w-[42ch] text-[1.05rem] leading-relaxed text-[#cfe3e0]">Browse our colour range, pick a stylist, and reserve with a deposit. Your account keeps every visit and every shade you've had.</p>
+
+      <div class="relative mt-10 h-[300px]" aria-label="Example hair colour swatches">
+        <div class="absolute bottom-0 left-[150px] h-[280px] w-[64px]">
+          <div class="origin-[32px_calc(100%-32px)] [transform:rotate(var(--r))] motion-safe:animate-fan motion-safe:[animation-delay:var(--d)] strand absolute bottom-0 left-0 flex h-[270px] w-[64px] flex-col justify-start rounded-[32px] bg-[#2B1D16] p-2 shadow-xl [--r:-42deg] [--d:.05s]"><span class="rounded-full bg-black/30 px-2 py-1 text-center text-[10px] font-semibold">1.0</span></div>
+          <div class="origin-[32px_calc(100%-32px)] [transform:rotate(var(--r))] motion-safe:animate-fan motion-safe:[animation-delay:var(--d)] strand absolute bottom-0 left-0 flex h-[270px] w-[64px] flex-col justify-start rounded-[32px] bg-[#5A3A26] p-2 shadow-xl [--r:-28deg] [--d:.1s]"><span class="rounded-full bg-black/30 px-2 py-1 text-center text-[10px] font-semibold">4.3</span></div>
+          <div class="origin-[32px_calc(100%-32px)] [transform:rotate(var(--r))] motion-safe:animate-fan motion-safe:[animation-delay:var(--d)] strand absolute bottom-0 left-0 flex h-[270px] w-[64px] flex-col justify-start rounded-[32px] bg-[#8C2F2A] p-2 shadow-xl [--r:-14deg] [--d:.15s]"><span class="rounded-full bg-black/30 px-2 py-1 text-center text-[10px] font-semibold">5.62</span></div>
+          <div class="origin-[32px_calc(100%-32px)] [transform:rotate(var(--r))] motion-safe:animate-fan motion-safe:[animation-delay:var(--d)] strand absolute bottom-0 left-0 flex h-[270px] w-[64px] flex-col justify-start rounded-[32px] bg-[#B5713A] p-2 shadow-xl [--r:0deg] [--d:.2s]"><span class="rounded-full bg-black/30 px-2 py-1 text-center text-[10px] font-semibold">7.34</span></div>
+          <div class="origin-[32px_calc(100%-32px)] [transform:rotate(var(--r))] motion-safe:animate-fan motion-safe:[animation-delay:var(--d)] strand absolute bottom-0 left-0 flex h-[270px] w-[64px] flex-col justify-start rounded-[32px] bg-[#D9B07A] p-2 shadow-xl [--r:14deg] [--d:.25s]"><span class="rounded-full bg-black/25 px-2 py-1 text-center text-[10px] font-semibold">9.3</span></div>
+          <div class="origin-[32px_calc(100%-32px)] [transform:rotate(var(--r))] motion-safe:animate-fan motion-safe:[animation-delay:var(--d)] strand absolute bottom-0 left-0 flex h-[270px] w-[64px] flex-col justify-start rounded-[32px] bg-[#EEDDC2] p-2 text-teal-700 shadow-xl [--r:28deg] [--d:.3s]"><span class="rounded-full bg-black/10 px-2 py-1 text-center text-[10px] font-semibold">10.1</span></div>
+          <div class="origin-[32px_calc(100%-32px)] [transform:rotate(var(--r))] motion-safe:animate-fan motion-safe:[animation-delay:var(--d)] strand absolute bottom-0 left-0 flex h-[270px] w-[64px] flex-col justify-start rounded-[32px] bg-[#7E8FB8] p-2 shadow-xl [--r:42deg] [--d:.35s]"><span class="rounded-full bg-black/25 px-2 py-1 text-center text-[10px] font-semibold">Ash</span></div>
+          <span class="absolute bottom-[18px] left-[18px] z-10 grid h-7 w-7 place-items-center rounded-full border-2 border-gold-auth bg-teal-900"></span>
+        </div>
+        <div class="absolute bottom-6 right-0 max-w-[220px] rounded-2xl border border-sand/20 bg-panel/5 p-4 backdrop-blur-xs">
+          <p class="font-auth-display text-lg italic text-sand">7.34 Golden Copper</p>
+          <p class="mt-1 text-sm text-[#a9cbc7]">Most booked shade this month, Legazpi branch</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Phone header -->
+    <header class="bg-[radial-gradient(120%_110%_at_0%_0%,#0E8C8D_0%,rgba(14,140,141,0)_70%)] px-6 pb-12 pt-[max(2rem,env(safe-area-inset-top))] text-panel sm:px-10 lg:hidden">
+      <a href="../../index.html" class="grid h-11 w-11 place-items-center rounded-full bg-panel font-auth-display text-base font-semibold text-teal-500 shadow-[0_8px_18px_-8px_rgba(0,0,0,.6)]" aria-label="Leo Mejillano — back to website">LM</a>
+      <h1 class="mt-5 font-auth-display text-[1.85rem] font-semibold leading-[1.15] [text-wrap:balance]">Welcome back to <em class="font-medium text-sand">Leo Mejillano</em></h1>
+      <p class="mt-2 text-[0.95rem] text-[#cfe3e0]">Sign in to see your bookings.</p>
+    </header>
+
+    <!-- Right: sign-in form -->
+    <div class="card lg:p-11">
+      <h1 class="font-auth-display text-[2.2rem] font-semibold leading-tight max-lg:hidden">Welcome back</h1>
+      <p class="-mt-2 mb-1 text-muted-auth max-lg:hidden">Sign in to your salon account</p>
+
+      <form id="login-form" novalidate>
+        <div>
+          <label for="login-email">Email address</label>
+          <div class="inp field-box">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+            <input id="login-email" name="email" type="email" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="you@email.com" required>
+          </div>
+          <p class="field-error" id="login-email-error"></p>
+        </div>
+
+        <div>
+          <label for="login-password">Password</label>
+          <div class="inp field-box">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            <input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required>
+            <button type="button" class="eye" data-toggle-password="login-password" aria-label="Show password"><span class="eye-show">Show</span><span data-eye-slash style="display: none">Hide</span></button>
+          </div>
+          <p class="field-error" id="login-password-error"></p>
+        </div>
+
+        <div class="-my-2 flex items-center justify-between text-sm text-muted-auth max-lg:text-sheet-mute-auth">
+          <label for="remember-me" class="check"><input type="checkbox" id="remember-me" name="remember"> Remember me</label>
+          <a href="forgot-password.html" class="link">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="btn mt-2">Sign in</button>
+      </form>
+
+      <p class="foot">New to Leo Mejillano? <a href="register.html">Create an account</a></p>
+    </div>
+  </main>
+
+  <div class="loading" id="loading" aria-hidden="true"><div class="spinner"></div></div>
+
+  <script src="../../function/shared/toast.js"></script>
+  <script src="../../function/auth/common.js?v=2"></script>
+  <script src="../../function/auth/auth-ui.js"></script>
+  <script src="../../function/auth/login.js?v=tw-20261024"></script>
+</body>
+</html>

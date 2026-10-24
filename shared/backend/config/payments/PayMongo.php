@@ -1,10 +1,10 @@
 <?php
 
-require_once __DIR__ . '/CustomerNotifier.php';
+require_once __DIR__ . '/../notifications/CustomerNotifier.php';
 require_once __DIR__ . '/PaymentLog.php';
-require_once __DIR__ . '/Waitlist.php';
-require_once __DIR__ . '/url.php';
-require_once __DIR__ . '/Scheduling.php';
+require_once __DIR__ . '/../booking/Waitlist.php';
+require_once __DIR__ . '/../setup/url.php';
+require_once __DIR__ . '/../booking/Scheduling.php';
 
 /**
  * PayMongo online reservation payments (Checkout Sessions API).
@@ -31,7 +31,7 @@ final class PayMongo
     private static function credentials(): array
     {
         if (self::$credentials === null) {
-            $path = __DIR__ . '/paymongo_credentials.php';
+            $path = __DIR__ . '/../credentials/paymongo_credentials.php';
             self::$credentials = is_file($path) ? (array) require $path : [];
         }
         return self::$credentials;
@@ -246,7 +246,7 @@ final class PayMongo
         if (empty($request['paymongo_checkout_id']) || !self::isConfigured()) return false;
 
         $session = self::request('GET', '/checkout_sessions/' . rawurlencode($request['paymongo_checkout_id']));
-        require_once __DIR__ . '/HomeServiceRequest.php';
+        require_once __DIR__ . '/../booking/HomeServiceRequest.php';
         $ownsTransaction = !$pdo->inTransaction();
         if ($ownsTransaction) $pdo->beginTransaction();
         try {

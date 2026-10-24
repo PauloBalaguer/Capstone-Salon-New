@@ -11,10 +11,10 @@
  * once on load and again after every mutation to refresh the Alpine store.
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/session.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/Scheduling.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/session.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/booking/Scheduling.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');

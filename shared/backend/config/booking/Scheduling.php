@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/StaffNotifier.php';
+require_once __DIR__ . '/../notifications/StaffNotifier.php';
 
 /**
  * Duration-aware slot/staff conflict checks shared by every booking write

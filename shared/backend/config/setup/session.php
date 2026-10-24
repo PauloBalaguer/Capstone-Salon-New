@@ -8,7 +8,7 @@
  *
  * Example:
  * <?php
- * require_once __DIR__ . '/config/session.php';
+ * require_once '../../shared/backend/config/setup/session.php';
  * requireLogin(); // Ensures the user is logged in before viewing the page.
  * requireRole(['Admin']); // Ensures the user is an Admin.
  * ?>
@@ -77,7 +77,7 @@ function detectSessionPortal(): string
 if (session_status() === PHP_SESSION_NONE) {
     // Keep development sessions inside the project so the PHP server does not
     // depend on write access to XAMPP's global C:\xampp\tmp directory.
-    $sessionPath = dirname(__DIR__) . '/storage/sessions';
+    $sessionPath = dirname(__DIR__, 2) . '/storage/sessions';
     if (!is_dir($sessionPath)) {
         mkdir($sessionPath, 0770, true);
     }

@@ -8,11 +8,11 @@
  * durationMinutes so it always matches (e.g. 90 -> "1 hour 30 minutes").
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/session.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/AuditLog.php';
-require_once '../../shared/backend/config/ServiceDuration.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/session.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/security/AuditLog.php';
+require_once '../../shared/backend/config/booking/ServiceDuration.php';
 
 sendCorsHeaders();
 AuditLog::captureRequest();

@@ -1,12 +1,12 @@
 <?php
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/session.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/AuditLog.php';
-require_once '../../shared/backend/config/Scheduling.php';
-require_once '../../shared/backend/config/HomeServiceRequest.php';
-require_once '../../shared/backend/config/StaffNotifier.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/session.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/security/AuditLog.php';
+require_once '../../shared/backend/config/booking/Scheduling.php';
+require_once '../../shared/backend/config/booking/HomeServiceRequest.php';
+require_once '../../shared/backend/config/notifications/StaffNotifier.php';
 
 sendCorsHeaders();
 AuditLog::captureRequest();
@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-require_once __DIR__ . '/../../shared/backend/config/BookingValidation.php';
+require_once __DIR__ . '/../../shared/backend/config/booking/BookingValidation.php';
 BookingValidation::enforce($_POST, [
     'id' => ['text', true, 'id'],
     'staffId' => ['id', false, 'a staff or branch selection'],

@@ -2,4 +2,4 @@ Run sendAppointmentReminders.php every minute with the existing scheduler. It no
 
 Windows command:
 
-    C:\xampp\php\php.exe C:\xampp\htdocs\Capstone-Salon\backend\cron\sendAppointmentReminders.php
+    C:\xampp\php\php.exe C:\xampp\htdocs\Capstone-Salon\shared\backend\cron\sendAppointmentReminders.php

@@ -1,7 +1,7 @@
 <?php
 
-require_once __DIR__ . '/CustomerNotifier.php';
-require_once __DIR__ . '/EmailOutbox.php';
+require_once __DIR__ . '/../notifications/CustomerNotifier.php';
+require_once __DIR__ . '/../notifications/EmailOutbox.php';
 
 /**
  * "Notify me when my stylist is free" waitlist.

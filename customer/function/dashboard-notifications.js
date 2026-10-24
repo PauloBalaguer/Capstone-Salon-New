@@ -86,7 +86,7 @@ function customerNotificationsMixin() {
       this.notifications.unshift({ type, message, time, read: false, icon: this.notificationIcons[type] || this.notificationIcons[this.serverNotificationIconFor(type)] || this.notificationIcons['system'] });
     },
 
-    // Maps a backend notification "type" (see shared/backend/config/CustomerNotifier.php
+    // Maps a backend notification "type" (see shared/backend/config/notifications/CustomerNotifier.php
     // -- BOOKING_SUBMITTED, PAYMENT_SUBMITTED, PAYMENT_VERIFIED,
     // PAYMENT_ATTENTION, CONFIRMED, REMINDER, RESCHEDULE, CANCELLED,
     // COMPLETED, PAYMENT_FORFEITED, REFUND_DUE, PAYMENT_REFUNDED,

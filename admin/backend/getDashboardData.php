@@ -14,12 +14,12 @@
  * Alpine store.
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/session.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/LoyaltyTier.php';
-require_once '../../shared/backend/config/RevenueReport.php';
-require_once '../../shared/backend/config/Scheduling.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/session.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/helpers/LoyaltyTier.php';
+require_once '../../shared/backend/config/payments/RevenueReport.php';
+require_once '../../shared/backend/config/booking/Scheduling.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -35,7 +35,7 @@ try {
     $userId = $_SESSION['user_id'];
     $selection = null;
     if (isset($_GET['bookingPage'])) {
-        require_once '../../shared/backend/config/AdminBookingList.php';
+        require_once '../../shared/backend/config/helpers/AdminBookingList.php';
         $selection = AdminBookingList::select($pdo, $_GET);
     }
     $appointmentWhere = $selection === null ? '' : 'WHERE a.id IN (' . implode(',', array_map('intval', $selection['salonIds']) ?: [0]) . ')';
@@ -446,7 +446,7 @@ try {
             'branchIds' => $row['branchKeys'] ? explode(',', $row['branchKeys']) : [],
             'visits' => (int) $row['visits'],
             'loyaltyPoints' => (int) $row['loyaltyPoints'],
-            // Frequency-based status (shared/backend/config/LoyaltyTier.php).
+            // Frequency-based status (shared/backend/config/helpers/LoyaltyTier.php).
             'loyaltyTier' => LoyaltyTier::fromVisits((int) $row['recentVisits'])['tier'],
             'recentVisits' => (int) $row['recentVisits'],
             'totalSpent' => (float) $row['totalSpent'],

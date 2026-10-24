@@ -11,12 +11,10 @@
 *.sln.docstates
 *.env
 
-# Private email credentials. Keep the legacy path ignored for old local copies.
-shared/backend/config/mail_credentials.php
-shared/backend/config/brevo_credentials.php
-
-# Real PayMongo API keys (see shared/backend/config/paymongo_credentials.example.php).
-shared/backend/config/paymongo_credentials.php
+# Private credentials (Brevo, PayMongo, legacy mail). Only the *.example.php
+# templates in this folder are tracked; copy one and fill in real keys locally.
+shared/backend/config/credentials/*.php
+!shared/backend/config/credentials/*.example.php
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

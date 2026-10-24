@@ -2,7 +2,7 @@
 // CLI only: synchronize booking services with the website's source price menu.
 // Preview: php database/scripts/sync_service_menu.php; apply: append --apply.
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
-require_once __DIR__ . '/../../shared/backend/config/database.php';
+require_once __DIR__ . '/../../shared/backend/config/setup/database.php';
 
 function menuLiteral(string $source, string $constant): array {
     if (!preg_match('/const ' . preg_quote($constant, '/') . ' = (\{.*?\n  \});/s', $source, $match)) {

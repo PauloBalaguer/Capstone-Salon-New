@@ -9,14 +9,14 @@
  *   sendLink -> PayMongo checkout for everything still owed, sent to the customer.
  *   editQuote quotePrice -> corrects the final quote after the DP was paid
  *            (e.g. a typo), as long as it isn't below what's already paid.
- * Logic lives in shared/backend/config/HomeServicePayment.php.
+ * Logic lives in shared/backend/config/payments/HomeServicePayment.php.
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/session.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/AuditLog.php';
-require_once '../../shared/backend/config/HomeServicePayment.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/session.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/security/AuditLog.php';
+require_once '../../shared/backend/config/payments/HomeServicePayment.php';
 
 sendCorsHeaders();
 AuditLog::captureRequest();
@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-require_once __DIR__ . '/../../shared/backend/config/BookingValidation.php';
+require_once __DIR__ . '/../../shared/backend/config/booking/BookingValidation.php';
 BookingValidation::enforce($_POST, [
     'amount' => ['money', false, 'an amount with at most two decimal places'],
     'quotePrice' => ['money', false, 'an amount with at most two decimal places'],

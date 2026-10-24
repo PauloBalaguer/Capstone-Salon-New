@@ -8,10 +8,10 @@
  * turns into a data-URI client-side before saving.
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/session.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/AuditLog.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/session.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/security/AuditLog.php';
 
 sendCorsHeaders();
 AuditLog::captureRequest();
@@ -50,7 +50,7 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 
 [$firstName, $lastName] = array_pad(explode(' ', $name, 2), 2, '');
 
-require_once __DIR__ . '/../../shared/backend/config/Address.php';
+require_once __DIR__ . '/../../shared/backend/config/helpers/Address.php';
 // Omitted address means preserve the legacy value (older clients).
 $updatesAddress = array_key_exists('structuredAddress', $_POST);
 $structuredAddress = $updatesAddress ? Address::fromPost(false) : null;

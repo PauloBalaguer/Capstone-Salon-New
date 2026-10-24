@@ -11,9 +11,9 @@
  * and could be shoulder-surfed or shared.
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/HomeServiceRequest.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/booking/HomeServiceRequest.php';
 
 date_default_timezone_set('Asia/Manila');
 

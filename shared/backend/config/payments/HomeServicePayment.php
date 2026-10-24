@@ -2,8 +2,8 @@
 
 require_once __DIR__ . '/PayMongo.php';
 require_once __DIR__ . '/PaymentLog.php';
-require_once __DIR__ . '/CustomerNotifier.php';
-require_once __DIR__ . '/url.php';
+require_once __DIR__ . '/../notifications/CustomerNotifier.php';
+require_once __DIR__ . '/../setup/url.php';
 
 /**
  * Money received for a home service: the reservation fee (DP) and the

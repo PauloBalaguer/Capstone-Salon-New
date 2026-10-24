@@ -13,12 +13,12 @@
 
 // We need the session configuration to manage the user's login state and
 // the database connection to query for user data.
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/session.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/AuditLog.php';
-require_once '../../shared/backend/config/RateLimiter.php';
-require_once '../../shared/backend/config/Scheduling.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/session.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/security/AuditLog.php';
+require_once '../../shared/backend/config/security/RateLimiter.php';
+require_once '../../shared/backend/config/booking/Scheduling.php';
 
 sendCorsHeaders();
 AuditLog::captureRequest();

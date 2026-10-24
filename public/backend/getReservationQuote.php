@@ -1,11 +1,11 @@
 <?php
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/session.php';
-require_once '../../shared/backend/config/ReservationPayment.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/setup/session.php';
+require_once '../../shared/backend/config/payments/ReservationPayment.php';
 sendCorsHeaders();
 header('Content-Type: application/json');
-require_once __DIR__ . '/../../shared/backend/config/BookingValidation.php';
+require_once __DIR__ . '/../../shared/backend/config/booking/BookingValidation.php';
 BookingValidation::enforce($_GET, [
     'serviceIds' => ['ids', true, 'service or staff selections'],
 ]);

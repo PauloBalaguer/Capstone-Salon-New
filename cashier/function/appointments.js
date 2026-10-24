@@ -122,9 +122,9 @@ function actionsFor(b) {
   const ref = escapeHtml(b.id);
   const details = `<button data-action="details" data-ref="${ref}" class="text-slate-500 hover:text-slate-800 hover:underline">View</button>`;
 
-  // Deposits are non-refundable (shared/backend/config/CancellationPolicy.php). A
+  // Deposits are non-refundable (shared/backend/config/booking/CancellationPolicy.php). A
   // cancelled booking whose deposit was kept can be rescheduled instead,
-  // which reinstates it with that deposit (shared/backend/config/Reschedule.php).
+  // which reinstates it with that deposit (shared/backend/config/booking/Reschedule.php).
   if (hasKeptDeposit(b)) {
     return `${details}<button data-action="reschedule" data-ref="${ref}" class="text-amber-700 font-bold hover:underline">Reschedule</button>
       <span class="block mt-1 text-xs leading-snug text-rose-700 font-semibold whitespace-normal max-w-[14rem]">No refund — ${CashierApp.formatCurrency(b.depositAmount || 0)} deposit is non-refundable. The customer can reschedule to use it.</span>`;

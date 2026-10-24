@@ -12,7 +12,7 @@
   </FilesMatch>
 </IfModule>
 
-# Private Brevo configuration is include-only, never a public endpoint.
-<FilesMatch "^brevo_credentials\.php(?:\..*)?$">
+# Private credential files (Brevo, PayMongo) are include-only, never a public endpoint.
+<FilesMatch "^(?:brevo|paymongo|mail)_credentials\.php(?:\..*)?$">
   Require all denied
 </FilesMatch>

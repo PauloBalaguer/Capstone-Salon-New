@@ -7,8 +7,8 @@
  * landing page (index.html).
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/database.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/database.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');

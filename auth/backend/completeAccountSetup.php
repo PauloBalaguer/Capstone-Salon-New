@@ -11,10 +11,10 @@
  * token instead of an emailed code.
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/AuditLog.php';
-require_once '../../shared/backend/config/RateLimiter.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/security/AuditLog.php';
+require_once '../../shared/backend/config/security/RateLimiter.php';
 
 sendCorsHeaders();
 AuditLog::captureRequest();

@@ -7,7 +7,7 @@ class Address
     public static function formLocations(string $level, string $parent = '', ?callable $lookup = null): array
     {
         $lookup = $lookup ?? [self::class, 'locations'];
-        $rule = require __DIR__ . '/ServiceArea.php';
+        $rule = require __DIR__ . '/../booking/ServiceArea.php';
         $provinces = $rule['address_provinces'];
         if ($level === 'provinces') return array_values(array_filter($lookup('provinces', ''), fn($row) => in_array($row['code'], $provinces, true)));
         if ($level === 'cities' && in_array($parent, $provinces, true)) return $lookup($level, $parent);
@@ -27,7 +27,7 @@ class Address
         }
         static $data = null;
         if ($data === null) {
-            $file = __DIR__ . '/../data/albay-locations.json';
+            $file = __DIR__ . '/../../data/albay-locations.json';
             $data = is_file($file) ? json_decode(file_get_contents($file), true) : null;
             if (!is_array($data) || !isset($data['provinces'], $data['cities'], $data['barangays'])) {
                 throw new RuntimeException('Albay location data is unavailable. Please contact the salon.');
@@ -50,7 +50,7 @@ class Address
             $data[$key] = is_string($value) ? trim($value) : '';
         }
         if (!$homeService && !array_filter($data) && !$errors) return [null, []];
-        $rule = require __DIR__ . '/ServiceArea.php';
+        $rule = require __DIR__ . '/../booking/ServiceArea.php';
         if (!in_array($data['province'], $rule['address_provinces'], true)) {
             return [null, ['province' => 'Please select Albay Province. These address forms support Albay only.']];
         }
@@ -69,7 +69,7 @@ class Address
             else $data[$key . 'Name'] = $match;
         }
         if ($homeService) {
-            $rule = require __DIR__ . '/ServiceArea.php';
+            $rule = require __DIR__ . '/../booking/ServiceArea.php';
             if (!isset($errors['province']) && !in_array($data['province'], $rule['home_service_provinces'], true)) {
                 $errors['province'] = 'Home service is currently available only within Albay Province.';
             }

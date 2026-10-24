@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/michael6A-coder/Capstone-Salon.git"
+    "url": "git+https://github.com/PauloBalaguer/Capstone-Salon-New.git"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.3",

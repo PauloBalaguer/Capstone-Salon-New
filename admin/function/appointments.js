@@ -96,7 +96,7 @@ function adminBookingsApp() {
     },
 
     /* Each branch has its own configured concurrent-booking capacity (see
-       shared/backend/config/Scheduling.php's BOOKING_SLOT_LIMITS) -- never one
+       shared/backend/config/booking/Scheduling.php's BOOKING_SLOT_LIMITS) -- never one
        flat number for every branch. */
     getCurrentSlotLimitLabel() {
       if (this.bookingFilterBranch === 'all') return 'Varies by branch';

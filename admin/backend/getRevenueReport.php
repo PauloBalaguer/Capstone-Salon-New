@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__.'/../../shared/backend/config/session.php';
-require_once __DIR__.'/../../shared/backend/config/database.php';
-require_once __DIR__.'/../../shared/backend/config/RevenueReport.php';
+require_once __DIR__.'/../../shared/backend/config/setup/session.php';
+require_once __DIR__.'/../../shared/backend/config/setup/database.php';
+require_once __DIR__.'/../../shared/backend/config/payments/RevenueReport.php';
 header('Content-Type: application/json');
 if (!isLoggedIn() || ($_SESSION['user_role']??'')!=='Admin') {
     http_response_code(401);echo json_encode(['success'=>false,'message'=>'Please log in as an administrator.']);exit;

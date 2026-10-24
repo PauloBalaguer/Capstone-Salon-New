@@ -12,9 +12,9 @@
  * (e.g. through ngrok on XAMPP).
  */
 
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/PayMongo.php';
-require_once '../../shared/backend/config/PaymentLog.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/payments/PayMongo.php';
+require_once '../../shared/backend/config/payments/PaymentLog.php';
 
 header('Content-Type: application/json');
 
@@ -66,7 +66,7 @@ try {
             PayMongo::syncHomeService($pdo, $homeService);
         } else {
             // Or a home service remaining-balance checkout.
-            require_once '../../shared/backend/config/HomeServicePayment.php';
+            require_once '../../shared/backend/config/payments/HomeServicePayment.php';
             $stmt = $pdo->prepare('SELECT id, customer_id, reference_code, balance_checkout_id FROM home_service_requests WHERE balance_checkout_id = ? LIMIT 1');
             $stmt->execute([$checkoutId]);
             if ($homeService = $stmt->fetch()) {

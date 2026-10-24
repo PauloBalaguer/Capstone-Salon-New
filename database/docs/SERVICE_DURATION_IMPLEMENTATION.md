@@ -40,7 +40,7 @@ compared before/after and remained unchanged. A service backup was written to
 | `public/function/main.js` | Guest service durations, live selected-service end time, review, and confirmation details. |
 | `index.html` | Load the shared duration helper for the guest flow. |
 
-The existing `shared/backend/config/Scheduling.php::totalDurationMinutes()` and
+The existing `shared/backend/config/booking/Scheduling.php::totalDurationMinutes()` and
 `admin/backend/getDashboardData.php` calculations were reused without modifying
 their scheduling/conflict logic. The existing appointment and appointment-service
 tables continue to store bookings and their selected services.
@@ -49,7 +49,7 @@ tables continue to store bookings and their selected services.
 
 | File | Purpose |
 |---|---|
-| `shared/backend/config/ServiceDuration.php` | Integer validation, readable duration, and start-plus-minutes calculation. |
+| `shared/backend/config/booking/ServiceDuration.php` | Integer validation, readable duration, and start-plus-minutes calculation. |
 | `shared/function/service-duration.js` | Shared customer/admin duration formatting and end-time previews. |
 | `database/data/service-duration-reference.json` | 315 duration rows extracted from the supplied DOCX, retaining branch and section context. |
 | `database/scripts/sync_service_durations.php` | Preview/apply the initial duration import; safe branch-aware matching and service backup. |

@@ -1,8 +1,8 @@
 <?php
 
 require_once __DIR__ . '/Scheduling.php';
-require_once __DIR__ . '/CustomerNotifier.php';
-require_once __DIR__ . '/StaffNotifier.php';
+require_once __DIR__ . '/../notifications/CustomerNotifier.php';
+require_once __DIR__ . '/../notifications/StaffNotifier.php';
 
 /** Shared validation, package details and rescheduling for guest and customer home service requests. */
 class HomeServiceRequest

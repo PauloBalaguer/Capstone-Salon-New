@@ -3,7 +3,7 @@
 --
 -- 1. appointments.payment_status gains 'Refund Due': a verified/online
 --    deposit on a booking cancelled early enough (see
---    backend/config/CancellationPolicy.php) is owed back to the customer
+--    backend/config/booking/CancellationPolicy.php) is owed back to the customer
 --    until staff mark it 'Refunded'. Late cancellations and no-shows move a
 --    held deposit to 'Forfeited' automatically.
 -- 2. appointments.payment_plan records whether the customer chose to pay a
@@ -12,13 +12,13 @@
 --    status emails can reach guests too; registered customers use users.email.
 -- 4. email_outbox queues customer emails inside the same transaction as the
 --    booking change they describe (rolled back together), then sends them
---    after the request (backend/config/EmailOutbox.php). Doubles as the
+--    after the request (backend/config/notifications/EmailOutbox.php). Doubles as the
 --    email send log.
 -- 5. payment_transactions is the traceable log of every online payment
 --    event: checkout created, paid, expired, webhook received/rejected,
 --    deposit forfeited / refund due, API errors.
 -- 6. stylist_waitlist lets a customer ask to be notified when a fully booked
---    stylist frees up on a given date (backend/config/Waitlist.php).
+--    stylist frees up on a given date (backend/config/booking/Waitlist.php).
 
 ALTER TABLE `appointments`
   MODIFY COLUMN `payment_status` ENUM('Payment Required', 'Awaiting Verification', 'Down Payment Verified', 'Fully Paid', 'Rejected', 'Refund Due', 'Refunded', 'Forfeited') NOT NULL DEFAULT 'Payment Required';

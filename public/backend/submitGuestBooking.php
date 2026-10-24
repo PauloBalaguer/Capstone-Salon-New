@@ -10,16 +10,16 @@
  * registered), that existing record is reused instead of overwritten.
  */
 
-require_once '../../shared/backend/config/cors.php';
-require_once '../../shared/backend/config/database.php';
-require_once '../../shared/backend/config/AuditLog.php';
-require_once '../../shared/backend/config/RateLimiter.php';
-require_once '../../shared/backend/config/Scheduling.php';
-require_once '../../shared/backend/config/ServiceDuration.php';
-require_once '../../shared/backend/config/ReservationPayment.php';
-require_once '../../shared/backend/config/PayMongo.php';
-require_once '../../shared/backend/config/url.php';
-require_once '../../shared/backend/config/CancellationPolicy.php';
+require_once '../../shared/backend/config/setup/cors.php';
+require_once '../../shared/backend/config/setup/database.php';
+require_once '../../shared/backend/config/security/AuditLog.php';
+require_once '../../shared/backend/config/security/RateLimiter.php';
+require_once '../../shared/backend/config/booking/Scheduling.php';
+require_once '../../shared/backend/config/booking/ServiceDuration.php';
+require_once '../../shared/backend/config/payments/ReservationPayment.php';
+require_once '../../shared/backend/config/payments/PayMongo.php';
+require_once '../../shared/backend/config/setup/url.php';
+require_once '../../shared/backend/config/booking/CancellationPolicy.php';
 
 // php.ini on this XAMPP install is Europe/Berlin; "no slots in the past"
 // must be judged on the salon's clock.
@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-require_once __DIR__ . '/../../shared/backend/config/BookingValidation.php';
+require_once __DIR__ . '/../../shared/backend/config/booking/BookingValidation.php';
 BookingValidation::enforce($_POST, [
     'fullname' => ['name', true, 'your full name'],
     'contact' => ['mobile', true, 'a mobile number (09XXXXXXXXX)'],
@@ -178,7 +178,7 @@ try {
         exit();
     }
     // PayMongo bookings are inserted unpaid; the deposit is recorded once
-    // PayMongo reports the checkout paid (see shared/backend/config/PayMongo.php).
+    // PayMongo reports the checkout paid (see shared/backend/config/payments/PayMongo.php).
     $payOnline = $paymentMethod === PayMongo::METHOD && $depositAmount > 0;
     if ($payOnline && $depositAmount < PayMongo::MIN_AMOUNT) {
         http_response_code(400);

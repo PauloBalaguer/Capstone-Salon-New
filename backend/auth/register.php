@@ -35,6 +35,7 @@ $email = trim($_POST['email'] ?? '');
 $contact_number = trim($_POST['contact_number'] ?? ''); // Assuming 'contact_number' from the form
 $password = $_POST['password'] ?? '';
 $confirm_password = $_POST['confirm_password'] ?? '';
+$notify_sms = !empty($_POST['notify_sms']) ? 1 : 0; // Unticked checkboxes are not sent at all.
 
 if (empty($first_name)) $errors[] = 'First name is required.';
 if (empty($last_name)) $errors[] = 'Last name is required.';
@@ -108,9 +109,9 @@ try {
 
     $new_user_id = $pdo->lastInsertId();
 
-    $sql_customer = "INSERT INTO customers (user_id, first_name, last_name, phone_number) VALUES (?, ?, ?, ?)";
+    $sql_customer = "INSERT INTO customers (user_id, first_name, last_name, phone_number, notify_sms) VALUES (?, ?, ?, ?, ?)";
     $stmt_customer = $pdo->prepare($sql_customer);
-    $stmt_customer->execute([$new_user_id, $first_name, $last_name, $contact_number]);
+    $stmt_customer->execute([$new_user_id, $first_name, $last_name, $contact_number, $notify_sms]);
 
     $pdo->commit();
     $register_limiter->record();

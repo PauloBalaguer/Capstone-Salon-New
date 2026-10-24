@@ -15,10 +15,11 @@
 const LM = {
 
 
-  /* Shows a small message at the bottom of the screen
-     (function/shared/toast.js). kind can be 'good', 'wrong', or 'note'. */
-  toast(message, kind) {
-    LMToast.show(message, kind || 'good', { duration: 4200 });
+  /* Shows a notification (function/shared/toast.js): the pill at the
+     top on phones, a card bottom-right on desktop. kind can be 'good',
+     'wrong', or 'note'; title is optional. */
+  toast(message, kind, title) {
+    LMToast.show(message, kind || 'good', { title: title });
   },
 
   loading(on) {
@@ -33,20 +34,49 @@ const LM = {
     if (!input) return;
 
     const box = input.closest('.field-box');
-    if (box) box.classList.add('is-wrong');
+    if (box) {
+      box.classList.remove('is-wrong');
+      void box.offsetWidth; // restarts the shake on a repeat submit
+      box.classList.add('is-wrong');
+    }
 
     const note = document.getElementById(inputId + '-error');
     if (note) {
       note.textContent = message;
       note.classList.add('show');
     }
+
+    if (!this.wrong.includes(input)) this.wrong.push(input);
   },
+
+  wrong: [],
 
   clearWrong() {
     document.querySelectorAll('.field-box.is-wrong')
       .forEach(function (b) { b.classList.remove('is-wrong'); });
     document.querySelectorAll('.field-error.show')
       .forEach(function (n) { n.classList.remove('show'); });
+    this.wrong = [];
+  },
+
+  /* After markWrong: one notification that counts and names the fields,
+     e.g. "Two fields need a fix / Check your email address and password,
+     then tap Sign in again." Focus moves to the first wrong field. */
+  reportWrong() {
+    if (!this.wrong.length) return;
+    const names = this.wrong.map(function (input) {
+      const label = document.querySelector('label[for="' + input.id + '"]');
+      return input.dataset.field || (label ? label.textContent.trim().toLowerCase() : input.name);
+    });
+    const count = ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven'][names.length - 1] || names.length;
+    const submit = this.wrong[0].form && this.wrong[0].form.querySelector('[type=submit]');
+    const message = names.length > 2
+      ? 'Start with your ' + names[0] + ', then fix the others marked in red.'
+      : 'Check your ' + names.join(' and ') + (submit ? ', then tap ' + submit.textContent.trim() + ' again.' : '.');
+
+    this.toast(message, 'wrong', count + (names.length === 1 ? ' field needs a fix' : ' fields need a fix'));
+    this.wrong[0].focus();
+    this.wrong[0].scrollIntoView({ block: 'center' });
   },
 
   value(id) {
@@ -132,14 +162,21 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
 
-  document.querySelectorAll('.field-box input').forEach(function (input) {
-    input.addEventListener('input', function () {
-      const box = input.closest('.field-box');
-      if (box) box.classList.remove('is-wrong');
+  /* Phones: once the keyboard is up, bring the tapped field back into view. */
+  document.addEventListener('focusin', function (e) {
+    const field = e.target;
+    if (field.matches('.inp input, .otp input')) {
+      setTimeout(function () { field.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 300);
+    }
+  });
 
-      const note = document.getElementById(input.id + '-error');
-      if (note) note.classList.remove('show');
-    });
+  /* Typing in a field (or ticking a box) clears its error right away. */
+  document.addEventListener('input', function (e) {
+    const box = e.target.closest('.field-box');
+    if (box) box.classList.remove('is-wrong');
+
+    const note = e.target.id && document.getElementById(e.target.id + '-error');
+    if (note) note.classList.remove('show');
   });
 });
 

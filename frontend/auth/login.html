@@ -9,8 +9,8 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,500&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="../../frontend/shared/output.css">
 </head>
-<body data-toast="bottom" class="auth-page min-h-screen bg-teal-700 font-auth-body text-ink-auth antialiased">
-  <main class="mx-auto flex min-h-screen max-w-[1280px] flex-col lg:grid lg:grid-cols-[1.15fr_1fr] lg:items-center lg:gap-16 lg:px-12 lg:py-12">
+<body class="auth-page min-h-[100dvh] bg-teal-700 font-auth-body text-ink-auth antialiased">
+  <main class="mx-auto flex min-h-[100dvh] max-w-[1280px] flex-col lg:grid lg:grid-cols-[1.15fr_1fr] lg:items-center lg:gap-16 lg:px-12 lg:py-12">
 
     <!-- Left: swatch fan (desktop) -->
     <section class="hidden min-w-0 text-panel lg:block">
@@ -39,16 +39,16 @@
     </section>
 
     <!-- Phone header -->
-    <header class="bg-[radial-gradient(120%_110%_at_0%_0%,#0E8C8D_0%,rgba(14,140,141,0)_70%)] px-6 pb-12 pt-[max(2rem,env(safe-area-inset-top))] text-panel sm:px-10 lg:hidden">
-      <a href="../../index.html" class="grid h-11 w-11 place-items-center rounded-full bg-panel font-auth-display text-base font-semibold text-teal-500 shadow-[0_8px_18px_-8px_rgba(0,0,0,.6)]" aria-label="Leo Mejillano — back to website">LM</a>
-      <h1 class="mt-5 font-auth-display text-[1.85rem] font-semibold leading-[1.15] [text-wrap:balance]">Welcome back to <em class="font-medium text-sand">Leo Mejillano</em></h1>
-      <p class="mt-2 text-[0.95rem] text-[#cfe3e0]">Sign in to see your bookings.</p>
+    <header class="hero">
+      <a href="../../index.html" class="mark" aria-label="Leo Mejillano — back to website">LM</a>
+      <h1>Welcome back.</h1>
+      <p>Sign in to see your bookings and shades.</p>
     </header>
 
     <!-- Right: sign-in form -->
     <div class="card lg:p-11">
       <h1 class="font-auth-display text-[2.2rem] font-semibold leading-tight max-lg:hidden">Welcome back</h1>
-      <p class="-mt-2 mb-1 text-muted-auth max-lg:hidden">Sign in to your salon account</p>
+      <p class="sub -mt-2 mb-1 text-left max-lg:hidden">Sign in to your salon account</p>
 
       <form id="login-form" novalidate>
         <div>
@@ -70,15 +70,15 @@
           <p class="field-error" id="login-password-error"></p>
         </div>
 
-        <div class="-my-2 flex items-center justify-between text-sm text-muted-auth max-lg:text-sheet-mute-auth">
+        <div class="-my-2 flex flex-wrap items-center justify-between gap-x-4 text-sm">
           <label for="remember-me" class="check"><input type="checkbox" id="remember-me" name="remember"> Remember me</label>
           <a href="forgot-password.html" class="link">Forgot password?</a>
         </div>
 
-        <button type="submit" class="btn mt-2">Sign in</button>
+        <button type="submit" class="btn">Sign in</button>
       </form>
 
-      <p class="foot">New to Leo Mejillano? <a href="register.html">Create an account</a></p>
+      <p class="foot">New here? <a href="register.html">Create an account</a></p>
     </div>
   </main>
 

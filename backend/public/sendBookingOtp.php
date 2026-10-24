@@ -9,12 +9,17 @@
  * control. Unlike forgotPassword.php, there's no account to enumerate
  * here, so failures are reported honestly instead of always returning a
  * generic success.
+ *
+ * The same code is also texted to the guest's mobile number (best-effort,
+ * any hour). The email stays the verified channel, so an SMS failure never
+ * fails the request.
  */
 
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/security/RateLimiter.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/setup/mail.php';
+require_once '../../backend/shared/config/notifications/SmsOutbox.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -39,6 +44,7 @@ if ($otp_limiter->isExceeded()) {
 }
 
 $email = is_string($_POST['email'] ?? null) ? trim($_POST['email']) : '';
+$phone = is_string($_POST['phone'] ?? null) ? normalizePhPhone($_POST['phone']) : null;
 
 if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     http_response_code(400);
@@ -71,6 +77,20 @@ try {
         exit();
     }
     $pdo->commit();
+
+    // Besides the per-IP limit above, cap texts per number so nobody can burn
+    // the daily SMS quota (or spam a stranger) with one phone number.
+    if ($phone !== null) {
+        try {
+            $sms_limiter = new RateLimiter($phone, 'booking_otp_sms', 3, 3600);
+            if (!$sms_limiter->isExceeded()) {
+                $sms_limiter->record();
+                SmsOutbox::sendNow($pdo, $phone, 'BOOKING_OTP', renderSms('BOOKING_OTP', ['{code}' => $code]), renderSms('BOOKING_OTP', ['{code}' => '******']));
+            }
+        } catch (Throwable $e) {
+            error_log('Booking OTP SMS skipped: ' . $e->getMessage());
+        }
+    }
 
     http_response_code(200);
     echo json_encode(['success' => true, 'retryAfter' => 60, 'message' => 'Verification code sent.']);

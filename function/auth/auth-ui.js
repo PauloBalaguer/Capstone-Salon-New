@@ -26,6 +26,19 @@
           '%;width:' + b[1] + 'px;height:' + b[1] + 'px;animation-duration:' + b[2] + 's;animation-delay:' + b[3] + 's"></span>';
       }).join('') +
     '</div>');
+
+  // Swatch fan in the phone header's corner, behind the text. Hidden below
+  // 360px so it never covers the headline.
+  const swatches = ['#2B1D16', '#5A3A26', '#8C2F2A', '#B5713A', '#D9B07A', '#EEDDC2', '#7E8FB8'];
+  const hero = document.querySelector('.hero');
+  if (hero) hero.insertAdjacentHTML('beforeend',
+    '<div aria-hidden="true" class="absolute -bottom-4 -right-8 -z-10 hidden h-[190px] w-[150px] min-[360px]:block">' +
+      swatches.map(function (color, i) {
+        return '<span class="strand absolute bottom-0 left-[45px] h-[165px] w-10 origin-[50%_calc(100%-22px)] rounded-[20px] shadow-lg [transform:rotate(var(--r))] motion-safe:animate-fan" style="background-color:' +
+          color + ';--r:' + (i * 12 - 12) + 'deg;animation-delay:' + (i * 0.05) + 's"></span>';
+      }).join('') +
+      '<span class="absolute bottom-[10px] left-[55px] h-5 w-5 rounded-full border-2 border-gold-auth bg-teal-900"></span>' +
+    '</div>');
 })();
 
 

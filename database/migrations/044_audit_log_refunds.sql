@@ -2,7 +2,7 @@
 --
 -- audit_log: one row per successful write action by any user (staff,
 -- customer, or guest), plus sign-ins and failed sign-ins. Written by
--- backend/config/AuditLog.php; read by Admin -> Reports -> Activity Log.
+-- backend/config/security/AuditLog.php; read by Admin -> Reports -> Activity Log.
 --
 -- appointments.paymongo_refund_id: the PayMongo refund created by
 -- backend/admin/refundDeposit.php, so a pending refund can be re-checked

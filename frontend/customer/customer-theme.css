@@ -1,0 +1,277 @@
+
+/* Customer portal treatment aligned with the public site and admin workspace. */
+@import url("../../frontend/admin/admin-theme.css?v=balanced-type-20261020-1");
+
+#customer-mobile-nav {
+  color: var(--admin-charcoal);
+  background: rgb(255 253 249 / 0.96) !important;
+  border-color: rgb(217 201 180 / 0.7) !important;
+  box-shadow: 0 -8px 28px -22px rgb(6 70 74 / 0.6);
+  backdrop-filter: blur(14px);
+}
+
+#customer-mobile-nav a {
+  color: rgb(34 34 34 / 0.62) !important;
+}
+
+#customer-mobile-nav a.text-gold-400,
+#customer-mobile-nav a[class*="bg-luxury-900"] {
+  color: var(--admin-deep-teal) !important;
+  background: rgb(0 109 111 / 0.08) !important;
+}
+
+/* The profile flyout is a light card inside the dark sidebar, so it needs its
+   own foreground colors instead of inheriting the sidebar's cream text. */
+aside [class*="absolute"][class*="top-full"][class*="bg-slate-800"] {
+  color: var(--admin-charcoal) !important;
+  background: var(--admin-panel) !important;
+  border-color: var(--admin-bronze) !important;
+  box-shadow: 0 18px 42px -24px rgb(6 70 74 / 0.65);
+}
+
+aside [class*="absolute"][class*="top-full"][class*="bg-slate-800"] a {
+  color: var(--admin-charcoal) !important;
+}
+
+aside [class*="absolute"][class*="top-full"][class*="bg-slate-800"] a:hover {
+  color: var(--admin-dark-teal) !important;
+  background: var(--admin-warm-surface) !important;
+}
+
+aside [class*="absolute"][class*="top-full"][class*="bg-slate-800"] a[href*="logout"] {
+  color: #9F2D2D !important;
+}
+
+aside [class*="absolute"][class*="top-full"][class*="bg-slate-800"] a[href*="logout"]:hover {
+  color: #7F1D1D !important;
+  background: #FFF0F0 !important;
+}
+
+/* Profile menus, notifications, and dialogs sit outside <main> on some pages. */
+body > [class*="fixed"][class*="inset-0"] > [class*="bg-slate-900"] {
+  color: var(--admin-charcoal);
+  background: var(--admin-panel) !important;
+  border-color: var(--admin-bronze) !important;
+  box-shadow: 0 28px 70px -35px rgb(6 70 74 / 0.55);
+}
+
+body > [class*="fixed"][class*="inset-0"] input:not([type="checkbox"]):not([type="radio"]),
+body > [class*="fixed"][class*="inset-0"] select,
+body > [class*="fixed"][class*="inset-0"] textarea {
+  color: var(--admin-charcoal) !important;
+  background: var(--admin-cream) !important;
+  border-color: rgb(217 201 180 / 0.75) !important;
+  color-scheme: light;
+}
+
+@media (max-width: 767px) {
+  aside#customer-sidebar {
+    box-shadow: none;
+  }
+}
+
+/* Portal typography. */
+:root {
+  --font-body: 'Segoe UI', Tahoma, Verdana, Arial, sans-serif;
+  --font-title: Georgia, Cambria, 'Times New Roman', serif;
+}
+
+body {
+  font-family: var(--font-body) !important;
+  font-size: 1rem;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Operational content uses Segoe UI, including former decorative labels. */
+.font-sans,
+.font-serif {
+  font-family: var(--font-body) !important;
+}
+
+main > header h2 {
+  font-family: var(--font-title) !important;
+  font-weight: 700;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-body) !important;
+}
+
+/* References retain Tailwind's system monospace font. */
+.font-mono {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Readable text and controls across screen sizes. */
+.text-xs,
+.admin-badge {
+  font-size: .875rem !important;
+  line-height: 1.5;
+}
+.text-base { font-size: 1rem; line-height: 1.5; }
+:is(nav, aside) a,
+:is(nav, aside) a span,
+button:not(:has(> i:only-child)),
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  font-size: 1rem !important;
+  line-height: 1.5;
+}
+button,
+nav a,
+input:not([type="checkbox"]):not([type="radio"]),
+select {
+  min-height: 2.75rem;
+}
+aside h1 { font-family: var(--font-body) !important; }
+h1, h2, h3, label, button { overflow-wrap: anywhere; }
+main { min-width: 0; min-height: 0; }
+aside { overflow-y: auto; }
+main > header { height: auto; min-height: 4rem; flex-wrap: wrap; gap: 0.75rem; padding-block: 0.75rem; }
+/* Preserve scrolling for wide data tables. */
+.overflow-x-auto { max-width: 100%; }
+/* Dialog content remains reachable with enlarged text or a short screen. */
+body > .fixed.inset-0 { overflow-y: auto; }
+body > .fixed.inset-0 > div { max-height: 90dvh; overflow-y: auto; }
+/* Strengthen neutral secondary text on light content surfaces. */
+main :is(.text-gray-400, .text-gray-500, .text-slate-400, .text-slate-500):not(i):not(svg):not(#mobile-hero-card *) {
+  color: #475569 !important;
+}
+main :is(input, textarea)::placeholder { color: #475569; opacity: 1; }
+@media (max-width: 639px) {
+  main > header { padding-inline: 1rem; }
+  main > header > div { flex-wrap: wrap; min-width: 0; }
+  main > header h2 { flex-shrink: 1; }
+  main > section, main > .p-6 { padding: 1rem; }
+}
+
+/* Main page titles and section headings use relative, consistent sizes. */
+main > header h2 {
+  font-size: var(--text-page-title) !important;
+  line-height: 1.3;
+}
+main h3,
+body > .fixed.inset-0 h3,
+body > .fixed.inset-0 h4 {
+  font-size: 1.25rem !important;
+  line-height: 1.4;
+}
+
+/* Keep fixed navigation and final form actions clear of phone home indicators. */
+@media (max-width: 767px) {
+  #customer-mobile-nav { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  main .pb-24 { padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px)) !important; }
+}
+
+/* Keep the sidebar role label on one line at the shared 16px size. */
+#customer-sidebar .customer-portal-label {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  letter-spacing: 0;
+}
+/* Compact customer notification cards. */
+.customer-notification-panel { width: 380px; max-height: min(32rem, 75dvh) !important; overflow: hidden; }
+.notification-list { min-height: 0; overscroll-behavior: contain; }
+.notification-card { display: flex; gap: 12px; padding: 16px; border-bottom: 1px solid #d9cfbc; }
+.notification-card:last-child { border-bottom: 0; }
+.notification-unread { background: rgba(0, 112, 115, .07); box-shadow: inset 3px 0 #006D6F; }
+.notification-status { color: #006D6F; flex-shrink: 0; margin-top: 2px; }
+.notification-status-cancelled { color: #a14237; }
+.notification-copy { min-width: 0; flex: 1; overflow-wrap: anywhere; }
+.notification-title-row { display: flex; align-items: center; gap: 8px; }
+.customer-notification-panel .notification-title { font-size: 14px !important; font-weight: 700; line-height: 1.4; }
+.notification-dot { width: 7px; height: 7px; background: #006D6F; border-radius: 50%; flex-shrink: 0; }
+.customer-notification-panel .notification-summary { font-size: 13px !important; line-height: 1.5; margin-top: 4px; }
+.customer-notification-panel .notification-service { font-size: 13px !important; font-weight: 600; margin-top: 9px; }
+.customer-notification-panel .notification-schedule { font-size: 12px !important; line-height: 1.5; margin-top: 2px; }
+.notification-actions { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 9px; }
+.customer-notification-panel .notification-actions a { color: #006D6F; font-size: 13px !important; font-weight: 700; text-decoration: none; }
+.customer-notification-panel .notification-time { display: block; font-size: 11px !important; color: #6b655c; margin-top: 8px; }
+.notification-close { font-size: 24px; line-height: 1; padding: 4px 8px; }
+.notification-read-all { font-size: 13px !important; padding: 10px; color: #006D6F; border-radius: 5px; }
+.notification-read-all:disabled { opacity: .5; cursor: default; }
+.notification-read-all:hover:not(:disabled), .notification-close:hover { background: rgba(0,112,115,.08); }
+.customer-notification-panel a:focus-visible, .customer-notification-panel button:focus-visible { outline: 2px solid #006D6F; outline-offset: 2px; }
+
+/* Services use one main scroll area; catalog, slots and terms flow naturally. */
+body.services-page { height: 100dvh; min-height: 0; overflow: hidden; }
+.services-page .services-shell { height: calc(100dvh - .375rem); }
+.services-page main { overflow-y: auto; overflow-x: hidden; overscroll-behavior-y: contain; }
+.services-page .services-content { width: 100%; max-width: 1200px; }
+.services-page .service-branch-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.services-page .service-branch-row select { max-width: 100%; min-width: 0; }
+.services-page .service-toolbar { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 16px; }
+.services-page .service-toolbar label { display: block; margin-bottom: 5px; }
+.services-page .service-toolbar input, .services-page .service-toolbar select { min-width: 0; }
+.service-catalog-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.service-catalog-card { display: flex; flex-direction: column; gap: 10px; min-width: 0; border: 1px solid transparent; }
+.service-card-selected { border-color: #006D6F; box-shadow: 0 0 0 1px #006D6F; }
+.service-card-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.service-card-heading h5 { min-width: 0; font-size: 1rem; }
+.service-card-heading > p { flex-shrink: 0; }
+.service-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.service-category-badge, .service-promo-badge { display: inline-block; border-radius: 999px; padding: 3px 9px; font-size: .75rem; line-height: 1.4; background: #fffdf9; color: #475569; }
+.service-promo-badge { background: #e0f1ef; color: #006D6F; }
+.service-card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto; padding-top: 4px; }
+.service-add-button { padding: 8px 12px; border: 1px solid #a9c7c6; border-radius: 8px; color: #006D6F; font-weight: 600; font-size: .875rem; background: transparent; }
+.service-add-button:hover:not(:disabled) { background: rgba(0,112,115,.07); }
+.service-add-button:disabled { opacity: .45; cursor: default; }
+.service-pagination { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 16px; padding-top: 12px; }
+.service-empty-state { padding: 24px 12px; text-align: center; }
+#service-catalog-heading { scroll-margin-top: 16px; }
+@media (min-width: 1440px) { .service-catalog-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 767px) {
+  .service-catalog-grid, .services-page .service-toolbar { grid-template-columns: minmax(0, 1fr); }
+  .services-page .service-branch-row { align-items: stretch; flex-direction: column; }
+}
+
+/* Keep the booking header visible as customers move from catalog to schedule. */
+.services-page main > header { position: sticky; top: 0; z-index: 30; flex-shrink: 0; }
+.services-page .services-content:has(form) { max-width: 960px; }
+
+/* Review empty states stay compact; eligible appointments use the existing review modal. */
+.reviews-empty-state { width: 100%; max-width: 40rem; justify-self: center; padding: 32px 24px; text-align: center; }
+.reviews-empty-icon { display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; margin: 0 auto 14px; border-radius: 50%; background: #e0f1ef; color: #006D6F; }
+.reviews-empty-state > p { margin-top: 8px; }
+.reviews-primary-action { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 18px; border-radius: 8px; background: #006D6F; color: #fff !important; font-size: .875rem; font-weight: 700; text-decoration: none; flex-shrink: 0; }
+.reviews-primary-action:hover { background: #06464A; }
+.reviews-empty-state > a { margin-top: 20px; }
+.reviews-eligible-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.reviews-eligible-card { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+@media (max-width: 767px) { .reviews-eligible-grid { grid-template-columns: minmax(0, 1fr); } .reviews-empty-state { padding: 24px 16px; } }
+
+.home-request-fields { display: grid; gap: 9px; }
+.home-request-fields > div { display: grid; grid-template-columns: minmax(0, 9rem) minmax(0, 1fr); gap: 12px; align-items: start; }
+.home-request-fields dt { font-weight: 700; color: #475569; }
+.home-request-fields dd { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 480px) { .home-request-fields > div { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+
+.customer-notification-panel > .p-3 { padding: 8px 14px; }
+.customer-notification-panel .notification-close { min-height: 32px; padding: 2px 6px; }
+.customer-notification-panel .notification-read-all { min-height: 40px; padding: 6px 10px; }
+.customer-notification-panel .notification-card { padding: 14px; }
+.customer-notification-panel .notification-branch { margin-top: 2px; font-size: 12px !important; line-height: 1.5; color: #475569; }
+
+.stylist-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.stylist-option { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; padding: 14px; border: 1px solid #cbbfa9; border-radius: 10px; background: #fffdf9; text-align: left; }
+.stylist-any { width: 100%; }
+.stylist-selected { border-color: #006D6F; box-shadow: inset 0 0 0 1px #006D6F; background: #edf7f5; }
+.stylist-choice { flex: 1; min-width: 0; text-align: left; background: transparent; }
+.stylist-choice:disabled { cursor: default; }
+.stylist-availability, .stylist-shift-label { display: inline-block; margin-top: 7px; padding: 3px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.stylist-available-label { color: #166534; background: #dcfce7; }
+.stylist-busy-label { color: #9f1239; background: #ffe4e6; }
+.stylist-shift-label { color: #475569; background: #f1f5f9; margin-left: 4px; }
+.stylist-option:disabled { opacity: .55; }
+@media (max-width: 767px) { .stylist-options { grid-template-columns: minmax(0, 1fr); } .stylist-option { flex-wrap: wrap; } }
+
+.appointment-filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; gap: 12px; align-items: end; }
+.appointment-filters label { display: block; font-size: .875rem; font-weight: 600; margin-bottom: 5px; }
+.appointment-filters select, .appointment-filters input { width: 100%; min-width: 0; padding: 10px; border: 1px solid #b7a995; border-radius: 8px; background: #fffaf1; color: #263b42; font-size: .875rem; }
+@media (max-width: 1100px) { .appointment-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .appointment-filters { grid-template-columns: minmax(0, 1fr); } }

@@ -26,7 +26,7 @@ if (count($cities) !== 18) throw new RuntimeException('Expected 18 Albay cities/
 $barangays = [];
 foreach ($cities as $city) $barangays[$city['code']] = fetchAlbayList('cities-municipalities/' . $city['code'] . '/barangays/', substr($city['code'], 0, 6));
 $data = ['source' => 'https://psgc.gitlab.io/api/', 'retrieved_at' => gmdate('c'), 'provinces' => [['code' => '050500000', 'name' => 'Albay']], 'cities' => ['050500000' => $cities], 'barangays' => $barangays];
-$dir = __DIR__ . '/../../shared/backend/data';
+$dir = __DIR__ . '/../../backend/shared/data';
 if (!is_dir($dir)) mkdir($dir, 0755, true);
 $file = $dir . '/albay-locations.json';
 $temp = $file . '.tmp';

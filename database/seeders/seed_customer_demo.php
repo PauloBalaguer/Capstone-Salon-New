@@ -12,7 +12,7 @@
  *   php database/seeders/seed_customer_demo.php
  */
 
-require_once __DIR__ . '/../../shared/backend/config/database.php';
+require_once __DIR__ . '/../../backend/shared/config/setup/database.php';
 
 $pdo = Database::getInstance();
 

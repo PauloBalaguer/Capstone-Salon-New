@@ -3,13 +3,16 @@
 /**
  * Public: PayMongo webhook receiver
  *
- * PayMongo POSTs checkout_session.payment.paid here once a customer pays.
- * The signature is verified with the webhook secret, then the session is
- * re-read from PayMongo's API (PayMongo::syncAppointment) rather than
- * trusting the payload's amounts. Every delivery -- accepted, ignored, or
- * rejected for a bad signature -- is written to payment_transactions.
- * Register this URL once per environment; it must be publicly reachable
- * (e.g. through ngrok on XAMPP).
+ * PayMongo POSTs here when a customer pays:
+ *   checkout_session.payment.paid -- Card (and legacy combined) checkouts
+ *   payment.paid / payment.failed -- GCash / Maya Payment Intents, matched by
+ *                                    payment_intent_id
+ * The signature is verified with the webhook secret, then the attempt is
+ * re-read from PayMongo's API (PayMongo::sync) rather than trusting the
+ * payload. sync() is idempotent, so duplicate deliveries change nothing.
+ * Every delivery -- accepted, ignored, or rejected for a bad signature -- is
+ * written to payment_transactions. Register this URL once per environment;
+ * it must be publicly reachable (e.g. through ngrok on XAMPP).
  */
 
 require_once '../../backend/shared/config/setup/database.php';
@@ -56,14 +59,30 @@ try {
     PaymentLog::record($pdo, 'webhook_received', $appointment ? (int) $appointment['id'] : null,
         $appointment['reference_code'] ?? null, $eventId, null, $eventType, $raw);
 
-    if ($eventType === 'checkout_session.payment.paid' && $appointment) {
-        PayMongo::syncAppointment($pdo, $appointment);
+    if (in_array($eventType, ['payment.paid', 'payment.failed'], true)) {
+        // GCash / Maya. The event carries the payment; its intent says which booking.
+        $intentId = $event['data']['attributes']['payment_intent_id'] ?? null;
+        $matched = false;
+        foreach (['appointments' => false, 'home_service_requests' => true] as $table => $isHomeService) {
+            if (!$intentId) break;
+            $stmt = $pdo->prepare("SELECT id FROM {$table} WHERE paymongo_payment_intent_id = ? LIMIT 1");
+            $stmt->execute([$intentId]);
+            if ($row = $stmt->fetch()) {
+                PayMongo::sync($pdo, $row, $isHomeService);
+                $matched = true;
+                break;
+            }
+        }
+        // An earlier attempt the customer finished after pressing "Try again" (card payments also land here and are ignored).
+        if (!$matched && $eventType === 'payment.paid' && $checkoutId) PayMongo::syncPayment($pdo, $checkoutId);
+    } elseif ($eventType === 'checkout_session.payment.paid' && $appointment) {
+        PayMongo::sync($pdo, $appointment);
     } elseif ($eventType === 'checkout_session.payment.paid' && $checkoutId) {
         // Not a salon booking -- maybe a home service reservation fee.
-        $stmt = $pdo->prepare('SELECT id, customer_id, reference_code, status, deposit_paid, paymongo_checkout_id FROM home_service_requests WHERE paymongo_checkout_id = ? LIMIT 1');
+        $stmt = $pdo->prepare('SELECT id FROM home_service_requests WHERE paymongo_checkout_id = ? LIMIT 1');
         $stmt->execute([$checkoutId]);
         if ($homeService = $stmt->fetch()) {
-            PayMongo::syncHomeService($pdo, $homeService);
+            PayMongo::sync($pdo, $homeService, true);
         } else {
             // Or a home service remaining-balance checkout.
             require_once '../../backend/shared/config/payments/HomeServicePayment.php';

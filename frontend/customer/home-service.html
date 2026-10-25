@@ -49,6 +49,7 @@
     .card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(0, 109, 111, 0.35); }
   </style>
   <link rel="stylesheet" href="../../frontend/customer/customer-theme.css?v=teal-gold-20261021">
+  <link rel="stylesheet" href="../../frontend/shared/payment-methods.css">
   <script src="../../function/customer/theme-config.js"></script>
 <script src="../../function/shared/booking-validation.js"></script>
   <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=teal-gold-20261021" />
@@ -262,17 +263,22 @@
                     <div><dt>Quoted total</dt><dd class="font-bold" x-text="request.quotePrice != null ? formatPeso(request.quotePrice) : 'Awaiting quote'"></dd></div>
                     <div><dt>Paid</dt><dd x-text="formatPeso(request.amountPaid || 0)"></dd></div>
                     <div x-show="request.quotePrice != null && request.status !== 'Cancelled'"><dt>Balance</dt><dd class="font-bold" x-text="formatPeso(request.balanceDue || 0)"></dd></div>
-                    <div x-show="request.paymentMethod"><dt>Method</dt><dd x-text="request.paymentMethod"></dd></div>
+                    <div x-show="request.paymentMethod"><dt>Method</dt><dd x-text="PortalPresentation.methodLabel(request.paymentMethod)"></dd></div>
                     <div><dt>Payment status</dt><dd x-text="homeServicePaymentLabel(request)"></dd></div>
                   </dl>
                   <p x-show="homeServiceQuoteChanged(request)" class="text-xs text-amber-800" x-text="'Quote changed from ' + formatPeso(homeServiceDetails(request).originalPrice) + ' to ' + formatPeso(request.quotePrice) + '. Please confirm with the branch.'"></p>
                 </section>
-                <!-- Reservation fee (down payment) set with the quote, paid online through PayMongo. -->
+                <!-- Reservation fee (down payment) set with the quote: GCash, Maya or Card through PayMongo. -->
                 <div x-show="request.status === 'Payment Required' && request.depositAmount && !request.paymentMethod" class="rounded-xl p-3 bg-[#FEF3C7] border border-[#FCD34D] text-[#78350F] text-xs space-y-2">
                   <p><strong x-text="'Reservation fee due: ' + formatPeso(request.depositAmount)"></strong> — pay it to confirm your booking. The remaining balance is paid on the event day.</p>
-                  <a x-show="request.payUrl" :href="request.payUrl" class="inline-flex items-center justify-center w-full rounded-lg bg-[#006D6F] hover:bg-[#06464A] text-white font-bold py-2 transition"
-                     x-text="'Pay ' + formatPeso(request.depositAmount) + ' now (GCash, Maya or card)'"></a>
-                  <p x-show="!request.payUrl" class="text-xs">Online payment isn't available for this request — please contact the branch to pay in person.</p>
+                  <div x-show="request.payUrls" class="grid gap-2">
+                    <template x-for="option in [{value: 'PayMongo-GCash', logo: 'gcash', name: 'GCash'}, {value: 'PayMongo-Maya', logo: 'maya', name: 'Maya'}, {value: 'PayMongo-Card', logo: 'card', name: 'Credit / Debit Card'}]" :key="option.value">
+                      <a :href="request.payUrls?.[option.value]" class="flex items-center gap-3 rounded-lg bg-white border border-[#FCD34D] hover:border-[#006D6F] text-[#06464A] font-bold px-3 py-2 transition">
+                        <span class="pm-logo" :class="'pm-logo--' + option.logo" aria-hidden="true"></span><span x-text="'Pay ' + formatPeso(request.depositAmount) + ' with ' + option.name"></span>
+                      </a>
+                    </template>
+                  </div>
+                  <p x-show="!request.payUrls" class="text-xs">Online payment isn't available for this request — please contact the branch to pay in person.</p>
                 </div>
                 <!-- Remaining balance after the DP -->
                 <div x-show="request.quotePrice != null && request.amountPaid > 0 && request.balanceDue > 0 && request.status !== 'Cancelled'" class="rounded-xl p-3 text-xs space-y-2 border"

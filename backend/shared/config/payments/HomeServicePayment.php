@@ -111,7 +111,7 @@ final class HomeServicePayment
         $stmt = $pdo->prepare('SELECT COUNT(*) FROM home_service_payments WHERE home_service_request_id = ? AND reference = ?');
         $stmt->execute([$request['id'], $paid['id']]);
         if ((int) $stmt->fetchColumn() === 0) {
-            self::record($pdo, $request, 'balance', $paid['attributes']['amount'] / 100, PayMongo::METHOD, $paid['id'], null);
+            self::record($pdo, $request, 'balance', $paid['attributes']['amount'] / 100, PayMongo::LEGACY_METHOD, $paid['id'], null);
         }
         return true;
     }

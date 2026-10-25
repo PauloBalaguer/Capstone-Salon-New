@@ -15,8 +15,9 @@
  * plus totals (gross, PayMongo fees, net, refunded) for the range.
  *
  * POST action=sync reference=<booking>: re-reads that booking's checkout
- * from PayMongo and records the payment if it was missed (e.g. the webhook
- * never arrived and the customer closed the tab).
+ * (or GCash / Maya payment intent) from PayMongo and records the payment if
+ * it was missed (e.g. the webhook never arrived and the customer closed the
+ * tab). paymentId lets it record a payment from an earlier, retried attempt.
  */
 
 require_once '../../backend/shared/config/setup/cors.php';
@@ -45,7 +46,7 @@ try {
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $reference = trim($_POST['reference'] ?? '');
-        $stmt = $pdo->prepare('SELECT id, customer_id, reference_code, status, deposit_paid, paymongo_checkout_id FROM appointments WHERE reference_code = ? LIMIT 1');
+        $stmt = $pdo->prepare('SELECT id FROM appointments WHERE reference_code = ? LIMIT 1');
         $stmt->execute([$reference]);
         $appointment = $stmt->fetch();
         if (($_POST['action'] ?? '') !== 'sync' || !$appointment) {
@@ -53,11 +54,14 @@ try {
             echo json_encode(['success' => false, 'message' => 'Unknown booking or action.']);
             exit();
         }
-        $paid = PayMongo::syncAppointment($pdo, $appointment);
+        // The current attempt first; then the listed payment, in case it came from an earlier GCash / Maya attempt.
+        $paymentId = trim($_POST['paymentId'] ?? '');
+        $paid = PayMongo::sync($pdo, $appointment)['state'] === 'paid'
+            || (str_starts_with($paymentId, 'pay_') && PayMongo::syncPayment($pdo, $paymentId));
         echo json_encode([
             'success' => $paid,
             'reference' => $reference,
-            'message' => $paid ? "Payment for {$reference} is now recorded." : "PayMongo has no completed payment for {$reference}'s checkout.",
+            'message' => $paid ? "Payment for {$reference} is now recorded." : "PayMongo has no completed payment for {$reference}'s online payment attempt.",
         ]);
         exit();
     }
@@ -78,7 +82,9 @@ try {
         SELECT id, reference_code, status, payment_status, deposit_paid, deposit_amount, deposit_method,
                deposit_reference, deposit_recorded_at, reservation_amount_due
         FROM appointments
-        WHERE preferred_payment_method = 'PayMongo' OR deposit_method = 'PayMongo' OR paymongo_checkout_id IS NOT NULL
+        WHERE preferred_payment_method IN ('PayMongo', 'PayMongo-GCash', 'PayMongo-Maya', 'PayMongo-Card')
+           OR deposit_method IN ('PayMongo', 'PayMongo-GCash', 'PayMongo-Maya', 'PayMongo-Card')
+           OR paymongo_checkout_id IS NOT NULL OR paymongo_payment_intent_id IS NOT NULL
     ")->fetchAll();
     $byPaymentId = [];
     $byReference = [];
@@ -153,7 +159,7 @@ try {
     // Skipped when the PayMongo list was cut short, to avoid false alarms.
     if (!$truncated) {
         foreach ($rows as $row) {
-            if ((int) $row['deposit_paid'] !== 1 || $row['deposit_method'] !== 'PayMongo' || !$row['deposit_recorded_at']) continue;
+            if ((int) $row['deposit_paid'] !== 1 || !PayMongo::isOnline($row['deposit_method']) || !$row['deposit_recorded_at']) continue;
             $recorded = (new DateTime($row['deposit_recorded_at'], $tz))->getTimestamp();
             if ($recorded < $fromTs || $recorded > $toTs || isset($seenPaymentIds[$row['deposit_reference']])) continue;
             $totals['issues']++;

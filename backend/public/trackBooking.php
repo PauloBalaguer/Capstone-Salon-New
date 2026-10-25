@@ -14,6 +14,7 @@
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/booking/HomeServiceRequest.php';
+require_once '../../backend/shared/config/payments/PayMongo.php';
 
 date_default_timezone_set('Asia/Manila');
 
@@ -76,7 +77,7 @@ try {
     $stmt = $pdo->prepare("
         SELECT
             h.id, h.reference_code AS reference, h.status, h.event_type, h.preferred_date, h.address, h.requests,
-            h.quote_price, h.deposit_amount, h.deposit_paid, h.paymongo_checkout_url,
+            h.quote_price, h.deposit_amount, h.deposit_paid, h.online_payment_token,
             h.reference_code, h.customer_id, h.preferred_time, h.reschedule_count, h.contact_email,
             h.balance_checkout_url, (SELECT COALESCE(SUM(hp.amount), 0) FROM home_service_payments hp WHERE hp.home_service_request_id = h.id) AS amount_paid,
             c.phone_number AS phone,
@@ -109,8 +110,9 @@ try {
             'quote' => $hs['quote_price'] !== null ? (float) $hs['quote_price'] : null,
             'reservationFee' => $hs['deposit_amount'] !== null ? (float) $hs['deposit_amount'] : null,
             'feePaid' => (int) $hs['deposit_paid'] === 1,
-            // PayMongo link for the reservation fee while it's still unpaid.
-            'payUrl' => $hs['status'] === 'Payment Required' && !(int) $hs['deposit_paid'] ? $hs['paymongo_checkout_url'] : null,
+            // GCash / Maya / Card links for the reservation fee while it's still unpaid; the payment is created when one is opened.
+            'payUrls' => $hs['status'] === 'Payment Required' && !(int) $hs['deposit_paid']
+                ? PayMongo::payUrls($hs['online_payment_token'], $hs['reference'], (float) $hs['deposit_amount'], 'guest') : null,
             // Remaining balance after the DP, and its PayMongo link once the salon sends it.
             'amountPaid' => (float) $hs['amount_paid'],
             'balanceDue' => $hs['quote_price'] !== null ? max(0, round((float) $hs['quote_price'] - (float) $hs['amount_paid'], 2)) : null,

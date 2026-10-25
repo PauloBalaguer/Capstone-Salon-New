@@ -109,50 +109,45 @@ try {
         $requiresPayment = $reservationFee > 0;
         $status = $requiresPayment ? 'Payment Required' : 'Quote Ready';
 
+        $token = $requiresPayment ? bin2hex(random_bytes(16)) : null; // Authorizes this quote's pay links.
         $pdo->prepare('
             UPDATE home_service_requests
             SET quote_price = ?, deposit_amount = ?, deposit_paid = 0, deposit_recorded_by = NULL, deposit_recorded_at = NULL, status = ?, payment_status = ?,
-                paymongo_checkout_id = NULL, paymongo_checkout_url = NULL, online_payment_token = NULL
+                paymongo_checkout_id = NULL, paymongo_checkout_url = NULL, paymongo_payment_intent_id = NULL, paymongo_payment_id = NULL, online_payment_token = ?
             WHERE id = ?
         ')->execute([
             $quotePrice,
             $requiresPayment ? $reservationFee : null,
             $status,
             'Payment Required',
+            $token,
             $homeServiceId,
         ]);
 
-        // Pay the reservation fee (down payment) online: a PayMongo checkout
-        // link goes to the customer with the quote. If PayMongo is down or
-        // not set up, the quote still saves and the fee can be paid in person
-        // (recorded with "Record Payment").
+        // Pay the reservation fee (down payment) online: the quote message links
+        // to a page where the customer picks GCash, Maya or Card; the PayMongo
+        // payment is created only then, so the link can't expire. If PayMongo
+        // isn't set up, the fee is paid in person (recorded with "Record Payment").
         $payUrl = null;
         $payNote = '';
         if ($requiresPayment && PayMongo::isConfigured()) {
             if ($reservationFee < PayMongo::MIN_AMOUNT) {
                 $payNote = ' The fee is below PayMongo\'s ₱' . number_format(PayMongo::MIN_AMOUNT, 2) . ' minimum, so it must be paid in person.';
             } else {
-                try {
-                    $payUrl = PayMongo::startHomeServiceCheckout($pdo, (int) $homeServiceId, $referenceCode, $reservationFee,
-                        $homeService['user_id'] !== null ? 'customer' : 'guest');
-                } catch (RuntimeException $e) {
-                    error_log('setHomeServiceQuote PayMongo error: ' . $e->getMessage());
-                    PaymentLog::record($pdo, 'api_error', null, $referenceCode, null, $reservationFee, 'checkout_failed', $e->getMessage());
-                    $payNote = ' The PayMongo payment link could not be created (' . preg_replace('/^PayMongo error \d+: /', '', $e->getMessage()) . '), so the fee must be paid in person for now.';
-                }
+                $payUrl = PayMongo::payUrls($token, $referenceCode, $reservationFee, $homeService['user_id'] !== null ? 'customer' : 'guest')['choose'] ?? null;
             }
         }
 
         $message = $requiresPayment
             ? "Your home service request {$referenceCode} has a final quote of ₱" . number_format($quotePrice, 2) . " and requires a ₱" . number_format($reservationFee, 2) . ' reservation fee (down payment) to confirm it.'
-                . ($payUrl ? " Pay it online (GCash, Maya or card): {$payUrl} — or use Track My Request." : ' Please contact the branch to arrange payment.')
+                . ($payUrl ? " Pay it online with GCash, Maya or card: {$payUrl} — or use Track My Request." : ' Please contact the branch to arrange payment.')
             : "Your home service request {$referenceCode} has a final quote of ₱" . number_format($quotePrice, 2) . ' with no reservation payment required.';
         CustomerNotifier::notify($pdo, $customerId, 'QUOTE_READY', $message);
 
         $pdo->commit();
         echo json_encode([
             'success' => true,
-            'message' => 'Quote saved.' . ($payUrl ? ' A PayMongo payment link was sent. Staff availability is checked again before confirmation.' : '') . $payNote,
+            'message' => 'Quote saved.' . ($payUrl ? ' A payment link (GCash, Maya or card) was sent. Staff availability is checked again before confirmation.' : '') . $payNote,
             'payUrl' => $payUrl,
         ]);
         exit();

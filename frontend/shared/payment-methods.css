@@ -1,0 +1,27 @@
+/* Payment method badges (GCash / Maya / Card / Cash) on the booking and payment pages. */
+.pm-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.55rem;
+  color: #fff;
+  font: 800 1rem/1 'Segoe UI', Tahoma, Arial, sans-serif;
+}
+.pm-logo--gcash { background: #007dfe; }
+.pm-logo--gcash::before { content: 'G'; }
+.pm-logo--maya { background: #0b0b0b; color: #00d16c; font-size: 0.66rem; letter-spacing: -0.01em; }
+.pm-logo--maya::before { content: 'maya'; }
+.pm-logo--card { background: #334155; }
+.pm-logo--card::before {
+  content: '';
+  width: 1.2rem;
+  height: 0.85rem;
+  border: 2px solid #fff;
+  border-radius: 0.2rem;
+  box-shadow: inset 0 0.22rem 0 #fff;
+}
+.pm-logo--cash { background: #15803d; }
+.pm-logo--cash::before { content: '₱'; }

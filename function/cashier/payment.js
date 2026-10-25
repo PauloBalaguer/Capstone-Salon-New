@@ -132,7 +132,7 @@ function renderVerifyList() {
   }
 
   tbody.innerHTML = toVerify.map(b => {
-    const method = b.depositMethod && b.depositMethod !== 'Walk-in' ? b.depositMethod : (b.paymentMethod || '—');
+    const method = PortalPresentation.methodLabel(b.depositMethod && b.depositMethod !== 'Walk-in' ? b.depositMethod : (b.paymentMethod || '—'));
     return `
     <tr class="align-top">
       <td class="px-5 py-3.5">
@@ -160,7 +160,7 @@ function openVerifyModal(ref) {
   const booking = state.data.bookings.find(b => b.id === ref);
   if (!booking) return;
   document.getElementById('verifyDetails').textContent = `${booking.id} · Total ${CashierApp.formatCurrency(booking.price)} · Reported ${CashierApp.formatCurrency(booking.depositAmount || 0)} · Booking: ${booking.status} · Payment: ${booking.paymentStatus}`;
-  const allowedDepositMethods = ['Cash', 'GCash', 'Maya', 'PayMongo'];
+  const allowedDepositMethods = ['Cash', 'GCash', 'Maya', 'PayMongo', 'PayMongo-GCash', 'PayMongo-Maya', 'PayMongo-Card'];
   document.getElementById('verifyAmountInput').value = booking ? (booking.depositAmount || booking.price) : '';
   document.getElementById('verifyMethodInput').value = booking && allowedDepositMethods.includes(booking.depositMethod) ? booking.depositMethod : '';
   CashierApp.showModal('verifyModal');
@@ -234,7 +234,7 @@ function renderTicketSummary(branch) {
   document.getElementById('ticketBranchName').textContent = branch ? branch.name : t.branchId;
   document.getElementById('ticketStaffName').textContent = t.staffName || 'Unassigned';
   document.getElementById('ticketPaymentStatus').textContent = PortalPresentation.paymentStatus(t.paymentStatus || 'Payment Required');
-  document.getElementById('ticketPaymentMethod').textContent = t.depositMethod || t.paymentMethod || 'Not selected';
+  document.getElementById('ticketPaymentMethod').textContent = PortalPresentation.methodLabel(t.depositMethod || t.paymentMethod) || 'Not selected';
 
   const servicesEl = document.getElementById('ticketServices');
   const serviceNames = (t.serviceName || '').split(',').map(s => s.trim()).filter(Boolean);

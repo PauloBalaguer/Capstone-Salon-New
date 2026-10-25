@@ -64,7 +64,7 @@ final class CancellationPolicy
     public static function holdsDeposit(array $appointment): bool
     {
         if (in_array($appointment['payment_status'], ['Down Payment Verified', 'Fully Paid'], true)) return true;
-        return $appointment['deposit_method'] === 'PayMongo' && (int) $appointment['deposit_paid'] === 1
+        return PayMongo::isOnline($appointment['deposit_method']) && (int) $appointment['deposit_paid'] === 1
             && $appointment['payment_status'] === 'Awaiting Verification';
     }
 

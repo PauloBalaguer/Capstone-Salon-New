@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/PayMongo.php';
+
 /**
  * Authoritative reservation pricing. Inputs must be service rows from the DB.
  *
@@ -18,14 +20,15 @@ final class ReservationPayment
     public static function validateVerification(array $appointment, $amount, string $method): void
     {
         if (!is_numeric($amount) || !is_finite((float) $amount) || (float) $amount <= 0
-            || !in_array($method, ['Cash', 'GCash', 'Maya', 'PayMongo'], true)) {
+            || !in_array($method, ['Cash', 'GCash', 'Maya', PayMongo::LEGACY_METHOD, ...PayMongo::METHODS], true)) {
             throw new RuntimeException('Enter the payment amount and method actually received.');
         }
-        if ($method === 'PayMongo' || ($appointment['deposit_method'] ?? '') === 'PayMongo'
-            || (!empty($appointment['paymongo_checkout_id']) && empty($appointment['deposit_paid']))) {
-            if ($method !== 'PayMongo' || empty($appointment['deposit_paid'])
-                || empty($appointment['paymongo_checkout_id']) || empty($appointment['deposit_reference'])
-                || ($appointment['deposit_method'] ?? '') !== 'PayMongo'
+        $onlineAttempt = !empty($appointment['paymongo_checkout_id']) || !empty($appointment['paymongo_payment_intent_id']);
+        if (PayMongo::isOnline($method) || PayMongo::isOnline($appointment['deposit_method'] ?? null)
+            || ($onlineAttempt && empty($appointment['deposit_paid']))) {
+            if (!PayMongo::isOnline($method) || empty($appointment['deposit_paid'])
+                || !$onlineAttempt || empty($appointment['deposit_reference'])
+                || ($appointment['deposit_method'] ?? '') !== $method
                 || (int) round((float) $amount * 100) !== (int) round((float) $appointment['deposit_amount'] * 100)) {
                 throw new RuntimeException('PayMongo has not confirmed this payment, or the amount does not match. Refresh payment details before verifying.');
             }

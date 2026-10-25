@@ -37,13 +37,12 @@ backend/                  🖥️ what the server does
   public/  auth/  customer/  admin/  cashier/  staff/
   shared/
     config/
-      setup/                database, session, mail, cors, url
+      setup/                env (private keys), database, session, mail, sms, cors, url
       booking/              scheduling, validation, reschedule, cancellation, waitlist, home service
       payments/             reservation & home-service payments, PayMongo, payment log, revenue report
       notifications/        customer/staff notifiers, email outbox
       security/             audit log, end-of-day lock, rate limiter, account setup
       helpers/              loyalty tier, address, admin booking list
-      credentials/          *.example.php templates (real keys are git-ignored)
     cron/                   scheduled workers (email queue, reminders)
     data/                   static data (Albay locations)
     storage/sessions/       PHP session files (git-ignored)
@@ -76,12 +75,16 @@ Each panel lives in `frontend/<panel>/`, `function/<panel>/` and `backend/<panel
    and import `database/schema/capstone.sql`. Connection settings (host,
    port `3307`, user `root`, empty password) are in
    `backend/shared/config/setup/database.php`; change the port if your MySQL uses 3306.
-4. Create the private credential files from the templates and fill in your keys
-   in your editor (they are git-ignored and blocked from the web by `.htaccess`):
+4. Install the PHP packages and create the private settings file **outside
+   htdocs**, then fill in your PayMongo, Brevo and textbee keys in your editor:
+   ```powershell
+   composer install
+   mkdir C:\xampp\salon-private
+   copy .env.example C:\xampp\salon-private\.env
+   C:\xampp\php\php.exe backend\shared\config\setup\env.php   # shows set / MISSING, never values
    ```
-   backend/shared/config/credentials/brevo_credentials.example.php    → brevo_credentials.php
-   backend/shared/config/credentials/paymongo_credentials.example.php → paymongo_credentials.php
-   ```
+   To keep the file elsewhere, set `SALON_SECRETS_DIR` to its folder. On a
+   hosting server, set the same names as environment variables instead.
 5. Create staff-side accounts from the command line:
    ```powershell
    C:\xampp\php\php.exe database\scripts\create_admin.php admin@example.com "StrongPass1!" "Admin Name"

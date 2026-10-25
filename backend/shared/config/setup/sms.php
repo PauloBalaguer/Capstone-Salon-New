@@ -7,6 +7,8 @@
  * backend/shared/config/notifications/SmsOutbox.php.
  */
 
+require_once __DIR__ . '/env.php';
+
 /** The sender shows as a plain phone number, so every text names the salon first. */
 const SMS_PREFIX = 'Leo Mejillano Salon: ';
 
@@ -66,22 +68,10 @@ function sendSms(string $phone, string $message): bool
         return false;
     }
 
-    $credentialsPath = __DIR__ . '/../credentials/sms_credentials.php';
-    if (!is_file($credentialsPath)) {
-        error_log('SMS not sent: private configuration is missing.');
-        return false;
-    }
-    try {
-        $credentials = require $credentialsPath;
-    } catch (Throwable $e) {
-        // Never log exception text from a file that contains credentials.
-        error_log('SMS not sent: private configuration could not be loaded.');
-        return false;
-    }
-    $apiKey = is_array($credentials) ? ($credentials['api_key'] ?? '') : '';
-    $deviceId = is_array($credentials) ? ($credentials['device_id'] ?? '') : '';
+    $apiKey = env('TEXTBEE_API_KEY');
+    $deviceId = env('TEXTBEE_DEVICE_ID');
     // The device ID goes into the URL path, so it must be a plain token.
-    if (!is_string($apiKey) || !preg_match('/^\S+$/', $apiKey) || !is_string($deviceId) || !preg_match('/^[\w-]+$/', $deviceId)) {
+    if (!preg_match('/^\S+$/', $apiKey) || !preg_match('/^[\w-]+$/', $deviceId)) {
         error_log('SMS not sent: API key or device ID is missing or invalid.');
         return false;
     }

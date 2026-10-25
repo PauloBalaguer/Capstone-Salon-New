@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/env.php';
+
 /**
  * Brevo Transactional Email API transport shared by all existing email helpers.
  * true means API acceptance, not inbox delivery. No simulated delivery or OTP logs.
@@ -11,25 +13,15 @@ function sendBrevoEmail(string $email, string $subject, string $text, ?string $h
         return false;
     }
 
-    $credentialsPath = __DIR__ . '/../credentials/brevo_credentials.php';
-    if (!is_file($credentialsPath)) {
-        error_log('Brevo email not sent: private configuration is missing.');
-        return false;
-    }
-
-    try {
-        $credentials = require $credentialsPath;
-    } catch (Throwable $e) {
-        // Never log exception text from a file that contains credentials.
-        error_log('Brevo email not sent: private configuration could not be loaded.');
-        return false;
-    }
-    if (!is_array($credentials)) {
-        error_log('Brevo email not sent: invalid private configuration.');
-        return false;
-    }
-    foreach (['api_key', 'sender_email', 'sender_name', 'api_url'] as $key) {
-        if (!isset($credentials[$key]) || !is_string($credentials[$key]) || trim($credentials[$key]) === '') {
+    $credentials = [
+        'api_key' => env('BREVO_API_KEY'),
+        'sender_email' => env('BREVO_SENDER_EMAIL'),
+        'sender_name' => env('BREVO_SENDER_NAME', 'Leo Mejillano Salon & Beauty'),
+        // Pinned provider endpoint, never configurable, so a typo/redirect cannot leak the API key.
+        'api_url' => 'https://api.brevo.com/v3/smtp/email',
+    ];
+    foreach (['api_key', 'sender_email', 'sender_name'] as $key) {
+        if (trim($credentials[$key]) === '') {
             error_log('Brevo email not sent: sender configuration is incomplete.');
             return false;
         }
@@ -38,11 +30,6 @@ function sendBrevoEmail(string $email, string $subject, string $text, ?string $h
         || preg_match('/[\r\n]/', $credentials['sender_name'])
         || preg_match('/\s/', $credentials['api_key'])) {
         error_log('Brevo email not sent: invalid sender or API key configuration.');
-        return false;
-    }
-    // Pin the provider endpoint so a typo/redirect cannot leak the API key.
-    if ($credentials['api_url'] !== 'https://api.brevo.com/v3/smtp/email') {
-        error_log('Brevo email not sent: API URL must be the official HTTPS email endpoint.');
         return false;
     }
     if (!function_exists('curl_init') || !function_exists('curl_exec')) {

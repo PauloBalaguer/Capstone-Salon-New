@@ -255,15 +255,18 @@
                       <p><strong class="text-slate-500 w-16 inline-block">Date:</strong> <span x-text="appt.date"></span></p>
                       <p><strong class="text-slate-500 w-16 inline-block">Time:</strong> <span x-text="appt.time"></span></p>
                       <p><strong class="text-slate-500 w-16 inline-block">Stylist:</strong> <span x-text="appt.staffName"></span></p>
-                      <p x-show="appt.depositAmount"><strong class="text-slate-500 w-16 inline-block">Deposit:</strong> <span x-text="formatPeso(appt.depositAmount) + ' via ' + appt.paymentMethod"></span> <span :class="appt.depositVerified ? 'text-emerald-400' : 'text-amber-400'" class="font-bold" x-text="appt.depositVerified ? '(Verified)' : '(Pending Verification)'"></span></p>
+                      <p x-show="appt.depositAmount"><strong class="text-slate-500 w-16 inline-block">Deposit:</strong> <span x-text="formatPeso(appt.depositAmount) + ' via ' + PortalPresentation.methodLabel(appt.paymentMethod)"></span> <span :class="appt.depositVerified ? 'text-emerald-400' : 'text-amber-400'" class="font-bold" x-text="appt.depositVerified ? '(Verified)' : '(Pending Verification)'"></span></p>
                     </div>
+                    <!-- Online payment started but not finished; the slot is held for 30 minutes from booking. -->
+                    <a x-show="appt.continuePaymentUrl" :href="appt.continuePaymentUrl" class="mt-3 inline-flex items-center justify-center w-full rounded-lg bg-gradient-to-r from-luxury-600 to-luxury-800 text-white text-xs font-bold py-2 hover:brightness-110 transition"
+                       x-text="'Continue payment — ' + formatPeso(appt.amountDue)"></a>
                     <details class="mt-3 rounded-lg border border-slate-700 p-3 text-xs text-slate-300">
                       <summary class="cursor-pointer font-semibold text-purple-300 py-1">View Payment Details</summary>
                       <div class="mt-2 space-y-1" aria-live="polite">
                         <p><strong class="font-bold">Service price:</strong> <span x-text="formatPeso(appt.price)"></span></p>
                         <p><strong class="font-bold">Deposit paid:</strong> <span x-text="formatPeso(appt.depositVerified ? appt.depositAmount || 0 : 0)"></span></p>
                         <p><strong class="font-bold">Remaining balance:</strong> <strong x-text="formatPeso(appt.remainingBalance)"></strong></p>
-                        <p><strong class="font-bold">Payment method:</strong> <span x-text="appt.paymentMethod || 'Not selected'"></span></p>
+                        <p><strong class="font-bold">Payment method:</strong> <span x-text="PortalPresentation.methodLabel(appt.paymentMethod) || 'Not selected'"></span></p>
                         <p><strong class="font-bold">Booking status:</strong> <span x-text="appt.status"></span></p>
                         <p><strong class="font-bold">Payment status:</strong> <span x-text="appointmentPaymentLabel(appt)"></span></p>
                         <p x-show="!appt.depositVerified && appt.depositAmount" class="text-amber-300">The reported reservation payment is awaiting verification. Do not pay it again while verification is pending.</p>
@@ -307,7 +310,7 @@
                         <p x-show="appt.status !== 'Cancelled'"><strong class="font-bold">Deposit paid:</strong> <span x-text="formatPeso(appt.depositVerified ? appt.depositAmount || 0 : 0)"></span></p>
                         <p x-show="appt.status === 'Cancelled'"><strong class="font-bold">Amount paid:</strong> <span x-text="formatPeso(appt.amountPaid || 0)"></span></p>
                         <p x-show="appt.status !== 'Cancelled'"><strong class="font-bold">Remaining balance:</strong> <strong x-text="formatPeso(appt.remainingBalance)"></strong></p>
-                        <p><strong class="font-bold">Payment method:</strong> <span x-text="appt.paymentMethod || 'Not selected'"></span></p>
+                        <p><strong class="font-bold">Payment method:</strong> <span x-text="PortalPresentation.methodLabel(appt.paymentMethod) || 'Not selected'"></span></p>
                         <p><strong class="font-bold">Payment status:</strong> <span x-text="appointmentPaymentLabel(appt)"></span></p>
                         <p x-show="!appt.depositVerified && appt.depositAmount" class="text-amber-300">The reported reservation payment is awaiting verification. Do not pay it again while verification is pending.</p>
                         <p x-show="appt.remainingBalance > 0 && !['Cancelled', 'No-Show'].includes(appt.status)">Pay the remaining balance at the branch via Cash, GCash, or Maya.</p>

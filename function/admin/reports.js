@@ -63,7 +63,8 @@ function adminReportsApp() {
     },
     paymentEventLabel(event) {
       const labels = {
-        checkout_created: 'Checkout created', payment_paid: 'Paid', checkout_expired: 'Expired (unpaid)',
+        checkout_created: 'Card checkout created', intent_created: 'GCash/Maya payment started', payment_paid: 'Paid',
+        payment_failed: 'Payment failed/cancelled', duplicate_payment: 'Second payment — refund it', checkout_expired: 'Expired (unpaid)',
         webhook_received: 'Webhook received', webhook_rejected: 'Webhook rejected', api_error: 'Error',
         deposit_forfeited: 'Deposit forfeited', refund_due: 'Refund due', refunded: 'Refunded',
         refund_requested: 'Refund sent to PayMongo', refund_failed: 'Refund failed'
@@ -72,7 +73,7 @@ function adminReportsApp() {
     },
     paymentEventBadge(event) {
       if (['payment_paid', 'refunded'].includes(event)) return 'admin-badge--success';
-      if (['webhook_rejected', 'api_error', 'deposit_forfeited', 'refund_failed'].includes(event)) return 'admin-badge--danger';
+      if (['webhook_rejected', 'api_error', 'deposit_forfeited', 'refund_failed', 'payment_failed', 'duplicate_payment'].includes(event)) return 'admin-badge--danger';
       if (['refund_due', 'checkout_expired', 'refund_requested'].includes(event)) return 'admin-badge--pending';
       return 'admin-badge--neutral';
     },
@@ -151,7 +152,7 @@ function adminReportsApp() {
       return { ok: 'admin-badge--success', warning: 'admin-badge--pending', danger: 'admin-badge--danger' }[severity] || 'admin-badge--neutral';
     },
     async syncPayment(row) {
-      const result = await Alpine.store('admin').post('reconcilePaymongo.php', { action: 'sync', reference: row.reference });
+      const result = await Alpine.store('admin').post('reconcilePaymongo.php', { action: 'sync', reference: row.reference, paymentId: row.paymentId });
       LMToast.show(result.message || (result.success ? 'Synced.' : 'Could not sync this payment.'), result.success ? 'success' : 'error');
       if (result.success) await this.runReconciliation();
     },
@@ -215,6 +216,13 @@ function adminReportsApp() {
       return [...groups.values()].map(row => ({...row,revenue:Math.round(row.revenue*100)/100}));
     },
 
+    // Same collections grouped by payment method (refunds excluded), e.g. GCash / Maya / Card (PayMongo).
+    getRevenueByMethod() {
+      const groups = new Map();
+      this.collections.filter(row => row.method).forEach(row => groups.set(row.method, (groups.get(row.method) || 0) + Number(row.amount || 0)));
+      return [...groups].map(([method, amount]) => ({method, label: PortalPresentation.methodLabel(method), amount: Math.round(amount * 100) / 100}));
+    },
+
     getReportTotalRevenue() {
       return this.getRevenueByBranch().reduce((sum, b) => sum + b.revenue, 0);
     },
@@ -255,8 +263,8 @@ function adminReportsApp() {
         store.exportRowsToCSV('appointments-report.csv', ['Ref ID', 'Branch', 'Client', 'Service', 'Date', 'Status'], rows);
       } else if (this.reportType === 'revenue') {
         if (this.collectionsLoading || this.collectionsError) return;
-        const rows = this.collections.map(r => [r.reference,r.branchName,r.collectedAt || 'Not recorded (legacy)',r.kind,r.amount]);
-        store.exportRowsToCSV('revenue-report.csv', ['Booking Reference','Branch','Collection Date','Transaction','Collected Amount (PHP)'], rows);
+        const rows = this.collections.map(r => [r.reference,r.branchName,r.collectedAt || 'Not recorded (legacy)',r.kind,PortalPresentation.methodLabel(r.method) || '',r.amount]);
+        store.exportRowsToCSV('revenue-report.csv', ['Booking Reference','Branch','Collection Date','Transaction','Method','Collected Amount (PHP)'], rows);
       } else if (this.reportType === 'staff') {
         const rows = this.getReportStaff().map(s => [s.name, store.getBranchName(s.branchId), s.role, s.completedCount, s.rating, s.attendance]);
         store.exportRowsToCSV('staff-performance-report.csv', ['Staff', 'Branch', 'Role', 'Completed Services', 'Rating', 'Attendance %'], rows);

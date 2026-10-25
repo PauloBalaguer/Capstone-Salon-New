@@ -73,7 +73,7 @@ try {
 
     $appointmentId = (int) $appointment['id'];
     $amount = (float) $appointment['deposit_amount'];
-    $viaPaymongo = $appointment['deposit_method'] === PayMongo::METHOD && str_starts_with((string) $appointment['deposit_reference'], 'pay_');
+    $viaPaymongo = PayMongo::isOnline($appointment['deposit_method']) && str_starts_with((string) $appointment['deposit_reference'], 'pay_');
 
     if ($viaPaymongo) {
         try {
@@ -113,7 +113,7 @@ try {
     $pdo->prepare('UPDATE appointments SET payment_status = ? WHERE id = ?')->execute([$newStatus, $appointmentId]);
     if ($changed && $newStatus === 'Refunded') {
         PaymentLog::record($pdo, 'refunded', $appointmentId, $reference, $viaPaymongo ? $refund['id'] : null, $amount, 'Refunded',
-            ['method' => $viaPaymongo ? 'PayMongo' : 'manual', 'by_user_id' => $_SESSION['user_id']]);
+            ['method' => $viaPaymongo ? $appointment['deposit_method'] : 'manual', 'by_user_id' => $_SESSION['user_id']]);
         CustomerNotifier::notify($pdo, (int) $appointment['customer_id'], 'PAYMENT_REFUNDED',
             'Your ₱' . number_format($amount, 2) . " reservation deposit for {$reference} has been refunded"
             . ($viaPaymongo ? ' to your original payment method. It may take a few business days to appear.' : '.'));

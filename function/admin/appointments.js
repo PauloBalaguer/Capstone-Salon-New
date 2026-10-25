@@ -158,7 +158,7 @@ function adminBookingsApp() {
     // PayMongo deposits are refunded through PayMongo's API; Cash deposits are
     // returned in person and only recorded here (backend/admin/refundDeposit.php).
     isPaymongoDeposit(booking) {
-      return booking.depositMethod === 'PayMongo' && String(booking.depositReference || '').startsWith('pay_');
+      return String(booking.depositMethod || '').startsWith('PayMongo') && String(booking.depositReference || '').startsWith('pay_');
     },
 
     refundButtonLabel(booking) {
@@ -197,14 +197,15 @@ function adminBookingsApp() {
     },
 
     openConfirmDeposit(booking) {
-      const allowedDepositMethods = ['Cash', 'GCash', 'Maya', 'PayMongo'];
+      const allowedDepositMethods = ['Cash', 'GCash', 'Maya', 'PayMongo', 'PayMongo-GCash', 'PayMongo-Maya', 'PayMongo-Card'];
       this.depositBooking = booking;
       // Bookings made through the online deposit-first flow already carry a
       // self-reported deposit amount/method (unverified until this confirm
       // action) -- prefill from that. Older/off-flow bookings with no
       // deposit info fall back to the full price as a starting point.
       this.depositAmount = booking.depositAmount || booking.price || '';
-      this.depositMethod = allowedDepositMethods.includes(booking.paymentMethod) ? booking.paymentMethod : '';
+      const method = booking.depositMethod || booking.paymentMethod; // The recorded online method wins over the booked one.
+      this.depositMethod = allowedDepositMethods.includes(method) ? method : '';
       this.openDepositModal = true;
     },
 

@@ -88,6 +88,8 @@ try {
             a.payment_status AS paymentStatus,
             EXISTS (SELECT 1 FROM payment_transactions pt WHERE pt.appointment_id = a.id AND pt.event = 'checkout_expired' AND pt.created_at >= COALESCE(a.cancelled_at, a.created_at)) AS paymentExpired,
             a.reminder_sent AS reminderSent,
+            -- Unpaid online booking still holding its slot: offer Continue payment.
+            CASE WHEN a.status = 'Pending' AND a.deposit_paid = 0 AND a.preferred_payment_method LIKE 'PayMongo%' THEN a.online_payment_token END AS paymentToken,
             COALESCE(SUM(s.duration_minutes), 30) AS durationMinutes
         FROM appointments a
         LEFT JOIN employees e ON e.id = a.employee_id
@@ -108,6 +110,8 @@ try {
         $row['depositAmount'] = $row['depositAmount'] !== null ? (float) $row['depositAmount'] : null;
         $row['depositVerified'] = (bool) $row['depositVerified'];
         $row['reminderSent'] = (bool) $row['reminderSent'];
+        $row['continuePaymentUrl'] = $row['paymentToken'] ? PayMongo::resultUrl(getProjectFullBaseUrl(), $row['id'], $row['paymentToken'], 'choose', 'customer') : null;
+        unset($row['paymentToken']);
         $row['durationMinutes'] = (int) $row['durationMinutes'];
         $row['endTime'] = ServiceDuration::end($row['date'] . ' ' . $row['time'], $row['durationMinutes'])->format('g:i A');
         return $row;
@@ -175,7 +179,7 @@ try {
             deposit_reference AS depositReference,
             quote_price AS quotePrice,
             deposit_paid AS depositPaid,
-            CASE WHEN status = 'Payment Required' AND deposit_paid = 0 THEN paymongo_checkout_url END AS payUrl,
+            CASE WHEN status = 'Payment Required' AND deposit_paid = 0 THEN online_payment_token END AS paymentToken,
             balance_checkout_url AS balancePayUrl,
             (SELECT COALESCE(SUM(hp.amount), 0) FROM home_service_payments hp WHERE hp.home_service_request_id = home_service_requests.id) AS amountPaid,
             deposit_recorded_by IS NOT NULL AS depositVerified,
@@ -200,7 +204,7 @@ try {
         $row['balanceDue'] = $row['quotePrice'] !== null ? max(0, round($row['quotePrice'] - $row['amountPaid'], 2)) : null;
         if (!$row['balanceDue']) $row['balancePayUrl'] = null;
         // Paid online through PayMongo counts as verified too.
-        $row['depositVerified'] = $row['depositVerified'] || ((int) $row['depositPaid'] === 1 && $row['paymentMethod'] === 'PayMongo');
+        $row['depositVerified'] = $row['depositVerified'] || ((int) $row['depositPaid'] === 1 && PayMongo::isOnline($row['paymentMethod']));
         // Online rescheduling (backend/customer/rescheduleHomeService.php).
         $blocked = HomeServiceRequest::rescheduleBlockedReason([
             'status' => $row['rawStatus'], 'reschedule_count' => $row['reschedule_count'],
@@ -210,7 +214,8 @@ try {
         $row['rescheduleNote'] = $blocked;
         $row['reschedulesLeft'] = max(0, HomeServiceRequest::MAX_ONLINE_RESCHEDULES - (int) $row['reschedule_count']);
         $row['rescheduleCutoffDays'] = HomeServiceRequest::RESCHEDULE_CUTOFF_HOURS / 24;
-        unset($row['preferred_date'], $row['preferred_time'], $row['reschedule_count'], $row['rawStatus']);
+        $row['payUrls'] = PayMongo::payUrls($row['paymentToken'], $row['id'], (float) $row['depositAmount'], 'customer'); // GCash / Maya / Card buttons
+        unset($row['preferred_date'], $row['preferred_time'], $row['reschedule_count'], $row['rawStatus'], $row['paymentToken']);
         // Prefer the stored package; retain a fallback for older requests.
         if (!$row['weddingPackage'] && $row['requests'] && preg_match('/Wedding Package ([A-D])/', $row['requests'], $m)) {
             $row['weddingPackage'] = $m[1];

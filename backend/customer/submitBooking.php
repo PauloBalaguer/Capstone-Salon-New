@@ -70,8 +70,8 @@ if (!is_array($serviceIds)) {
 }
 $serviceIds = array_values(array_filter(array_map('intval', $serviceIds)));
 
-// Online reservation payments go through PayMongo only; Cash is paid in person at the branch.
-$allowedPaymentMethods = ['Cash', PayMongo::METHOD];
+// Online reservation payments: GCash, Maya or Card through PayMongo (separate methods); Cash is paid in person at the branch.
+$allowedPaymentMethods = ['Cash', ...PayMongo::METHODS];
 
 if ($branchKey === '' || empty($serviceIds) || $date === '' || $time === '' || $customerName === '' || $customerPhone === ''
     || !in_array($paymentMethod, $allowedPaymentMethods, true)
@@ -81,7 +81,7 @@ if ($branchKey === '' || empty($serviceIds) || $date === '' || $time === '' || $
     exit();
 }
 
-if ($paymentMethod === PayMongo::METHOD && !PayMongo::isConfigured()) {
+if (PayMongo::isOnline($paymentMethod) && !PayMongo::isConfigured()) {
     http_response_code(503);
     echo json_encode(['success' => false, 'message' => 'Online payment is not available right now. Please choose another payment method.']);
     exit();
@@ -222,11 +222,11 @@ try {
     }
     // PayMongo bookings are inserted unpaid; the deposit is recorded once
     // PayMongo reports the checkout paid (see backend/shared/config/payments/PayMongo.php).
-    $payOnline = $paymentMethod === PayMongo::METHOD && $depositAmount > 0;
-    if ($payOnline && $depositAmount < PayMongo::MIN_AMOUNT) {
+    $payOnline = PayMongo::isOnline($paymentMethod) && $depositAmount > 0;
+    if ($payOnline && ($amountError = PayMongo::amountError($depositAmount))) {
         $pdo->rollBack();
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Online payment needs at least ₱' . number_format(PayMongo::MIN_AMOUNT, 2) . '. Please choose another payment method.']);
+        echo json_encode(['success' => false, 'message' => $amountError]);
         exit();
     }
     $paymentStatus = $payOnline ? 'Payment Required' : 'Awaiting Verification';
@@ -271,11 +271,12 @@ try {
     }
 
     $checkoutUrl = null;
+    $resultUrl = null; // Lets the booking page offer "Continue payment" if the customer comes back.
     if ($payOnline) {
         // Created before commit so a PayMongo failure rolls the booking back
         // instead of leaving an unpayable slot hold behind.
         try {
-            $checkoutUrl = PayMongo::startCheckout($pdo, (int) $appointmentId, $referenceCode, $depositAmount, 'customer');
+            ['url' => $checkoutUrl, 'resultUrl' => $resultUrl] = PayMongo::startPayment($pdo, $paymentMethod, (int) $appointmentId, $referenceCode, $depositAmount, 'customer');
         } catch (RuntimeException $e) {
             $pdo->rollBack();
             error_log('submitBooking PayMongo error: ' . $e->getMessage());
@@ -305,6 +306,7 @@ try {
         'message' => "Your booking request {$referenceCode} has been sent!",
         'reference' => $referenceCode,
         'checkoutUrl' => $checkoutUrl,
+        'resultUrl' => $resultUrl,
         'appointment' => [
             'id' => $referenceCode,
             'branchId' => $branchKey,

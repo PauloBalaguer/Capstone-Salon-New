@@ -1,5 +1,9 @@
 // Shared display wording only. Stored statuses and role permissions remain authoritative.
 window.PortalPresentation = {
+  // Stored payment method -> display name. 'PayMongo' alone is the old combined checkout.
+  methodLabel(method) {
+    return {'PayMongo-GCash': 'GCash (PayMongo)', 'PayMongo-Maya': 'Maya (PayMongo)', 'PayMongo-Card': 'Card (PayMongo)'}[method] || method;
+  },
   adminNotice(notification) {
     const message = notification.message || '';
     const booking = message.match(/^(?:New|Guest) booking (LM-(?:[A-Z]+-)+\d{4}-\d+) from (.+?) at (.+?) on (.+?)(?:\s+[—–]\s+(.+))?\.?$/i);

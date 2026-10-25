@@ -215,7 +215,7 @@
 
               <div class="space-y-2">
                 <div class="booking-detail-metadata"><p>Submitted: <span x-text="booking.createdAt"></span></p><p x-show="booking.clientEmail">Email: <span x-text="booking.clientEmail"></span></p></div>
-                <template x-if="!booking.isHomeService"><dl class="booking-detail-finances"><div><dt>Service price</dt><dd x-text="$store.admin.formatCurrency(booking.price)"></dd></div><div><dt>Deposit paid</dt><dd x-text="$store.admin.formatCurrency(booking.depositPaid && booking.depositVerified ? booking.depositAmount || 0 : 0)"></dd></div><div><dt>Remaining balance</dt><dd x-text="$store.admin.formatCurrency(booking.remainingBalance)"></dd></div><div><dt>Payment method</dt><dd x-text="booking.depositMethod || booking.paymentMethod || 'Not selected'"></dd></div><div><dt>Payment reference</dt><dd x-text="booking.depositReference || 'Not recorded'"></dd></div></dl></template>
+                <template x-if="!booking.isHomeService"><dl class="booking-detail-finances"><div><dt>Service price</dt><dd x-text="$store.admin.formatCurrency(booking.price)"></dd></div><div><dt>Deposit paid</dt><dd x-text="$store.admin.formatCurrency(booking.depositPaid && booking.depositVerified ? booking.depositAmount || 0 : 0)"></dd></div><div><dt>Remaining balance</dt><dd x-text="$store.admin.formatCurrency(booking.remainingBalance)"></dd></div><div><dt>Payment method</dt><dd x-text="PortalPresentation.methodLabel(booking.depositMethod || booking.paymentMethod) || 'Not selected'"></dd></div><div><dt>Payment reference</dt><dd x-text="booking.depositReference || 'Not recorded'"></dd></div></dl></template>
                 <p x-show="booking.notes" class="text-sm whitespace-pre-line break-words" x-text="booking.notes"></p>
                 <div class="flex justify-between items-start">
                   <div>
@@ -310,7 +310,7 @@
                       <div class="pt-1 border-t border-slate-800/80">
                         <span class="text-xs text-slate-500 block uppercase font-semibold">Reservation Payment</span>
                         <span class="text-slate-300 block">
-                          <span x-text="$store.admin.formatCurrency(booking.depositAmount) + (booking.paymentMethod ? ' via ' + booking.paymentMethod : ' required')"></span>
+                          <span x-text="$store.admin.formatCurrency(booking.depositAmount) + (booking.paymentMethod ? ' via ' + PortalPresentation.methodLabel(booking.paymentMethod) : ' required')"></span>
                           <span :class="booking.depositVerified ? 'text-emerald-400' : 'text-amber-400'" class="font-bold ml-1" x-text="booking.depositVerified ? '(Verified)' : booking.paymentMethod ? '(Unverified)' : '(Pending)'"></span>
                         </span>
                         <span x-show="booking.depositReference" class="text-xs text-slate-500 block">Ref: <span x-text="booking.depositReference" class="text-slate-400"></span></span>
@@ -542,7 +542,7 @@
       <template x-if="depositBooking && depositBooking.depositAmount && !depositBooking.depositVerified">
         <div class="text-xs text-amber-300 bg-amber-950/40 border border-amber-900/60 rounded-lg px-3 py-2.5 space-y-1">
           <p class="font-bold uppercase tracking-wide text-xs">Self-reported by customer — not yet verified</p>
-          <p>Amount: <strong class="text-white" x-text="formatCurrency(depositBooking.depositAmount)"></strong> via <strong class="text-white" x-text="depositBooking.paymentMethod"></strong></p>
+          <p>Amount: <strong class="text-white" x-text="formatCurrency(depositBooking.depositAmount)"></strong> via <strong class="text-white" x-text="PortalPresentation.methodLabel(depositBooking.paymentMethod)"></strong></p>
           <p x-show="depositBooking.depositReference">Reference: <strong class="text-white" x-text="depositBooking.depositReference"></strong></p>
           <p x-show="!depositBooking.depositReference" class="italic">No reference given — Cash deposit, verify in person before confirming.</p>
           <p class="text-amber-400/80">Check this against your GCash/Maya account (or that Cash was actually received) before confirming.</p>
@@ -563,7 +563,10 @@
           <option value="Cash">Cash</option>
           <option value="GCash">GCash</option>
           <option value="Maya">Maya</option>
-          <option value="PayMongo">PayMongo (online)</option>
+          <option value="PayMongo-GCash">GCash (PayMongo)</option>
+          <option value="PayMongo-Maya">Maya (PayMongo)</option>
+          <option value="PayMongo-Card">Card (PayMongo)</option>
+          <option value="PayMongo">PayMongo (legacy combined)</option>
         </select>
       </div>
 

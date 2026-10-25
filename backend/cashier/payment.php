@@ -159,7 +159,7 @@ try {
     if ($appointment['deposit_paid'] && (float) $appointment['deposit_amount'] > 0 && $appointment['deposit_recorded_by'] === null) {
         throw new RuntimeException('Verify the reservation payment before collecting the remaining balance.');
     }
-    if ($appointment['paymongo_checkout_id'] && !$appointment['deposit_paid']) {
+    if (($appointment['paymongo_checkout_id'] || $appointment['paymongo_payment_intent_id']) && !$appointment['deposit_paid']) {
         throw new RuntimeException('The online reservation payment is still pending. Check its status before checkout.');
     }
 

@@ -145,7 +145,7 @@ try {
     // Confirming a reservation requires recording a deposit -- an unpaid Pending
     // booking stays soft/adjustable, but a deposit "locks" it and gives it
     // priority over any other unpaid claim on the same stylist/time.
-    $allowedDepositMethods = ['Cash', 'GCash', 'Maya', 'PayMongo'];
+    $allowedDepositMethods = ['Cash', 'GCash', 'Maya', PayMongo::LEGACY_METHOD, ...PayMongo::METHODS];
     $depositAmount = null;
     $depositMethod = null;
     if ($status === 'Confirmed') {

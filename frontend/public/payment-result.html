@@ -28,6 +28,7 @@
   <link rel="stylesheet" href="../../frontend/public/home-theme.css?v=teal-gold-20261021" />
   <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=teal-gold-20261021" />
   <link rel="stylesheet" href="../../frontend/public/public-colors.css?v=teal-gold-20261021" />
+  <link rel="stylesheet" href="../../frontend/shared/payment-methods.css" />
 </head>
 
 <body class="bg-sand-100 text-ink font-body min-h-screen flex items-center justify-center p-4">
@@ -35,15 +36,22 @@
     <p class="text-[11px] font-bold tracking-widest uppercase text-ink/50">Reservation payment</p>
     <h1 id="resultTitle" class="font-display text-2xl mt-2">Checking your payment…</h1>
     <p id="resultMessage" class="text-sm text-ink/60 mt-3">This only takes a moment.</p>
+    <p id="resultReason" class="hidden text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg p-3 mt-3"></p>
     <dl id="resultDetails" class="hidden text-sm text-left border-y border-bronze/40 py-3 mt-5 space-y-1">
       <div class="flex justify-between gap-3"><dt class="text-ink/50">Reference</dt><dd id="resultRef" class="font-bold"></dd></div>
       <div class="flex justify-between gap-3"><dt class="text-ink/50" id="resultAmountLabel">Amount</dt><dd id="resultAmount" class="font-bold"></dd></div>
+      <div id="resultMethodRow" class="hidden flex justify-between gap-3"><dt class="text-ink/50">Method</dt><dd id="resultMethod" class="font-bold"></dd></div>
+      <div id="resultDateRow" class="hidden flex justify-between gap-3"><dt class="text-ink/50">Date</dt><dd id="resultDate" class="font-bold"></dd></div>
+      <div id="resultPaymentIdRow" class="hidden flex justify-between gap-3"><dt class="text-ink/50">PayMongo payment ID</dt><dd id="resultPaymentId" class="font-mono text-xs break-all text-right"></dd></div>
     </dl>
+    <!-- GCash / Maya / Card buttons for "Try again" and "Choose another method" (paymongoPay.php). -->
+    <div id="resultMethods" class="hidden mt-6 grid gap-2"></div>
     <div class="mt-6 flex flex-col gap-2">
       <a id="resultRetry" href="#" class="hidden rounded-full bg-plum text-white font-bold text-sm py-3 hover:brightness-110 transition">Try payment again</a>
       <a id="resultBack" href="../../index.html" class="rounded-full border border-bronze/60 font-bold text-sm py-3 hover:bg-sand-200 transition">Back to home</a>
     </div>
   </main>
+  <script src="../../function/shared/pending-payment.js"></script>
   <script src="../../function/public/payment-result.js"></script>
 </body>
 

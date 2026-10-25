@@ -79,8 +79,8 @@ foreach ($serviceIds as $svc) {
 }
 if ($serviceStaff && $staffId <= 0) $staffId = $serviceStaff[$serviceIds[0] ?? 0] ?? 0;
 
-// Online reservation payments go through PayMongo only; Cash is paid in person at the branch.
-$allowedPaymentMethods = ['Cash', PayMongo::METHOD];
+// Online reservation payments: GCash, Maya or Card through PayMongo (separate methods); Cash is paid in person at the branch.
+$allowedPaymentMethods = ['Cash', ...PayMongo::METHODS];
 
 // Only Full Name and Contact Number are required to book as a guest -- no
 // account needed. Email is optional; when the guest does provide one, it's
@@ -106,7 +106,7 @@ if ($email !== '' && $otpCode === '') {
     exit();
 }
 
-if ($paymentMethod === PayMongo::METHOD && !PayMongo::isConfigured()) {
+if (PayMongo::isOnline($paymentMethod) && !PayMongo::isConfigured()) {
     http_response_code(503);
     echo json_encode(['success' => false, 'message' => 'Online payment is not available right now. Please choose another payment method.']);
     exit();
@@ -179,10 +179,10 @@ try {
     }
     // PayMongo bookings are inserted unpaid; the deposit is recorded once
     // PayMongo reports the checkout paid (see backend/shared/config/payments/PayMongo.php).
-    $payOnline = $paymentMethod === PayMongo::METHOD && $depositAmount > 0;
-    if ($payOnline && $depositAmount < PayMongo::MIN_AMOUNT) {
+    $payOnline = PayMongo::isOnline($paymentMethod) && $depositAmount > 0;
+    if ($payOnline && ($amountError = PayMongo::amountError($depositAmount))) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Online payment needs at least ₱' . number_format(PayMongo::MIN_AMOUNT, 2) . '. Please choose another payment method.']);
+        echo json_encode(['success' => false, 'message' => $amountError]);
         exit();
     }
 
@@ -310,12 +310,20 @@ try {
     $refStmt->execute([$appointmentId]);
     $referenceCode = $refStmt->fetchColumn();
 
+    if ($email !== '') {
+        $pdo->prepare('DELETE FROM booking_verifications WHERE email = ?')->execute([$email]);
+        // OTP-verified above -- lets booking/status emails reach this guest,
+        // and fills the PayMongo billing email below.
+        $pdo->prepare('UPDATE customers SET email = ? WHERE id = ? AND user_id IS NULL')->execute([$email, $customerId]);
+    }
+
     $checkoutUrl = null;
+    $resultUrl = null; // Lets the booking page offer "Continue payment" if the guest comes back.
     if ($payOnline) {
         // Created before commit so a PayMongo failure rolls the booking back
         // instead of leaving an unpayable slot hold behind.
         try {
-            $checkoutUrl = PayMongo::startCheckout($pdo, (int) $appointmentId, $referenceCode, $depositAmount, 'guest');
+            ['url' => $checkoutUrl, 'resultUrl' => $resultUrl] = PayMongo::startPayment($pdo, $paymentMethod, (int) $appointmentId, $referenceCode, $depositAmount, 'guest');
         } catch (RuntimeException $e) {
             $pdo->rollBack();
             error_log('submitGuestBooking PayMongo error: ' . $e->getMessage());
@@ -330,12 +338,6 @@ try {
     $linkStmt = $pdo->prepare('INSERT INTO appointment_services (appointment_id, service_id, employee_id) VALUES (?, ?, ?)');
     foreach ($serviceIds as $serviceId) {
         $linkStmt->execute([$appointmentId, $serviceId, $serviceStaff[$serviceId] ?? null]);
-    }
-
-    if ($email !== '') {
-        $pdo->prepare('DELETE FROM booking_verifications WHERE email = ?')->execute([$email]);
-        // OTP-verified above -- lets booking/status emails reach this guest.
-        $pdo->prepare('UPDATE customers SET email = ? WHERE id = ? AND user_id IS NULL')->execute([$email, $customerId]);
     }
 
     CustomerNotifier::notify($pdo, (int) $customerId, 'BOOKING_SUBMITTED', CancellationPolicy::bookingReceivedMessage(
@@ -354,6 +356,7 @@ try {
         'reference' => $referenceCode,
         'payment' => $quote,
         'checkoutUrl' => $checkoutUrl,
+        'resultUrl' => $resultUrl,
         'durationMinutes' => $durationMinutes,
         'endTime' => ServiceDuration::end($appointmentDateTime, $durationMinutes)->format('g:i A'),
     ]);

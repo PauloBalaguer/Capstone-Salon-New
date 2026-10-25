@@ -49,12 +49,14 @@
     .card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(0, 109, 111, 0.35); }
   </style>
   <link rel="stylesheet" href="../../frontend/customer/customer-theme.css?v=teal-gold-20261021">
+  <link rel="stylesheet" href="../../frontend/shared/payment-methods.css">
   <script src="../../function/customer/theme-config.js"></script>
 <script src="../../function/shared/booking-validation.js"></script>
   <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=teal-gold-20261021" />
   <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=teal-gold-20261021" />
   <script src="../../function/shared/toast.js"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
+  <script src="../../function/shared/pending-payment.js"></script>
 </head>
 <body class="salon-portal services-page bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
@@ -487,21 +489,25 @@
                                 </label>
                               </div>
                             </div>
-                            <div>
-                              <label class="block font-bold text-slate-400 mb-1">Payment method</label>
-                              <select x-model="bookingForm.paymentMethod" class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
-                                <option value="" disabled>Choose a method</option>
-                                <option value="PayMongo">Online — GCash, Maya or Card</option>
-                                <option value="Cash">Cash — pay at the branch</option>
-                              </select>
-                            </div>
-                            <p x-show="bookingForm.paymentMethod === 'PayMongo'" class="text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3">Pay through PayMongo after confirming. Complete payment within 30 minutes.</p>
+                            <fieldset>
+                              <legend class="block font-bold text-slate-400 mb-1">Payment method</legend>
+                              <div class="grid grid-cols-2 gap-2">
+                                <template x-for="option in [{value: 'PayMongo-GCash', logo: 'gcash', name: 'GCash'}, {value: 'PayMongo-Maya', logo: 'maya', name: 'Maya'}, {value: 'PayMongo-Card', logo: 'card', name: 'Credit / Debit Card'}, {value: 'Cash', logo: 'cash', name: 'Cash at the branch'}]" :key="option.value">
+                                  <label class="flex items-center gap-2 bg-slate-950 border rounded-lg p-2.5 cursor-pointer" :class="bookingForm.paymentMethod === option.value ? 'border-gold-500 text-white' : 'border-slate-800 text-slate-300'">
+                                    <input type="radio" name="bookingPaymentMethod" :value="option.value" x-model="bookingForm.paymentMethod" class="accent-amber-500">
+                                    <span class="pm-logo" :class="'pm-logo--' + option.logo" aria-hidden="true"></span><span class="font-bold leading-tight" x-text="option.name"></span>
+                                  </label>
+                                </template>
+                              </div>
+                            </fieldset>
+                            <p x-show="['PayMongo-GCash', 'PayMongo-Maya'].includes(bookingForm.paymentMethod)" class="text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3" x-text="'You\'ll go straight to ' + (bookingForm.paymentMethod === 'PayMongo-Maya' ? 'Maya' : 'GCash') + ' to authorize the payment after confirming — nothing to type. Complete it within 30 minutes.'"></p>
+                            <p x-show="bookingForm.paymentMethod === 'PayMongo-Card'" class="text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3">You'll enter your card on PayMongo's secure page after confirming (we never see your card number). Complete it within 30 minutes.</p>
                             <p x-show="bookingForm.paymentMethod === 'Cash'" class="text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3">Pay at the branch. Your booking stays pending until payment is verified.</p>                          </div>
                         </template>
 
                         <div x-show="depositLocked" class="flex items-center justify-between gap-3">
                           <span class="text-white" x-show="reservationQuote?.reservationRequirement === 'No Online Reservation'">No online reservation payment required — confirmed after review.</span>
-                          <span class="text-white" x-show="reservationQuote?.reservationRequirement !== 'No Online Reservation'">Payment option: <strong x-text="formatPeso(requiredDeposit()) + ' via ' + bookingForm.paymentMethod + (bookingForm.depositReference ? ' (Ref: ' + bookingForm.depositReference + ')' : '')"></strong></span>
+                          <span class="text-white" x-show="reservationQuote?.reservationRequirement !== 'No Online Reservation'">Payment option: <strong x-text="formatPeso(requiredDeposit()) + ' via ' + PortalPresentation.methodLabel(bookingForm.paymentMethod) + (bookingForm.depositReference ? ' (Ref: ' + bookingForm.depositReference + ')' : '')"></strong></span>
                           <button type="button" @click="changeDeposit()" x-show="reservationQuote?.reservationRequirement !== 'No Online Reservation'" class="text-gold-400 font-bold hover:underline shrink-0">Change</button>
                         </div>
                       </div>
@@ -535,7 +541,7 @@
                           <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-3"><dt class="font-bold">Time:</dt><dd x-text="bookingForm.time + ' (PH)'"></dd></div>
                           <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-3"><dt class="font-bold">Total:</dt><dd x-text="formatPeso(reservationQuote?.serviceTotal ?? finalBookingTotal())"></dd></div>
                           <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-3"><dt class="font-bold">Pay now:</dt><dd x-text="formatPeso(requiredDeposit())"></dd></div>
-                          <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-3"><dt class="font-bold">Method:</dt><dd x-text="requiredDeposit() > 0 ? bookingForm.paymentMethod : 'No payment required'"></dd></div>
+                          <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-3"><dt class="font-bold">Method:</dt><dd x-text="requiredDeposit() > 0 ? PortalPresentation.methodLabel(bookingForm.paymentMethod) : 'No payment required'"></dd></div>
                         </dl>
                         <p class="font-medium text-white pt-3">Terms &amp; Conditions</p>
                         <ul class="list-disc pl-5 space-y-2 text-slate-400">
@@ -579,7 +585,7 @@
                       <button type="button" x-show="bookingStep === 'notifications'" @click="proceedFromNotifications()" class="px-5 py-2 bg-gradient-to-r from-luxury-600 to-luxury-800 text-white font-bold rounded-lg transition active:scale-95">Continue</button>
                       <button type="button" x-show="bookingStep === 'terms'" @click="submitBooking()" :aria-busy="isSubmittingBooking" :disabled="isSubmittingBooking || !bookingForm.agreedToTerms" class="px-5 py-2 bg-gradient-to-r from-gold-500 to-gold-600 text-slate-900 font-bold rounded-lg transition disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2">
                         <svg x-show="isSubmittingBooking" class="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                        <span x-text="isSubmittingBooking ? 'Processing...' : (bookingForm.paymentMethod === 'PayMongo' &amp;&amp; requiredDeposit() > 0 ? 'Continue to Payment' : 'Submit Request')"></span>
+                        <span x-text="isSubmittingBooking ? 'Processing...' : (bookingForm.paymentMethod.startsWith('PayMongo') &amp;&amp; requiredDeposit() > 0 ? 'Continue to Payment' : 'Submit Request')"></span>
                       </button>
                     </div>
                   </form>
@@ -602,7 +608,7 @@
                     <div class="flex justify-between items-center"><strong class="text-slate-500">Estimated Duration:</strong><span class="text-white" x-text="ServiceDuration.format(bookingSuccessDetails?.durationMinutes)"></span></div>
                     <div class="flex justify-between items-center"><strong class="text-slate-500">Estimated End Time:</strong><span class="text-white" x-text="bookingSuccessDetails?.endTime"></span></div>
                     <div class="flex justify-between items-center"><strong class="text-slate-500">Staff:</strong><span class="text-white text-right" x-text="bookingSuccessDetails?.staffName"></span></div>
-                    <div class="flex justify-between items-center"><strong class="text-slate-500">Pay Now:</strong><span class="text-white text-right" x-text="formatPeso(bookingSuccessDetails?.depositAmount) + ' via ' + bookingSuccessDetails?.paymentMethod + (bookingSuccessDetails?.depositReference ? ' (Ref: ' + bookingSuccessDetails.depositReference + ')' : '')"></span></div>
+                    <div class="flex justify-between items-center"><strong class="text-slate-500">Pay Now:</strong><span class="text-white text-right" x-text="formatPeso(bookingSuccessDetails?.depositAmount) + ' via ' + PortalPresentation.methodLabel(bookingSuccessDetails?.paymentMethod) + (bookingSuccessDetails?.depositReference ? ' (Ref: ' + bookingSuccessDetails.depositReference + ')' : '')"></span></div>
                     <div class="flex justify-between items-center"><strong class="text-slate-500">Balance to Pay Later:</strong><span class="text-white" x-text="formatPeso(bookingSuccessDetails?.remainingBalance)"></span></div>
                     <div class="flex justify-between items-center pt-2 border-t border-slate-700"><strong class="text-slate-500">Service Total:</strong><span class="font-bold text-gold-400" x-text="formatPeso(bookingSuccessDetails?.price)"></span></div>
                   </div>

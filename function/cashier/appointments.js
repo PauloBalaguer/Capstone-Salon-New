@@ -187,7 +187,7 @@ function showDetails(ref) {
       ${b.depositAmount || b.depositReference ? `
       <div class="col-span-2 border-t border-gray-100 pt-2 mt-1">
         <span class="text-gray-400 block text-xs uppercase font-bold mb-1">${b.depositVerified ? 'Verified Payment' : 'Self-Reported Payment (unverified)'}</span>
-        <p>Amount: <strong>${b.depositAmount ? CashierApp.formatCurrency(b.depositAmount) : '—'}</strong> via <strong>${cellOrDash(b.paymentMethod)}</strong></p>
+        <p>Amount: <strong>${b.depositAmount ? CashierApp.formatCurrency(b.depositAmount) : '—'}</strong> via <strong>${cellOrDash(PortalPresentation.methodLabel(b.paymentMethod))}</strong></p>
         <p>Reference: <strong>${cellOrDash(b.depositReference)}</strong></p>
       </div>` : ''}
     </div>
@@ -235,16 +235,17 @@ async function admitAppointmentToQueue(ref, depositAmount, depositMethod) {
 function openDepositModal(ref) {
   state.pendingAdmitRef = ref;
   const booking = state.data.bookings.find(b => b.id === ref);
-  const allowedDepositMethods = ['Cash', 'GCash', 'Maya', 'PayMongo'];
+  const allowedDepositMethods = ['Cash', 'GCash', 'Maya', 'PayMongo', 'PayMongo-GCash', 'PayMongo-Maya', 'PayMongo-Card'];
 
   document.getElementById('depositAmountInput').value = booking ? (booking.depositAmount || booking.price) : '';
-  document.getElementById('depositMethodInput').value = booking && allowedDepositMethods.includes(booking.paymentMethod) ? booking.paymentMethod : '';
+  const method = booking && (booking.depositMethod || booking.paymentMethod); // The recorded online method wins over the booked one.
+  document.getElementById('depositMethodInput').value = allowedDepositMethods.includes(method) ? method : '';
 
   const banner = document.getElementById('depositVerifyBanner');
   if (booking && booking.depositAmount && !booking.depositVerified) {
     banner.classList.remove('hidden');
     document.getElementById('depositVerifyAmount').textContent = CashierApp.formatCurrency(booking.depositAmount);
-    document.getElementById('depositVerifyMethod').textContent = booking.paymentMethod || '';
+    document.getElementById('depositVerifyMethod').textContent = PortalPresentation.methodLabel(booking.paymentMethod) || '';
     document.getElementById('depositVerifyRefRow').classList.toggle('hidden', !booking.depositReference);
     document.getElementById('depositVerifyRefValue').textContent = booking.depositReference || '';
     document.getElementById('depositVerifyNoRef').classList.toggle('hidden', !!booking.depositReference);

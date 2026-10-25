@@ -186,9 +186,10 @@
     document.getElementById('bookDepositForm').classList.remove('hidden');
     document.getElementById('bookDepositLocked').classList.add('hidden');
     document.getElementById('bookDepositLocked').classList.remove('flex');
-    document.getElementById('bookDepositMethod').value = '';
+    document.querySelectorAll('input[name="bookDepositMethod"]').forEach(r => { r.checked = false; });
     document.getElementById('bookDepositCashNote').classList.add('hidden');
     document.getElementById('bookDepositOnlineNote').classList.add('hidden');
+    document.getElementById('bookDepositEwalletNote').classList.add('hidden');
     document.getElementById('bookPaymentPlanWrap').classList.add('hidden');
     const depositPlanRadio = document.querySelector('input[name="bookPaymentPlan"][value="deposit"]');
     if (depositPlanRadio) depositPlanRadio.checked = true;
@@ -1876,6 +1877,8 @@
 
   let bookReservationQuote = null;
   let bookQuoteRequest = 0;
+  // Booking payment methods as customers see them; PayMongo-* are paid online right after confirming.
+  const PAY_METHOD_NAMES = { 'PayMongo-GCash': 'GCash', 'PayMongo-Maya': 'Maya', 'PayMongo-Card': 'Credit / Debit Card', Cash: 'Cash' };
   const formatReservationMoney = value => '₱' + Number(value).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   function computeSelectedServicesSubtotal() {
     return bookReservationQuote?.serviceTotal ?? 0;
@@ -1934,12 +1937,14 @@
       '<div class="mt-6 pt-5 border-t border-bronze/25 text-sm space-y-1.5">' +
         detail.map(r => '<p><span class="text-ink/50">' + r[0] + ':</span> <b>' + r[1] + '</b></p>').join('') +
       '</div>' +
-      // Home service reservation fee (down payment) -- paid online via PayMongo.
-      (isHome && res.payUrl
+      // Home service reservation fee (down payment) -- GCash, Maya or Card via PayMongo.
+      // One button per method; the PayMongo payment is created when it is opened.
+      (isHome && res.payUrls
         ? '<div class="mt-5 rounded-2xl bg-copper/10 border border-copper/30 p-4 text-sm">' +
             '<p class="font-bold text-ink">Pay your ' + peso(res.reservationFee) + ' reservation fee to confirm this request.</p>' +
             '<p class="text-ink/60 text-[13px] mt-1">The remaining balance is paid on the event day.</p>' +
-            '<a href="' + escAttr(res.payUrl) + '" class="mt-3 inline-flex w-full justify-center rounded-full bg-plum hover:bg-plum/85 text-white font-bold py-3 transition">Pay ' + peso(res.reservationFee) + ' now — GCash, Maya or card</a>' +
+            '<div class="mt-3 grid gap-2">' + [['PayMongo-GCash', 'gcash'], ['PayMongo-Maya', 'maya'], ['PayMongo-Card', 'card']].map(([method, logo]) =>
+              '<a href="' + escAttr(res.payUrls[method]) + '" class="flex items-center gap-3 rounded-full border border-bronze/50 bg-white hover:border-plum px-3 py-2 font-bold transition"><span class="pm-logo pm-logo--' + logo + '" aria-hidden="true"></span>Pay with ' + PAY_METHOD_NAMES[method] + '</a>').join('') + '</div>' +
           '</div>'
         : '') +
       // Remaining balance after the DP (paid online once the salon sends the link).
@@ -2401,7 +2406,10 @@
   document.getElementById('bookDepositMethod')?.addEventListener('change', e => {
     const method = e.target.value;
     document.getElementById('bookDepositCashNote').classList.toggle('hidden', method !== 'Cash');
-    document.getElementById('bookDepositOnlineNote').classList.toggle('hidden', method !== 'PayMongo');
+    document.getElementById('bookDepositOnlineNote').classList.toggle('hidden', method !== 'PayMongo-Card');
+    const ewallet = method === 'PayMongo-GCash' || method === 'PayMongo-Maya';
+    document.getElementById('bookDepositEwalletNote').classList.toggle('hidden', !ewallet);
+    if (ewallet) document.querySelector('#bookDepositEwalletNote [data-wallet-name]').textContent = PAY_METHOD_NAMES[method];
   });
 
   document.getElementById('bookDepositLockBtn')?.addEventListener('click', async () => {
@@ -2411,7 +2419,7 @@
       return;
     }
     if (!selectedStaffId) { showToast('Please select a staff member first'); return; }
-    const method = document.getElementById('bookDepositMethod').value;
+    const method = document.querySelector('input[name="bookDepositMethod"]:checked')?.value || '';
     if (!method) { showToast('Please choose a payment method for your deposit'); return; }
 
     const amount = await updateDepositRequiredDisplay();
@@ -2424,8 +2432,8 @@
     locked.classList.remove('hidden');
     locked.classList.add('flex');
     document.getElementById('bookDepositLockedSummary').textContent =
-      method === 'PayMongo'
-        ? formatReservationMoney(amount) + ' — pay online after you confirm'
+      method !== 'Cash'
+        ? formatReservationMoney(amount) + ' — pay with ' + PAY_METHOD_NAMES[method] + ' after you confirm'
         : formatReservationMoney(amount) + ' via ' + method + (bookDepositInfo.reference ? ' (Ref: ' + bookDepositInfo.reference + ')' : ' — pay in person');
 
     document.getElementById('bookScheduleSection').classList.remove('hidden');
@@ -2488,8 +2496,8 @@
       ...(email ? [['Email', email]] : []),
       ['Service Total', formatReservationMoney(total)],
       ['Reservation Requirement', bookReservationQuote.reservationRequirement],
-      ['Pay Now', formatReservationMoney(bookDepositInfo.amount) + ' via ' + bookDepositInfo.method],
-      ['Deposit reference', bookDepositInfo.reference || (bookDepositInfo.method === 'PayMongo' ? 'Pay online via PayMongo after confirming' : 'Pay cash at the branch')],
+      ['Pay Now', formatReservationMoney(bookDepositInfo.amount) + ' via ' + PAY_METHOD_NAMES[bookDepositInfo.method]],
+      ['Deposit reference', bookDepositInfo.reference || (bookDepositInfo.method === 'Cash' ? 'Pay cash at the branch' : 'Pay with ' + PAY_METHOD_NAMES[bookDepositInfo.method] + ' right after confirming')],
       ['Balance to Pay Later', formatReservationMoney(bookReservationQuote.remainingBalance)]
     ].map(([label, value]) => '<p><span class="text-ink/50">' + label + ':</span> <b>' + escAttr(value) + '</b></p>').join('');
     document.getElementById('bookingFormPanel').classList.add('hidden');
@@ -2693,10 +2701,12 @@
           return false;
         }
 
-        // Online payment: hand off to PayMongo's hosted checkout, which
+        // Online payment: hand off to PayMongo (the GCash / Maya authorization page, or the card page), which
         // returns to frontend/public/payment-result.html when done.
         if (res.checkoutUrl) {
           if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Redirecting to payment…'; }
+          // Back from PayMongo shows "Continue payment" for this booking instead of inviting a second one.
+          if (res.resultUrl) PendingPayment.remember(res.reference, res.resultUrl);
           window.location.href = res.checkoutUrl;
           return true;
         }

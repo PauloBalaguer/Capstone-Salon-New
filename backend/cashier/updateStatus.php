@@ -62,7 +62,7 @@ if ($referenceCode === '' || (!$paymentAttentionOnly && !$paymentVerifyOnly &&!i
 
 // Confirming a reservation (e.g. the "Admit Client" action) requires
 // recording a deposit -- same policy as backend/admin/updateBookingStatus.php.
-$allowedDepositMethods = ['Cash', 'GCash', 'Maya', 'PayMongo'];
+$allowedDepositMethods = ['Cash', 'GCash', 'Maya', PayMongo::LEGACY_METHOD, ...PayMongo::METHODS];
 $depositAmount = null;
 $depositMethod = null;
 if ($status === 'Confirmed' || $paymentVerifyOnly) {

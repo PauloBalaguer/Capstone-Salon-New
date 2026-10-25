@@ -40,6 +40,7 @@
 <script src="function/shared/booking-validation.js"></script>
   <link rel="stylesheet" href="frontend/shared/responsive-base.css?v=teal-gold-20261021" />
   <link rel="stylesheet" href="frontend/public/public-colors.css?v=teal-gold-20261021" />
+  <link rel="stylesheet" href="frontend/shared/payment-methods.css" />
   <script src="function/shared/portal-presentation.js"></script>
 </head>
 
@@ -356,19 +357,34 @@
                   </label>
                 </div>
               </fieldset>
-              <div>
-                <label for="bookDepositMethod"
-                  class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Payment method</label>
-                <select id="bookDepositMethod"
-                  class="w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition">
-                  <option value="">Choose a payment method...</option>
-                  <option value="PayMongo">Pay Online — GCash, Maya or Card</option>
-                  <option value="Cash">Cash — pay at the branch</option>
-                </select>
+              <fieldset>
+                <legend class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Payment method</legend>
+                <div id="bookDepositMethod" class="grid grid-cols-2 gap-2">
+                  <label class="flex items-center gap-2 rounded-xl border border-bronze/50 bg-sand-100 px-3 py-2.5 cursor-pointer transition has-[:checked]:border-plum has-[:checked]:bg-plum/5">
+                    <input type="radio" name="bookDepositMethod" value="PayMongo-GCash" class="accent-plum">
+                    <span class="pm-logo pm-logo--gcash" aria-hidden="true"></span><span class="text-sm font-bold">GCash</span>
+                  </label>
+                  <label class="flex items-center gap-2 rounded-xl border border-bronze/50 bg-sand-100 px-3 py-2.5 cursor-pointer transition has-[:checked]:border-plum has-[:checked]:bg-plum/5">
+                    <input type="radio" name="bookDepositMethod" value="PayMongo-Maya" class="accent-plum">
+                    <span class="pm-logo pm-logo--maya" aria-hidden="true"></span><span class="text-sm font-bold">Maya</span>
+                  </label>
+                  <label class="flex items-center gap-2 rounded-xl border border-bronze/50 bg-sand-100 px-3 py-2.5 cursor-pointer transition has-[:checked]:border-plum has-[:checked]:bg-plum/5">
+                    <input type="radio" name="bookDepositMethod" value="PayMongo-Card" class="accent-plum">
+                    <span class="pm-logo pm-logo--card" aria-hidden="true"></span><span class="text-sm font-bold leading-tight">Credit / Debit Card</span>
+                  </label>
+                  <label class="flex items-center gap-2 rounded-xl border border-bronze/50 bg-sand-100 px-3 py-2.5 cursor-pointer transition has-[:checked]:border-plum has-[:checked]:bg-plum/5">
+                    <input type="radio" name="bookDepositMethod" value="Cash" class="accent-plum">
+                    <span class="pm-logo pm-logo--cash" aria-hidden="true"></span><span class="text-sm font-bold leading-tight">Cash at the branch</span>
+                  </label>
+                </div>
+              </fieldset>
+              <div id="bookDepositEwalletNote" class="hidden text-xs text-ink/55 bg-sand-100 border border-bronze/40 rounded-lg p-3">
+                After you confirm, you'll go straight to <b data-wallet-name>GCash</b> to authorize the payment — nothing
+                to type. Your slot is held for 30 minutes while you pay.
               </div>
               <div id="bookDepositOnlineNote" class="hidden text-xs text-ink/55 bg-sand-100 border border-bronze/40 rounded-lg p-3">
-                After you confirm, you'll be taken to PayMongo's secure checkout to pay with GCash, Maya or card. Your
-                slot is held for 30 minutes while you pay — no reference number needed.
+                After you confirm, you'll enter your card on PayMongo's secure page (we never see your card number). Your
+                slot is held for 30 minutes while you pay.
               </div>
               <div id="bookDepositCashNote" class="hidden text-xs text-ink/55 bg-sand-100 border border-bronze/40 rounded-lg p-3">
                 Cash deposits can't be verified remotely — bring the deposit amount to the branch. Your slot is held as
@@ -2687,7 +2703,8 @@
   <script src="function/shared/address-form.js"></script>
   <script src="function/shared/service-duration.js"></script>
   <script src="function/shared/toast.js"></script>
-  <script src="function/public/main.js?v=header18-20261020-4"></script>
+  <script src="function/shared/pending-payment.js"></script>
+  <script src="function/public/main.js?v=paymethods-20261025"></script>
 </body>
 
 </html>

@@ -173,7 +173,7 @@ try {
             h.deposit_amount AS depositAmount,
             h.deposit_method AS paymentMethod,
             h.deposit_reference AS depositReference,
-            (h.deposit_recorded_by IS NOT NULL OR (h.deposit_paid = 1 AND h.deposit_method = 'PayMongo')) AS depositVerified
+            (h.deposit_recorded_by IS NOT NULL OR (h.deposit_paid = 1 AND h.deposit_method IN ('PayMongo', 'PayMongo-GCash', 'PayMongo-Maya', 'PayMongo-Card'))) AS depositVerified
         FROM home_service_requests h
         JOIN customers c ON c.id = h.customer_id
         LEFT JOIN employees e ON e.id = h.employee_id

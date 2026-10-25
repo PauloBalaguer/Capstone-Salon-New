@@ -557,10 +557,12 @@ function customerBookingMixin() {
             return;
           }
 
-          // Online payment: hand off to PayMongo's hosted checkout, which
-          // returns to frontend/public/payment-result.html when done.
+          // Online payment: hand off to PayMongo (the GCash / Maya authorization page, or the card page),
+          // which returns to frontend/public/payment-result.html when done.
           if (body.checkoutUrl) {
             this.isSubmittingBooking = true;
+            // Back from PayMongo shows "Continue payment" for this booking instead of inviting a second one.
+            if (body.resultUrl) PendingPayment.remember(body.reference, body.resultUrl);
             window.location.href = body.checkoutUrl;
             return;
           }

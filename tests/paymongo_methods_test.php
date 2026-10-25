@@ -94,12 +94,18 @@ register_shutdown_function(function () use ($server, $mysql, $testDb, $stateFile
     @unlink($stateFile);
 });
 
+// Tests never deliver mail or texts: point env() at a folder with no .env, so Brevo and textbee have no keys...
+putenv('SALON_SECRETS_DIR=' . __DIR__ . DIRECTORY_SEPARATOR . 'no-secrets');
 require_once $root . '/backend/shared/config/setup/database.php';
 require_once $root . '/backend/shared/config/payments/PayMongo.php';
 require_once $root . '/backend/shared/config/payments/ReservationPayment.php';
 require_once $root . '/backend/shared/config/booking/CancellationPolicy.php';
+require_once $root . '/backend/shared/config/notifications/EmailOutbox.php';
 (new ReflectionProperty(Database::class, 'db_name'))->setValue(null, $testDb);
 (new ReflectionProperty(PayMongo::class, 'credentials'))->setValue(null, ['secret_key' => 'sk_test_mock', 'api_base' => 'http://127.0.0.1:8765']);
+// ...and mark EmailOutbox's send-after-request hook as already registered, so queued emails stay queued
+// (it would otherwise run after the shutdown function above has dropped the test database).
+(new ReflectionProperty(EmailOutbox::class, 'hookRegistered'))->setValue(null, true);
 $pdo = Database::getInstance();
 $pdo->exec("UPDATE customers SET email = 'guest@example.com' WHERE id = 23");
 

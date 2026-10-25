@@ -5,6 +5,7 @@
 // files that call date_default_timezone_set('Asia/Manila') compare against
 // a different clock, making codes look expired the moment they're issued.
 date_default_timezone_set('Asia/Manila');
+require_once __DIR__ . '/env.php'; // Also hides PHP error details from responses unless APP_DEBUG=true.
 
 /**
  * Database Connection Class

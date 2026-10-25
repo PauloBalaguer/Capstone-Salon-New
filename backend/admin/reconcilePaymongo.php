@@ -37,7 +37,7 @@ if (!isLoggedIn() || ($_SESSION['user_role'] ?? '') !== 'Admin') {
 }
 if (!PayMongo::isConfigured()) {
     http_response_code(503);
-    echo json_encode(['success' => false, 'message' => 'PayMongo keys are not set up (backend/shared/config/credentials/paymongo_credentials.php).']);
+    echo json_encode(['success' => false, 'message' => 'PayMongo keys are not set up (PAYMONGO_SECRET_KEY in the private .env).']);
     exit();
 }
 

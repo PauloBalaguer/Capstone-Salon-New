@@ -12,7 +12,14 @@
   </FilesMatch>
 </IfModule>
 
-# Private credential files (Brevo, PayMongo) are include-only, never a public endpoint.
-<FilesMatch "^(?:brevo|paymongo|mail)_credentials\.php(?:\..*)?$">
+# Private credential files (legacy Brevo, PayMongo, SMS) are include-only, never a public endpoint.
+<FilesMatch "^(?:brevo|paymongo|mail|sms)_credentials\.php(?:\..*)?$">
   Require all denied
 </FilesMatch>
+
+# Environment and Composer files. The real .env belongs outside htdocs; this
+# blocks one that is copied here by mistake, plus .env.example.
+<FilesMatch "^(?:\.env.*|composer\.(?:json|lock))$">
+  Require all denied
+</FilesMatch>
+RedirectMatch 404 /vendor/

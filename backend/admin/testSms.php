@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (SmsOutbox::sendNow(Database::getInstance(), $phone, 'TEST', renderSms('TEST'))) {
         $result = ['ok', 'textbee accepted the message for ' . normalizePhPhone($phone) . '. It should arrive within a minute.'];
     } else {
-        $result = ['error', 'Not sent. Check sms_credentials.php, that the textbee app is running on the phone, and the PHP error log.'];
+        $result = ['error', 'Not sent. Check TEXTBEE_API_KEY / TEXTBEE_DEVICE_ID in the private .env, that the textbee app is running on the phone, and the PHP error log.'];
     }
 }
 ?>

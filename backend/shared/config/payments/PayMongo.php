@@ -5,12 +5,13 @@ require_once __DIR__ . '/PaymentLog.php';
 require_once __DIR__ . '/../booking/Waitlist.php';
 require_once __DIR__ . '/../setup/url.php';
 require_once __DIR__ . '/../booking/Scheduling.php';
+require_once __DIR__ . '/../setup/env.php';
 
 /**
  * PayMongo online payments: GCash, Maya and Credit/Debit Card as separate methods.
  *
- * Keys live in paymongo_credentials.php (git-ignored; copy
- * paymongo_credentials.example.php). Every call uses the secret key.
+ * Keys come from PAYMONGO_SECRET_KEY / PAYMONGO_WEBHOOK_SECRET in the private
+ * .env (see setup/env.php and .env.example). Every call uses the secret key.
  *
  *   'PayMongo-GCash' / 'PayMongo-Maya' -- Payment Intent + Payment Method:
  *       the customer goes straight to the GCash / Maya authorization page.
@@ -40,15 +41,14 @@ final class PayMongo
     private const PAYMENT_TYPES = [self::METHOD_GCASH => 'gcash', self::METHOD_MAYA => 'paymaya', self::METHOD_CARD => 'card'];
     private const LABELS = [self::METHOD_GCASH => 'GCash (PayMongo)', self::METHOD_MAYA => 'Maya (PayMongo)', self::METHOD_CARD => 'Card (PayMongo)'];
 
-    private static ?array $credentials = null;
+    private static ?array $credentials = null; // tests/paymongo_methods_test.php injects mock keys here.
 
     private static function credentials(): array
     {
-        if (self::$credentials === null) {
-            $path = __DIR__ . '/../credentials/paymongo_credentials.php';
-            self::$credentials = is_file($path) ? (array) require $path : [];
-        }
-        return self::$credentials;
+        return self::$credentials ??= [
+            'secret_key' => env('PAYMONGO_SECRET_KEY'),
+            'webhook_secret' => env('PAYMONGO_WEBHOOK_SECRET'),
+        ];
     }
 
     public static function isConfigured(): bool

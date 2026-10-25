@@ -16,6 +16,15 @@
 backend/shared/config/credentials/*.php
 !backend/shared/config/credentials/*.example.php
 
+# Environment files with real keys. The real one lives outside htdocs
+# (C:\xampp\salon-private\.env); only the .env.example template is tracked.
+.env
+.env.*
+!.env.example
+
+# Composer packages (recreate with "composer install").
+vendor/
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 

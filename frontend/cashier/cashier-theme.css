@@ -184,12 +184,20 @@ main :is(input, textarea)::placeholder { color: #475569; opacity: 1; }
   main > header > div { flex-wrap: wrap; min-width: 0; }
   main > header h2 { flex-shrink: 1; }
   main > section, main > .p-6 { padding: 1rem; }
+  /* The fixed h-16 header let the branch badge and clock spill over the content below. */
+  main > header.h-16 { height: auto; min-height: 4rem; flex-wrap: wrap; gap: 0.5rem; padding-block: 0.75rem; }
+  main > header.h-16 > .text-right { text-align: left; }
+  /* Status tabs scroll sideways instead of breaking words ("Pe-nd-in-g"). */
+  #statusTabs { max-width: 100%; overflow-x: auto; }
+  #statusTabs > button { flex-shrink: 0; white-space: nowrap; }
+  .relative.w-72:has(> #apptSearch) { width: 100%; }
 }
 
 /* Stack the cashier navigation above content on phones and zoomed layouts. */
 @media screen and (max-width: 767px) {
   body.flex { flex-direction: column; height: auto; min-height: 100dvh; overflow: auto; }
-  body > aside { width: 100%; height: auto; overflow: visible; }
+  /* .w-64 (a class) outranks the element selector, so the full width needs the class too. */
+  body > aside, body > aside.w-64 { width: 100%; height: auto; overflow: visible; }
   #sidebarNav { display: flex; flex-wrap: wrap; gap: 0.5rem; padding-block: 0.75rem; }
   #sidebarNav a { flex: 1 1 12rem; margin: 0; }
   body > main { flex: none; width: 100%; overflow: visible; }

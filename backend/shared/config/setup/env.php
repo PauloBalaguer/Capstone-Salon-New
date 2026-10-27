@@ -62,6 +62,8 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
         $missing += $set ? 0 : 1;
         echo str_pad($key, 26) . ($set ? 'set' : 'MISSING') . "\n";
     }
+    // Optional salon rule (see .env.example): hidden while unset, not counted as missing.
+    echo str_pad('SALON_LATE_GRACE_MINUTES', 26) . (env('SALON_LATE_GRACE_MINUTES') !== '' ? 'set' : 'not set (late-arrival rule hidden)') . "\n";
     echo $missing ? "\n{$missing} setting(s) missing; those features stay switched off.\n" : "\nAll settings present.\n";
     exit($missing ? 1 : 0);
 }

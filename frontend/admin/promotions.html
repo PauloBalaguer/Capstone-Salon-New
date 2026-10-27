@@ -278,6 +278,11 @@
                 </template>
               </ul>
 
+              <p class="text-xs text-slate-400 mb-3">
+                <span x-text="'Team time: ' + (pkg.travelMinutes ?? 0) + ' travel + ' + (pkg.setupMinutes ?? 0) + ' setup + ' + (pkg.serviceMinutes ?? $store.admin.homeServiceDefaults.fallbackServiceMinutes) + ' service min'"></span>
+                <span x-show="!pkg.durationsConfirmed" class="admin-badge admin-badge--pending ml-1">Placeholder</span>
+              </p>
+
               <div class="flex items-center justify-between pt-3 border-t border-slate-800/60 text-xs text-slate-400">
                 <span x-text="'Order: ' + pkg.displayOrder"></span>
                 <div class="space-x-3">
@@ -465,6 +470,28 @@
             <label class="block text-xs text-slate-400 mb-1">Display Order</label>
             <input type="number" x-model.number="packageForm.displayOrder" min="0" step="1" required class="w-full bg-slate-950 text-slate-300 text-xs rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
           </div>
+        </div>
+        <div class="pt-3 border-t border-slate-800/80 space-y-2">
+          <span class="text-xs text-gold-400 font-bold uppercase tracking-wider block">Team Time (for scheduling)</span>
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Travel (min)</label>
+              <input type="number" x-model.number="packageForm.travelMinutes" min="0" max="1440" step="1" placeholder="0" class="w-full bg-slate-950 text-slate-300 text-xs rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Setup (min)</label>
+              <input type="number" x-model.number="packageForm.setupMinutes" min="0" max="1440" step="1" placeholder="0" class="w-full bg-slate-950 text-slate-300 text-xs rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Service (min)</label>
+              <input type="number" x-model.number="packageForm.serviceMinutes" min="1" max="1440" step="1" :placeholder="$store.admin.homeServiceDefaults.fallbackServiceMinutes" class="w-full bg-slate-950 text-slate-300 text-xs rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+            </div>
+          </div>
+          <p class="text-xs text-slate-500">The team is blocked for <span class="text-slate-300" x-text="$store.admin.eventWindowLabel(packageForm)"></span>: travel and setup before the booked time, then the service and cleaning buffer. Blank service time uses <span x-text="$store.admin.homeServiceDefaults.fallbackServiceMinutes"></span> minutes.</p>
+          <label class="flex items-center gap-2 text-xs text-slate-300">
+            <input type="checkbox" x-model="packageForm.durationsConfirmed" class="rounded border-slate-700 bg-slate-950 text-luxury-600 focus:ring-purple-500">
+            <span>These times are confirmed by the salon (untick while they are placeholders)</span>
+          </label>
         </div>
         <label class="flex items-center gap-2 text-xs text-slate-300">
           <input type="checkbox" x-model="packageForm.active" class="rounded border-slate-700 bg-slate-950 text-luxury-600 focus:ring-purple-500">

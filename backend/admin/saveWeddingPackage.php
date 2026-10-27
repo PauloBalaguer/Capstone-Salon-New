@@ -34,6 +34,19 @@ $features = trim($_POST['features'] ?? '');
 $style = trim($_POST['style'] ?? '');
 $displayOrder = (int) ($_POST['displayOrder'] ?? 0);
 $active = filter_var($_POST['active'] ?? true, FILTER_VALIDATE_BOOLEAN);
+// Team time for scheduling (Scheduling::homeServiceWindow). Blank = not set;
+// a blank service time falls back to 120 minutes.
+$minutes = [];
+foreach (['travelMinutes' => 0, 'setupMinutes' => 0, 'serviceMinutes' => 1] as $field => $min) {
+    $raw = trim($_POST[$field] ?? '');
+    $minutes[$field] = $raw === '' ? null : filter_var($raw, FILTER_VALIDATE_INT, ['options' => ['min_range' => $min, 'max_range' => 1440]]);
+    if ($minutes[$field] === false) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Travel, setup and service times must be whole minutes (up to 1440).']);
+        exit();
+    }
+}
+$durationsConfirmed = filter_var($_POST['durationsConfirmed'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
 $allowedStyles = ['Plain', 'Highlight', 'Premium'];
 
@@ -65,9 +78,11 @@ try {
 
         $pdo->prepare('
             UPDATE wedding_packages SET package_name = ?, price = ?, reservation_fee = ?, features = ?,
-                style = ?, display_order = ?, is_active = ?
+                style = ?, display_order = ?, is_active = ?,
+                travel_minutes = ?, setup_minutes = ?, service_minutes = ?, durations_confirmed = ?
             WHERE id = ?
-        ')->execute([$packageName, $price, $reservationFee, $features, $style, $displayOrder, $active ? 1 : 0, $packageId]);
+        ')->execute([$packageName, $price, $reservationFee, $features, $style, $displayOrder, $active ? 1 : 0,
+            $minutes['travelMinutes'], $minutes['setupMinutes'], $minutes['serviceMinutes'], $durationsConfirmed ? 1 : 0, $packageId]);
 
         $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "PACKAGE", ?)')
             ->execute(["Wedding package updated: {$packageName}."]);
@@ -77,9 +92,11 @@ try {
     }
 
     $pdo->prepare('
-        INSERT INTO wedding_packages (package_name, price, reservation_fee, features, style, display_order, is_active)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    ')->execute([$packageName, $price, $reservationFee, $features, $style, $displayOrder, $active ? 1 : 0]);
+        INSERT INTO wedding_packages (package_name, price, reservation_fee, features, style, display_order, is_active,
+            travel_minutes, setup_minutes, service_minutes, durations_confirmed)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ')->execute([$packageName, $price, $reservationFee, $features, $style, $displayOrder, $active ? 1 : 0,
+        $minutes['travelMinutes'], $minutes['setupMinutes'], $minutes['serviceMinutes'], $durationsConfirmed ? 1 : 0]);
 
     $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "PACKAGE", ?)')
         ->execute(["New wedding package added: {$packageName}."]);

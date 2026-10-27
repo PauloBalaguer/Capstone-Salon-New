@@ -20,6 +20,8 @@ document.addEventListener('alpine:init', () => {
     inventory: [],
     promotions: [],
     weddingPackages: [],
+    eventDurations: [],
+    homeServiceDefaults: { fallbackServiceMinutes: 120, cleaningBufferMinutes: 30 },
     feedback: [],
     notifications: [],
     notificationsReadBusy: false,
@@ -72,6 +74,8 @@ document.addEventListener('alpine:init', () => {
         this.inventory = data.inventory;
         this.promotions = data.promotions;
         this.weddingPackages = data.weddingPackages;
+        this.eventDurations = data.eventDurations || [];
+        this.homeServiceDefaults = data.homeServiceDefaults || this.homeServiceDefaults;
         this.feedback = data.feedback;
         this.notifications = data.notifications;
         this.notificationPrefs = data.notificationPrefs;
@@ -127,6 +131,16 @@ document.addEventListener('alpine:init', () => {
 
     formatCurrency(n) {
       return 'PHP ' + Number(n || 0).toLocaleString();
+    },
+
+    /* Total staff time one event blocks -- mirrors Scheduling::homeServiceWindow()
+       (blank travel/setup = 0, blank service = the 120-minute fallback). */
+    eventWindowLabel(d) {
+      const defaults = this.homeServiceDefaults;
+      const service = Number(d.serviceMinutes) || defaults.fallbackServiceMinutes;
+      const total = (Number(d.travelMinutes) || 0) + (Number(d.setupMinutes) || 0) + service + defaults.cleaningBufferMinutes;
+      const hours = Math.floor(total / 60), mins = total % 60;
+      return `${hours ? hours + ' h ' : ''}${mins ? mins + ' min' : ''}`.trim() + ` incl. ${defaults.cleaningBufferMinutes}-min buffer`;
     },
 
     getStatusBadgeClass(status) {

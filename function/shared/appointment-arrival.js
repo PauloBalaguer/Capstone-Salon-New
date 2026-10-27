@@ -26,6 +26,7 @@
       dialog.setAttribute('aria-labelledby', 'arrivalReviewTitle');
       dialog.innerHTML = `<form method="dialog" class="space-y-4">
         <h2 id="arrivalReviewTitle" class="text-xl font-bold">Review arrival</h2>
+        <div data-arrival-grace role="status" class="rounded-lg border p-3 text-sm"></div>
         <p data-arrival-summary class="text-sm whitespace-pre-line"></p>
         <p data-arrival-help class="text-sm">The full service and cleaning buffer must fit. Another customer's appointment will not be moved. Payments stay unchanged. Selecting another stylist replaces only the current main stylist's services.</p>
         <label class="block text-sm font-semibold">Staff for this arrival<select data-arrival-staff class="block w-full rounded-lg border p-3 mt-1"></select></label>
@@ -45,10 +46,23 @@
         dialog.querySelector('details').hidden = true;
         find('help').textContent = 'The full service and cleaning buffer must fit. Other appointments and payments stay unchanged. If the service cannot fit, ask the cashier to review reassignment or rescheduling.';
       }
-      const grace = review.graceMinutes === null ? 'Grace period is unset. No automatic lateness penalty applies.'
-        : `Configured grace period: ${review.graceMinutes} minutes. ${review.minutesLate > review.graceMinutes ? 'Arrival is beyond it; staff review is required.' : 'Arrival is within it.'} No automatic payment action applies.`;
+      // Grace period verdict (Scheduling::arrivalReview graceStatus). Information
+      // only: lateness never cancels, marks a no-show or changes payment by itself.
       const late = review.isLate ? (review.minutesLate ? review.minutesLate + ' minutes' : 'less than one minute') + ' after reserved start' : 'on time or early';
-      find('summary').textContent = `${reference}\nReserved: ${scheduled}\nActual service start: ${review.actualStart} (${review.durationMinutes} minutes)\nArrival: ${late}\nPayment: ${review.paymentStatus}\n${grace}\n${review.reason || 'Review qualified staff below.'}`;
+      // Fixed colours: each portal re-themes Tailwind's palette differently (admin's slate-100 is charcoal).
+      const green = 'background:#EDF8F1;border-color:#B7DFC6;color:#17603A', amber = 'background:#FFF7E2;border-color:#D9BB69;color:#7A5200';
+      const verdicts = {
+        on_time: ['On time', 'The customer arrived at or before the reserved start.', green],
+        within: ['Within the grace period', `Arrived ${late} (grace period: ${review.graceMinutes} minutes).`, green],
+        beyond: ['Beyond the grace period', `Arrived ${late}: ${review.minutesLate - review.graceMinutes} minutes past the ${review.graceMinutes}-minute grace period.`, amber],
+        unset: ['Late (no grace period set)', `Arrived ${late}. SALON_LATE_GRACE_MINUTES is not configured.`, 'background:#F1F5F9;border-color:#CBD5E1;color:#1E293B']
+      };
+      const [verdictTitle, verdictText, verdictTone] = verdicts[review.graceStatus] || verdicts.unset;
+      find('grace').style.cssText = verdictTone;
+      find('grace').innerHTML = '<b class="block text-base"></b><span></span><span class="block mt-1">Nothing is cancelled or marked as a no-show automatically. Starting, reassigning, rescheduling or marking a no-show is your decision.</span>';
+      find('grace').querySelector('b').textContent = verdictTitle;
+      find('grace').querySelector('span').textContent = verdictText;
+      find('summary').textContent = `${reference}\nReserved: ${scheduled}\nActual service start: ${review.actualStart} (${review.durationMinutes} minutes)\nArrival: ${late}\nPayment: ${review.paymentStatus} (unchanged by this review)\n${review.reason || 'Review qualified staff below.'}`;
       for (const staff of review.staff) {
         const option = document.createElement('option');
         option.value = staff.id;

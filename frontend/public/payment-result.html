@@ -45,6 +45,7 @@
       <div id="resultPaymentIdRow" class="hidden flex justify-between gap-3"><dt class="text-ink/50">PayMongo payment ID</dt><dd id="resultPaymentId" class="font-mono text-xs break-all text-right"></dd></div>
     </dl>
     <!-- GCash / Maya / Card buttons for "Try again" and "Choose another method" (paymongoPay.php). -->
+    <p id="resultLateRule" data-late-rule class="hidden text-sm text-left text-ink/70 bg-sand-100 border border-bronze/40 rounded-lg p-3 mt-4"><b>Late arrival:</b> <span data-late-rule-text></span></p>
     <div id="resultMethods" class="hidden mt-6 grid gap-2"></div>
     <div class="mt-6 flex flex-col gap-2">
       <a id="resultRetry" href="#" class="hidden rounded-full bg-plum text-white font-bold text-sm py-3 hover:brightness-110 transition">Try payment again</a>
@@ -52,6 +53,7 @@
     </div>
   </main>
   <script src="../../function/shared/pending-payment.js"></script>
+  <script src="../../function/shared/late-arrival-rule.js"></script>
   <script src="../../function/public/payment-result.js"></script>
 </body>
 

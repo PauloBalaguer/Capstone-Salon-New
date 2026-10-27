@@ -562,6 +562,7 @@
                             <li><strong class="text-slate-300">Deposit &amp; rescheduling policy:</strong> Reservation deposits are <u>non-refundable</u>. Need a different time? Reschedule instead (online up to 24 hours before, or by contacting the branch) and your deposit carries over. If you cancel or miss your appointment, the deposit is kept, but that booking can still be rescheduled later using the deposit.</li>
                             <li><strong class="text-slate-300">Rescheduling:</strong> You may request to reschedule; please do so as early as possible, subject to availability.</li>
                             <li><strong class="text-slate-300">No-show:</strong> Please arrive on time. Repeated no-shows or late cancellations may affect future bookings.</li>
+                            <li x-show="lateArrivalRule"><strong class="text-slate-300">Late arrival:</strong> <span x-text="lateArrivalRule"></span></li>
                             <li>Prices and staff availability are confirmed by the branch and may change.</li>
                           </ul>
                         </details>
@@ -612,6 +613,7 @@
                     <div class="flex justify-between items-center"><strong class="text-slate-500">Balance to Pay Later:</strong><span class="text-white" x-text="formatPeso(bookingSuccessDetails?.remainingBalance)"></span></div>
                     <div class="flex justify-between items-center pt-2 border-t border-slate-700"><strong class="text-slate-500">Service Total:</strong><span class="font-bold text-gold-400" x-text="formatPeso(bookingSuccessDetails?.price)"></span></div>
                   </div>
+                  <p x-show="lateArrivalRule" class="bg-slate-800 rounded-lg p-3 text-left text-xs text-slate-300"><strong class="text-slate-200">Late arrival:</strong> <span x-text="lateArrivalRule"></span></p>
 
                   <div class="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3">
                     <button @click="closeBookingSection()" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 transition active:scale-95">Book Another Service</button>

@@ -65,6 +65,7 @@ function customerApp() {
             this.allBookings = body.allBookings;
             this.myReviews = body.reviews;
             this.homeServiceRequests = body.homeServiceRequests;
+            this.lateArrivalRule = body.lateArrivalRule || null;
             if (notificationReference?.startsWith('LM-HOM-')) {
               this.$nextTick(() => document.getElementById('request-' + notificationReference)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
             }

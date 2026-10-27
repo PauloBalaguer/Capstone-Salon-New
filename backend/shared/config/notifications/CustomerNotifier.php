@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/EmailOutbox.php';
 require_once __DIR__ . '/SmsOutbox.php';
+require_once __DIR__ . '/../booking/Scheduling.php';
 
 /**
  * Customer notifications for every booking write path.
@@ -42,6 +43,8 @@ final class CustomerNotifier
         'PAYMENT_REMINDER' => 'Complete your booking payment before it expires',
         'PAYMENT_RECEIVED' => 'Your payment was received',
     ];
+    // In-salon appointment emails that repeat the late-arrival rule (when one is configured).
+    private const LATE_RULE_TYPES = ['BOOKING_SUBMITTED', 'CONFIRMED', 'RESCHEDULE', 'REMINDER'];
 
     public static function notify(PDO $pdo, int $customerId, string $type, string $message, ?string $reference = null): bool
     {
@@ -78,7 +81,8 @@ final class CustomerNotifier
         if (!empty($details['contactEmail'])) $customer['email'] = $details['contactEmail'];
 
         if (isset(self::EMAIL_SUBJECTS[$type]) && $customer['email'] && (int) $customer['notify_email'] === 1) {
-            $body = 'Hello ' . trim($customer['first_name'].' '.$customer['last_name']) . ",\n\n" . $message . ($customer['user_id']
+            $lateRule = $details && !$details['homeService'] && in_array($type, self::LATE_RULE_TYPES, true) ? Scheduling::lateArrivalRule() : null;
+            $body = 'Hello ' . trim($customer['first_name'].' '.$customer['last_name']) . ",\n\n" . $message . ($lateRule ? "\n\nLate arrival: {$lateRule}" : '') . ($customer['user_id']
                 ? "\n\nYou can view your appointment details anytime in your Leo Mejillano account."
                 : (!empty($details['homeService'])
                     ? "\n\nTrack, pay or reschedule anytime in Track Your Home Service (Home & Events) on our website using reference {$reference} and this email address."

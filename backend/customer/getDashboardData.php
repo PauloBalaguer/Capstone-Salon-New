@@ -308,6 +308,7 @@ try {
         'allBookings' => $allBookings,
         'reviews' => $myReviews,
         'homeServiceRequests' => $homeServiceRequests,
+        'lateArrivalRule' => Scheduling::lateArrivalRule(),
         'catalogs' => [
             'services' => $services,
             'promotions' => $promotions,

@@ -43,15 +43,46 @@ function customerHomeServiceMixin() {
     homeServicePaymentLabel(request) {
       return request.paymentStatus === 'Down Payment Verified' ? 'Deposit verified' : request.paymentStatus || 'Not recorded';
     },
+    // From these statuses on, the admin has confirmed the schedule.
+    homeServiceScheduleWord(request) {
+      return ['Confirmed', 'Staff Assigned', 'Service in Progress', 'Completed'].includes(request.status) ? 'Confirmed' : 'Preferred';
+    },
     eventAvailabilityLoading: false,
     homeServiceAvailability: null,
     eventAvailabilityMessage: '',
     eventAvailabilityRequest: 0,
+    // Dates fully booked for the chosen event type + package/services
+    // (backend/public/getHomeServiceBookedDates.php); reloaded only when that
+    // selection changes, not on every date/time change.
+    eventBookedKey: '',
+    eventBookedDates: [],
+    eventBookedDays: 60,
+    eventBookedLoading: false,
+    async refreshEventBookedDates() {
+      const f = this.homeServiceForm;
+      const eventType = f.eventType === 'Other' ? f.otherEventType.trim() : f.eventType;
+      const params = new URLSearchParams({ eventType });
+      if (f.eventType === 'Wedding') params.set('weddingPackage', f.weddingPackage);
+      else f.services.forEach(s => params.append('services[]', s));
+      const key = eventType && (f.eventType === 'Wedding' ? f.weddingPackage : f.services.length) ? params.toString() : '';
+      if (key === this.eventBookedKey) return;
+      this.eventBookedKey = key;
+      this.eventBookedDates = [];
+      this.eventBookedLoading = !!key;
+      if (!key) return;
+      try {
+        const body = await (await fetch('../../backend/public/getHomeServiceBookedDates.php?' + key)).json();
+        if (key !== this.eventBookedKey) return;
+        if (body.success) { this.eventBookedDates = body.fullyBooked; this.eventBookedDays = body.days; }
+      } catch (_) { /* the per-time check still runs */ }
+      if (key === this.eventBookedKey) this.eventBookedLoading = false;
+    },
     async refreshEventAvailability() {
       const seq = ++this.eventAvailabilityRequest;
       this.homeServiceAvailability = null;
       this.eventAvailabilityMessage = '';
       this.eventAvailabilityLoading = false;
+      this.refreshEventBookedDates();
       const f = this.homeServiceForm;
       if (!f.preferredDate || !f.preferredTime || (f.eventType === 'Wedding' ? !f.weddingPackage : !f.services.length)) return;
       const params = new URLSearchParams({date:f.preferredDate,time:f.preferredTime,eventType:f.eventType === 'Other' ? f.otherEventType : f.eventType,weddingPackage:f.weddingPackage});

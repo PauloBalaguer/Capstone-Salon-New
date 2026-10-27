@@ -153,6 +153,26 @@
     LMToast.show(msg, kind, { duration: 6000 });
   }
 
+  // A form problem is shown right under the field (or card group / checkbox)
+  // it belongs to, not as a toast; focus moves there and the message clears
+  // as soon as that field changes.
+  function fieldError(target, text) {
+    const el = typeof target === 'string' ? document.getElementById(target) : target;
+    if (!el) { showToast(text); return; }
+    BookingFormValidation.message(el, text);
+    const isControl = el.matches('input, select, textarea');
+    const events = isControl ? ['input', 'change'] : ['click', 'change', 'input'];
+    if (isControl) el.setAttribute('aria-invalid', 'true');
+    (isControl ? el : el.querySelector('input, select, textarea, button') || el).focus({ preventScroll: true });
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const clear = () => {
+      BookingFormValidation.message(el, '');
+      if (isControl) el.removeAttribute('aria-invalid');
+      events.forEach(type => el.removeEventListener(type, clear));
+    };
+    events.forEach(type => el.addEventListener(type, clear));
+  }
+
   const bookingModalOverlay = document.getElementById('bookingModalOverlay');
   const bookingModalBox = document.getElementById('bookingModalBox');
   const closeBooking = document.getElementById('closeBooking');
@@ -1114,6 +1134,9 @@
   // internal; guests should see the friendlier wording everywhere it's shown.
   const HS_STATUS_LABELS = { 'Pending Review': 'Under Review' };
   function hsStatusLabel(status) { return HS_STATUS_LABELS[status] || status; }
+  // From these statuses on, the admin has confirmed the schedule: show
+  // "Confirmed date" instead of "Preferred date".
+  const HS_CONFIRMED_STATUSES = ['Confirmed', 'Staff Assigned', 'Service in Progress', 'Completed'];
   let hsSelectedServices = [];
   let hsSelectedWeddingPackage = null;
   let hsWeddingMode = false;
@@ -1178,6 +1201,7 @@
     if (sel) {
       sel.value = type;
       hsSyncWeddingPackages();
+      hsRefreshAvailability();
     }
     hsJump('hsRequest');
   }
@@ -1275,6 +1299,7 @@
     });
     document.getElementById('hsWeddingLiveSummary')?.classList.remove('hidden');
     hsFillWeddingSummary('[data-wedding-summary]');
+    hsRefreshAvailability();
   }
 
   function hsSyncWeddingPackages() {
@@ -1321,25 +1346,30 @@
     if (from === 1) {
       const name = document.getElementById('hsName').value.trim();
       const phone = document.getElementById('hsPhone').value.trim();
-      if (!name) { showToast('Please enter your full name'); return; }
-      if (!/^09\d{9}$/.test(phone)) { showToast('Please enter a valid 11-digit mobile number'); return; }
+      if (!name) { fieldError('hsName', 'Please enter your full name.'); return; }
+      if (!/^09\d{9}$/.test(phone)) { fieldError('hsPhone', 'Please enter a valid 11-digit mobile number (09XXXXXXXXX).'); return; }
       // Required: guests track and reschedule with reference + email, and get updates there.
       const email = document.getElementById('hsEmail').value.trim();
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('Please enter a valid email address — you\'ll use it to track and reschedule your request'); return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { fieldError('hsEmail', 'Please enter a valid email address — you\'ll use it to track and reschedule your request.'); return; }
 
       hsGo(2);
     } else if (from === 2) {
-      if (!document.getElementById('hsEventType').value) { showToast('Please choose your event type'); return; }
-      if (!document.getElementById('hsDate').value) { showToast('Please select a preferred date'); return; }
-      if (!document.getElementById('hsTime').value) { showToast('Please select a preferred time'); return; }
-      if (!document.getElementById('hsClients').value) { showToast('Please enter the number of clients'); return; }
-      if (!document.getElementById('hsVenue').value.trim()) { showToast('Please enter the venue or address'); return; }
+      if (!document.getElementById('hsEventType').value) { fieldError('hsEventType', 'Please choose your event type.'); return; }
+      if (!document.getElementById('hsDate').value) { fieldError('hsDate', 'Please select a preferred date.'); return; }
+      if (!document.getElementById('hsTime').value) { fieldError('hsTime', 'Please select a preferred time.'); return; }
+      if (!document.getElementById('hsClients').value) { fieldError('hsClients', 'Please enter the number of clients.'); return; }
+      if (!document.getElementById('hsVenue').value.trim()) { fieldError('guest-service-address', 'Please enter the venue or address.'); return; }
       if (!hsValidateSchedule()) return;
-      if (document.getElementById('hsEventType').value === 'Other' && !document.getElementById('hsOtherEvent').value.trim()) { showToast('Please specify the event type.'); return; }
+      if (document.getElementById('hsEventType').value === 'Other' && !document.getElementById('hsOtherEvent').value.trim()) { fieldError('hsOtherEvent', 'Please specify the event type.'); return; }
       hsGo(3);
     } else if (from === 3) {
-      if (document.getElementById('hsEventType').value === 'Wedding' && !hsSelectedWeddingPackage) { showToast('Please select a wedding package'); return; }
-      if (!hsSelectedServices.length) { showToast('Please select at least one service'); return; }
+      if (document.getElementById('hsEventType').value === 'Wedding' && !hsSelectedWeddingPackage) { fieldError('hsWeddingPackageGrid', 'Please select a wedding package.'); return; }
+      if (!hsSelectedServices.length) { fieldError('hsServiceCards', 'Please select at least one service.'); return; }
+      if (hsAvailability === false) {
+        hsGo(2);
+        BookingFormValidation.message(document.getElementById('hsTime'), 'This date and time is not available for your selection. Please choose another date or time.');
+        return;
+      }
       hsBuildReview();
       hsGo(4);
     }
@@ -1357,6 +1387,7 @@
       btn.classList.add('border-copper', 'bg-copper/10', 'ring-1', 'ring-copper/40');
       btn.classList.remove('border-bronze/30', 'bg-sand-100');
     }
+    hsRefreshAvailability();
   }
 
   function hsFmtDate(d) {
@@ -1377,18 +1408,124 @@
     const date = document.getElementById('hsDate').value;
     const time = document.getElementById('hsTime').value;
     if (!date || !time || new Date(date + 'T' + time + ':00+08:00').getTime() <= Date.now()) {
-      showToast('Please choose a future date and time.');
+      hsGo(2, true); // also called from the review step, where these fields are hidden
+      fieldError('hsTime', 'Please choose a future date and time.');
       return false;
     }
     return true;
   }
 
+  // Live event availability -- same endpoints as the customer form
+  // (function/customer/dashboard-home-service.js). Checks the chosen date and
+  // time once the event type and package/services are known, and lists the
+  // dates that are fully booked for that selection. The server checks again
+  // on submit.
+  let hsAvailability = null; // true / false / null = not known
+  let hsAvailSeq = 0;
+  let hsBookedKey = '';
+  let hsBookedDates = [];
+  let hsBookedDays = 60;
+  let hsBookedLoading = false;
+  const HS_AVAIL_TONES = {
+    busy: 'border-bronze/30 bg-sand-100 text-ink/60',
+    ok: 'border-plum/20 bg-plum/5 text-plum',
+    bad: 'border-copper/30 bg-copper/12 text-copper-dark'
+  };
+
+  function hsSelectionParams() {
+    const type = document.getElementById('hsEventType').value;
+    const eventType = type === 'Other' ? document.getElementById('hsOtherEvent').value.trim() : type;
+    if (!eventType) return null;
+    const params = new URLSearchParams({ eventType });
+    if (type === 'Wedding') {
+      if (!hsSelectedWeddingPackage) return null;
+      params.set('weddingPackage', hsSelectedWeddingPackage.name.slice(-1));
+    } else {
+      if (!hsSelectedServices.length) return null;
+      hsSelectedServices.forEach(s => params.append('services[]', s));
+    }
+    return params;
+  }
+
+  function hsRenderAvailability(text, tone) {
+    const date = document.getElementById('hsDate').value;
+    const time = document.getElementById('hsTime').value;
+    document.querySelectorAll('[data-hs-avail]').forEach(el => {
+      el.textContent = text;
+      el.className = 'mt-3 rounded-xl border p-3 text-[13px] ' + (text ? HS_AVAIL_TONES[tone] : 'hidden');
+    });
+    document.querySelectorAll('[data-hs-when]').forEach(el => {
+      el.textContent = date && time ? hsFmtDate(date) + ' at ' + hsFmtTime(time) : 'Not chosen yet';
+    });
+  }
+
+  function hsRenderBookedDates() {
+    const date = document.getElementById('hsDate').value;
+    const shortDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const html = !hsBookedKey ? ''
+      : hsBookedLoading ? '<span class="text-ink/60">Checking fully booked dates…</span>'
+      : hsBookedDates.length
+        ? '<span class="text-ink/60">Fully booked for this selection (next ' + hsBookedDays + ' days):</span> ' +
+          hsBookedDates.map(d => '<span class="inline-block rounded-full px-2.5 py-0.5 mr-1 mt-1 line-through ' +
+            (d === date ? 'bg-copper text-white' : 'bg-ink/10 text-ink/60') + '">' + shortDate(d) + '</span>').join('') +
+          (hsBookedDates.includes(date) ? '<span class="block mt-1.5 font-semibold text-copper-dark">Your preferred date is fully booked. Please choose another date.</span>' : '')
+        : '<span class="text-ink/60">No fully booked dates in the next ' + hsBookedDays + ' days for this selection.</span>';
+    document.querySelectorAll('[data-hs-booked]').forEach(el => {
+      el.innerHTML = html;
+      el.classList.toggle('hidden', !html);
+    });
+  }
+
+  async function hsRefreshBookedDates(params) {
+    const key = params ? params.toString() : '';
+    if (key === hsBookedKey) { hsRenderBookedDates(); return; }
+    hsBookedKey = key;
+    hsBookedDates = [];
+    hsBookedLoading = !!key;
+    hsRenderBookedDates();
+    if (!key) return;
+    try {
+      const res = await fetch('backend/public/getHomeServiceBookedDates.php?' + key).then(r => r.json());
+      if (key !== hsBookedKey) return;
+      if (res.success) { hsBookedDates = res.fullyBooked; hsBookedDays = res.days; }
+    } catch (_) { /* the per-time check below still runs */ }
+    if (key !== hsBookedKey) return;
+    hsBookedLoading = false;
+    hsRenderBookedDates();
+  }
+
+  async function hsRefreshAvailability() {
+    const seq = ++hsAvailSeq;
+    hsAvailability = null;
+    const params = hsSelectionParams();
+    hsRefreshBookedDates(params);
+    const date = document.getElementById('hsDate').value;
+    const time = document.getElementById('hsTime').value;
+    if (!params || !date || !time) {
+      hsRenderAvailability('Availability is checked once your event type, ' + (document.getElementById('hsEventType').value === 'Wedding' ? 'wedding package' : 'services') + ', date and time are chosen.', 'busy');
+      return;
+    }
+    params.set('date', date);
+    params.set('time', time);
+    hsRenderAvailability('Checking team availability…', 'busy');
+    try {
+      const res = await fetch('backend/public/getHomeServiceAvailability.php?' + params).then(r => r.json());
+      if (seq !== hsAvailSeq) return;
+      hsAvailability = res.success ? res.available : null;
+      hsRenderAvailability(res.message || 'Availability could not be checked. We will check again when you submit.', res.success && res.available ? 'ok' : 'bad');
+    } catch (_) {
+      if (seq === hsAvailSeq) hsRenderAvailability('Availability could not be checked. We will check again when you submit.', 'busy');
+    }
+  }
+
   ['hsDate','hsTime'].forEach(id => {
     document.getElementById(id)?.addEventListener('change', () => {
       if (hsSelectedWeddingPackage) hsFillWeddingSummary('[data-wedding-summary]');
+      hsRefreshAvailability();
     });
   });
-  document.getElementById('hsEventType')?.addEventListener('change', hsSyncWeddingPackages);
+  document.getElementById('hsEventType')?.addEventListener('change', () => { hsSyncWeddingPackages(); hsRefreshAvailability(); });
+  document.getElementById('hsOtherEvent')?.addEventListener('change', hsRefreshAvailability);
 
   function hsBuildReview() {
     const email = document.getElementById('hsEmail').value.trim();
@@ -1429,7 +1566,7 @@
     const clients = document.getElementById('hsClients').value;
     const notes = document.getElementById('hsNotes').value.trim();
 
-    if (!document.getElementById('hsAgreeTerms')?.checked) { showToast('Please agree to the Terms & Conditions'); return; }
+    if (!document.getElementById('hsAgreeTerms')?.checked) { fieldError(document.getElementById('hsAgreeTerms').closest('label'), 'Please agree to the Terms & Conditions.'); return; }
 
     const btn = document.getElementById('hsSubmitBtn');
     if (btn) { btn.disabled = true; btn.textContent = 'Submitting…'; }
@@ -1441,7 +1578,7 @@
     formData.append('venueDetails', venueDetails);
     formData.append('eventType', eventType);
     if (document.getElementById('hsEventType').value === 'Wedding') {
-      if (!hsSelectedWeddingPackage) { if (btn) btn.disabled = false; showToast('Please choose a wedding package.'); return; }
+      if (!hsSelectedWeddingPackage) { if (btn) btn.disabled = false; hsGo(3, true); fieldError('hsWeddingPackageGrid', 'Please choose a wedding package.'); return; }
       formData.append('weddingPackage', hsSelectedWeddingPackage.name.slice(-1));
     }
     formData.append('date', date);
@@ -1472,7 +1609,7 @@
           ['Venue Address', venue], ['Preferred Date', hsFmtDate(date)], ['Preferred Time', hsFmtTime(time)],
           ['Status', 'Under Review']
         ] : [
-          ['Event Type', eventType], ['Date', hsFmtDate(date)], ['Time', hsFmtTime(time)],
+          ['Event Type', eventType], ['Preferred Date', hsFmtDate(date)], ['Preferred Time', hsFmtTime(time)],
           ['Clients', clients], ['Location', venue], ['Status', 'Under Review']
         ];
         document.getElementById('hsSummary').innerHTML = submittedSummary
@@ -1501,7 +1638,10 @@
       b.classList.remove('border-copper', 'bg-copper/10', 'ring-1', 'ring-copper/40');
       b.classList.add('border-bronze/30', 'bg-sand-100');
     });
-    document.getElementById('hsAvailResult').classList.add('hidden');
+    hsAvailSeq++;
+    hsAvailability = null;
+    hsRefreshBookedDates(null);
+    hsRenderAvailability('', 'busy');
     document.getElementById('hsWeddingLiveSummary')?.classList.add('hidden');
     hsSyncWeddingPackages();
     hsGo(1);
@@ -1919,7 +2059,8 @@
 
     const peso = n => '₱' + Number(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const detail = isHome
-      ? [['Type', 'Home &amp; event service'], ['Event', escAttr(res.event)], ['Date', hsFmtDate(res.date)],
+      ? [['Type', 'Home &amp; event service'], ['Event', escAttr(res.event)],
+         [HS_CONFIRMED_STATUSES.includes(res.status) ? 'Confirmed date' : 'Preferred date', hsFmtDate(res.date) + (res.time ? ' · ' + escAttr(res.time) : '')],
          ['Location', escAttr(res.venue)],
          ...(res.quote ? [['Quote', peso(res.quote)]] : []),
          ...(res.reservationFee ? [['Reservation fee', peso(res.reservationFee) + (res.feePaid ? ' — paid' : ' — not yet paid')]] : []),
@@ -2129,7 +2270,8 @@
     if (!waitlistContext) return;
     const name = document.getElementById('bookWaitlistName').value.trim() || document.getElementById('bookName').value.trim();
     const email = document.getElementById('bookWaitlistEmail').value.trim() || document.getElementById('bookEmail').value.trim();
-    if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('Enter your name and a valid email to join the waitlist'); return; }
+    if (!name) { fieldError('bookWaitlistName', 'Enter your name to join the waitlist.'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { fieldError('bookWaitlistEmail', 'Enter a valid email to join the waitlist.'); return; }
     const btn = document.getElementById('bookWaitlistBtn');
     btn.disabled = true;
     const formData = new FormData();
@@ -2413,14 +2555,11 @@
   });
 
   document.getElementById('bookDepositLockBtn')?.addEventListener('click', async () => {
-    if (!selectedSlotLabel) { showToast('Please choose an available schedule first'); return; }
-    if (!document.querySelectorAll('.book-service-check:checked').length) {
-      showToast('Please choose at least one service first');
-      return;
-    }
-    if (!selectedStaffId) { showToast('Please select a staff member first'); return; }
+    if (!document.querySelectorAll('.book-service-check:checked').length) { fieldError('bookServiceList', 'Please choose at least one service first.'); return; }
+    if (!selectedSlotLabel) { fieldError('bookSlotGrid', 'Please choose an available time first.'); return; }
+    if (!selectedStaffId) { fieldError('bookStaffList', 'Please select a staff member first.'); return; }
     const method = document.querySelector('input[name="bookDepositMethod"]:checked')?.value || '';
-    if (!method) { showToast('Please choose a payment method for your deposit'); return; }
+    if (!method) { fieldError('bookDepositMethod', 'Please choose a payment method for your deposit.'); return; }
 
     const amount = await updateDepositRequiredDisplay();
     if (amount === null) return;
@@ -2463,16 +2602,16 @@
     const serviceNames = Array.from(document.querySelectorAll('.book-service-check:checked')).map(c => c.dataset.name);
 
     BookingFormValidation.message(document.getElementById('bookSubmitBtn'), '');
-    if (!branchId) { BookingFormValidation.message(document.getElementById('bookBranchSelect'), 'Please choose a branch.'); return; }
-    if (!serviceIds.length) { BookingFormValidation.message(document.getElementById('bookSubmitBtn'), 'Please choose at least one service.'); return; }
-    if (!bookDepositLocked) { showToast('Please save your deposit details before reviewing your booking'); return; }
-    if (!date) { showToast('Please select a date'); return; }
-    if (!selectedSlotLabel) { BookingFormValidation.message(document.getElementById('bookDate'), 'Please choose an available time.'); return; }
-    if (!selectedStaffId) { BookingFormValidation.message(document.getElementById('bookSubmitBtn'), 'Please select an available staff member for each service.'); return; }
-    if (!name) { showToast('Please enter your full name'); return; }
-    if (!/^09\d{9}$/.test(phone)) { showToast('Please enter a valid 11-digit mobile number'); return; }
-    if (email && !/^\S+@\S+\.\S+$/.test(email)) { showToast('Please enter a valid email address, or leave it blank'); return; }
-    if (!document.getElementById('bookAgreeTerms')?.checked) { showToast('Please agree to the Terms & Conditions'); return; }
+    if (!branchId) { fieldError('bookBranchSelect', 'Please choose a branch.'); return; }
+    if (!serviceIds.length) { fieldError('bookServiceList', 'Please choose at least one service.'); return; }
+    if (!date) { fieldError('bookDate', 'Please select a date.'); return; }
+    if (!selectedSlotLabel) { fieldError('bookSlotGrid', 'Please choose an available time.'); return; }
+    if (!selectedStaffId) { fieldError('bookStaffList', 'Please select an available staff member for each service.'); return; }
+    if (!bookDepositLocked) { fieldError('bookDepositLockBtn', 'Please save your payment details before reviewing your booking.'); return; }
+    if (!name) { fieldError('bookName', 'Please enter your full name.'); return; }
+    if (!/^09\d{9}$/.test(phone)) { fieldError('bookPhone', 'Please enter a valid 11-digit mobile number (09XXXXXXXXX).'); return; }
+    if (email && !/^\S+@\S+\.\S+$/.test(email)) { fieldError('bookEmail', 'Please enter a valid email address, or leave it blank.'); return; }
+    if (!document.getElementById('bookAgreeTerms')?.checked) { fieldError(document.getElementById('bookAgreeTerms').closest('label'), 'Please agree to the Terms & Conditions.'); return; }
 
     pendingBooking = {
       branchId, date, time: selectedSlotLabel, name, phone, email,
@@ -2752,7 +2891,7 @@
     if (!pendingBooking || guestBookingSubmitting) return;
 
     const code = bookOtpDigits.map(d => d.value).join('');
-    if (code.length !== bookOtpDigits.length) { showToast('Please enter the full 6-digit code.'); return; }
+    if (code.length !== bookOtpDigits.length) { fieldError(bookOtpDigits[0].parentElement, 'Please enter the full 6-digit code.'); return; }
 
     const submitBtn = document.getElementById('bookOtpSubmitBtn');
     submitBtn.disabled = true;
@@ -2929,6 +3068,7 @@
     initTheme();
     allowNumbersOnly();
     switchTab('home-tab');
+    window.LateArrivalRule?.show(); // booking Terms & Conditions + confirmation screen
     if (new URLSearchParams(window.location.search).get('track') === 'booking') {
       openTrackModal();
       document.getElementById('apptTrkRef').focus();

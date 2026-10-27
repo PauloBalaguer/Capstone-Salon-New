@@ -89,6 +89,7 @@
     detail('resultPaymentIdRow', 'resultPaymentId', data.paymentId);
     if (data.type !== 'home_service') {
       show('Payment successful', 'Thank you! Your reservation payment went through. The branch will confirm your appointment shortly — keep your reference number to track your booking.');
+      LateArrivalRule.show(el('resultLateRule'));
       return;
     }
     const confirmed = ['Confirmed', 'Staff Assigned', 'Service in Progress', 'Completed'].includes(data.status);

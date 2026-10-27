@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../notifications/StaffNotifier.php';
+require_once __DIR__ . '/../setup/env.php';
 
 /**
  * Duration-aware slot/staff conflict checks shared by every booking write
@@ -19,8 +20,8 @@ class Scheduling
 
     public static function cleaningBufferMinutes(): int
     {
-        $value = getenv('SALON_CLEANING_BUFFER_MINUTES');
-        return $value !== false && ctype_digit($value) ? (int) $value : 30;
+        $value = env('SALON_CLEANING_BUFFER_MINUTES');
+        return ctype_digit($value) ? (int) $value : 30;
     }
 
     /** Persistent rows serialize writes even when no appointments exist yet. */
@@ -95,11 +96,28 @@ class Scheduling
         }
     }
 
-    /** Unset until the salon approves a value. Informational only; never an automatic penalty. */
+    /**
+     * SALON_LATE_GRACE_MINUTES in the private .env (see .env.example); null
+     * when unset. Informational only; never an automatic penalty.
+     */
     public static function arrivalGraceMinutes(): ?int
     {
-        $value = getenv('SALON_LATE_GRACE_MINUTES');
-        return $value !== false && ctype_digit($value) ? (int) $value : null;
+        $value = env('SALON_LATE_GRACE_MINUTES');
+        return ctype_digit($value) ? (int) $value : null;
+    }
+
+    /**
+     * The late-arrival rule shown to customers (Terms & Conditions, booking
+     * confirmation screens and emails), or null when no grace period is set
+     * so the rule stays hidden.
+     */
+    public static function lateArrivalRule(): ?string
+    {
+        $grace = self::arrivalGraceMinutes();
+        if ($grace === null) return null;
+        return "Please arrive on time. Arriving up to {$grace} minutes after your appointment time is within our grace period. "
+            . 'If you arrive later, staff will check whether your full service still fits the schedule; you may be served by another '
+            . 'available stylist or asked to reschedule. Lateness never cancels your booking automatically.';
     }
 
     /** Review actual service windows without moving or cancelling any appointment. */
@@ -130,10 +148,14 @@ class Scheduling
             }
             $staff[] = ['id' => (string) $employee['id'], 'name' => trim($employee['first_name'] . ' ' . $employee['last_name']), 'available' => $available];
         }
+        $isLate = $now > $appointment['appointment_datetime'];
+        $minutesLate = max(0, (int) floor((strtotime($now) - strtotime($appointment['appointment_datetime'])) / 60));
+        $grace = self::arrivalGraceMinutes();
         return ['scheduledStart' => $appointment['appointment_datetime'], 'actualStart' => $start,
-            'isLate' => $now > $appointment['appointment_datetime'],
-            'minutesLate' => max(0, (int) floor((strtotime($now) - strtotime($appointment['appointment_datetime'])) / 60)),
-            'graceMinutes' => self::arrivalGraceMinutes(), 'durationMinutes' => $duration,
+            'isLate' => $isLate, 'minutesLate' => $minutesLate, 'graceMinutes' => $grace,
+            // Shown to staff only; the decision (start, reassign, reschedule, no-show) stays theirs.
+            'graceStatus' => !$isLate ? 'on_time' : ($grace === null ? 'unset' : ($minutesLate <= $grace ? 'within' : 'beyond')),
+            'durationMinutes' => $duration,
             'paymentStatus' => $appointment['payment_status'], 'staff' => $staff, 'reason' => $reason];
     }
 
@@ -383,26 +405,73 @@ class Scheduling
         return false;
     }
 
-    // Home service jobs have no per-service duration data (no catalog item
-    // is attached to a home service request), so a flat block is used for
-    // conflict checking -- same idea as DEFAULT_DURATION_MINUTES above, just
-    // sized for an off-site job instead of a single salon service.
+    // Fallback service length of a home service/event job when its wedding
+    // package or event type has no service_minutes set. The real values are
+    // admin-edited (wedding_packages / event_type_durations, migration 054).
     const HOME_SERVICE_DURATION_MINUTES = 120;
+
+    private static array $eventDurationCache = [];
+
+    /**
+     * Travel, setup and service minutes for one home service/event request.
+     * A wedding uses its package's times; any other event uses its event
+     * type's row, or the 'Other' row for a typed-in event. Unset values fall
+     * back to the old flat job: 0 travel, 0 setup, 120 service.
+     */
+    public static function homeServiceDurations(PDO $pdo, array $request): array
+    {
+        $isWedding = ($request['event_type'] ?? '') === 'Wedding';
+        $key = $isWedding ? 'Package ' . ($request['wedding_package'] ?? '') : (string) ($request['event_type'] ?? '');
+        $cacheKey = ($isWedding ? 'package:' : 'event:') . $key;
+        if (!isset(self::$eventDurationCache[$cacheKey])) {
+            $stmt = $pdo->prepare($isWedding
+                ? 'SELECT travel_minutes, setup_minutes, service_minutes FROM wedding_packages WHERE package_name = ?'
+                : "SELECT travel_minutes, setup_minutes, service_minutes FROM event_type_durations WHERE event_type IN (?, 'Other') ORDER BY event_type = 'Other' LIMIT 1");
+            $stmt->execute([$key]);
+            $row = $stmt->fetch() ?: [];
+            self::$eventDurationCache[$cacheKey] = [
+                'travel' => (int) ($row['travel_minutes'] ?? 0),
+                'setup' => (int) ($row['setup_minutes'] ?? 0),
+                'service' => (int) ($row['service_minutes'] ?? 0) ?: self::HOME_SERVICE_DURATION_MINUTES,
+            ];
+        }
+        return self::$eventDurationCache[$cacheKey];
+    }
+
+    /**
+     * The staff time one event blocks. The preferred time is when the
+     * service starts at the venue, so the team leaves (travel) and sets up
+     * before it; the cleaning buffer follows the service. 'end' includes the
+     * buffer, 'minutes' does not (staffHasConflict() adds it itself).
+     */
+    public static function homeServiceWindow(PDO $pdo, array $request): array
+    {
+        $durations = self::homeServiceDurations($pdo, $request);
+        $lead = $durations['travel'] + $durations['setup'];
+        $start = (new DateTime($request['preferred_date'] . ' ' . ($request['preferred_time'] ?: '09:00:00')))->modify("-{$lead} minutes");
+        $minutes = $lead + $durations['service'];
+        return $durations + [
+            'start' => $start,
+            'end' => (clone $start)->modify('+' . ($minutes + self::cleaningBufferMinutes()) . ' minutes'),
+            'minutes' => $minutes,
+        ];
+    }
 
     /**
      * True if this staff member is already busy -- either with a salon
-     * appointment or another home service job -- during the window starting
-     * at $date/$time. Checked against both tables since a stylist sent
-     * off-site is the same person who could otherwise be booked in-branch.
+     * appointment or another home service job -- during this event's full
+     * window (travel + setup + service + buffer). Checked against both
+     * tables since a stylist sent off-site is the same person who could
+     * otherwise be booked in-branch.
      */
     public static function homeServiceStaffHasConflict(
         PDO $pdo,
         int $employeeId,
-        string $date,
-        string $time,
+        array $request,
         ?int $excludeRequestId = null
     ): bool {
-        return self::staffHasConflict($pdo, $employeeId, $date . ' ' . $time, self::HOME_SERVICE_DURATION_MINUTES, null, $excludeRequestId);
+        $window = self::homeServiceWindow($pdo, $request);
+        return self::staffHasConflict($pdo, $employeeId, $window['start']->format('Y-m-d H:i:s'), $window['minutes'], null, $excludeRequestId);
     }
 
     /** True if this specific staff member is busy with another client at any point in this window. */
@@ -506,15 +575,15 @@ class Scheduling
         $buffer = self::cleaningBufferMinutes();
         foreach ($windows as &$window) $window['end']->modify("+{$buffer} minutes");
         unset($window);
-        $stmt = $pdo->prepare("SELECT h.id, h.preferred_date, h.preferred_time FROM home_service_requests h
+        $stmt = $pdo->prepare("SELECT h.id, h.preferred_date, h.preferred_time, h.event_type, h.wedding_package FROM home_service_requests h
             WHERE h.status NOT IN ('Cancelled', 'Completed')
               AND (h.employee_id = ? OR EXISTS (SELECT 1 FROM home_service_staff t WHERE t.home_service_request_id = h.id AND t.employee_id = ?))
               AND h.preferred_date BETWEEN DATE_SUB(?, INTERVAL 1 DAY) AND DATE_ADD(?, INTERVAL 1 DAY)
               AND h.id != ? FOR UPDATE");
         $stmt->execute([$employeeId, $employeeId, $dateYmd, $dateYmd, $excludeHomeServiceId ?? 0]);
         foreach ($stmt->fetchAll() as $event) {
-            $start = new DateTime($event['preferred_date'] . ' ' . ($event['preferred_time'] ?: '09:00:00'));
-            $windows[] = ['start' => $start, 'end' => (clone $start)->modify('+' . (self::HOME_SERVICE_DURATION_MINUTES + $buffer) . ' minutes'), 'appointment_id' => 0];
+            $window = self::homeServiceWindow($pdo, $event);
+            $windows[] = ['start' => $window['start'], 'end' => $window['end'], 'appointment_id' => 0];
         }
         return $windows;
     }

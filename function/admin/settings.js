@@ -84,6 +84,23 @@ function adminSettingsApp() {
       await store.refresh();
     },
 
+    async saveEventDuration(row) {
+      const store = Alpine.store('admin');
+      const result = await store.post('saveEventDuration.php', {
+        eventType: row.eventType,
+        travelMinutes: row.travelMinutes ?? '',
+        setupMinutes: row.setupMinutes ?? '',
+        serviceMinutes: row.serviceMinutes ?? '',
+        durationsConfirmed: row.durationsConfirmed
+      });
+      if (!result.success) {
+        LMToast.show(result.message || 'Failed to save event durations.', 'error');
+        return;
+      }
+      LMToast.show(result.message || 'Event durations saved.', 'success');
+      await store.refresh();
+    },
+
     async saveProfile() {
       const store = Alpine.store('admin');
       const result = await store.post('saveAdminProfile.php', {

@@ -272,7 +272,7 @@
         <form id="bookingModalForm" class="space-y-4" novalidate>
           <div>
             <label for="bookBranchSelect"
-              class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Select branch</label>
+              class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Select branch</label>
             <select id="bookBranchSelect"
               class="w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition disabled:opacity-60 disabled:cursor-not-allowed"
               required>
@@ -287,8 +287,8 @@
           </div>
 
           <div>
-            <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Services</label>
-            <div id="bookServiceList"
+            <p id="bookServicesLabel" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Services</p>
+            <div id="bookServiceList" role="group" aria-labelledby="bookServicesLabel"
               class="rounded-xl border border-bronze/50 bg-sand-100 p-3 text-xs text-ink/50">
               Choose a branch to see its services.
             </div>
@@ -297,23 +297,23 @@
           <div id="bookScheduleSection" class="space-y-4">
             <div>
               <label for="bookDate"
-                class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Date</label>
+                class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Date</label>
               <input id="bookDate" type="date"
                 class="w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition"
                 required />
             </div>
             <div>
-              <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Time</label>
-              <div id="bookSlotGrid" class="rounded-xl border border-bronze/50 bg-sand-100 p-3 text-xs text-ink/50">
+              <p id="bookTimeLabel" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Time</p>
+              <div id="bookSlotGrid" role="group" aria-labelledby="bookTimeLabel" class="rounded-xl border border-bronze/50 bg-sand-100 p-3 text-xs text-ink/50">
                 Choose a branch and date to see open times.
               </div>
             </div>
           </div>
 
           <div id="bookStaffSection" class="hidden">
-            <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Select staff</label>
+            <p id="bookStaffLabel" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Select staff</p>
             <p class="text-xs text-ink/60 mb-2">Pick a stylist for each service. <span class="text-[#15803D] font-semibold">Available</span> stylists are free for that service; <span class="text-[#9F1239] font-semibold">Busy</span> ones are still with another client.</p>
-            <div id="bookStaffList" class="rounded-xl border border-bronze/50 bg-sand-100 p-3 text-xs text-ink/50">
+            <div id="bookStaffList" role="group" aria-labelledby="bookStaffLabel" class="rounded-xl border border-bronze/50 bg-sand-100 p-3 text-xs text-ink/50">
               Choose your branch, services, date, and time to see available staff.
             </div>
             <div id="bookWaitlist" class="hidden mt-2 rounded-xl border border-dashed border-bronze/60 p-3 text-xs text-ink/60 space-y-2">
@@ -347,7 +347,7 @@
 
             <div id="bookDepositForm" class="space-y-3">
               <fieldset id="bookPaymentPlanWrap" class="hidden">
-                <legend class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">How much to pay now</legend>
+                <legend class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">How much to pay now</legend>
                 <div class="grid grid-cols-2 gap-2 text-base">
                   <label class="flex items-center gap-2 border border-bronze/50 bg-sand-100 rounded-xl px-3 py-2.5 cursor-pointer has-[:checked]:border-plum has-[:checked]:text-plum">
                     <input type="radio" name="bookPaymentPlan" value="deposit" checked class="accent-plum"> Deposit
@@ -358,7 +358,7 @@
                 </div>
               </fieldset>
               <fieldset>
-                <legend class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Payment method</legend>
+                <legend class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Payment method</legend>
                 <div id="bookDepositMethod" class="grid grid-cols-2 gap-2">
                   <label class="flex items-center gap-2 rounded-xl border border-bronze/50 bg-sand-100 px-3 py-2.5 cursor-pointer transition has-[:checked]:border-plum has-[:checked]:bg-plum/5">
                     <input type="radio" name="bookDepositMethod" value="PayMongo-GCash" class="accent-plum">
@@ -402,6 +402,15 @@
             </div>
           </div>
 
+          <div class="rounded-xl border border-plum/20 bg-plum/5 p-4 text-sm text-ink/75 leading-relaxed">
+            <p class="font-bold text-plum">Why create an account?</p>
+            <ul class="mt-1.5 space-y-1 list-disc list-inside">
+              <li><b>Earn loyalty points</b>: 1 point for every ₱20 of completed services (some services earn more). Guest bookings don't earn points.</li>
+              <li><b>Redeem them</b> on your next booking: each point takes ₱0.10 off.</li>
+              <li>Move up to Silver, Gold and VIP status as you visit, and see all your bookings in one place.</li>
+            </ul>
+            <a href="frontend/auth/register.html" class="inline-block mt-2 font-bold text-plum underline">Create a free account</a>
+          </div>
           <div class="pt-2 border-t border-bronze/25">
             <p class="text-xs font-bold tracking-widest uppercase text-ink/40 pt-4 pb-1">
               Guest details
@@ -409,7 +418,7 @@
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label for="bookName" class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Full
+              <label for="bookName" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Full
                 name</label>
               <input id="bookName" type="text" autocomplete="name" maxlength="255" placeholder="Your name"
                 class="w-full px-4 py-2.5 border border-bronze bg-white text-ink placeholder:text-ink/50 shadow-sm rounded-xl text-base focus:outline-none focus:border-plum transition"
@@ -417,7 +426,7 @@
             </div>
             <div>
               <label for="bookPhone"
-                class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Mobile number</label>
+                class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Mobile number</label>
               <input id="bookPhone" type="tel" autocomplete="tel" inputmode="numeric" pattern="09[0-9]{9}" placeholder="09XXXXXXXXX"
                 maxlength="11"
                 class="numbers-only w-full px-4 py-2.5 border border-bronze bg-white text-ink placeholder:text-ink/50 shadow-sm rounded-xl text-base focus:outline-none focus:border-plum transition"
@@ -425,7 +434,7 @@
             </div>
           </div>
           <div>
-            <label for="bookEmail" class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Email
+            <label for="bookEmail" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Email
               address <span class="normal-case font-normal text-ink/35">(optional)</span></label>
             <input id="bookEmail" type="email" autocomplete="email" maxlength="254" placeholder="you@email.com"
               class="w-full px-4 py-2.5 border border-bronze bg-white text-ink placeholder:text-ink/50 shadow-sm rounded-xl text-base focus:outline-none focus:border-plum transition" />
@@ -433,7 +442,7 @@
           </div>
 
           <div>
-            <span class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-2">Send confirmation &amp;
+            <span class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-2">Send confirmation &amp;
               reminders by</span>
             <div class="grid grid-cols-2 gap-2" id="bookNotify">
               <button type="button" data-notify="SMS" class="notify-opt on">
@@ -456,6 +465,7 @@
                 <li><b>Deposit &amp; rescheduling policy:</b> Reservation deposits are <u>non-refundable</u>. Need a different time? Reschedule instead (online up to 24 hours before, or by contacting the branch) and your deposit carries over. If you cancel or miss your appointment, the deposit is kept, but that booking can still be rescheduled later using the deposit.</li>
                 <li><b>Rescheduling:</b> You may request to reschedule; please do so as early as possible, subject to availability.</li>
                 <li><b>No-show:</b> Please arrive on time. Repeated no-shows or late cancellations may affect future bookings.</li>
+                <li data-late-rule class="hidden"><b>Late arrival:</b> <span data-late-rule-text></span></li>
                 <li>Prices and staff availability are confirmed by the branch and may change.</li>
                 <li>As a guest, you consent to being contacted at the number/email provided for confirmations and reminders.</li>
               </ul>
@@ -495,17 +505,17 @@
 
         <form id="bookingOtpForm" class="space-y-5" novalidate>
           <div class="flex gap-2 sm:gap-3 justify-between">
-            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" required autocomplete="one-time-code"
+            <input aria-label="Digit 1 of 6" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" required autocomplete="one-time-code"
               class="book-otp-digit w-full aspect-square text-center font-display text-xl bg-sand-100 border border-bronze/50 rounded-lg text-ink focus:outline-none focus:border-plum" />
-            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" required
+            <input aria-label="Digit 2 of 6" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" required
               class="book-otp-digit w-full aspect-square text-center font-display text-xl bg-sand-100 border border-bronze/50 rounded-lg text-ink focus:outline-none focus:border-plum" />
-            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" required
+            <input aria-label="Digit 3 of 6" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" required
               class="book-otp-digit w-full aspect-square text-center font-display text-xl bg-sand-100 border border-bronze/50 rounded-lg text-ink focus:outline-none focus:border-plum" />
-            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" required
+            <input aria-label="Digit 4 of 6" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" required
               class="book-otp-digit w-full aspect-square text-center font-display text-xl bg-sand-100 border border-bronze/50 rounded-lg text-ink focus:outline-none focus:border-plum" />
-            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" required
+            <input aria-label="Digit 5 of 6" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" required
               class="book-otp-digit w-full aspect-square text-center font-display text-xl bg-sand-100 border border-bronze/50 rounded-lg text-ink focus:outline-none focus:border-plum" />
-            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" required
+            <input aria-label="Digit 6 of 6" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" required
               class="book-otp-digit w-full aspect-square text-center font-display text-xl bg-sand-100 border border-bronze/50 rounded-lg text-ink focus:outline-none focus:border-plum" />
           </div>
 
@@ -551,6 +561,9 @@
           class="mt-5 rounded-xl bg-plum/5 border border-plum/15 px-4 py-3.5 text-[12.5px] text-plum text-left leading-relaxed"
           id="bookNotifyNote"></div>
 
+        <p data-late-rule class="hidden mt-3 rounded-xl border border-bronze/30 bg-sand-100 px-4 py-3.5 text-[12.5px] text-ink/70 text-left leading-relaxed">
+          <b>Late arrival:</b> <span data-late-rule-text></span></p>
+
         <div class="flex flex-col sm:flex-row gap-3 mt-6">
           <button onclick="
                 openTrackModal(
@@ -590,14 +603,14 @@
 
       <div class="space-y-4">
         <div>
-          <label for="apptTrkRef" class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Booking
+          <label for="apptTrkRef" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Booking
             reference</label>
           <input id="apptTrkRef" type="text" placeholder="LM-DAR-2026-000145"
             class="w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-base uppercase focus:outline-none focus:border-plum transition" />
         </div>
         <div>
           <label for="apptTrkPhone"
-            class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1">Mobile number used</label>
+            class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Mobile number used</label>
           <input id="apptTrkPhone" type="tel" inputmode="numeric" placeholder="09XXXXXXXXX" maxlength="11"
             class="numbers-only w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition" />
         </div>
@@ -615,7 +628,7 @@
         <p class="text-[12.5px] text-ink/55 mt-1.5" id="apptFbFor"></p>
 
         <div class="mt-5">
-          <span class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-2">Overall service</span>
+          <span class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-2">Overall service</span>
           <div class="flex gap-1.5" id="apptFbService">
             <button onclick="apptStar('service', 1)" class="appt-star" aria-label="1 star">
               ★
@@ -636,7 +649,7 @@
         </div>
 
         <div class="mt-4">
-          <span class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-2">Your stylist</span>
+          <span class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-2">Your stylist</span>
           <div class="flex gap-1.5" id="apptFbStaff">
             <button onclick="apptStar('staff', 1)" class="appt-star" aria-label="1 star">
               ★
@@ -1893,19 +1906,19 @@
                 <h4 class="font-display text-xl">Your Information</h4>
                 <div class="grid sm:grid-cols-2 gap-4 mt-6">
                   <div class="sm:col-span-2">
-                    <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1.5">Full
+                    <label for="hsName" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1.5">Full
                       Name</label>
                     <input id="hsName" type="text" placeholder="Juan Dela Cruz"
                       class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition" />
                   </div>
                   <div>
-                    <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1.5">Phone
+                    <label for="hsPhone" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1.5">Phone
                       Number</label>
                     <input id="hsPhone" type="tel" inputmode="numeric" placeholder="09XXXXXXXXX" maxlength="11"
                       class="numbers-only w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition" />
                   </div>
                   <div>
-                    <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1.5">Email
+                    <label for="hsEmail" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1.5">Email
                       Address
                       <span class="text-ink/40 normal-case tracking-normal font-semibold">(used to track &amp; reschedule)</span></label>
                     <input id="hsEmail" type="email" required placeholder="Enter your email address"
@@ -1917,6 +1930,11 @@
                   <p class="text-xs text-ink/65 mt-1.5 leading-relaxed">
                     No account? No problem. You can request a home service
                     using your name and contact number.
+                  </p>
+                  <p class="text-xs text-ink/65 mt-1.5 leading-relaxed">
+                    <b>Why create an account?</b> Members earn loyalty points on completed salon services
+                    (1 point per ₱20) and redeem them on later bookings (₱0.10 per point).
+                    <a href="frontend/auth/register.html" class="font-bold text-plum underline">Create a free account</a>
                   </p>
                 </div>
 
@@ -1937,7 +1955,7 @@
                 <h4 class="font-display text-xl">Tell Us About Your Event</h4>
                 <div class="grid sm:grid-cols-2 gap-4 mt-6">
                   <div>
-                    <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1.5">Event
+                    <label for="hsEventType" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1.5">Event
                       Type</label>
                     <select id="hsEventType"
                       class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition">
@@ -1954,31 +1972,33 @@
                     </select>
                   </div>
                   <div>
-                    <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1.5">Number of
+                    <label for="hsClients" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1.5">Number of
                       Clients</label>
                     <input id="hsClients" type="number" min="1" placeholder="Enter number of people"
                       class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition" />
                   </div>
                   <div>
-                    <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1.5">Preferred
+                    <label for="hsDate" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1.5">Preferred
                       Date</label>
                     <input id="hsDate" type="date"
                       class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition" />
+                    <div data-hs-booked aria-live="polite" class="hidden mt-2 text-xs"></div>
                   </div>
                   <div>
-                    <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1.5">Preferred
+                    <label for="hsTime" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1.5">Preferred
                       Time</label>
                     <input id="hsTime" type="time"
                       class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition" />
+                    <p data-hs-avail role="status" aria-live="polite" class="hidden"></p>
                   </div>
                   <div class="sm:col-span-2">
-                    <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1.5">Venue /
-                      Address</label>
+                    <p id="hsVenueLabel" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1.5">Venue /
+                      Address</p>
                     <input id="hsVenue" type="hidden" />
-                    <div id="guest-service-address" data-address-target="hsVenue" data-address-style="light"></div>
+                    <div id="guest-service-address" role="group" aria-labelledby="hsVenueLabel" data-address-target="hsVenue" data-address-style="light"></div>
                   </div>
                   <div class="sm:col-span-2">
-                    <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1.5">Venue
+                    <label for="hsVenueDetails" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1.5">Venue
                       Details</label>
                     <input id="hsVenueDetails" type="text"
                       placeholder="Landmark, building, floor, room, or other instructions"
@@ -2015,7 +2035,7 @@
                   Select all that apply.
                 </p>
                 <div id="hsWeddingPackages" class="hidden mt-6">
-                  <div id="hsWeddingPackageGrid" class="grid sm:grid-cols-2 gap-4"></div>
+                  <div id="hsWeddingPackageGrid" role="group" aria-labelledby="hsServicesHeading" class="grid sm:grid-cols-2 gap-4"></div>
                   <div id="hsWeddingLiveSummary" class="hidden mt-6 rounded-2xl border border-copper/35 bg-copper/10 p-5">
                     <span class="text-xs font-bold uppercase tracking-widest text-copper-dark">Package Summary</span>
                     <p class="text-xs text-ink/55 mt-2">No payment now. The reservation fee (DP) is an estimate until your quote — you pay it online after review; the remaining balance is paid on the event day.</p>
@@ -2030,7 +2050,7 @@
                     </div>
                   </div>
                 </div>
-                <div class="grid sm:grid-cols-2 gap-3 mt-6" id="hsServiceCards">
+                <div class="grid sm:grid-cols-2 gap-3 mt-6" id="hsServiceCards" role="group" aria-labelledby="hsServicesHeading">
                   <button type="button" onclick="hsToggleSvc(this)" data-svc="Hair Styling"
                     class="hs-svc text-left rounded-2xl border border-bronze/30 bg-sand-100 p-5 transition">
                     <span class="text-xs font-bold uppercase tracking-widest text-copper">Hair</span>
@@ -2072,7 +2092,7 @@
                 </div>
                 <p id="hsNonWeddingPricingNote" class="text-[12.5px] text-ink/55 mt-4">Final price and reservation payment will be confirmed after review.</p>
                 <div class="mt-6">
-                  <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1.5">Additional
+                  <label for="hsNotes" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1.5">Additional
                     Requirements</label>
                   <textarea id="hsNotes" rows="3" placeholder="Tell us anything else we should know about your event..."
                     class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition resize-none"></textarea>
@@ -2080,6 +2100,16 @@
                     Example: "6 people need hair and makeup before the
                     ceremony at 10:00 AM."
                   </p>
+                </div>
+                <div id="hsAvailResult" class="mt-6 rounded-2xl border border-bronze/30 bg-sand-100 p-5">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <b class="text-base">Availability</b>
+                    <button type="button" onclick="hsGo(2)" class="text-xs font-bold uppercase tracking-widest text-plum hover:underline">Change date or time</button>
+                  </div>
+                  <p class="text-[13px] mt-1"><span class="text-ink/60">Preferred date:</span> <b data-hs-when>Not chosen yet</b></p>
+                  <p class="text-xs text-ink/55 mt-1">This stays a preferred date until our team confirms it.</p>
+                  <div data-hs-booked aria-live="polite" class="hidden mt-2 text-xs"></div>
+                  <p data-hs-avail role="status" aria-live="polite" class="hidden"></p>
                 </div>
                 <div class="flex justify-between mt-7">
                   <button onclick="hsGo(2)"
@@ -2118,11 +2148,11 @@
                       <b id="rvEvent">—</b>
                     </p>
                     <p class="text-base mt-1">
-                      <span class="text-ink/50">Date:</span>
+                      <span class="text-ink/50">Preferred Date:</span>
                       <b id="rvDate">—</b>
                     </p>
                     <p class="text-base mt-1">
-                      <span class="text-ink/50">Time:</span>
+                      <span class="text-ink/50">Preferred Time:</span>
                       <b id="rvTime">—</b>
                     </p>
                     <p class="text-base mt-1">
@@ -2313,13 +2343,13 @@
           <div class="bg-sand-100 border border-bronze/25 rounded-[28px] p-6 sm:p-8 shadow-sm">
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1.5">Booking
+                <label for="trkRef" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1.5">Booking
                   Reference</label>
                 <input id="trkRef" type="text" placeholder="LM-HOM-2026-000041"
                   class="w-full px-4 py-3 border border-bronze/50 bg-panel rounded-xl text-base uppercase focus:outline-none focus:border-plum transition" />
               </div>
               <div>
-                <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-1.5">Email
+                <label for="trkEmail" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1.5">Email
                   Address</label>
                 <input id="trkEmail" type="email" placeholder="you@example.com" autocomplete="email"
                   class="w-full px-4 py-3 border border-bronze/50 bg-panel rounded-xl text-base focus:outline-none focus:border-plum transition" />
@@ -2454,7 +2484,7 @@
           </div>
           <div class="bg-panel border border-bronze/25 rounded-[28px] p-7 sm:p-8 shadow-sm">
             <div>
-              <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-2">Rate Your
+              <label class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-2">Rate Your
                 Experience</label>
               <div class="flex gap-1.5 text-3xl" data-stars="service">
                 <button type="button" onclick="hsStar(this, 1)"
@@ -2480,7 +2510,7 @@
               </div>
             </div>
             <div class="mt-6">
-              <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-2">Rate Your Beauty
+              <label class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-2">Rate Your Beauty
                 Professional</label>
               <div class="flex gap-1.5 text-3xl" data-stars="staff">
                 <button type="button" onclick="hsStar(this, 1)"
@@ -2506,7 +2536,7 @@
               </div>
             </div>
             <div class="mt-6">
-              <label class="block text-xs font-bold tracking-widest uppercase text-ink/50 mb-2">Tell Us About Your
+              <label class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-2">Tell Us About Your
                 Experience</label>
               <textarea id="fbText" rows="4" placeholder="Share your feedback..."
                 class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition resize-none"></textarea>
@@ -2704,6 +2734,7 @@
   <script src="function/shared/service-duration.js"></script>
   <script src="function/shared/toast.js"></script>
   <script src="function/shared/pending-payment.js"></script>
+  <script src="function/shared/late-arrival-rule.js"></script>
   <script src="function/public/main.js?v=paymethods-20261025"></script>
 </body>
 

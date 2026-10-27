@@ -34,7 +34,11 @@ function adminDefaultPackageForm() {
     features: '',
     style: 'Plain',
     displayOrder: 0,
-    active: true
+    active: true,
+    travelMinutes: '',
+    setupMinutes: '',
+    serviceMinutes: '',
+    durationsConfirmed: false
   };
 }
 
@@ -220,7 +224,11 @@ function adminPromotionsApp() {
         features: pkg.features,
         style: pkg.style,
         displayOrder: pkg.displayOrder,
-        active: pkg.active
+        active: pkg.active,
+        travelMinutes: pkg.travelMinutes ?? '',
+        setupMinutes: pkg.setupMinutes ?? '',
+        serviceMinutes: pkg.serviceMinutes ?? '',
+        durationsConfirmed: pkg.durationsConfirmed
       };
       this.openPackageModal = true;
     },
@@ -235,7 +243,11 @@ function adminPromotionsApp() {
         features: this.packageForm.features,
         style: this.packageForm.style,
         displayOrder: this.packageForm.displayOrder,
-        active: this.packageForm.active
+        active: this.packageForm.active,
+        travelMinutes: this.packageForm.travelMinutes,
+        setupMinutes: this.packageForm.setupMinutes,
+        serviceMinutes: this.packageForm.serviceMinutes,
+        durationsConfirmed: this.packageForm.durationsConfirmed
       });
       if (!result.success) {
         LMToast.show(result.message || 'Failed to save wedding package.', 'error');

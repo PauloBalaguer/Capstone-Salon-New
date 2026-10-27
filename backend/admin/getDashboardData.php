@@ -357,11 +357,19 @@ try {
 
     $stmt = $pdo->query("
         SELECT id, package_name AS packageName, price, reservation_fee AS reservationFee,
-               features, style, display_order AS displayOrder, is_active AS active
+               features, style, display_order AS displayOrder, is_active AS active,
+               travel_minutes, setup_minutes, service_minutes, durations_confirmed
         FROM wedding_packages
         ORDER BY display_order, id
     ");
-    $weddingPackages = array_map(function ($row) {
+    // Blank stays null so the admin can tell "not set" (120-minute fallback) from 0.
+    $durationFields = fn($row) => [
+        'travelMinutes' => $row['travel_minutes'] !== null ? (int) $row['travel_minutes'] : null,
+        'setupMinutes' => $row['setup_minutes'] !== null ? (int) $row['setup_minutes'] : null,
+        'serviceMinutes' => $row['service_minutes'] !== null ? (int) $row['service_minutes'] : null,
+        'durationsConfirmed' => (bool) $row['durations_confirmed'],
+    ];
+    $weddingPackages = array_map(function ($row) use ($durationFields) {
         return [
             'id' => (string) $row['id'],
             'packageName' => $row['packageName'],
@@ -371,8 +379,14 @@ try {
             'style' => $row['style'],
             'displayOrder' => (int) $row['displayOrder'],
             'active' => (bool) $row['active'],
-        ];
+        ] + $durationFields($row);
     }, $stmt->fetchAll());
+
+    $stmt = $pdo->query('
+        SELECT event_type, travel_minutes, setup_minutes, service_minutes, durations_confirmed
+        FROM event_type_durations ORDER BY display_order, event_type
+    ');
+    $eventDurations = array_map(fn($row) => ['eventType' => $row['event_type']] + $durationFields($row), $stmt->fetchAll());
 
     $stmt = $pdo->query("
         SELECT f.id, br.branch_key AS branchId,
@@ -532,6 +546,11 @@ try {
         'inventory' => $inventory,
         'promotions' => $promotions,
         'weddingPackages' => $weddingPackages,
+        'eventDurations' => $eventDurations,
+        'homeServiceDefaults' => [
+            'fallbackServiceMinutes' => Scheduling::HOME_SERVICE_DURATION_MINUTES,
+            'cleaningBufferMinutes' => Scheduling::cleaningBufferMinutes(),
+        ],
         'feedback' => $feedback,
         'notifications' => $notifications,
         'notificationPrefs' => $notificationPrefs,

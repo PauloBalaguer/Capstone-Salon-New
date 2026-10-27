@@ -198,6 +198,47 @@
           </div>
         </div>
 
+        <div class="bg-slate-900 border border-luxury-900 rounded-2xl p-5 space-y-4">
+          <div class="border-b border-slate-800 pb-3">
+            <h3 class="font-serif text-base font-bold text-white">Event &amp; Home Service Durations</h3>
+            <p class="text-xs text-slate-400">How long each event type keeps its team busy: travel and setup before the booked time, then the service and the <span x-text="$store.admin.homeServiceDefaults.cleaningBufferMinutes"></span>-minute cleaning buffer. Used for availability, staff assignment and rescheduling. Weddings use the times on each package (Promotions &rarr; Wedding Packages). A blank service time uses <span x-text="$store.admin.homeServiceDefaults.fallbackServiceMinutes"></span> minutes.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <template x-for="row in $store.admin.eventDurations" :key="row.eventType">
+              <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-3">
+                <div class="flex items-center justify-between gap-2">
+                  <h4 class="font-serif font-bold text-white text-sm">
+                    <span x-text="row.eventType"></span>
+                    <span x-show="!row.durationsConfirmed" class="admin-badge admin-badge--pending ml-1">Placeholder</span>
+                  </h4>
+                  <button @click="saveEventDuration(row)" class="text-xs text-gold-400 hover:underline">Save</button>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                  <div>
+                    <label class="block text-xs text-slate-400 mb-1" :for="'travel-' + row.eventType">Travel (min)</label>
+                    <input :id="'travel-' + row.eventType" type="number" min="0" max="1440" placeholder="0" x-model.number="row.travelMinutes" class="w-full bg-slate-900 text-slate-300 text-xs rounded-lg p-2 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                  </div>
+                  <div>
+                    <label class="block text-xs text-slate-400 mb-1" :for="'setup-' + row.eventType">Setup (min)</label>
+                    <input :id="'setup-' + row.eventType" type="number" min="0" max="1440" placeholder="0" x-model.number="row.setupMinutes" class="w-full bg-slate-900 text-slate-300 text-xs rounded-lg p-2 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                  </div>
+                  <div>
+                    <label class="block text-xs text-slate-400 mb-1" :for="'service-' + row.eventType">Service (min)</label>
+                    <input :id="'service-' + row.eventType" type="number" min="1" max="1440" :placeholder="$store.admin.homeServiceDefaults.fallbackServiceMinutes" x-model.number="row.serviceMinutes" class="w-full bg-slate-900 text-slate-300 text-xs rounded-lg p-2 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                  </div>
+                </div>
+                <p class="text-xs text-slate-500" x-text="'Team blocked: ' + $store.admin.eventWindowLabel(row)"></p>
+                <label class="flex items-center gap-2 text-xs text-slate-300">
+                  <input type="checkbox" x-model="row.durationsConfirmed" class="rounded border-slate-700 bg-slate-950 text-luxury-600 focus:ring-purple-500">
+                  <span>Confirmed by the salon</span>
+                </label>
+              </div>
+            </template>
+          </div>
+          <p x-show="!$store.admin.eventDurations.length" class="text-xs text-slate-500">No event types found. Run database/migrations/054_event_durations.sql.</p>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="bg-slate-900 border border-luxury-900 rounded-2xl p-5 space-y-4">
             <div class="border-b border-slate-800 pb-3">

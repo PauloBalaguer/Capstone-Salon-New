@@ -118,7 +118,7 @@ try {
 
     $pdo = Database::getInstance();
     $pdo->beginTransaction();
-    $availability = HomeServiceRequest::availability($pdo, ['event_type'=>$eventType,'services'=>$services,'preferred_date'=>$date,'preferred_time'=>$time]);
+    $availability = HomeServiceRequest::availability($pdo, ['event_type'=>$eventType,'wedding_package'=>$weddingPackage,'services'=>$services,'preferred_date'=>$date,'preferred_time'=>$time]);
     if (!$availability['available']) {
         $pdo->rollBack();
         http_response_code(409);

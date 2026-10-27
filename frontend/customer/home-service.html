@@ -243,8 +243,8 @@
                 </div>
                 <dl class="home-request-fields text-xs border-t border-slate-800 pt-3">
                   <div x-show="request.weddingPackage"><dt>Package</dt><dd x-text="'Package ' + request.weddingPackage"></dd></div>
-                  <div><dt>Date</dt><dd x-text="homeServiceDate(request)"></dd></div>
-                  <div><dt>Time (PH)</dt><dd x-text="homeServiceTime(request)"></dd></div>
+                  <div><dt x-text="homeServiceScheduleWord(request) + ' date'">Date</dt><dd x-text="homeServiceDate(request)"></dd></div>
+                  <div><dt x-text="homeServiceScheduleWord(request) + ' time (PH)'">Time (PH)</dt><dd x-text="homeServiceTime(request)"></dd></div>
                   <div x-show="homeServiceDetails(request).clients"><dt>Clients</dt><dd x-text="homeServiceDetails(request).clients"></dd></div>
                 </dl>
                 <p x-show="homeServiceFutureCompleted(request)" class="text-xs rounded-lg p-3 bg-[#FEF3C7] text-[#78350F]">Please contact the branch to check this booking’s status.</p>
@@ -415,28 +415,28 @@
               <p class="text-slate-500 mt-3">Reservation Fee: To be confirmed after review.</p>
               <button type="button" @click="expandedPackage = expandedPackage === 'A' ? '' : 'A'" class="mt-3 text-purple-300 font-semibold hover:text-purple-200" x-text="expandedPackage === 'A' ? 'Hide Full Details' : 'View Full Details'"></button>
               <div x-show="expandedPackage === 'A'" class="mt-3 pt-3 border-t border-slate-700"><p class="font-semibold text-white mb-2">Includes:</p><ul class="list-disc pl-5 space-y-1.5 text-slate-400"><li>Hairstyle and Traditional Makeup for the Bride</li><li>Prep Look and Ceremony Look</li><li>Unlimited touch-up until the Bride leaves the hotel for the ceremony</li><li>Groom Grooming, only if the Groom is at the same preparation venue</li><li>Hairstyle and Traditional Makeup for 2 heads</li></ul></div>
-              <button type="button" @click="homeServiceForm.weddingPackage = 'A'" :class="homeServiceForm.weddingPackage === 'A' ? 'bg-gold-500 text-slate-950' : 'bg-luxury-700 text-white hover:bg-luxury-600'" class="w-full mt-4 py-2 rounded-lg font-bold transition" x-text="homeServiceForm.weddingPackage === 'A' ? 'Selected' : 'Select Package'"></button>
+              <button type="button" @click="homeServiceForm.weddingPackage = 'A'; refreshEventAvailability()" :class="homeServiceForm.weddingPackage === 'A' ? 'bg-gold-500 text-slate-950' : 'bg-luxury-700 text-white hover:bg-luxury-600'" class="w-full mt-4 py-2 rounded-lg font-bold transition" x-text="homeServiceForm.weddingPackage === 'A' ? 'Selected' : 'Select Package'"></button>
             </article>
             <article :class="homeServiceForm.weddingPackage === 'B' ? 'border-gold-400 ring-1 ring-gold-400/50' : 'border-slate-700'" class="bg-slate-900 border rounded-xl p-4 transition">
               <div class="flex items-start justify-between gap-3"><div><p class="font-serif font-bold text-white text-base">Package B</p><p class="text-slate-400 mt-1">Airbrush bridal makeup, two bridal looks, groom grooming, and styling for 2 heads.</p></div><strong class="text-gold-400 whitespace-nowrap">₱8,000</strong></div>
               <p class="text-slate-500 mt-3">Reservation Fee: To be confirmed after review.</p>
               <button type="button" @click="expandedPackage = expandedPackage === 'B' ? '' : 'B'" class="mt-3 text-purple-300 font-semibold hover:text-purple-200" x-text="expandedPackage === 'B' ? 'Hide Full Details' : 'View Full Details'"></button>
               <div x-show="expandedPackage === 'B'" class="mt-3 pt-3 border-t border-slate-700"><p class="font-semibold text-white mb-2">Includes:</p><ul class="list-disc pl-5 space-y-1.5 text-slate-400"><li>Hairstyle and Airbrush Makeup for the Bride</li><li>Prep Look and Ceremony Look</li><li>Unlimited touch-up until the Bride leaves the hotel for the ceremony</li><li>Groom Grooming, only if the Groom is at the same preparation venue</li><li>Hairstyle and Traditional Makeup for 2 heads</li></ul></div>
-              <button type="button" @click="homeServiceForm.weddingPackage = 'B'" :class="homeServiceForm.weddingPackage === 'B' ? 'bg-gold-500 text-slate-950' : 'bg-luxury-700 text-white hover:bg-luxury-600'" class="w-full mt-4 py-2 rounded-lg font-bold transition" x-text="homeServiceForm.weddingPackage === 'B' ? 'Selected' : 'Select Package'"></button>
+              <button type="button" @click="homeServiceForm.weddingPackage = 'B'; refreshEventAvailability()" :class="homeServiceForm.weddingPackage === 'B' ? 'bg-gold-500 text-slate-950' : 'bg-luxury-700 text-white hover:bg-luxury-600'" class="w-full mt-4 py-2 rounded-lg font-bold transition" x-text="homeServiceForm.weddingPackage === 'B' ? 'Selected' : 'Select Package'"></button>
             </article>
             <article :class="homeServiceForm.weddingPackage === 'C' ? 'border-gold-400 ring-1 ring-gold-400/50' : 'border-slate-700'" class="bg-slate-900 border rounded-xl p-4 transition">
               <div class="flex items-start justify-between gap-3"><div><p class="font-serif font-bold text-white text-base">Package C</p><p class="text-slate-400 mt-1">Airbrush bridal makeup with prep, ceremony and reception looks, plus styling for 2 heads.</p></div><strong class="text-gold-400 whitespace-nowrap">₱10,000</strong></div>
               <p class="text-slate-500 mt-3">Reservation Fee: To be confirmed after review.</p>
               <button type="button" @click="expandedPackage = expandedPackage === 'C' ? '' : 'C'" class="mt-3 text-purple-300 font-semibold hover:text-purple-200" x-text="expandedPackage === 'C' ? 'Hide Full Details' : 'View Full Details'"></button>
               <div x-show="expandedPackage === 'C'" class="mt-3 pt-3 border-t border-slate-700"><p class="font-semibold text-white mb-2">Includes:</p><ul class="list-disc pl-5 space-y-1.5 text-slate-400"><li>Hairstyle and Airbrush Makeup for the Bride</li><li>Prep Look and Ceremony Look</li><li>Unlimited touch-up until the Bride leaves the hotel for the ceremony</li><li>Reception Look / Change Look for the Bride</li><li>Groom Grooming, only if the Groom is at the same preparation venue</li><li>Hairstyle and Traditional Makeup for 2 heads</li></ul></div>
-              <button type="button" @click="homeServiceForm.weddingPackage = 'C'" :class="homeServiceForm.weddingPackage === 'C' ? 'bg-gold-500 text-slate-950' : 'bg-luxury-700 text-white hover:bg-luxury-600'" class="w-full mt-4 py-2 rounded-lg font-bold transition" x-text="homeServiceForm.weddingPackage === 'C' ? 'Selected' : 'Select Package'"></button>
+              <button type="button" @click="homeServiceForm.weddingPackage = 'C'; refreshEventAvailability()" :class="homeServiceForm.weddingPackage === 'C' ? 'bg-gold-500 text-slate-950' : 'bg-luxury-700 text-white hover:bg-luxury-600'" class="w-full mt-4 py-2 rounded-lg font-bold transition" x-text="homeServiceForm.weddingPackage === 'C' ? 'Selected' : 'Select Package'"></button>
             </article>
             <article :class="homeServiceForm.weddingPackage === 'D' ? 'border-gold-400 ring-1 ring-gold-400/50' : 'border-slate-700'" class="bg-slate-900 border rounded-xl p-4 transition">
               <div class="flex items-start justify-between gap-3"><div><p class="font-serif font-bold text-white text-base">Package D</p><p class="text-slate-400 mt-1">Complete airbrush bridal coverage with reception look and styling for 7 heads.</p></div><strong class="text-gold-400 whitespace-nowrap">₱12,000</strong></div>
               <p class="text-gold-400 mt-3 font-semibold">Reservation Fee: ₱2,000</p>
               <button type="button" @click="expandedPackage = expandedPackage === 'D' ? '' : 'D'" class="mt-3 text-purple-300 font-semibold hover:text-purple-200" x-text="expandedPackage === 'D' ? 'Hide Full Details' : 'View Full Details'"></button>
               <div x-show="expandedPackage === 'D'" class="mt-3 pt-3 border-t border-slate-700"><p class="font-semibold text-white mb-2">Includes:</p><ul class="list-disc pl-5 space-y-1.5 text-slate-400"><li>Hairstyle and Airbrush Makeup for the Bride</li><li>Prep Look and Ceremony Look</li><li>Unlimited touch-up until the Bride leaves the hotel for the ceremony</li><li>Reception Look / Change Look for the Bride</li><li>Groom Grooming, only if the Groom is at the same preparation venue</li><li>Hairstyle and Traditional Makeup for 7 heads</li></ul></div>
-              <button type="button" @click="homeServiceForm.weddingPackage = 'D'" :class="homeServiceForm.weddingPackage === 'D' ? 'bg-gold-500 text-slate-950' : 'bg-luxury-700 text-white hover:bg-luxury-600'" class="w-full mt-4 py-2 rounded-lg font-bold transition" x-text="homeServiceForm.weddingPackage === 'D' ? 'Selected' : 'Select Package'"></button>
+              <button type="button" @click="homeServiceForm.weddingPackage = 'D'; refreshEventAvailability()" :class="homeServiceForm.weddingPackage === 'D' ? 'bg-gold-500 text-slate-950' : 'bg-luxury-700 text-white hover:bg-luxury-600'" class="w-full mt-4 py-2 rounded-lg font-bold transition" x-text="homeServiceForm.weddingPackage === 'D' ? 'Selected' : 'Select Package'"></button>
             </article>
           </div>
           <div x-show="homeServiceForm.weddingPackage" class="bg-slate-900 border border-slate-700 rounded-xl p-4 space-y-2 text-slate-300">
@@ -455,16 +455,27 @@
         <p x-show="homeServiceForm.eventType !== 'Wedding'" class="text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3">Price and deposit are confirmed after review.</p>
 
         <div>
-          <label class="block font-bold text-slate-400 mb-1">Date</label>
+          <label class="block font-bold text-slate-400 mb-1">Preferred date</label>
           <input type="date" x-model="homeServiceForm.preferredDate" :min="getLocalISODate()" required class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+          <div x-show="eventBookedKey" aria-live="polite" class="mt-2 text-xs">
+            <p x-show="eventBookedLoading" class="text-slate-400">Checking fully booked dates…</p>
+            <p x-show="!eventBookedLoading && !eventBookedDates.length" class="text-slate-400" x-text="'No fully booked dates in the next ' + eventBookedDays + ' days for this selection.'"></p>
+            <div x-show="!eventBookedLoading && eventBookedDates.length">
+              <span class="text-slate-400" x-text="'Fully booked for this selection (next ' + eventBookedDays + ' days):'"></span>
+              <template x-for="d in eventBookedDates" :key="d">
+                <span class="inline-block rounded-full px-2.5 py-0.5 mr-1 mt-1 line-through" :class="d === homeServiceForm.preferredDate ? 'bg-rose-900 text-rose-100' : 'bg-slate-800 text-slate-400'" x-text="homeServiceDate({ preferredDate: d })"></span>
+              </template>
+              <p x-show="eventBookedDates.includes(homeServiceForm.preferredDate)" class="mt-1.5 font-semibold text-rose-300">Your preferred date is fully booked. Please choose another date.</p>
+            </div>
+          </div>
         </div>
 
         <div>
-          <label class="block font-bold text-slate-400 mb-1">Time (PH)</label>
+          <label class="block font-bold text-slate-400 mb-1">Preferred time (PH)</label>
           <input type="time" x-model="homeServiceForm.preferredTime" required class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
-          <p role="status" aria-live="polite" class="mt-2 text-sm text-slate-200" :aria-busy="eventAvailabilityLoading" x-text="eventAvailabilityLoading ? 'Checking staff availability...' : eventAvailabilityMessage"></p>
+          <p role="status" aria-live="polite" class="mt-2 text-sm" :class="homeServiceAvailability === false ? 'text-rose-300' : homeServiceAvailability ? 'text-emerald-300' : 'text-slate-200'" :aria-busy="eventAvailabilityLoading" x-text="eventAvailabilityLoading ? 'Checking staff availability...' : eventAvailabilityMessage"></p>
         </div>
-        <p class="text-slate-500 -mt-2">Your schedule needs approval and any required payment.</p>
+        <p class="text-slate-500 -mt-2">This stays a preferred date until the salon confirms it. Your schedule needs approval and any required payment.</p>
 
         <!-- How payment works + estimated DP -->
         <div class="rounded-xl bg-[#F0FAFA] border border-[#99D5D6] text-[#1F2937] p-4 space-y-2.5">

@@ -99,7 +99,7 @@ $fullRequests = HomeServiceRequest::details($eventType, $weddingPackage, $client
 
 try {
     $pdo = Database::getInstance();
-    $availability = HomeServiceRequest::availability($pdo, ['event_type'=>$eventType,'services'=>$services,'preferred_date'=>$preferredDate,'preferred_time'=>$preferredTime]);
+    $availability = HomeServiceRequest::availability($pdo, ['event_type'=>$eventType,'wedding_package'=>$weddingPackage,'services'=>$services,'preferred_date'=>$preferredDate,'preferred_time'=>$preferredTime]);
     if (!$availability['available']) {
         http_response_code(409);
         echo json_encode(['success'=>false,'conflict'=>true,'message'=>$availability['message']]);

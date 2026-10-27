@@ -24,6 +24,8 @@ function customerDashboardState() {
     // dashboard.js. Empty/default shells here so the template has something
     // safe to bind to during the initial fetch. ---
     dashboardLoadError: '',
+    // Configured late-arrival rule (Scheduling::lateArrivalRule); null hides it.
+    lateArrivalRule: null,
 
     customerProfile: {
       name: '',

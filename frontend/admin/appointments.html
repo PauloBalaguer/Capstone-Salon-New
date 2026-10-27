@@ -362,7 +362,7 @@
               <div class="flex flex-wrap gap-2" x-show="!booking.isHomeService">
                 <button x-show="['Pending','Confirmed','Reschedule Requested','Reschedule Required'].includes(booking.status) || (booking.status === 'Cancelled' && ['Forfeited','Refund Due'].includes(booking.paymentStatus) && booking.depositAmount > 0)" @click="updateBookingStatus(booking.id, 'In Progress')" class="booking-button">Reschedule / Review availability</button>
                 <button x-show="['Pending','Confirmed','Reschedule Requested','Reschedule Required'].includes(booking.status)" @click="updateBookingStatus(booking.id, 'Cancelled')" class="booking-button">Cancel booking</button>
-                <button x-show="booking.status === 'Pending' && booking.depositAmount" @click="openConfirmDeposit(booking)" class="booking-button">Verify Payment</button>
+                <button x-show="booking.status === 'Pending' && booking.depositAmount" @click="openConfirmDeposit(booking)" class="booking-button">View Payment Details</button>
               </div>
               <div class="pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
                 <template x-if="!booking.isHomeService && booking.status === 'Pending'">
@@ -395,7 +395,7 @@
                   </div>
                 </template>
                 <template x-if="booking.isHomeService && booking.status === 'Payment Being Verified'">
-                  <button @click="updateBookingStatus(booking.id, 'Confirmed')" class="w-full bg-[#006D6F] hover:bg-[#06464A] text-white text-xs font-bold py-2 rounded-lg shadow-sm transition duration-150">Verify & Confirm</button>
+                  <button @click="updateBookingStatus(booking.id, 'Confirmed')" class="w-full bg-[#006D6F] hover:bg-[#06464A] text-white text-xs font-bold py-2 rounded-lg shadow-sm transition duration-150">Verify Payment</button>
                 </template>
                 <template x-if="booking.isHomeService && booking.status === 'Confirmed'">
                   <button @click="openStaffAssign(booking)" class="w-full bg-[#006D6F] hover:bg-[#06464A] text-white text-xs font-bold py-2 rounded-lg shadow-sm transition duration-150">Assign Staff</button>
@@ -533,19 +533,19 @@
   <div x-show="openDepositModal" x-cloak class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" @keydown.escape.window="openDepositModal = false">
     <div @click.outside="openDepositModal = false" class="bg-slate-900 border border-luxury-800 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <h3 class="font-serif text-lg font-bold text-white" x-text="depositBooking && depositBooking.isHomeService ? 'Record Reservation Payment' : 'Record Deposit & Confirm'"></h3>
+        <h3 class="font-serif text-lg font-bold text-white" x-text="depositBooking && depositBooking.isHomeService ? 'Record Reservation Payment' : 'Payment Details'"></h3>
         <button @click="openDepositModal = false" class="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
       </div>
-      <p class="text-xs text-slate-400" x-show="!depositBooking || !depositBooking.isHomeService">A deposit locks this reservation and gives it priority over any conflicting unpaid booking for the same stylist and time.</p>
-      <p class="text-xs text-slate-400" x-show="depositBooking && depositBooking.isHomeService">Record the reservation payment the customer reported paying. This moves the request to Payment Being Verified — use Verify &amp; Confirm afterward once checked.</p>
+      <p class="text-xs text-slate-400" x-show="!depositBooking || !depositBooking.isHomeService">Viewing these details does not verify the payment. Check the cash or wallet transaction first; <strong class="text-slate-200">Verify Payment</strong> then records it as verified and confirms the booking. A verified deposit locks this reservation and gives it priority over any conflicting unpaid booking for the same stylist and time.</p>
+      <p class="text-xs text-slate-400" x-show="depositBooking && depositBooking.isHomeService">Record the reservation payment the customer reported paying. This moves the request to Payment Being Verified — use <strong class="text-slate-200">Verify Payment</strong> afterward once checked.</p>
 
       <template x-if="depositBooking && depositBooking.depositAmount && !depositBooking.depositVerified">
         <div class="text-xs text-amber-300 bg-amber-950/40 border border-amber-900/60 rounded-lg px-3 py-2.5 space-y-1">
           <p class="font-bold uppercase tracking-wide text-xs">Self-reported by customer — not yet verified</p>
-          <p>Amount: <strong class="text-white" x-text="formatCurrency(depositBooking.depositAmount)"></strong> via <strong class="text-white" x-text="PortalPresentation.methodLabel(depositBooking.paymentMethod)"></strong></p>
+          <p>Amount: <strong class="text-white" x-text="$store.admin.formatCurrency(depositBooking.depositAmount)"></strong> via <strong class="text-white" x-text="PortalPresentation.methodLabel(depositBooking.paymentMethod)"></strong></p>
           <p x-show="depositBooking.depositReference">Reference: <strong class="text-white" x-text="depositBooking.depositReference"></strong></p>
           <p x-show="!depositBooking.depositReference" class="italic">No reference given — Cash deposit, verify in person before confirming.</p>
-          <p class="text-amber-400/80">Check this against your GCash/Maya account (or that Cash was actually received) before confirming.</p>
+          <p style="color:#7A5200">Check this against your GCash/Maya account (or that Cash was actually received) before confirming.</p>
         </div>
       </template>
       <template x-if="depositBooking && depositBooking.depositVerified">
@@ -570,7 +570,7 @@
         </select>
       </div>
 
-      <button @click="confirmWithDeposit()" :disabled="!depositAmount || !depositMethod" class="w-full bg-luxury-600 hover:bg-luxury-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs py-2.5 rounded-lg transition duration-150" x-text="depositBooking && depositBooking.depositAmount && !depositBooking.depositVerified ? 'Verify & Confirm Booking' : 'Confirm Booking'"></button>
+      <button @click="confirmWithDeposit()" :disabled="!depositAmount || !depositMethod" class="w-full bg-luxury-600 hover:bg-luxury-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs py-2.5 rounded-lg transition duration-150" x-text="depositBooking && depositBooking.isHomeService ? 'Record Payment' : (depositBooking && depositBooking.depositVerified ? 'Confirm Booking' : 'Verify Payment')"></button>
     </div>
   </div>
 

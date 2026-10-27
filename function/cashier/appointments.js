@@ -132,7 +132,7 @@ function actionsFor(b) {
 
   if (b.status === 'Pending') {
     const verify = (b.depositAmount || b.depositReference)
-      ? `<button data-action="verify" data-ref="${ref}" class="text-sky-700 font-bold hover:underline">Verify Payment</button>`
+      ? `<button data-action="verify" data-ref="${ref}" class="text-sky-700 font-bold hover:underline">View Payment Details</button>`
       : '';
     return `
       ${details}
@@ -252,7 +252,8 @@ function openDepositModal(ref) {
   } else {
     banner.classList.add('hidden');
   }
-  document.getElementById('btnConfirmDeposit').textContent = (booking && booking.depositAmount && !booking.depositVerified) ? 'Verify & Admit' : 'Confirm & Admit';
+  // "Verify Payment" is the only wording for an action that marks a payment verified.
+  document.getElementById('btnConfirmDeposit').textContent = booking && booking.depositVerified ? 'Confirm & Admit' : 'Verify Payment';
 
   CashierApp.showModal('depositModal');
 }

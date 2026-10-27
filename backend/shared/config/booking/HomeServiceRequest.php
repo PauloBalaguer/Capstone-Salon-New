@@ -86,26 +86,23 @@ class HomeServiceRequest
             AND h.preferred_date BETWEEN DATE_SUB(?, INTERVAL 1 DAY) AND DATE_ADD(?, INTERVAL 1 DAY) AND h.id != ?" . ($pdo->inTransaction() ? ' FOR UPDATE' : ''));
         $stmt->execute([$date,$date,$request['id'] ?? 0]);
         $demands = array_merge([$request], $stmt->fetchAll());
-        $requestedStart = new DateTime($request['preferred_date'].' '.($request['preferred_time'] ?: '09:00:00'));
-        $requestedEnd = (clone $requestedStart)->modify('+'.(Scheduling::HOME_SERVICE_DURATION_MINUTES + Scheduling::cleaningBufferMinutes()).' minutes');
+        // Each job blocks travel + setup + service + cleaning buffer (Scheduling::homeServiceWindow).
+        $requested = Scheduling::homeServiceWindow($pdo, $request);
         $jobs = [];
         foreach ($demands as $index => $demand) {
-            $demandStart = new DateTime($demand['preferred_date'].' '.($demand['preferred_time'] ?: '09:00:00'));
-            $demandEnd = (clone $demandStart)->modify('+'.(Scheduling::HOME_SERVICE_DURATION_MINUTES + Scheduling::cleaningBufferMinutes()).' minutes');
-            if ($index > 0 && ($demandStart >= $requestedEnd || $requestedStart >= $demandEnd)) continue;
+            $window = $index === 0 ? $requested : Scheduling::homeServiceWindow($pdo, $demand);
+            if ($index > 0 && ($window['start'] >= $requested['end'] || $requested['start'] >= $window['end'])) continue;
             $needs = self::requestedServices($demand);
             if (!$needs) return ['available'=>false, 'message'=>'An overlapping confirmed request needs its services reviewed by the administrator.'];
-            $start = new DateTime($demand['preferred_date'].' '.($demand['preferred_time'] ?: '09:00:00'));
-            $end = (clone $start)->modify('+'.(Scheduling::HOME_SERVICE_DURATION_MINUTES + Scheduling::cleaningBufferMinutes()).' minutes');
             $candidates = [];
             foreach ($employees as $employeeId) {
                 $id = (int) $employeeId;
                 if ($index === 0 && $fixedTeam !== null && !in_array($id, $fixedTeam, true)) continue;
                 $covers = array_values(array_intersect($needs, $skills[$id] ?? []));
-                if ($covers && !Scheduling::homeServiceStaffHasConflict($pdo,$id,$demand['preferred_date'],$demand['preferred_time'] ?: '09:00:00',(int) ($request['id'] ?? 0))) $candidates[$id] = $covers;
+                if ($covers && !Scheduling::homeServiceStaffHasConflict($pdo,$id,$demand,(int) ($request['id'] ?? 0))) $candidates[$id] = $covers;
             }
             if ($index === 0 && $fixedTeam !== null && count($candidates) !== count($fixedTeam)) return ['available'=>false,'message'=>'Every selected team member must be active, qualified for a requested service, and available.'];
-            $jobs[] = ['needs'=>$needs,'candidates'=>$candidates,'start'=>$start,'end'=>$end,'fixed'=>$index===0 ? $fixedTeam : null];
+            $jobs[] = ['needs'=>$needs,'candidates'=>$candidates,'start'=>$window['start'],'end'=>$window['end'],'fixed'=>$index===0 ? $fixedTeam : null];
         }
         // Backtrack service coverage and concurrent provisional teams; this does not
         // assume a clients-per-stylist rule or automatically assign a customer's team.
@@ -135,6 +132,36 @@ class HomeServiceRequest
         };
         $available = $allocate(0,[]);
         return ['available'=>$available,'message'=>$available ? 'Staff capacity is available for review. Your schedule is confirmed only after approval and any required payment.' : self::UNAVAILABLE];
+    }
+
+    /** Start times (hours) tried when deciding whether a whole day is fully booked. */
+    const EVENT_START_HOURS = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
+    /** How far ahead the booking forms mark fully booked dates. */
+    const BOOKED_DATES_DAYS = 60;
+
+    /**
+     * Dates from $from (Y-m-d) on which no hour in EVENT_START_HOURS has a
+     * free, qualified team for this package/services, using availability().
+     * Only dates that already hold an active event are checked -- a day with
+     * no events still has its team -- so the cost stays small. The per-time
+     * availability check remains the authority before submitting.
+     */
+    public static function fullyBookedDates(PDO $pdo, array $request, string $from, int $days = self::BOOKED_DATES_DAYS): array
+    {
+        $stmt = $pdo->prepare("SELECT DISTINCT preferred_date FROM home_service_requests
+            WHERE status NOT IN ('Cancelled', 'Completed') AND preferred_date BETWEEN ? AND DATE_ADD(?, INTERVAL ? DAY)
+            ORDER BY preferred_date");
+        $stmt->execute([$from, $from, $days - 1]);
+        $full = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $date) {
+            $free = false;
+            foreach (self::EVENT_START_HOURS as $hour) {
+                $probe = ['preferred_date' => $date, 'preferred_time' => sprintf('%02d:00:00', $hour)] + $request;
+                if (self::availability($pdo, $probe)['available']) { $free = true; break; }
+            }
+            if (!$free) $full[] = $date;
+        }
+        return $full;
     }
 
     public static function requireAvailable(PDO $pdo, array $request, ?array $team = null): void
@@ -245,7 +272,7 @@ class HomeServiceRequest
         $team = $stmt->fetchAll();
         $busy = [];
         foreach ($team as $member) {
-            if (Scheduling::homeServiceStaffHasConflict($pdo, (int) $member['id'], $date, $time . ':00', (int) $request['id'])) {
+            if (Scheduling::homeServiceStaffHasConflict($pdo, (int) $member['id'], $proposed, (int) $request['id'])) {
                 $busy[] = $member['name'];
             }
         }

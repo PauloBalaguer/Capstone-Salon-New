@@ -105,7 +105,7 @@ const CashierApp = {
   },
 
   toast(message, type = 'info') {
-    LMToast.show(message, type, { duration: 4000 });
+    LMToast.show(message, type, { duration: 3000 });
   },
 
   showModal(modalId) {

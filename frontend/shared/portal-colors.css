@@ -1,4 +1,4 @@
-@import url("./brand-palette.css");
+@import url("./brand-palette.css?v=20261103b");
 
 /* Final color rules for the four light portal workspaces. */
 body.salon-portal { color: var(--brand-ink); color-scheme: light; }
@@ -190,6 +190,37 @@ body.salon-portal :is(button,input,select,textarea):disabled:disabled {
   color: #475569 !important; border-color: #8B8174 !important; opacity: 1 !important;
 }
 /* Profile flyouts use a light surface, including when nested in the dark sidebar. */
+/* Shared sign-out appearance across every portal and profile menu. */
+body.salon-portal a[href*="auth/logout.php"],
+body.salon-portal aside a[href*="auth/logout.php"] {
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px 16px !important;
+  min-height: 44px;
+  background: #FFF8EE !important;
+  color: #B91C1C !important;
+  border: 1px solid #E8DCC8 !important;
+  border-radius: 8px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  line-height: 1.5;
+  text-decoration: none !important;
+}
+body.salon-portal a[href*="auth/logout.php"]:hover,
+body.salon-portal aside a[href*="auth/logout.php"]:hover {
+  background: #FFE4E6 !important;
+  color: #B91C1C !important;
+}
+body.salon-portal a[href*="auth/logout.php"] :is(span,svg),
+body.salon-portal aside a[href*="auth/logout.php"] :is(span,svg) {
+  color: #B91C1C !important;
+  margin: 0 !important;
+}
+body.salon-portal a[href*="auth/logout.php"] svg {
+  width: 18px !important;
+  height: 18px !important;
+  flex-shrink: 0;
+}
 body.salon-portal [x-show="isProfileMenuOpen"] a[href="profile.html"] svg {
   color: #006D6F !important;
   opacity: 1 !important;

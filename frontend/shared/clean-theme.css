@@ -1,0 +1,391 @@
+/* ==========================================================================
+   Clean theme -- loaded LAST on every page (portals, auth, home, payment).
+   One calm look across the system in the SALON PALETTE (brand-palette.css):
+   cream page, panel cards with thin sand borders, the pages' own fonts,
+   teal for actions, gold only for small highlights, pill buttons, almost no
+   shadows, no gradients.
+   COLOURS ONLY: fonts are left to each page's own theme.
+   Older theme files stay in place; this file overrides their surfaces
+   and accents, so it uses "html body ..." selectors and !important.
+   ========================================================================== */
+:root {
+  /* Every colour below comes from the Salon Portal Palette. */
+  --cl-bg: #FFF8EE;            /* --brand-cream: page background */
+  --cl-surface: #FFFDF9;       /* --brand-panel: cards, sidebar, header */
+  --cl-subtle: #F7F0E4;        /* cream/sand mix: hover rows, soft fills */
+  --cl-border: #E8DCC8;        /* --brand-sand: card and divider lines */
+  --cl-border-strong: #D9C9B4; /* bronze: inputs, outlined buttons */
+  --cl-ink: #222222;           /* --brand-ink: headings and body text */
+  --cl-text: #333333;
+  --cl-muted: #475569;         /* --brand-muted: secondary text */
+  --cl-accent: #006D6F;        /* --brand-teal: actions, links, active nav */
+  --cl-accent-hover: #06464A;  /* --brand-teal-dark */
+  --cl-accent-soft: #E5F2F0;   /* light teal tint for the active nav item */
+  --cl-gold: #E0B84C;          /* --brand-gold: small fills, selection */
+  --cl-gold-ink: #805B0B;      /* --brand-gold-ink: small labels on light */
+  --cl-danger: #B91C1C;        /* red buttons; hover #991B1B */
+  --cl-radius: 18px;
+  --cl-shadow: 0 1px 2px rgba(34, 34, 34, .04);
+  --cl-shadow-pop: 0 12px 32px -12px rgba(34, 34, 34, .18);
+}
+
+html body ::selection { background: var(--cl-gold); color: var(--cl-ink); }
+
+/* Longer descriptions and instructions share consistent paragraph alignment. */
+html body .prose-justify {
+  text-align: justify;
+  text-align-last: start;
+  overflow-wrap: break-word;
+}
+
+/* ==========================================================================
+   Portals (body.salon-portal): customer, admin, cashier, staff
+   ========================================================================== */
+html body.salon-portal {
+  background: var(--cl-bg) !important;
+  background-image: none !important;
+  color: var(--cl-ink) !important;
+}
+/* Decorative gradient stripe at the very top of each portal page. */
+html body.salon-portal .h-1\.5.w-full[class*="bg-gradient-to-r"] { display: none !important; }
+
+/* The stripe is hidden, so the portal shell uses the entire viewport. */
+html body.salon-portal > .flex.h-screen {
+  height: 100vh;
+  height: 100dvh;
+}
+
+html body.salon-portal :is(main, main > section, main > div, .flex-1.overflow-y-auto):not(.lm-mobilebar) {
+  background-color: var(--cl-bg) !important;
+  background-image: none !important;
+}
+
+/* Page header bar */
+html body.salon-portal main > header,
+html body.salon-portal main header:first-of-type,
+html body.salon-portal header.sticky {
+  background: var(--cl-surface) !important;
+  background-image: none !important;
+  border-bottom: 1px solid var(--cl-border) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+html body.salon-portal main > header :is(h1, h2) { color: var(--cl-ink) !important; }
+
+/* ---------- Sidebar: dark teal (--brand-teal-dark), cream text, gold marks the current page ---------- */
+html body.salon-portal aside {
+  --sb-bg: #06464A;                       /* --brand-teal-dark */
+  --sb-text: rgba(255, 248, 238, .74);    /* cream, softened */
+  --sb-strong: #FFF8EE;                   /* --brand-cream */
+  --sb-faint: rgba(255, 248, 238, .58);
+  --sb-line: rgba(255, 248, 238, .12);
+  --sb-fill: rgba(255, 248, 238, .07);
+  --sb-gold: #E0B84C;                     /* --brand-gold */
+  background: var(--sb-bg) !important;
+  background-image: none !important;
+  border-right: 0 !important;
+  box-shadow: none !important;
+  color: var(--sb-text) !important;
+}
+html body.salon-portal aside :is(h1, h2, h3, p, span, small, div, i, svg):not(.lm-badge) { color: inherit; }
+html body.salon-portal aside :is(.text-gold-400, .text-gold-300, .text-luxury-400, .text-emerald-400, .text-amber-400, .text-purple-400, .text-white,
+  .text-slate-100, .text-slate-200, .text-slate-300, .text-slate-400, .text-slate-500, .text-gray-400, .text-gray-500) {
+  color: inherit !important;
+}
+/* Names and brand line read in full cream; small sub-labels softer. */
+html body.salon-portal aside :is(h1, h2, .font-bold, .font-serif) { color: var(--sb-strong) !important; }
+html body.salon-portal aside :is(.uppercase, .text-xs:not(a *):not(a), small) { color: var(--sb-faint) !important; }
+html body.salon-portal aside :is([class*="border-slate-"], [class*="border-luxury-"], [class*="border-emerald-"], [class*="border-gray-"], .border-t, .border-b) { border-color: var(--sb-line) !important; }
+/* Rounded inner cards (profile chip, branch card): faint cream glass. */
+html body.salon-portal aside :is(.bg-slate-950, .bg-slate-900, .bg-slate-800, [class*="bg-slate-800/"], [class*="bg-slate-950/"], [class*="bg-luxury-950"], [class*="bg-white/"], .bg-white, .bg-gray-50) {
+  background: var(--sb-fill) !important;
+  border-color: var(--sb-line) !important;
+}
+html body.salon-portal aside a[data-nav-page],
+html body.salon-portal aside #sidebarNav .nav-item {
+  color: var(--sb-text) !important;
+  background: transparent !important;
+  border-left: 0 !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+html body.salon-portal aside a[data-nav-page]:hover,
+html body.salon-portal aside #sidebarNav .nav-item:hover {
+  color: var(--sb-strong) !important;
+  background: rgba(255, 248, 238, .08) !important;
+}
+html body.salon-portal aside a[data-nav-page]:is(.admin-nav-active, [class*="bg-luxury-900"], [class*="bg-emerald-950"], .bg-amber-500),
+html body.salon-portal aside #sidebarNav .nav-item.bg-amber-500 {
+  color: var(--sb-strong) !important;
+  background: rgba(255, 248, 238, .11) !important;
+  box-shadow: inset 3px 0 0 var(--sb-gold) !important;   /* gold bar on the left */
+}
+html body.salon-portal aside a[data-nav-page]:is(.admin-nav-active, [class*="bg-luxury-900"], [class*="bg-emerald-950"], .bg-amber-500) :is(svg, i),
+html body.salon-portal aside #sidebarNav .nav-item.bg-amber-500 :is(svg, i) { color: var(--sb-gold) !important; }
+/* Sign out: looks like the other menu items (cream text); turns soft red only on hover/focus. */
+html body.salon-portal aside a[href*="logout"] {
+  color: var(--sb-text) !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  text-decoration: none !important;
+  box-shadow: none !important;
+}
+html body.salon-portal aside a[href*="logout"] :is(span, svg, i) { color: inherit !important; }
+html body.salon-portal aside a[href*="logout"]:is(:hover, :focus-visible) {
+  color: #F2A3A3 !important;                       /* soft red, readable on dark teal */
+  background: rgba(242, 163, 163, .12) !important;
+}
+/* The cashier sign-out row had its own tinted strip. */
+html body.salon-portal aside :is(div, nav):has(> a[href*="logout"]) { background: transparent !important; }
+html body.salon-portal aside :focus-visible { outline-color: var(--sb-gold) !important; }
+html body.salon-portal aside ::selection { background: var(--sb-gold); color: #222222; }
+html body.salon-portal aside :is(h1, h2, .font-bold, .font-serif, .font-semibold:not(a *)):is(.uppercase, .text-xs, *) { color: var(--sb-strong) !important; }
+
+/* Admin/cashier phone menu bar (mobile-nav.css) */
+html body .lm-mobilebar,
+html body.salon-portal main > .lm-mobilebar { background-color: #06464A !important; color: #FFF8EE !important; border-bottom: 0; box-shadow: none !important; }
+
+/* Bottom navigation bars (customer phone nav, staff floating dock) */
+html body.salon-portal :is(#customer-mobile-nav, nav.fixed.bottom-0, .fixed.bottom-0 > nav) {
+  background: var(--cl-surface) !important;
+  border-color: var(--cl-border) !important;
+}
+
+/* ---------- Cards and surfaces ---------- */
+html body.salon-portal main :is(.bg-slate-900, .bg-slate-800, .bg-slate-950, .bg-white, .bg-gray-50, .bg-slate-50,
+  [class*="bg-slate-900/"], [class*="bg-slate-800/"], [class*="from-slate-9"], [class*="from-luxury-9"],
+  [class~="bg-[#FFFDF9]"], [class~="bg-[#F7F1E6]"], [class~="bg-[#FFF8EE]"], .service-catalog-card, .card-lift):not(button):not(a) {
+  background-color: var(--cl-surface) !important;
+  background-image: none !important;
+}
+html body.salon-portal main :is(.rounded-2xl, .rounded-xl):is(.bg-slate-900, .bg-slate-800, .bg-white, [class*="from-slate-9"], [class~="bg-[#FFFDF9]"], .card-lift) {
+  border: 1px solid var(--cl-border) !important;
+  box-shadow: var(--cl-shadow) !important;
+}
+html body.salon-portal main .rounded-2xl { border-radius: var(--cl-radius) !important; }
+/* Soft inner panels (summaries, "payment details", filter boxes) */
+html body.salon-portal :is([class~="bg-[#F7F1E6]"], [class~="bg-[#EFE6D6]"], [class~="bg-[#E8DCC8]"], .bg-sand-100, .bg-sand-200) {
+  background-color: var(--cl-subtle) !important;
+}
+/* Borders: beige/brown -> cool gray */
+html body.salon-portal :is([class~="border-[#E4D7C0]"], [class~="border-[#D9C9B4]"], [class~="border-[#EFE6D6]"], [class~="border-[#E8DCC8]"],
+  [class*="border-luxury-"], [class*="border-emerald-9"], .border-slate-800, .border-slate-700, .border-gray-100, .border-gray-200, .border-gray-300, [class*="border-bronze"], [class*="border-sand"]) {
+  border-color: var(--cl-border) !important;
+}
+html body.salon-portal :is(.divide-slate-800, .divide-gray-100, .divide-gray-200) > * + * { border-color: var(--cl-border) !important; }
+
+/* Shadows: barely there */
+html body.salon-portal :is(.shadow, .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl):not([role="dialog"]):not([role="dialog"] *):not(.fixed) {
+  box-shadow: var(--cl-shadow) !important;
+}
+html body.salon-portal .card-lift:hover { transform: none !important; box-shadow: var(--cl-shadow) !important; }
+
+/* No decorative gradients on surfaces. Buttons that used them become solid teal (below). */
+html body.salon-portal [class*="bg-gradient-to-"]:not(.h-1\.5) { background-image: none !important; }
+
+/* ---------- Text colours ---------- */
+html body.salon-portal main :is(h1, h2, h3, h4, h5, .text-white, .font-serif) { color: var(--cl-ink); }
+/* Small uppercase card labels ("NEXT APPOINTMENT", "TOTAL SERVICES AVAILED") */
+html body.salon-portal main :is(.text-gold-300, .text-gold-400, .text-gold-500, .text-gold-600) {
+  color: var(--cl-gold-ink) !important;
+}
+/* Prices / amounts used a brown-gold; make them ink. */
+html body.salon-portal :is([class~="text-[#8B6914]"], [class~="text-[#805B0B]"], .text-gold-ink) { color: var(--cl-ink) !important; }
+html body.salon-portal :is(.text-purple-300, .text-purple-400) { color: var(--cl-accent) !important; }
+
+/* ---------- Buttons ---------- */
+/* Primary: solid teal pill */
+html body.salon-portal :is(button, a, input[type="submit"]):is(.bg-luxury-600, .bg-luxury-700, .bg-luxury-500, [class*="from-luxury-6"], [class*="from-luxury-5"],
+  .bg-gold-500, .bg-gold-600, .bg-amber-500, .bg-amber-600, [class~="bg-[#006D6F]"], [class~="bg-[#B8860B]"], .bg-emerald-600, .bg-teal-600, .bg-teal-700):not([role="tab"]):not([role="radio"]):not(aside *) {
+  background: var(--cl-accent) !important;
+  background-image: none !important;
+  color: #FFFFFF !important;
+  border-color: transparent !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+}
+html body.salon-portal :is(button, a):is(.bg-luxury-600, .bg-luxury-700, [class*="from-luxury-6"], .bg-gold-500, .bg-gold-600, .bg-amber-500, [class~="bg-[#006D6F]"], [class~="bg-[#B8860B]"], .bg-emerald-600):not([role="tab"]):not([role="radio"]):not(aside *):hover:not(:disabled) {
+  background: var(--cl-accent-hover) !important;
+}
+/* Secondary: white pill with a thin border */
+html body.salon-portal :is(.service-add-button, .booking-button, [class~="bg-[#EFE6D6]"], .bg-slate-800.rounded-lg, .bg-slate-700) :is(*) { color: inherit; }
+html body.salon-portal :is(button, a):is(.service-add-button, .booking-button, [class~="bg-[#EFE6D6]"], [class*="bg-slate-800/"], [class*="bg-slate-700/"]):not(aside *) {
+  background: var(--cl-surface) !important;
+  color: var(--cl-ink) !important;
+  border: 1px solid var(--cl-border-strong) !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+}
+html body.salon-portal :is(button, a):is(.service-add-button, .booking-button, [class~="bg-[#EFE6D6]"], [class*="bg-slate-800/"], [class*="bg-slate-700/"]):not(aside *):hover:not(:disabled) { background: var(--cl-subtle) !important; }
+/* Segmented controls / tabs: soft gray track, white or teal thumb */
+html body.salon-portal [role="tablist"][class*="bg-"], html body.salon-portal [role="radiogroup"][class*="bg-"] {
+  background: var(--cl-subtle) !important;
+  border: 1px solid var(--cl-border) !important;
+}
+
+/* ---------- Form fields ---------- */
+html body.salon-portal :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]), select, textarea) {
+  background-color: var(--cl-surface) !important;
+  border: 1px solid var(--cl-border-strong) !important;
+  color: var(--cl-ink) !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+html body.salon-portal :is(input, select, textarea):focus {
+  border-color: var(--cl-accent) !important;
+  box-shadow: 0 0 0 3px rgba(0, 109, 111, .15) !important;
+  outline: none !important;
+}
+html body.salon-portal :is(input, textarea)::placeholder { color: #8B8174 !important; }
+html body.salon-portal :disabled:not(button) { background-color: var(--cl-subtle) !important; color: #8B8174 !important; }
+
+/* Tables */
+html body.salon-portal main table thead,
+html body.salon-portal main table thead tr { background: var(--cl-subtle) !important; }
+html body.salon-portal main table th { color: var(--cl-muted) !important; }
+html body.salon-portal main table :is(td, th) { border-color: var(--cl-border) !important; }
+html body.salon-portal main table tbody tr:hover { background: var(--cl-subtle) !important; }
+
+/* Dialogs: white, thin border, one soft shadow */
+html body.salon-portal [role="dialog"]:not([aria-hidden="true"]) :is(.bg-slate-900, .bg-white, [class~="bg-[#FFFDF9]"]),
+html body.salon-portal [role="dialog"][class*="bg-"] {
+  background-color: var(--cl-surface) !important;
+}
+html body.salon-portal [role="dialog"] > div > :first-child[class*="bg-[#006D6F]"] { border-radius: var(--cl-radius) var(--cl-radius) 0 0; }
+
+/* ==========================================================================
+   Home page + payment result (not a portal)
+   ========================================================================== */
+html:not(.dark) body:not(.salon-portal):not(.auth-page) { background-color: rgb(var(--c-sand-100)) !important; }
+html:not(.dark) body:not(.salon-portal) :is(.btn-sheen)::after { display: none; }
+
+/* ==========================================================================
+   Fix-ups found while reviewing screenshots
+   ========================================================================== */
+/* Dark "slate" buttons (e.g. cashier "New Walk-In Booking") -> primary teal pill. */
+html body.salon-portal :is(button, a):is(.bg-slate-900, .bg-slate-800, .bg-slate-950):is(.text-white, [class*="text-white"]):not([role="tab"]):not([role="radio"]):not(aside *) {
+  background: var(--cl-accent) !important;
+  color: #FFFFFF !important;
+  border-radius: 999px !important;
+  border-color: transparent !important;
+}
+html body.salon-portal :is(button, a):is(.bg-slate-900, .bg-slate-800, .bg-slate-950):is(.text-white, [class*="text-white"]):not([role="tab"]):not([role="radio"]):not(aside *):hover:not(:disabled) {
+  background: var(--cl-accent-hover) !important;
+}
+
+/* Round gradient badges (logo "LM", avatars, icon dots) -> solid teal instead of transparent. */
+html body :is(.rounded-full, .rounded-xl, .rounded-lg)[class*="bg-gradient-to-"]:is([class*="from-luxury-"], [class*="from-gold-"], [class*="from-emerald-"], [class*="from-teal-"], [class*="from-amber-"]):not(main .rounded-xl):not(main .rounded-lg):not(aside *) {
+  background: var(--cl-accent) !important;
+  color: #FFFFFF !important;
+  box-shadow: none !important;
+}
+html body.salon-portal aside .rounded-full[class*="bg-gradient-to-"] { background: #E0B84C !important; color: #222222 !important; }
+
+/* Sidebar: only rounded "cards" get a soft fill; footers/strips stay flat with a top line. */
+html body.salon-portal aside :is(.bg-slate-950, .bg-slate-900, .bg-slate-800, [class*="bg-slate-800/"], [class*="bg-slate-950/"], [class*="bg-luxury-950"]):not([class*="rounded"]) {
+  background: transparent !important;
+}
+
+/* Inline beige styles written straight into markup (loyalty stamps, reward boxes, etc.). */
+html body [style*="background:#FFF8EE"], html body [style*="background: #FFF8EE"],
+html body [style*="background:#FFFDF9"], html body [style*="background: #FFFDF9"],
+html body [style*="background:#F7F1E6"], html body [style*="background: #F7F1E6"] {
+  background: var(--cl-surface) !important;
+  border-color: var(--cl-border) !important;
+}
+html body [style*="#D9C79E"], html body [style*="#E8DCC8"], html body [style*="#E4D7C0"] { border-color: var(--cl-border) !important; }
+html body [style*="color:#876515"], html body [style*="color: #876515"] { color: var(--cl-gold-ink) !important; }
+
+/* Loading skeletons and scrollbars in the palette. */
+html body .skeleton {
+  background: linear-gradient(90deg, #FFF8EE 25%, #E8DCC8 37%, #FFF8EE 63%) !important;
+  background-size: 400% 100% !important;
+}
+html body ::-webkit-scrollbar-track { background: var(--cl-bg) !important; }
+html body ::-webkit-scrollbar-thumb { background: #D9C9B4 !important; border-radius: 999px; }
+
+/* Progress-bar tracks and other sand fills */
+html body.salon-portal :is(.bg-slate-950.h-2, .bg-slate-950.h-1\.5, [class*="bg-luxury-950"], .bg-sand-200, [class~="bg-[#E4D7C0]"]) { background-color: #F1E8D8 !important; }
+
+/* ==========================================================================
+   Home page footer: dark teal like the portal sidebars, gold headings,
+   cream text, cream-outlined Facebook pills that turn gold on hover.
+   ========================================================================== */
+html body footer.bg-plum {
+  background-color: #06464A !important;   /* --brand-teal-dark */
+  color: #FFF8EE !important;
+}
+/* Section headings: BRANCHES, CONTACT, FACEBOOK PAGES */
+html body footer.bg-plum :is(.text-copper, .text-copper-dark) { color: #E0B84C !important; }   /* --brand-gold */
+/* Branch names */
+html body footer.bg-plum [class~="text-white/85"] { color: #FFF8EE !important; }
+/* Addresses, phone, emails */
+html body footer.bg-plum :is([class~="text-white/55"], [class~="text-white/70"]) { color: rgba(255, 248, 238, .74) !important; }
+html body footer.bg-plum [class~="text-white/40"] { color: rgba(255, 248, 238, .58) !important; }
+html body footer.bg-plum a:not([class*="rounded-full"]):hover { color: #E0B84C !important; }
+/* Facebook pills */
+html body footer.bg-plum a[class*="rounded-full"] {
+  color: rgba(255, 248, 238, .86) !important;
+  border-color: rgba(255, 248, 238, .28) !important;
+}
+html body footer.bg-plum a[class*="rounded-full"]:hover {
+  color: #E0B84C !important;
+  border-color: #E0B84C !important;
+  background: rgba(224, 184, 76, .08) !important;
+}
+html body footer.bg-plum a[class*="rounded-full"] > span[class*="bg-white/"] { background: rgba(255, 248, 238, .10) !important; }
+/* Bottom line + copyright */
+html body footer.bg-plum [class~="border-white/10"] { border-color: rgba(255, 248, 238, .12) !important; }
+html body footer.bg-plum [class~="text-white/40"].text-center { color: rgba(255, 248, 238, .6) !important; }
+
+/* ==========================================================================
+   Auth pages: visible "Back to website" link (desktop brand panel + phone header).
+   Cream on the teal panel, gold on hover -- same palette as the sidebars.
+   ========================================================================== */
+.auth-back-site {
+  display: inline-flex; align-items: center; gap: .4rem;
+  width: fit-content; margin-bottom: 1.25rem;
+  padding: .4rem .9rem; border-radius: 999px;
+  border: 1px solid rgba(255, 248, 238, .35);
+  color: #FFF8EE; font-size: .875rem; font-weight: 600; text-decoration: none;
+  transition: color .15s, border-color .15s, background-color .15s;
+}
+.auth-back-site:hover { color: #E0B84C; border-color: #E0B84C; background: rgba(224, 184, 76, .08); }
+.auth-back-site:focus-visible { outline: 3px solid #E0B84C; outline-offset: 3px; }
+/* Phone header: LM mark on the left, back link on the right; keeps the old mb-auto spacing. */
+.hero .auth-topbar { margin-bottom: auto; display: flex; align-items: center; justify-content: space-between; gap: .75rem; width: 100%; }
+.hero .auth-topbar .mark { margin-bottom: 0 !important; }
+.hero .auth-topbar .auth-back-site { margin-bottom: 0; }
+
+/* ==========================================================================
+   Admin and staff notification cards: compact, same layout as the customer panel.
+   ========================================================================== */
+.lm-notif-head { display: flex; align-items: center; gap: .5rem; }
+.admin-notice-header { display: flex; align-items: center; gap: .5rem; }
+.admin-notice-header > strong { margin-right: auto; }
+.lm-notif-readall { margin-left: auto; min-height: 32px !important; padding: 2px 8px !important; border-radius: 6px; color: #006D6F; font-size: 12px !important; font-weight: 600; white-space: nowrap; }
+.admin-notice-header .lm-notif-readall { margin-left: 0; }
+.lm-notif-readall:hover:not(:disabled) { background: rgba(0, 109, 111, .08); }
+.lm-notif-readall:disabled { opacity: .5; cursor: default; }
+.lm-notif-title { display: flex; align-items: center; gap: 8px; font-size: 14px; line-height: 1.4; }
+.lm-notif-dot { width: 7px; height: 7px; flex-shrink: 0; border-radius: 50%; background: #006D6F; }
+.lm-notif-time { margin-left: auto; flex-shrink: 0; white-space: nowrap; font-size: 11px; color: #475569; }
+.lm-notif-line { margin-top: 3px; font-size: 12px; line-height: 1.45; color: #475569; overflow-wrap: anywhere; }
+.admin-notice-card { padding: 10px 14px !important; }
+.admin-notice-card .portal-notification-message, .portal-notification-card .portal-notification-message { margin-top: 2px; font-size: 13px; line-height: 1.45; }
+.portal-notification-card { padding: 10px 14px !important; }
+
+/* Staff on phones: the bell lives in a desktop-only header. Keep that header out of the
+   layout, but show just the bell (fixed, left of the avatar) so notifications are reachable. */
+@media (max-width: 767.98px) {
+  html body.salon-portal header.hidden:has(.portal-notification-panel) {
+    display: block !important; height: 0; min-height: 0; padding: 0 !important; border: 0 !important; overflow: visible;
+  }
+  header.hidden:has(.portal-notification-panel) > :not(:has(.portal-notification-panel)),
+  header.hidden:has(.portal-notification-panel) > :has(.portal-notification-panel):not(:has(> .portal-notification-panel)) > :not(:has(.portal-notification-panel)) { display: none !important; }
+  header.hidden:has(.portal-notification-panel) .relative:has(> .portal-notification-panel) { position: fixed; top: 24px; right: 72px; z-index: 40; }
+  header.hidden:has(.portal-notification-panel) .relative:has(> .portal-notification-panel) > button { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; background: #FFFDF9; border: 1px solid #E8DCC8; }
+  /* Tailwind top-full would mean 100% of the screen on a fixed element. */
+  header.hidden .portal-notification-panel { position: fixed !important; top: 76px !important; left: 16px !important; right: 16px !important; bottom: auto !important; width: auto !important; margin-top: 0 !important; }
+}

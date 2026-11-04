@@ -61,7 +61,7 @@ $customerName = trim($_POST['customerName'] ?? '');
 $customerPhone = trim($_POST['customerPhone'] ?? '');
 $paymentMethod = trim($_POST['paymentMethod'] ?? '');
 // Payment amounts are always calculated from the database, never POST data.
-$useLoyaltyPoints = filter_var($_POST['useLoyaltyPoints'] ?? false, FILTER_VALIDATE_BOOLEAN);
+$useLoyaltyPoints = false; // Legacy points redemption is retired; use loyalty card rewards.
 $paymentPlan = ($_POST['paymentPlan'] ?? 'deposit') === 'full' ? 'full' : 'deposit';
 $agreedToTerms = filter_var($_POST['agreedToTerms'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
@@ -301,7 +301,7 @@ try {
     // Branch-wide log (admin notification bell) so the salon hears about new online bookings.
     $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "BOOKING", ?)')
         ->execute(["New booking {$referenceCode} from {$customerName} at {$branch['branch_name']} on "
-            . date('M j, Y g:i A', strtotime($appointmentDateTime)) . ($depositAmount <= 0 ? '.' : ($payOnline ? ' — online payment in progress.' : ' — payment awaiting verification.'))]);
+            . date('M j, Y g:i A', strtotime($appointmentDateTime)) . ($depositAmount <= 0 ? '.' : ($payOnline ? ' online payment in progress.' : ' payment awaiting verification.'))]);
 
     $pdo->commit();
 

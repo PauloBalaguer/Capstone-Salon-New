@@ -75,13 +75,19 @@ function detectSessionPortal(): string
 // We configure session settings before starting it. This is a security best practice.
 
 if (session_status() === PHP_SESSION_NONE) {
-    // Keep development sessions inside the project so the PHP server does not
-    // depend on write access to XAMPP's global C:\xampp\tmp directory.
-    $sessionPath = dirname(__DIR__, 2) . '/storage/sessions';
-    if (!is_dir($sessionPath)) {
-        mkdir($sessionPath, 0770, true);
+    if (env('SESSION_DRIVER') === 'database') {
+        // Containers: files aren't durable or shared between instances.
+        require_once __DIR__ . '/DatabaseSessionHandler.php';
+        session_set_save_handler(new DatabaseSessionHandler(), true);
+    } else {
+        // Keep development sessions inside the project so the PHP server does not
+        // depend on write access to XAMPP's global C:\xampp\tmp directory.
+        $sessionPath = dirname(__DIR__, 2) . '/storage/sessions';
+        if (!is_dir($sessionPath)) {
+            mkdir($sessionPath, 0770, true);
+        }
+        session_save_path($sessionPath);
     }
-    session_save_path($sessionPath);
 
     // Force cookies to be used for sessions, which is the default but good to be explicit.
     ini_set('session.use_cookies', '1');
@@ -101,7 +107,7 @@ if (session_status() === PHP_SESSION_NONE) {
         'lifetime' => $rememberMe ? 60 * 60 * 24 * 30 : 0, // 30 days if "remember me", else until the browser closes.
         'path'     => '/', // Available for the entire domain.
         'domain'   => '',  // Set to your domain in production.
-        'secure'   => false, // Should be `true` in production (HTTPS only).
+        'secure'   => str_starts_with(getProjectFullBaseUrl(), 'https://'), // HTTPS only on a live site; plain http on local XAMPP.
         'httponly' => true, // Prevents JavaScript from accessing the cookie (XSS protection).
         'samesite' => 'Strict' // Prevents the browser from sending the cookie with cross-site requests (CSRF protection).
     ]);

@@ -134,7 +134,7 @@ final class CustomerNotifier
         if (!$row) {
             $stmt = $pdo->prepare("SELECT h.reference_code, CONCAT(h.preferred_date, ' ', COALESCE(h.preferred_time,'09:00:00')) AS scheduled,
                 h.status, h.payment_status, COALESCE(br.branch_name,'Home / Event Service (off-site)') AS branch_name,
-                CONCAT(h.event_type, IF(h.wedding_package IS NULL,'',CONCAT(' — Package ',h.wedding_package))) AS services, h.contact_email
+                CONCAT(h.event_type, IF(h.wedding_package IS NULL,'',CONCAT(' Package ',h.wedding_package))) AS services, h.contact_email
                 FROM home_service_requests h LEFT JOIN branches br ON br.id = h.branch_id WHERE h.reference_code = ? AND h.customer_id = ? LIMIT 1");
             $stmt->execute([$reference,$customerId]); $row = $stmt->fetch(); $home = true;
         }

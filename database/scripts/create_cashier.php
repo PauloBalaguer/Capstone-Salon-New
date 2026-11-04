@@ -15,6 +15,8 @@
  * <branch> must be one of: daraga, yashano, cabangan (branches.branch_key).
  */
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 require_once __DIR__ . '/../../backend/shared/config/setup/database.php';
 
 [, $email, $password, $branchKey, $displayName] = array_pad($argv, 5, null);

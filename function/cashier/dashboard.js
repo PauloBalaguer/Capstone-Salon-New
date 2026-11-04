@@ -1,4 +1,4 @@
-/* frontend/cashier/dashboard.html — Cashier Panel: Active Terminal Queue + New Walk-In.
+/* frontend/cashier/dashboard.html Cashier Panel: Active Terminal Queue + New Walk-In.
    Branch is fixed by the logged-in Cashier's account (server-side), not a
    client-side selector -- see database/migrations/007_cashier_branch_lock.sql.
    getDashboardData.php already scopes bookings/staff/inventory/services to
@@ -63,15 +63,23 @@ function renderStats() {
   const bookings = state.data.bookings;
   const today = todayISO();
 
-  const todayBookings = bookings.filter(b => b.date === today);
+  // Cancelled and no-show visits aren't appointments the desk still has to serve.
+  const todayBookings = bookings.filter(b => b.date === today && !['Cancelled', 'No-Show'].includes(b.status));
   document.getElementById('statTodayAppointments').textContent = todayBookings.length;
   document.getElementById('statPendingConfirmation').textContent = bookings.filter(b => b.status === 'Pending').length;
-  document.getElementById('statPaymentsToVerify').textContent = bookings.filter(b => b.depositAmount && !b.depositVerified).length;
+  // Same rule as the "Payments to Verify" list on payment.html, which this card opens.
+  const toVerify = bookings.filter(b => !['Cancelled', 'Completed'].includes(b.status) && !b.depositVerified &&
+    (b.paymentStatus === 'Awaiting Verification' || (b.status === 'Pending' && (b.depositAmount || b.depositReference)))).length;
+  const verifyStat = document.getElementById('statPaymentsToVerify');
+  verifyStat.textContent = toVerify;
+  // The only number in colour: red means the desk has something to act on.
+  verifyStat.classList.toggle('text-rose-600', toVerify > 0);
+  verifyStat.classList.toggle('text-slate-800', toVerify === 0);
   document.getElementById('statWalkInsToday').textContent = todayBookings.filter(b => b.depositMethod === 'Walk-in').length;
   document.getElementById('statInProgress').textContent = bookings.filter(b => b.status === 'In Progress').length;
-  // Same set the Checkout buttons in today's queue cover -- a confirmed booking
-  // for a later date isn't ready to check out yet.
-  document.getElementById('statReadyForCheckout').textContent = todayBookings.filter(b => ['Confirmed', 'In Progress'].includes(b.status)).length;
+  // Same rule as the "Ready for Checkout" list on payment.html, which this card opens.
+  document.getElementById('statReadyForCheckout').textContent = bookings.filter(b => !b.checkoutPaid && (
+    b.status === 'In Progress' || b.status === 'Completed' || (b.status === 'Confirmed' && (b.date || '') <= today))).length;
 }
 
 /* Only actions valid for the booking's current status -- Confirm Booking and
@@ -94,24 +102,23 @@ function renderQueue() {
 
   const search = (document.getElementById('queueSearch').value || '').toLowerCase().trim();
   const today = todayISO();
-  const queue = state.data.bookings.filter(b =>
+  const open = state.data.bookings.filter(b =>
     ['Pending', 'Confirmed', 'In Progress'].includes(b.status) &&
-    b.date === today &&
     (!search || b.clientName.toLowerCase().includes(search))
   );
+  const queue = open.filter(b => b.date === today);
+  // Still open from earlier days: counted on the cards, so show them instead of hiding them.
+  const earlier = open.filter(b => (b.date || '') < today);
 
   const container = document.getElementById('queueContainer');
-  if (!queue.length) {
-    container.innerHTML = `
+  const empty = `
       <div class="text-center py-12">
         <i class="fa-solid fa-mug-hot text-3xl text-gray-200 mb-2"></i>
         <p class="text-xs text-gray-400 italic">No active tickets in today's queue.</p>
       </div>
     `;
-    return;
-  }
 
-  container.innerHTML = queue.map(b => `
+  const row = b => `
     <div class="p-4 hover:bg-amber-50/40 transition-colors duration-150 flex items-center justify-between gap-3 flex-wrap">
       <div class="flex items-center space-x-3 flex-1 min-w-0">
         <div class="w-9 h-9 rounded-full bg-amber-100 text-amber-700 font-bold text-xs flex items-center justify-center shrink-0">${escapeHtml(initialsOf(b.clientName))}</div>
@@ -121,7 +128,7 @@ function renderQueue() {
         </div>
       </div>
       <div class="text-center shrink-0 w-24 hidden sm:block">
-        <p class="text-xs text-gray-400">${escapeHtml(b.time)}</p>
+        <p class="text-xs text-gray-400">${b.date !== today ? escapeHtml(b.date) + '<br>' : ''}${escapeHtml(b.time)}</p>
         <p class="text-xs font-semibold text-slate-600 truncate capitalize">${escapeHtml(b.staffName || 'Unassigned')}</p>
       </div>
       <div class="shrink-0 space-y-1 text-center">
@@ -135,7 +142,11 @@ function renderQueue() {
         ${queueActionsFor(b)}
       </div>
     </div>
-  `).join('');
+  `;
+
+  container.innerHTML = (queue.length ? queue.map(row).join('') : empty) + (earlier.length
+    ? `<div class="px-4 py-2.5 bg-amber-50 text-xs font-bold uppercase tracking-wide text-amber-800">Still open from earlier days (${earlier.length})</div>` + earlier.map(row).join('')
+    : '');
 }
 
 

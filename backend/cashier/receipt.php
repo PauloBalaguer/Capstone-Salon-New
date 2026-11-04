@@ -51,11 +51,13 @@ try {
             COALESCE(ce.first_name, NULL) AS cashierFirstName,
             COALESCE(ce.last_name, NULL) AS cashierLastName,
             a.total_price AS serviceCharges,
+            lr.reward_type AS loyaltyRewardType, lr.discount_amount AS loyaltyDiscount,
             a.deposit_method AS reservationMethod,
             CASE WHEN a.deposit_paid = 1 AND a.deposit_recorded_by IS NOT NULL THEN a.deposit_amount ELSE 0 END AS reservationReceived
         FROM payments p
         JOIN appointments a ON a.id = p.appointment_id
         JOIN customers c ON c.id = a.customer_id
+        LEFT JOIN loyalty_rewards lr ON lr.redeemed_appointment_id = a.id
         LEFT JOIN branches br ON br.id = a.branch_id
         LEFT JOIN employees e ON e.id = a.employee_id
         LEFT JOIN users u ON u.id = p.processed_by
@@ -116,6 +118,8 @@ try {
             'items' => $items,
             'subtotal' => $subtotal,
             'serviceCharges' => (float) $payment['serviceCharges'],
+            'loyaltyRewardType' => $payment['loyaltyRewardType'],
+            'loyaltyDiscount' => (float) ($payment['loyaltyDiscount'] ?? 0),
             'reservationReceived' => (float) $payment['reservationReceived'],
             'reservationMethod' => $payment['reservationMethod'],
             'tip' => (float) $payment['tipAmount'],

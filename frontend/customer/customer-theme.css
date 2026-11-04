@@ -1,6 +1,6 @@
 
 /* Customer portal treatment aligned with the public site and admin workspace. */
-@import url("../../frontend/admin/admin-theme.css?v=balanced-type-20261020-1");
+@import url("../../frontend/admin/admin-theme.css?v=20261103");
 
 #customer-mobile-nav {
   color: var(--admin-charcoal);
@@ -129,7 +129,7 @@ select {
   min-height: 2.75rem;
 }
 aside h1 { font-family: var(--font-body) !important; }
-h1, h2, h3, label, button { overflow-wrap: anywhere; }
+h1, h2, h3, label, button { overflow-wrap: break-word; }
 main { min-width: 0; min-height: 0; }
 aside { overflow-y: auto; }
 main > header { height: auto; min-height: 4rem; flex-wrap: wrap; gap: 0.75rem; padding-block: 0.75rem; }
@@ -249,7 +249,11 @@ body.services-page { height: 100dvh; min-height: 0; overflow: hidden; }
 .home-request-fields > div { display: grid; grid-template-columns: minmax(0, 9rem) minmax(0, 1fr); gap: 12px; align-items: start; }
 .home-request-fields dt { font-weight: 700; color: #475569; }
 .home-request-fields dd { min-width: 0; overflow-wrap: anywhere; }
-@media (max-width: 480px) { .home-request-fields > div { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+@media (max-width: 480px) {
+  /* Phones: label-over-value pairs, two pairs per row, so the card is half as tall. */
+  .home-request-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 14px; row-gap: 10px; }
+  .home-request-fields > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+}
 
 .customer-notification-panel > .p-3 { padding: 8px 14px; }
 .customer-notification-panel .notification-close { min-height: 32px; padding: 2px 6px; }
@@ -275,3 +279,10 @@ body.services-page { height: 100dvh; min-height: 0; overflow: hidden; }
 .appointment-filters select, .appointment-filters input { width: 100%; min-width: 0; padding: 10px; border: 1px solid #b7a995; border-radius: 8px; background: #fffaf1; color: #263b42; font-size: .875rem; }
 @media (max-width: 1100px) { .appointment-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 480px) { .appointment-filters { grid-template-columns: minmax(0, 1fr); } }
+
+/* Notification panel: compact cards, time beside the title, "Mark all as read" in the header. */
+.customer-notification-panel .notification-card { padding: 10px 14px; gap: 10px; }
+.customer-notification-panel .notification-title-row .notification-time { margin: 0 0 0 auto; flex-shrink: 0; white-space: nowrap; }
+.customer-notification-panel .notification-service { margin-top: 3px; font-size: 12px !important; font-weight: 400; line-height: 1.45; color: #475569; }
+.customer-notification-panel .notification-summary { margin-top: 2px; }
+.customer-notification-panel .notification-read-all { min-height: 32px; padding: 2px 8px; margin-left: auto; font-size: 12px !important; width: auto; white-space: nowrap; }

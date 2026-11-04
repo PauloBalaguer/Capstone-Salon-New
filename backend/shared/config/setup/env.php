@@ -5,8 +5,8 @@
  *
  * Real values live in a .env file OUTSIDE the web root, read once with
  * vlucas/phpdotenv: SALON_SECRETS_DIR/.env, or by default a salon-private
- * folder next to htdocs (C:\xampp\salon-private\.env on XAMPP). Variables the
- * server already sets (hosting panel, Apache SetEnv, system environment) win
+ * folder next to the web root (next to public_html on a host, or next to
+ * htdocs: C:\xampp\salon-private\.env on XAMPP). Variables the server already sets (hosting panel, Apache SetEnv, system environment) win
  * over the file. The file is parsed into a private array and never copied into
  * $_SERVER / $_ENV / putenv(), so phpinfo() and request dumps can't show it.
  * A missing value comes back as '' and that integration switches itself off.
@@ -19,7 +19,13 @@
 function envSecretsDir(): string
 {
     $dir = getenv('SALON_SECRETS_DIR') ?: ($_SERVER['SALON_SECRETS_DIR'] ?? '');
-    return $dir !== '' ? $dir : dirname(__DIR__, 6) . DIRECTORY_SEPARATOR . 'salon-private';
+    if ($dir !== '') return $dir;
+
+    // Hosted in the web root itself: the folder beside it (a host won't let us write any higher).
+    $besideProject = dirname(__DIR__, 5) . DIRECTORY_SEPARATOR . 'salon-private';
+    if (is_file($besideProject . DIRECTORY_SEPARATOR . '.env')) return $besideProject;
+
+    return dirname(__DIR__, 6) . DIRECTORY_SEPARATOR . 'salon-private'; // XAMPP: the project sits inside htdocs.
 }
 
 /** The setting named $key, or $default when it is unset or empty. */
@@ -61,6 +67,10 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
         $set = env($key) !== '';
         $missing += $set ? 0 : 1;
         echo str_pad($key, 26) . ($set ? 'set' : 'MISSING') . "\n";
+    }
+    // Local XAMPP runs on the built-in defaults, so these aren't counted as missing either.
+    foreach (['DB_HOST', 'DB_NAME', 'DB_USERNAME', 'DB_PASSWORD', 'APP_URL'] as $key) {
+        echo str_pad($key, 26) . (env($key) !== '' ? 'set' : 'not set (local default; required on a live server)') . "\n";
     }
     // Optional salon rule (see .env.example): hidden while unset, not counted as missing.
     echo str_pad('SALON_LATE_GRACE_MINUTES', 26) . (env('SALON_LATE_GRACE_MINUTES') !== '' ? 'set' : 'not set (late-arrival rule hidden)') . "\n";

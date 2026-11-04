@@ -10,10 +10,10 @@
   color: #fff;
   font: 800 1rem/1 'Segoe UI', Tahoma, Arial, sans-serif;
 }
-.pm-logo--gcash { background: #007dfe; }
-.pm-logo--gcash::before { content: 'G'; }
-.pm-logo--maya { background: #0b0b0b; color: #00d16c; font-size: 0.66rem; letter-spacing: -0.01em; }
-.pm-logo--maya::before { content: 'maya'; }
+.pm-logo--gcash { background: transparent url('./image/payment/gcash.webp') center / contain no-repeat; }
+.pm-logo--gcash::before { content: none; }
+.pm-logo--maya { background: transparent url('./image/payment/maya.png') center / contain no-repeat; }
+.pm-logo--maya::before { content: none; }
 .pm-logo--card { background: #334155; }
 .pm-logo--card::before {
   content: '';

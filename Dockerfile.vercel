@@ -1,0 +1,37 @@
+# Image for Vercel's Container runtime. Serves the app with Apache + mod_php.
+# Secrets are never built in: set them as Vercel environment variables.
+
+FROM composer:2 AS vendor
+WORKDIR /build
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-interaction --no-progress --prefer-dist --no-scripts --optimize-autoloader
+
+FROM php:8.3-apache-bookworm
+
+# PORT is Vercel's routing port. SALON_APP holds the code and is not web-served
+# as a whole; SALON_PUBLIC is the document root (see docker/apache-salon.conf).
+ENV PORT=80 \
+    SALON_APP=/var/www/app \
+    SALON_PUBLIC=/var/www/public \
+    SESSION_DRIVER=database
+
+# cURL, mbstring, OpenSSL and PDO already ship with this image. The app itself
+# uses pdo_mysql; mysqli is installed for any tooling that expects it.
+RUN docker-php-ext-install mysqli pdo_mysql opcache \
+    && mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
+    && a2enmod headers remoteip setenvif \
+    && a2dismod -f autoindex status \
+    && a2dissite 000-default \
+    && echo 'Listen ${PORT}' > /etc/apache2/ports.conf
+
+COPY docker/php-salon.ini "$PHP_INI_DIR/conf.d/zz-salon.ini"
+COPY docker/apache-salon.conf /etc/apache2/sites-available/salon.conf
+RUN a2ensite salon
+
+# Only what the site runs on: tests, database dumps, Git data and Composer files stay out.
+WORKDIR /var/www/app
+COPY frontend ./frontend
+COPY function ./function
+COPY backend ./backend
+COPY --from=vendor /build/vendor ./vendor
+COPY index.html /var/www/public/index.html

@@ -169,13 +169,17 @@ final class PayMongo
         if ($error = self::amountError($amount)) throw new RuntimeException($error);
         $table = $homeService ? 'home_service_requests' : 'appointments';
         $stmt = $pdo->prepare("
-            SELECT t.online_payment_token, t.paymongo_checkout_id, CONCAT_WS(' ', c.first_name, c.last_name) AS name, c.phone_number AS phone,
+            SELECT t.*, CONCAT_WS(' ', c.first_name, c.last_name) AS name, c.phone_number AS phone,
                    " . ($homeService ? 'COALESCE(t.contact_email, c.email, u.email)' : 'COALESCE(c.email, u.email)') . " AS email
             FROM {$table} t JOIN customers c ON c.id = t.customer_id LEFT JOIN users u ON u.id = c.user_id
             WHERE t.id = ?
         ");
         $stmt->execute([$id]);
         $row = $stmt->fetch() ?: [];
+        if (!$homeService && (!$row || $row['status'] !== 'Pending' || (int) $row['deposit_paid'] === 1
+            || time() >= min(strtotime($row['created_at']) + self::HOLD_MINUTES * 60, strtotime($row['appointment_datetime'])))) {
+            throw new RuntimeException('The payment deadline has passed or this booking is no longer payable. Please book again.');
+        }
         $billing = array_filter(['name' => trim($row['name'] ?? ''), 'email' => $row['email'] ?? null, 'phone' => $row['phone'] ?? null],
             fn($v) => $v !== null && $v !== '');
         $token = ($row['online_payment_token'] ?? '') ?: bin2hex(random_bytes(16));
@@ -352,6 +356,10 @@ final class PayMongo
 
         if (!$paid) {
             $reason = is_array($error) ? ($error['failed_message'] ?? $error['failed_code'] ?? null) : null;
+            // PayMongo reports a failed GCash payment as an expired checkout; word it like Maya's message.
+            if (($row['preferred_payment_method'] ?? '') === self::METHOD_GCASH && is_array($error) && ($error['failed_code'] ?? '') === 'CLOSED') {
+                $reason = 'GCash encountered an issue processing the payment.';
+            }
             if ($failed || $reason) self::logFailureOnce($pdo, $row, $homeService, current($details), $expected, $reason);
             return ['state' => $failed ? 'failed' : 'pending', 'reason' => $reason];
         }
@@ -510,6 +518,18 @@ final class PayMongo
     /** Records a verified PayMongo payment as the appointment's deposit. Caller holds the appointment lock. */
     private static function recordAppointmentPayment(PDO $pdo, array $appointment, array $paid, string $method, array $details): void
     {
+        // A hosted wallet page may stay open past the deadline. Record money
+        // actually received after the appointment starts as refundable, not a valid reservation.
+        $paidAt = (int) ($paid['attributes']['paid_at'] ?? time());
+        if (($appointment['status'] ?? '') === 'Pending' && $paidAt >= strtotime($appointment['appointment_datetime'])) {
+            $pdo->prepare("UPDATE appointments SET status = 'Cancelled', cancelled_at = NOW() WHERE id = ? AND deposit_paid = 0 AND status = 'Pending'")
+                ->execute([$appointment['id']]);
+            if ((int) ($appointment['loyalty_points_used'] ?? 0) > 0) {
+                $pdo->prepare('UPDATE customers SET loyalty_points = loyalty_points + ? WHERE id = ?')
+                    ->execute([(int) $appointment['loyalty_points_used'], $appointment['customer_id']]);
+            }
+            $appointment['status'] = 'Cancelled';
+        }
         $amount = $paid['attributes']['amount'] / 100;
         $stmt = $pdo->prepare("
             UPDATE appointments
@@ -580,7 +600,7 @@ final class PayMongo
         }
         if (!$canConfirm && !$cancelled) CustomerNotifier::notify($pdo, (int) $request['customer_id'], 'PAYMENT_VERIFIED', "Your {$peso} payment for {$reference} was received{$via}. Your schedule needs staff review; your payment is preserved and your request has not been moved.");
         $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "PAYMENT", ?)')
-            ->execute(["Home service {$reference}: {$peso} reservation fee paid online via " . self::label($method) . ($cancelled ? ' after cancellation; payment preserved for review.' : ($canConfirm ? ' — request confirmed. Assign a stylist.' : ' — schedule requires review; payment preserved.'))]);
+            ->execute(["Home service {$reference}: {$peso} reservation fee paid online via " . self::label($method) . ($cancelled ? ' after cancellation; payment preserved for review.' : ($canConfirm ? ' request confirmed. Assign a stylist.' : ' schedule requires review; payment preserved.'))]);
     }
 
     /** The paid payment object of a checkout session (home service balance links), or null if it isn't paid yet. */
@@ -607,7 +627,7 @@ final class PayMongo
                        paymongo_checkout_id, paymongo_payment_intent_id, paymongo_source_id, loyalty_points_used, reservation_amount_due
                 FROM appointments
                 WHERE preferred_payment_method IN (?, ?, ?, ?) AND deposit_paid = 0 AND status = 'Pending'
-                  AND created_at < NOW() - INTERVAL " . self::HOLD_MINUTES . " MINUTE
+                  AND (created_at <= NOW() - INTERVAL " . self::HOLD_MINUTES . " MINUTE OR appointment_datetime <= NOW())
             ");
             $stmt->execute([self::LEGACY_METHOD, ...self::METHODS]);
             foreach ($stmt->fetchAll() as $appointment) {
@@ -628,7 +648,7 @@ final class PayMongo
                 if ($cancel->rowCount() === 1) {
                     PaymentLog::record($pdo, 'checkout_expired', (int) $appointment['id'], $appointment['reference_code'],
                         $attemptId, (float) $appointment['reservation_amount_due'], 'expired',
-                        'Unpaid after ' . self::HOLD_MINUTES . ' minutes; booking cancelled and slot released.');
+                        'Payment deadline reached (30-minute hold or appointment start); booking cancelled and slot released.');
                     if ($appointment['employee_id']) {
                         Waitlist::notifyOpening($pdo, (int) $appointment['employee_id'], $appointment['appointment_datetime']);
                     }
@@ -637,7 +657,7 @@ final class PayMongo
                             ->execute([(int) $appointment['loyalty_points_used'], $appointment['customer_id']]);
                     }
                     CustomerNotifier::notify($pdo, (int) $appointment['customer_id'], 'CANCELLED',
-                        "Your booking {$appointment['reference_code']} was cancelled because the online payment wasn't completed within " . self::HOLD_MINUTES . ' minutes.');
+                        "Your booking {$appointment['reference_code']} was cancelled because the online payment wasn't completed within " . self::HOLD_MINUTES . ' minutes or before the appointment starts, whichever comes first.');
                 }
                 $pdo->commit();
             }

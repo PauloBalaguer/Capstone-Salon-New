@@ -1,5 +1,5 @@
 // Raw application state and seed data for the customer dashboard.
-// Pure data only — behavior lives in the dashboard-*.js mixin files.
+// Pure data only behavior lives in the dashboard-*.js mixin files.
 
 function customerDashboardState() {
   return {
@@ -34,7 +34,7 @@ function customerDashboardState() {
       address: '',
       structuredAddress: null,
       memberSince: '',
-      loyaltyPoints: 0,
+      loyaltyCard: { stamps: 0, totalStamps: 0, completedCards: 0, minimumSpend: 500, rewards: [] },
       loyaltyTier: { tier: 'Member', visits: 0, windowMonths: 12, nextTier: 'Silver', visitsToNext: 3, ladder: [] },
       profilePicture: '',
       notificationPrefs: {
@@ -59,7 +59,7 @@ function customerDashboardState() {
     staffList: [],
 
     selectedServicesForBooking: [],
-    bookingForm: { customerName: '', customerPhone: '', date: getLocalISODate(), time: '', staffId: '', branch: '', paymentMethod: '', paymentPlan: 'deposit', depositReference: '', useLoyaltyPoints: false, agreedToTerms: false },
+    bookingForm: { customerName: '', customerPhone: '', date: getLocalISODate(), time: '', staffId: '', branch: '', paymentMethod: '', paymentPlan: 'deposit', depositReference: '', agreedToTerms: false },
     // Booking wizard step, in customer-facing order: schedule -> stylist ->
     // review -> payment -> notifications -> terms. Schedule always comes
     // before payment so the customer validates an available slot first.
@@ -67,12 +67,11 @@ function customerDashboardState() {
     depositLocked: false,
     showBookingForm: false,
     showBookingSuccess: false,
-    loyaltyPointValue: 0.1,
 
     homeServiceRequests: [],
     isHomeServiceModalOpen: false,
     isHomeServiceSuccess: false,
-    homeServiceForm: { address: '', eventType: 'Standard Home Service', otherEventType: '', weddingPackage: '', clients: '', services: [], venueDetails: '', preferredDate: getLocalISODate(), preferredTime: '', requests: '', agreedToTerms: false },
+    homeServiceForm: { address: '', eventType: 'Standard Home Service', otherEventType: '', weddingPackage: '', clients: '', services: [], venueDetails: '', preferredDate: '', preferredTime: '', requests: '', agreedToTerms: false },
 
     bookingSuccessDetails: null,
     bookingSlotLimit: 2,
@@ -99,6 +98,7 @@ function customerDashboardState() {
     formatApptTimeRange,
     formatApptDateLong,
     formatServiceDuration,
-    getReservationLabel
+    getReservationLabel,
+    isInsideRescheduleCutoff
   };
 }

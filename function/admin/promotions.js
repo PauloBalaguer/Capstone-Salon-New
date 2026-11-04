@@ -7,6 +7,7 @@ function adminDefaultServiceForm() {
     durationMinutes: '',
     price: '',
     loyaltyMultiplier: 1,
+    loyaltyTreatmentEligible: false,
     paymentRequirement: '50% Down Payment',
     active: true
   };
@@ -84,6 +85,7 @@ function adminPromotionsApp() {
         durationMinutes: service.durationMinutes,
         price: service.price,
         loyaltyMultiplier: service.loyaltyMultiplier,
+        loyaltyTreatmentEligible: !!service.loyaltyTreatmentEligible,
         paymentRequirement: service.paymentRequirement || '50% Down Payment',
         active: service.active
       };
@@ -106,6 +108,7 @@ function adminPromotionsApp() {
         durationMinutes: this.serviceForm.durationMinutes,
         price: this.serviceForm.price,
         loyaltyMultiplier: this.serviceForm.loyaltyMultiplier,
+        loyaltyTreatmentEligible: this.serviceForm.loyaltyTreatmentEligible,
         paymentRequirement: this.serviceForm.paymentRequirement,
         active: this.serviceForm.active
       });

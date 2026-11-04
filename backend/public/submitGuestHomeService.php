@@ -92,7 +92,7 @@ if (!$agreedToTerms) {
 // and receive the quote / payment link / updates by email.
 if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Please enter a valid email address — you\'ll use it to track and reschedule your request.']);
+    echo json_encode(['success' => false, 'message' => 'Please enter a valid email address you\'ll use it to track and reschedule your request.']);
     exit();
 }
 
@@ -130,7 +130,7 @@ try {
     // submitGuestBooking.php there's no way to confirm the submitter owns a
     // phone number. Reusing a phone that already belongs to a registered
     // account would silently attach the request to that person's real
-    // account — refuse instead of guessing.
+    // account refuse instead of guessing.
     $stmt = $pdo->prepare('SELECT c.id, u.email FROM customers c LEFT JOIN users u ON u.id = c.user_id WHERE c.phone_number = ?');
     $stmt->execute([$contact]);
     $existingCustomer = $stmt->fetch();

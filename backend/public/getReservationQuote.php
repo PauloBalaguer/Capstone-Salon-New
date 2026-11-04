@@ -28,19 +28,9 @@ try {
     $stmt->execute([$branchId, ...$ids]);
     $services = $stmt->fetchAll();
     if (count($services) !== count($ids)) throw new InvalidArgumentException('One or more services are unavailable for this branch.');
-    $points = 0;
-    $redeem = filter_var($_GET['useLoyaltyPoints'] ?? false, FILTER_VALIDATE_BOOLEAN);
-    if ($redeem) {
-        if (!isLoggedIn() || ($_SESSION['user_role'] ?? '') !== 'Customer') {
-            http_response_code(401);
-            echo json_encode(['success' => false, 'message' => 'Please log in to redeem loyalty points.']); exit;
-        }
-        $stmt = $pdo->prepare('SELECT loyalty_points FROM customers WHERE user_id = ?');
-        $stmt->execute([$_SESSION['user_id']]);
-        $points = (int) $stmt->fetchColumn();
-    }
+    // Loyalty card rewards replace legacy points redemption.
     $plan = ($_GET['paymentPlan'] ?? 'deposit') === 'full' ? 'full' : 'deposit';
-    echo json_encode(['success' => true, 'quote' => ReservationPayment::quote($services, $points, $redeem, $plan)]);
+    echo json_encode(['success' => true, 'quote' => ReservationPayment::quote($services, 0, false, $plan)]);
 } catch (InvalidArgumentException $e) {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);

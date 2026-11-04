@@ -1,0 +1,77 @@
+/* Phone/small-tablet menu for portals whose sidebar is always visible
+   (admin, cashier). Below 768px the sidebar becomes a slide-in drawer opened
+   from a slim top bar; at 768px and up nothing here applies.
+   Paired with function/shared/mobile-nav.js. */
+
+.lm-mobilebar { display: none; }
+
+@media (max-width: 767.98px) {
+  body.lm-has-drawer { overflow: hidden; }
+
+  /* Sidebar -> off-canvas drawer */
+  body.lm-has-drawer .lm-drawer {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: min(18rem, 85vw) !important;
+    max-width: 85vw !important;
+    height: 100dvh !important;
+    overflow-y: auto !important;
+    z-index: 60 !important;
+    transform: translateX(-105%);
+    transition: transform .25s ease;
+    box-shadow: 0 0 40px rgba(0, 0, 0, .35);
+  }
+  body.lm-drawer-open .lm-drawer { transform: translateX(0); }
+
+  .lm-drawer-backdrop {
+    position: fixed; inset: 0; z-index: 55;
+    background: rgba(2, 6, 23, .5);
+    opacity: 0; pointer-events: none; transition: opacity .25s ease;
+  }
+  body.lm-drawer-open .lm-drawer-backdrop { opacity: 1; pointer-events: auto; }
+
+  /* Slim top bar with the menu button */
+  .lm-mobilebar {
+    display: flex; align-items: center; gap: .75rem;
+    position: sticky; top: 0; z-index: 40;
+    min-height: 3.5rem; padding: .5rem 1rem;
+    background: #06464A; color: #fff;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, .15);
+    flex-shrink: 0;
+  }
+  .lm-mobilebar button {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 2.75rem; height: 2.75rem; min-height: 2.75rem; margin-left: -.5rem;
+    border-radius: .75rem; color: inherit; background: transparent; border: 0; cursor: pointer;
+  }
+  .lm-mobilebar button:focus-visible { outline: 3px solid #E4B84A; outline-offset: 2px; }
+  .lm-mobilebar-title { font-weight: 700; font-size: 1rem; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.lm-has-drawer .lm-drawer, .lm-drawer-backdrop { transition: none; }
+}
+
+/* ---- Phone layouts for portal lists (admin / cashier) ---- */
+.booking-filter-toggle { display: none; }
+@media (max-width: 767.98px) {
+  /* Admin bookings: search + Filters button on one row; other filters open on demand. */
+  .booking-filters { grid-template-columns: minmax(0, 1fr) auto !important; align-items: end; }
+  .booking-filters > .booking-search { grid-column: 1; }
+  .booking-filters > .booking-filter-toggle { display: inline-flex; align-items: center; gap: .4rem; grid-column: 2; }
+  .booking-filters:not(.is-open) > :not(.booking-search):not(.booking-filter-toggle) { display: none !important; }
+  .booking-filters.is-open > :not(.booking-search):not(.booking-filter-toggle) { grid-column: 1 / -1; }
+  .booking-filter-count { min-width: 1.25rem; height: 1.25rem; padding: 0 .3rem; border-radius: 999px; background: #006D6F; color: #fff; font-size: .75rem; line-height: 1.25rem; text-align: center; }
+}
+
+/* Admin reports filters: label above each control; the two dates side by side. */
+@media (max-width: 767.98px) {
+  .report-filters { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .35rem .6rem !important; }
+  .report-filters > span.font-semibold { grid-column: 1 / -1; margin: .35rem 0 0 !important; }
+  .report-filters > select { grid-column: 1 / -1; width: 100%; }
+  .report-filters > input[type="date"] { width: 100%; min-width: 0; }
+  .report-filters > span:not(.font-semibold) { display: none; }
+}

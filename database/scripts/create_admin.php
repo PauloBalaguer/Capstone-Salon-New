@@ -9,6 +9,8 @@
  *   php database/scripts/create_admin.php admin2@leomejillanosalon.ph "SomeStrongPass1!" "Second Admin"
  */
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 require_once __DIR__ . '/../../backend/shared/config/setup/database.php';
 
 [, $email, $password, $displayName] = array_pad($argv, 4, null);

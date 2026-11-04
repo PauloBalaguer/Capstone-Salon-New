@@ -70,7 +70,7 @@
       retry.addEventListener('click', () => this.set(this.data)); root.append(retry);
       const note = document.createElement('p'); note.className = 'text-xs mt-2';
       note.textContent = this.optional ? 'Albay addresses only. Optional. Save a complete location to reuse it for home service. Existing addresses are preserved until you edit these fields.' : 'Albay addresses only. Enter a house/unit, street, or subdivision/purok/sitio. This service address is saved with this request; it does not change your profile.';
-      root.append(note);
+      if (root.dataset.addressNoteTop === 'true') { note.className = 'text-xs mb-2'; grid.before(note); } else root.append(note);
       this.set({});
     }
     chooseSaved() {

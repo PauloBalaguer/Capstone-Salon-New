@@ -37,7 +37,7 @@ final class Waitlist
 
         foreach ($entries as $entry) {
             $message = "Good news, {$entry['name']}! {$entry['stylist']} at {$entry['branch_name']} now has an opening on {$dateLabel} around {$time}. "
-                . 'Book soon — openings are first come, first served.';
+                . 'Book soon openings are first come, first served.';
             if ($entry['customer_id']) {
                 CustomerNotifier::notify($pdo, (int) $entry['customer_id'], 'WAITLIST_OPENING', $message);
             } else {

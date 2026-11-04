@@ -41,8 +41,8 @@ final class CancellationPolicy
     public static function summary(): string
     {
         $hours = self::FREE_CANCEL_HOURS;
-        return "Deposit policy: reservation deposits are non-refundable. Need a different time? Reschedule instead — from My Appointments "
-            . "at least {$hours} hours before your appointment, or by contacting the branch — and your deposit carries over. "
+        return "Deposit policy: reservation deposits are non-refundable. Need a different time? Reschedule instead from My Appointments "
+            . "at least {$hours} hours before your appointment, or by contacting the branch and your deposit carries over. "
             . "If you cancel or miss your appointment, the deposit is kept, but the booking can still be rescheduled later using that deposit.";
     }
 
@@ -138,7 +138,7 @@ final class CancellationPolicy
         };
         CustomerNotifier::notify($pdo, (int) $appointment['customer_id'], 'PAYMENT_FORFEITED',
             "Your {$peso} reservation deposit for {$reference} is non-refundable and was kept because {$reason}. "
-            . 'You can still reschedule this booking — from My Appointments or by contacting the branch — and the deposit will carry over.');
+            . 'You can still reschedule this booking from My Appointments or by contacting the branch and the deposit will carry over.');
         return "Your {$peso} deposit is non-refundable, but you can still reschedule this booking and use it.";
     }
 }

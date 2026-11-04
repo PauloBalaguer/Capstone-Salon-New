@@ -1,4 +1,4 @@
-/* frontend/cashier/payment.html — single-ticket checkout terminal.
+/* frontend/cashier/payment.html single-ticket checkout terminal.
    Reads ?ref=<reference_code> from the URL, loads that booking from the
    shared getDashboardData.php payload, lets the cashier add retail
    products + a tip, then posts to payment.php and redirects to the
@@ -43,6 +43,8 @@ async function init() {
     document.getElementById('ticketTerminal').classList.add('hidden');
     renderCheckoutList();
     renderVerifyList();
+    // The dashboard cards link here with #verifyList or #checkoutList.
+    if (window.location.hash) document.querySelector(window.location.hash)?.scrollIntoView({ block: 'start' });
     return;
   }
 
@@ -56,6 +58,7 @@ async function init() {
   }
 
   state.ticket = ticket;
+  await loadLoyaltyCard();
   state.branchInventory = result.inventory.filter(i => i.branchId === ticket.branchId);
 
   const branch = result.branches.find(b => b.branchKey === ticket.branchId);
@@ -102,8 +105,8 @@ function renderCheckoutList() {
         <span class="block text-xs text-slate-400">${escapeHtml(b.date || '')} ${escapeHtml(b.time || '')}</span>
       </td>
       <td class="px-5 py-3.5 font-semibold text-slate-800 capitalize">${escapeHtml(b.clientName)}</td>
-      <td class="px-5 py-3.5">${escapeHtml(b.serviceName || '—')}</td>
-      <td class="px-5 py-3.5 capitalize">${escapeHtml(b.staffName || '—')}</td>
+      <td class="px-5 py-3.5">${escapeHtml(b.serviceName || '')}</td>
+      <td class="px-5 py-3.5 capitalize">${escapeHtml(b.staffName || '')}</td>
       <td class="px-5 py-3.5"><span class="text-xs font-bold px-2 py-0.5 rounded ${statusBadgeClass(b.status)}">${escapeHtml(b.status)}</span></td>
       <td class="px-5 py-3.5 text-right font-bold text-slate-800 whitespace-nowrap">${CashierApp.formatCurrency(b.price)}</td>
       <td class="px-5 py-3.5 text-right"><a href="payment.html?ref=${encodeURIComponent(b.id)}" class="inline-block bg-amber-500 hover:bg-amber-600 text-slate-950 px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap">Checkout</a></td>
@@ -132,7 +135,7 @@ function renderVerifyList() {
   }
 
   tbody.innerHTML = toVerify.map(b => {
-    const method = PortalPresentation.methodLabel(b.depositMethod && b.depositMethod !== 'Walk-in' ? b.depositMethod : (b.paymentMethod || '—'));
+    const method = PortalPresentation.methodLabel(b.depositMethod && b.depositMethod !== 'Walk-in' ? b.depositMethod : (b.paymentMethod || ''));
     return `
     <tr class="align-top">
       <td class="px-5 py-3.5">
@@ -142,14 +145,14 @@ function renderVerifyList() {
       </td>
       <td class="px-5 py-3.5 font-semibold text-slate-800 capitalize">${escapeHtml(b.clientName)}</td>
       <td class="px-5 py-3.5 text-right whitespace-nowrap">
-        <span class="font-bold text-slate-800">${b.depositAmount ? CashierApp.formatCurrency(b.depositAmount) : '—'}</span>
+        <span class="font-bold text-slate-800">${b.depositAmount ? CashierApp.formatCurrency(b.depositAmount) : ''}</span>
         <span class="block text-xs text-slate-400">of ${b.requiredAmount ? CashierApp.formatCurrency(b.requiredAmount) : CashierApp.formatCurrency(b.price)}</span>
       </td>
       <td class="px-5 py-3.5">
         <span class="font-medium text-slate-700">${escapeHtml(method)}</span>
         ${b.depositReference ? `<span class="block font-mono text-xs text-slate-400">${escapeHtml(b.depositReference)}</span>` : ''}
       </td>
-      <td class="px-5 py-3.5 whitespace-nowrap text-slate-500">${escapeHtml(b.submittedAt || '—')}</td>
+      <td class="px-5 py-3.5 whitespace-nowrap text-slate-500">${escapeHtml(b.submittedAt || '')}</td>
       <td class="px-5 py-3.5 text-right"><button data-ref="${escapeHtml(b.id)}" class="btn-verify bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap">View Payment Details</button></td>
     </tr>`;
   }).join('');
@@ -358,10 +361,56 @@ function renderCart() {
 /* Mirrors the same "already-paid deposit reduces what's due now" logic
    backend/cashier/payment.php uses -- shown here so the cashier sees the
    real amount due before submitting, not the full service price again. */
+async function loadLoyaltyCard() {
+  const select = document.getElementById('loyaltyRewardSelect');
+  const treatment = document.getElementById('loyaltyTreatmentSelect');
+  const info = document.getElementById('loyaltyCardInfo');
+  try {
+    const result = await CashierApp.get('getLoyaltyCard.php', { reference: state.ticket.id });
+    if (!result.success) { info.textContent = result.message || 'Loyalty card unavailable.'; return; }
+    state.loyalty = result;
+    info.textContent = result.card.stamps + '/10 stamps · ' + result.card.rewards.length + ' available reward(s). Earn 1 stamp with at least ₱500 in net salon services.';
+    const deposit = state.ticket.depositPaid ? Number(state.ticket.depositAmount || 0) : 0;
+    for (const reward of result.card.rewards) {
+      const discount = Math.round(state.ticket.price * 20) / 100;
+      if (reward.type === 'discount20' && deposit > Math.round((state.ticket.price - discount) * 100) / 100) continue;
+      if (reward.type === 'treatment' && !result.treatments.some(t => deposit <= Math.round((state.ticket.price - t.discount) * 100) / 100 && t.discount > 0)) continue;
+      select.add(new Option(reward.type === 'discount20' ? '20% off salon services' : 'Free eligible hair treatment', reward.id));
+    }
+    for (const item of result.treatments) {
+      if (deposit <= Math.round((state.ticket.price - item.discount) * 100) / 100 && item.discount > 0) treatment.add(new Option(item.name, item.id));
+    }
+    select.disabled = result.pointsUsed > 0 || select.options.length === 1;
+    if (result.pointsUsed > 0) document.getElementById('loyaltyRewardHint').textContent = 'Points were used on this booking. Save stamp rewards for another visit.';
+    else if (select.options.length === 1 && result.card.rewards.length) document.getElementById('loyaltyRewardHint').textContent = 'No reward fits this booking’s services and reservation payment. Save your rewards for a later visit.';
+    select.addEventListener('change', () => {
+      const reward = result.card.rewards.find(r => String(r.id) === select.value);
+      const show = reward?.type === 'treatment';
+      treatment.classList.toggle('hidden', !show);
+      document.getElementById('loyaltyTreatmentLabel').classList.toggle('hidden', !show);
+      renderTotals();
+    });
+    treatment.addEventListener('change', renderTotals);
+  } catch (error) { info.textContent = 'Could not load rewards. Refresh before redeeming a reward.'; }
+}
+
+function selectedLoyaltyDiscount() {
+  if (!state.loyalty || !state.ticket) return 0;
+  const id = document.getElementById('loyaltyRewardSelect').value;
+  const reward = state.loyalty.card.rewards.find(r => String(r.id) === id);
+  if (!reward) return 0;
+  if (reward.type === 'discount20') return Math.round(state.ticket.price * 20) / 100;
+  const serviceId = document.getElementById('loyaltyTreatmentSelect').value;
+  return Number(state.loyalty.treatments.find(t => String(t.id) === serviceId)?.discount || 0);
+}
+
 function renderTotals() {
   const t = state.ticket;
   const productsTotal = state.cartProducts.reduce((sum, p) => sum + p.price * p.qty, 0);
-  const serviceCharges = t ? t.price : 0;
+  const rewardDiscount = selectedLoyaltyDiscount();
+  const serviceCharges = Math.round(((t ? t.price : 0) - rewardDiscount) * 100) / 100;
+  document.getElementById('loyaltyDiscountRow').classList.toggle('hidden', rewardDiscount <= 0);
+  document.getElementById('loyaltyDiscountDisplay').textContent = '− ' + CashierApp.formatCurrency(rewardDiscount);
   const reservationReceived = (t && t.depositPaid && t.depositVerified) ? (t.depositAmount || 0) : 0;
   const remainingBalance = Math.max(0, serviceCharges - reservationReceived);
   // Tips are Cash-only and never fold into a GCash/Maya transaction amount.
@@ -410,7 +459,7 @@ function updateCashChange(total) {
   document.getElementById('changeDueDisplay').textContent = CashierApp.formatCurrency(change);
   btn.disabled = received < total - 0.001;
   hint.textContent = btn.disabled
-    ? `Enter the cash received — at least ${CashierApp.formatCurrency(total)}.`
+    ? `Enter the cash received at least ${CashierApp.formatCurrency(total)}.`
     : (change > 0 ? `Give ${CashierApp.formatCurrency(change)} change.` : 'Exact amount received.');
 }
 
@@ -554,6 +603,8 @@ async function processPayment() {
 
   const payload = {
     reference: state.ticket.id,
+    loyaltyRewardId: document.getElementById('loyaltyRewardSelect').value || 0,
+    loyaltyServiceId: document.getElementById('loyaltyTreatmentSelect').value || 0,
     paymentMethod: state.selectedMethod,
     tip: state.selectedMethod === 'Cash' ? state.tip : 0,
     products: JSON.stringify(state.cartProducts.map(p => ({ id: p.id, qty: p.qty })))

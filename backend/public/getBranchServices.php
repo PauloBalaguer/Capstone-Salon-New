@@ -3,7 +3,7 @@
 /**
  * Public: Get Branch Services
  *
- * No login required — powers the "Quick Guest Booking" service checkboxes
+ * No login required powers the "Quick Guest Booking" service checkboxes
  * on the public landing page.
  */
 

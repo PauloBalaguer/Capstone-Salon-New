@@ -21,11 +21,8 @@ require_once __DIR__ . '/env.php'; // Also hides PHP error details from response
  */
 class Database
 {
-    private static string $host = '127.0.0.1';
-    private static string $port = '3307'; // Matches the [mysqld] port in this XAMPP install.
-    private static string $db_name = 'new capstone_salon'; // Existing schema name includes a space.
-    private static string $username = 'root';
-    private static string $password = ''; // Default for XAMPP
+    // Set by the test harness to point at a throwaway copy; wins over DB_NAME.
+    private static ?string $db_name = null;
     private static string $charset = 'utf8mb4';
 
     private static ?PDO $instance = null;
@@ -44,24 +41,38 @@ class Database
      */
     public static function getInstance(): PDO
     {
-        if (self::$instance === null) {
-            $dsn = "mysql:host=" . self::$host . ";port=" . self::$port . ";dbname=" . self::$db_name . ";charset=" . self::$charset;
-            $options = [
-                PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_EMULATE_PREPARES   => false,
-            ];
+        return self::$instance ??= self::connect();
+    }
 
-            try {
-                self::$instance = new PDO($dsn, self::$username, self::$password, $options);
-            } catch (PDOException $e) {
-                // In a production environment, you should log this error, not display it.
-                // For this project, we'll stop execution with a generic message.
-                die('Database connection failed. Please check your configuration.');
-            }
+    /**
+     * Opens a new connection. Everything except database sessions should use
+     * getInstance(), so one request holds one connection.
+     */
+    public static function connect(): PDO
+    {
+        // The defaults are the local XAMPP setup; a live server sets DB_* (see .env.example).
+        $host = env('DB_HOST', '127.0.0.1');
+        $port = env('DB_PORT', '3306');
+        $dbName = self::$db_name ?? env('DB_NAME', 'new_capstone_salon');
+        $dsn = "mysql:host={$host};port={$port};dbname={$dbName};charset=" . self::$charset;
+        $options = [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES   => false,
+        ];
+        // A database on another network: encrypt the connection and verify the server.
+        if (env('DB_SSL_CA') !== '') {
+            $options[PDO::MYSQL_ATTR_SSL_CA] = env('DB_SSL_CA');
+            $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
         }
 
-        return self::$instance;
+        try {
+            return new PDO($dsn, env('DB_USERNAME', 'root'), env('DB_PASSWORD'), $options);
+        } catch (PDOException $e) {
+            // In a production environment, you should log this error, not display it.
+            // For this project, we'll stop execution with a generic message.
+            die('Database connection failed. Please check your configuration.');
+        }
     }
 
     /**

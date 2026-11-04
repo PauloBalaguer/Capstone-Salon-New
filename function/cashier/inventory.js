@@ -1,4 +1,4 @@
-/* frontend/cashier/inventory.html — stock analytics, adjustments, product catalog, EOD register.
+/* frontend/cashier/inventory.html stock analytics, adjustments, product catalog, EOD register.
    Branch is fixed by the logged-in Cashier's account (server-side); see
    database/migrations/007_cashier_branch_lock.sql. inventory/eodByBranch are
    already scoped to that one branch by getDashboardData.php. branchId is

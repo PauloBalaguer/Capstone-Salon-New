@@ -6,7 +6,7 @@
  * No login required. Looks up a guest's salon appointment or home &
  * event service request by reference code + the mobile number on file,
  * for the "Track your booking" flow on the public landing page. Both
- * reference and phone are required — a booking's reference alone isn't
+ * reference and phone are required a booking's reference alone isn't
  * treated as sufficient proof of ownership, since it's shown on screen
  * and could be shoulder-surfed or shared.
  */

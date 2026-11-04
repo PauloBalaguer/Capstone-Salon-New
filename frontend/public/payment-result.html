@@ -26,9 +26,11 @@
     }
   </script>
   <link rel="stylesheet" href="../../frontend/public/home-theme.css?v=teal-gold-20261021" />
-  <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=teal-gold-20261021" />
+  <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=20261103b" />
   <link rel="stylesheet" href="../../frontend/public/public-colors.css?v=teal-gold-20261021" />
-  <link rel="stylesheet" href="../../frontend/shared/payment-methods.css" />
+  <link rel="stylesheet" href="../../frontend/shared/payment-methods.css?v=20261104-payment-logos" />
+  <!-- Clean theme: loaded last so it overrides older theme colours. -->
+  <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
 </head>
 
 <body class="bg-sand-100 text-ink font-body min-h-screen flex items-center justify-center p-4">
@@ -36,6 +38,7 @@
     <p class="text-[11px] font-bold tracking-widest uppercase text-ink/50">Reservation payment</p>
     <h1 id="resultTitle" class="font-display text-2xl mt-2">Checking your payment…</h1>
     <p id="resultMessage" class="text-sm text-ink/60 mt-3">This only takes a moment.</p>
+    <p id="resultHold" class="hidden text-sm text-ink/60 mt-2" role="timer"></p>
     <p id="resultReason" class="hidden text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg p-3 mt-3"></p>
     <dl id="resultDetails" class="hidden text-sm text-left border-y border-bronze/40 py-3 mt-5 space-y-1">
       <div class="flex justify-between gap-3"><dt class="text-ink/50">Reference</dt><dd id="resultRef" class="font-bold"></dd></div>

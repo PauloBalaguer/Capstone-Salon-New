@@ -140,7 +140,7 @@ try {
 
         $message = $requiresPayment
             ? "Your home service request {$referenceCode} has a final quote of ₱" . number_format($quotePrice, 2) . " and requires a ₱" . number_format($reservationFee, 2) . ' reservation fee (down payment) to confirm it.'
-                . ($payUrl ? " Pay it online with GCash, Maya or card: {$payUrl} — or use Track My Request." : ' Please contact the branch to arrange payment.')
+                . ($payUrl ? " Pay it online with GCash, Maya or card: {$payUrl} or use Track My Request." : ' Please contact the branch to arrange payment.')
             : "Your home service request {$referenceCode} has a final quote of ₱" . number_format($quotePrice, 2) . ' with no reservation payment required.';
         CustomerNotifier::notify($pdo, $customerId, 'QUOTE_READY', $message);
 

@@ -3,7 +3,7 @@
 /**
  * Admin: Create/Edit Inventory Item
  *
- * The admin form collects name/branch/stock/minQty/costPrice/salePrice —
+ * The admin form collects name/branch/stock/minQty/costPrice/salePrice
  * sku and type aren't part of that UI, so new rows get sensible defaults
  * (type 'Retail', sku NULL). salePrice is optional (supplies that are never
  * resold to a customer, e.g. gloves, don't need one), costPrice is not.

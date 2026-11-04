@@ -22,6 +22,7 @@ require_once '../../backend/shared/config/notifications/CustomerNotifier.php';
 require_once '../../backend/shared/config/security/EodLock.php';
 require_once '../../backend/shared/config/booking/Scheduling.php';
 require_once '../../backend/shared/config/helpers/LoyaltyTier.php';
+require_once '../../backend/shared/config/helpers/LoyaltyCard.php';
 require_once '../../backend/shared/config/payments/ReservationPayment.php';
 
 sendCorsHeaders();
@@ -164,7 +165,7 @@ try {
     }
 
     $stmt = $pdo->prepare('
-        SELECT s.id, s.service_name AS name, s.price, s.loyalty_multiplier AS loyaltyMultiplier
+        SELECT s.id, s.service_name AS name, s.price, s.loyalty_treatment_eligible, s.loyalty_multiplier AS loyaltyMultiplier
         FROM appointment_services aps
         JOIN services s ON s.id = aps.service_id
         WHERE aps.appointment_id = ?
@@ -212,6 +213,14 @@ try {
     }
 
     $servicesTotal = (float) $appointment['total_price'];
+    $rewardId = filter_var($_POST['loyaltyRewardId'] ?? 0, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
+    $rewardServiceId = filter_var($_POST['loyaltyServiceId'] ?? 0, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
+    if ($rewardId === false || $rewardServiceId === false) throw new RuntimeException('Invalid loyalty reward selection.');
+    $loyaltyDiscount = LoyaltyCard::redeem($pdo, $appointment, $services, $rewardId, $rewardServiceId);
+    $servicesTotal = round($servicesTotal - $loyaltyDiscount, 2);
+    if ($loyaltyDiscount > 0) {
+        $pdo->prepare('UPDATE appointments SET total_price = ? WHERE id = ?')->execute([$servicesTotal, $appointmentId]);
+    }
     $productsTotal = array_reduce($productLines, fn($sum, $p) => $sum + ($p['qty'] * $p['price']), 0.0);
 
     // A verified reservation deposit (see backend/cashier|admin
@@ -244,6 +253,16 @@ try {
         VALUES (?, ?, ?, ?, ?, ?)
     ');
     $receiptPrices = ReservationPayment::receiptServicePrices($services, $servicesTotal);
+    if ($loyaltyDiscount > 0 && $rewardServiceId > 0) {
+        $rewardTypeStmt = $pdo->prepare('SELECT reward_type FROM loyalty_rewards WHERE id = ?');
+        $rewardTypeStmt->execute([$rewardId]);
+        if ($rewardTypeStmt->fetchColumn() === 'treatment') {
+            $receiptPrices = ReservationPayment::receiptServicePrices($services, (float) $appointment['total_price']);
+            foreach ($services as $index => $service) {
+                if ((int) $service['id'] === $rewardServiceId) { $receiptPrices[$index] = 0; break; }
+            }
+        }
+    }
     if (!$services) {
         $insItem->execute([$paymentId, 'Service', 'Booked salon services', 1, $servicesTotal, $servicesTotal]);
     }
@@ -276,19 +295,8 @@ try {
 
     $pdo->prepare("UPDATE appointments SET status = 'Completed', payment_status = 'Fully Paid' WHERE id = ?")->execute([$appointmentId]);
 
-    // Loyalty points are earned on completed services only (not tip/products),
-    // at a deliberately modest rate so redeem-then-reearn can't net-positive
-    // against the PHP0.10/point redemption rate in submitBooking.php. Each
-    // service can carry its own loyalty_multiplier (customer scoring --
-    // e.g. a bridal package can be weighted to earn more than a basic
-    // trim), applied here as a price-weighted average across the
-    // appointment's services so the total still tracks what was actually
-    // paid (servicesTotal, which may already reflect a promo discount).
-    $pointsEarned = LoyaltyTier::earnedPoints($servicesTotal, $services);
-    if ($pointsEarned > 0) {
-        $pdo->prepare('UPDATE customers SET loyalty_points = loyalty_points + ? WHERE id = ?')
-            ->execute([$pointsEarned, $appointment['customer_id']]);
-    }
+    // Shared branch-independent stamp; net paid services exclude products and tips.
+    LoyaltyCard::earn($pdo, $appointment, $servicesTotal);
 
     $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "PAYMENT", ?)')
         ->execute(["Booking {$referenceCode} paid in full (PHP " . number_format($total, 2) . " via {$paymentMethod})."]);

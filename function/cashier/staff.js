@@ -1,4 +1,4 @@
-/* frontend/cashier/staff.html — automatic staff availability + booking assignment.
+/* frontend/cashier/staff.html automatic staff availability + booking assignment.
    Branch is fixed by the logged-in Cashier's account (server-side); see
    database/migrations/007_cashier_branch_lock.sql. staffList/bookings are
    already scoped to that one branch by getDashboardData.php.
@@ -86,7 +86,7 @@ function renderTicketOptions() {
   const select = document.getElementById('staffTicketSelect');
   const prev = select.value;
   select.innerHTML = tickets.length
-    ? '<option value="">Select a booking...</option>' + tickets.map(t => `<option value="${t.id}">${escapeHtml(t.id)} — ${escapeHtml(titleCase(t.clientName))} (${escapeHtml(t.serviceName || 'No service')})</option>`).join('')
+    ? '<option value="">Select a booking...</option>' + tickets.map(t => `<option value="${t.id}">${escapeHtml(t.id)} ${escapeHtml(titleCase(t.clientName))} (${escapeHtml(t.serviceName || 'No service')})</option>`).join('')
     : '<option value="">No Confirmed bookings need staffing</option>';
   if (prev && tickets.some(t => t.id === prev)) select.value = prev;
   loadQualifiedStaff(select.value);

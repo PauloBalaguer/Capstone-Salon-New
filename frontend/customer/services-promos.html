@@ -47,15 +47,26 @@
 
     .card-lift { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
     .card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(0, 109, 111, 0.35); }
+  
+    /* On/off switch: grey pill when off, green when on, white knob slides across. */
+    .lm-switch { position:relative !important; display:inline-block !important; flex:none !important; width:52px !important; height:30px !important; min-width:52px !important; min-height:0 !important; max-height:30px !important; box-sizing:border-box !important; vertical-align:middle; padding:0 !important; border-radius:999px !important; border:2px solid #cfcfcf !important; background:#d4d4d4 !important; cursor:pointer; transition:background-color .2s, border-color .2s; }
+    .lm-switch.is-on { background:#8bc34a !important; border-color:#8bc34a !important; }
+    .lm-switch:focus-visible { outline:3px solid #006d6f; outline-offset:2px; }
+    .lm-switch-knob { position:absolute !important; top:0 !important; left:0 !important; width:26px !important; height:26px !important; min-height:0 !important; box-sizing:border-box !important; border-radius:50% !important; background:#fff !important; border:0 !important; box-shadow:0 1px 3px rgba(0,0,0,.3); transform:translateX(0); transition:transform .2s; }
+    .lm-switch.is-on .lm-switch-knob { transform:translateX(22px); }
+    @media (prefers-reduced-motion: reduce) { .lm-switch, .lm-switch-knob { transition:none; } }
   </style>
-  <link rel="stylesheet" href="../../frontend/customer/customer-theme.css?v=teal-gold-20261021">
-  <link rel="stylesheet" href="../../frontend/shared/payment-methods.css">
+  <link rel="stylesheet" href="../../frontend/customer/customer-theme.css?v=20261104-notif">
+  <link rel="stylesheet" href="../../frontend/shared/payment-methods.css?v=20261104-payment-logos">
   <script src="../../function/customer/theme-config.js"></script>
 <script src="../../function/shared/booking-validation.js"></script>
-  <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=teal-gold-20261021" />
-  <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=teal-gold-20261021" />
+  <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=20261103b" />
+  <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=20261103-signout-cream" />
   <script src="../../function/shared/toast.js"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
+  <script src="../../function/shared/pending-payment.js"></script>
+  <!-- Clean theme: loaded last so it overrides older theme colours. -->
+  <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
 </head>
 <body class="salon-portal services-page bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
@@ -88,10 +99,7 @@
               <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
               <span>My Profile</span>
             </a>
-            <a href="../../backend/auth/logout.php?portal=customer" class="md:hidden w-full text-left flex items-center space-x-3 px-3.5 py-2.5 text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4"></path></svg>
-              <span>Sign Out</span>
-            </a>
+            <a href="../../backend/auth/logout.php?portal=customer" class="md:hidden w-full text-left flex items-center space-x-3 px-3.5 py-2.5 text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H5v14h4M13 8l4 4-4 4M9 12h12"/></svg><span>Sign Out</span></a>
           </div>
         </div>
 
@@ -123,7 +131,7 @@
         </nav>
       </div>
       <div class="p-4 border-t border-slate-800">
-        <a href="../../backend/auth/logout.php?portal=customer" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 013-3V7a3 3 0 013-3h4"></path></svg><span>Sign Out</span></a>
+        <a href="../../backend/auth/logout.php?portal=customer" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H5v14h4M13 8l4 4-4 4M9 12h12"/></svg><span>Sign Out</span></a>
       </div>
     </aside>
 
@@ -147,10 +155,7 @@
                 <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                 <span>My Profile</span>
               </a>
-              <a href="../../backend/auth/logout.php?portal=customer" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4"></path></svg>
-                <span>Sign Out</span>
-              </a>
+              <a href="../../backend/auth/logout.php?portal=customer" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H5v14h4M13 8l4 4-4 4M9 12h12"/></svg><span>Sign Out</span></a>
             </div>
           </div>
           <h2 class="text-lg font-serif font-bold text-white">Services & Promotions</h2>
@@ -165,33 +170,30 @@
           <div x-show="isNotificationPanelOpen" x-transition class="customer-notification-panel absolute top-full right-0 mt-2 w-80 bg-slate-800 border border-luxury-800 rounded-lg shadow-lg z-30 flex flex-col" style="display: none;">
             <div class="p-3 border-b border-slate-700 shrink-0 flex items-center justify-between">
               <h4 class="text-base font-bold text-white">Notifications</h4>
+              <button type="button" x-show="notifications.length > 0" @click="markAllNotificationsAsRead()" :disabled="unreadNotificationCount === 0" class="notification-read-all font-semibold">Mark all as read</button>
               <button type="button" @click="isNotificationPanelOpen = false" aria-label="Close notifications" class="notification-close">&times;</button>
             </div>
             <div class="notification-list overflow-y-auto flex-1" aria-live="polite">
               <template x-if="notifications.length === 0"><p class="text-xs text-slate-400 text-center p-8">You're all caught up. Booking updates will appear here.</p></template>
-              <template x-for="notif in notifications" :key="notif.id || notif.time + notif.message">
+              <template x-for="notif in displayNotifications" :key="notif.id || notif.time + notif.message">
                 <article class="notification-card" :class="{ 'notification-unread': !notif.read }">
                   <div class="notification-status" :class="{ 'notification-status-cancelled': notif.type === 'CANCELLED' }" aria-hidden="true">
                     <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="notif.icon"></path></svg>
                   </div>
                   <div class="notification-copy">
-                    <div class="notification-title-row"><p class="notification-title" x-text="notificationDetails(notif).title"></p><span x-show="!notif.read" class="notification-dot" aria-label="Unread"></span></div>
+                    <div class="notification-title-row"><p class="notification-title" x-text="notificationDetails(notif).title"></p><span x-show="!notif.read" class="notification-dot" aria-label="Unread"></span><time class="notification-time" :datetime="notif.createdAt || ''" :title="notif.time" x-text="notificationTime(notif)"></time></div>
                     <p class="notification-summary" x-show="notificationDetails(notif).summary" x-text="notificationDetails(notif).summary"></p>
                     <span class="notification-state-badge" x-show="notificationDetails(notif).status" x-text="notificationDetails(notif).status"></span>
-                    <p class="notification-service" x-show="notificationDetails(notif).service" x-text="notificationDetails(notif).service"></p>
-                    <p class="notification-branch" x-show="notificationDetails(notif).branch" x-text="notificationDetails(notif).branch"></p>
-                    <p class="notification-schedule" x-show="notificationDetails(notif).schedule" x-text="notificationDetails(notif).schedule"></p>
-                    <time class="notification-time" :datetime="notif.createdAt || ''" :title="notif.time" x-text="'Received ' + notificationTime(notif)"></time>
+                    <p class="notification-service" x-show="notificationDetails(notif).service || notificationDetails(notif).schedule" x-text="[notificationDetails(notif).service, notificationDetails(notif).branch, notificationDetails(notif).schedule].filter(Boolean).join(' · ')"></p>
                   </div>
                 </article>
               </template>
             </div>
-            <div x-show="notifications.length > 0" class="p-2 border-t border-slate-700 shrink-0">
-              <button type="button" @click="markAllNotificationsAsRead()" :disabled="unreadNotificationCount === 0" class="notification-read-all w-full text-center font-semibold">Mark all as read</button>
-            </div>
           </div>
         </div>
       </header>
+
+      <div id="pendingPaymentNotice" class="shrink-0" aria-live="polite"></div>
 
       <div x-show="isBooting" class="p-6 space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -221,62 +223,143 @@
 
             <div class="bg-slate-900 border border-luxury-900 rounded-2xl p-5 space-y-4">
               <h3 class="font-serif text-base font-bold text-white" x-text="showBookingForm ? 'Book an Appointment' : 'Explore Our Offerings'"></h3>
-              <div class="service-branch-row" x-show="!showBookingForm && !showBookingSuccess">
-                <label for="branch-select-services" class="text-xs text-slate-400">Select Branch:</label>
-                <select id="branch-select-services" x-model="selectedBranchForServices" @change="clearBookingSelection(); resetServiceFilters(); prefillBookingForm()" class="bg-slate-950 text-slate-200 rounded-lg p-2 border border-slate-800 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500">
-                  <option value="daraga">Leo Mejillano Salon (Daraga)</option>
-                  <option value="yashano">Skin Brows (Yashano)</option>
-                  <option value="cabangan">Lash & Brows (Cabangan)</option>
-                </select>
+              <!-- Branch: three short pills instead of a dropdown (full name shown below). -->
+              <div x-show="!showBookingForm && !showBookingSuccess" class="space-y-1.5">
+                <div role="radiogroup" aria-label="Branch" class="grid grid-cols-3 gap-1 p-1 rounded-xl bg-[#EFE6D6]">
+                  <template x-for="b in serviceBranches" :key="b.key">
+                    <button type="button" role="radio" :aria-checked="(selectedBranchForServices === b.key).toString()" :title="b.name"
+                            @click="chooseServiceBranch(b.key)"
+                            :class="selectedBranchForServices === b.key ? 'bg-[#006D6F] text-white shadow' : 'text-[#374151] hover:bg-[#E4D7C0]'"
+                            class="min-h-10 rounded-lg px-2 text-sm font-semibold transition truncate" x-text="b.short"></button>
+                  </template>
+                </div>
+                <p class="text-xs text-[#6B7280]" x-text="(serviceBranches.find(b => b.key === selectedBranchForServices) || {}).name"></p>
               </div>
 
               <p x-show="showBookingForm" class="text-xs text-slate-400"><strong>Branch:</strong> <span x-text="{'daraga':'Leo Mejillano Salon (Daraga)','yashano':'Skin Brows (Yashano)','cabangan':'Lash &amp; Brows (Cabangan)'}[selectedBranchForServices]"></span></p>
               <template x-if="!showBookingForm && !showBookingSuccess">
                 <div>
                   <div class="space-y-3">
-                    <h4 id="service-catalog-heading" tabindex="-1" class="font-serif text-base font-bold text-gold-400 mt-6">Services at <span x-text="selectedBranchForServices.charAt(0).toUpperCase() + selectedBranchForServices.slice(1)"></span></h4>
-                    <div class="service-toolbar">
-                      <div class="service-search-field">
-                        <label for="service-search" class="text-xs font-bold">Search services</label>
-                        <input id="service-search" type="search" x-model.debounce.200ms="serviceSearch" @input="servicePage = 1" placeholder="Search by service name" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs">
+                    <!-- Compact toolbar: search + category on one row, then count + view switch. -->
+                    <div class="flex gap-2 mt-2">
+                      <div class="relative flex-1 min-w-0">
+                        <label for="service-search" class="sr-only">Search services</label>
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-[#6B7280] pointer-events-none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                        <input id="service-search" type="search" x-model.debounce.200ms="serviceSearch" @input="servicePage = 1" placeholder="Search services"
+                               class="w-full h-11 pl-9 pr-3 rounded-lg bg-white border border-[#D9C9B4] text-sm text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#006D6F]/30">
                       </div>
-                      <div>
-                        <label for="service-category" class="text-xs font-bold">Category</label>
-                        <select id="service-category" x-model="serviceCategory" @change="servicePage = 1" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs">
+                      <div class="w-[42%] max-w-[14rem] shrink-0">
+                        <label for="service-category" class="sr-only">Category</label>
+                        <select id="service-category" x-model="serviceCategory" @change="servicePage = 1"
+                                class="w-full h-11 px-2.5 rounded-lg bg-white border border-[#D9C9B4] text-sm text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#006D6F]/30">
                           <option value="">All categories</option>
-                          <template x-for="category in serviceCategories()" :key="category"><option :value="category" x-text="category"></option></template>
+                          <template x-for="g in serviceCategoryGroups()" :key="g.group">
+                            <optgroup :label="g.group">
+                              <template x-for="c in g.items" :key="c.value"><option :value="c.value" x-text="c.label"></option></template>
+                            </optgroup>
+                          </template>
                         </select>
                       </div>
                     </div>
-                    <p class="text-xs text-slate-500" role="status" x-text="serviceResultLabel()"></p>
-                    <div class="service-catalog-grid">
+
+                    <div class="flex items-center justify-between gap-2 flex-wrap">
+                      <div class="flex items-center gap-2 flex-wrap min-w-0">
+                        <p id="service-catalog-heading" tabindex="-1" class="text-sm font-semibold text-[#374151] focus:outline-none" role="status" x-text="serviceCount()"></p>
+                        <!-- Active filters as removable chips -->
+                        <button type="button" x-show="serviceCategory" @click="serviceCategory = ''; servicePage = 1"
+                                class="inline-flex items-center gap-1 max-w-[12rem] rounded-full bg-[#E0F1EF] text-[#006D6F] text-xs font-semibold pl-2.5 pr-1.5 py-1"
+                                :aria-label="'Remove category filter ' + serviceCategoryLabel(serviceCategory)">
+                          <span class="truncate" x-text="serviceCategoryLabel(serviceCategory)"></span><span aria-hidden="true" class="text-base leading-none">&times;</span>
+                        </button>
+                        <button type="button" x-show="serviceSearch" @click="serviceSearch = ''; servicePage = 1"
+                                class="inline-flex items-center gap-1 max-w-[12rem] rounded-full bg-[#E0F1EF] text-[#006D6F] text-xs font-semibold pl-2.5 pr-1.5 py-1"
+                                :aria-label="'Clear search ' + serviceSearch">
+                          <span class="truncate" x-text="'“' + serviceSearch + '”'"></span><span aria-hidden="true" class="text-base leading-none">&times;</span>
+                        </button>
+                      </div>
+                      <div role="radiogroup" aria-label="Layout" class="inline-flex p-0.5 rounded-lg bg-[#EFE6D6]">
+                        <button type="button" role="radio" :aria-checked="(serviceView === 'cards').toString()" @click="setServiceView('cards')" aria-label="Card view" title="Card view"
+                                :class="serviceView === 'cards' ? 'bg-white text-[#006D6F] shadow' : 'text-[#6B7280]'" class="w-10 h-9 inline-flex items-center justify-center rounded-md">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg>
+                        </button>
+                        <button type="button" role="radio" :aria-checked="(serviceView === 'table').toString()" @click="setServiceView('table')" aria-label="Table view" title="Table view"
+                                :class="serviceView === 'table' ? 'bg-white text-[#006D6F] shadow' : 'text-[#6B7280]'" class="w-10 h-9 inline-flex items-center justify-center rounded-md">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 5h18M3 10h18M3 15h18M3 20h18"/></svg>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Cards: name, price, duration, promo tag, actions. -->
+                    <div x-show="serviceView === 'cards'" class="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-3">
                       <template x-for="service in pagedServices()" :key="service.id">
-                        <article class="service-catalog-card bg-slate-800 rounded-xl p-4" :class="{ 'service-card-selected': isSelectedForBooking(service) }">
-                          <div class="service-card-heading">
-                            <h5 class="font-bold text-white" x-text="service.name"></h5>
-                            <p class="font-bold text-gold-400" x-text="formatPeso(service.price)"></p>
+                        <article class="flex flex-col gap-2 rounded-xl border bg-[#FFFDF9] p-3.5 transition"
+                                 :class="isSelectedForBooking(service) ? 'border-[#006D6F] ring-1 ring-[#006D6F]' : 'border-[#E4D7C0]'">
+                          <div class="flex items-start justify-between gap-3">
+                            <h5 class="font-semibold text-[15px] leading-snug text-[#1F2937] min-w-0" x-text="service.name"></h5>
+                            <p class="shrink-0 font-bold text-[15px] text-[#8B6914]" x-text="formatPeso(service.price)"></p>
                           </div>
-                          <div class="service-badges">
-                            <span class="service-category-badge" :title="service.category" x-text="serviceCategoryLabel(service.category)"></span>
-                            <span x-show="getPromoForService(service)" class="service-promo-badge">Promo available</span>
-                          </div>
-                          <p class="text-xs text-slate-400"><strong>Duration:</strong> <span x-text="ServiceDuration.format(service.durationMinutes)"></span></p>
-                          <p class="text-xs text-slate-300"><strong x-text="service.reservationLabel === 'Full Payment' ? 'Required payment:' : 'Required deposit:'"></strong> <span x-text="serviceReservationLabel(service)"></span></p>
-                          <div class="service-card-actions">
-                            <button type="button" @click="toggleServiceSelection(service)" :aria-pressed="isSelectedForBooking(service)" class="service-add-button" :aria-label="(isSelectedForBooking(service) ? 'Remove ' : 'Add ') + service.name" x-text="isSelectedForBooking(service) ? 'Added ✓' : 'Add service'"></button>
-                            <button type="button" @click="bookNowService(service)" class="bg-luxury-600 hover:bg-luxury-700 text-white text-xs font-bold rounded-lg transition active:scale-95">Book Now</button>
+                          <p class="flex items-center gap-2 text-xs text-[#6B7280]">
+                            <span class="inline-flex items-center gap-1">
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                              <span x-text="ServiceDuration.format(service.durationMinutes)"></span>
+                            </span>
+                            <span x-show="getPromoForService(service)" class="rounded-full bg-[#FEF3C7] text-[#92400E] font-semibold px-2 py-0.5">Promo</span>
+                          </p>
+                          <div class="grid grid-cols-2 gap-2 mt-auto pt-1">
+                            <button type="button" @click="toggleServiceSelection(service)" :aria-pressed="isSelectedForBooking(service)"
+                                    :aria-label="(isSelectedForBooking(service) ? 'Remove ' : 'Add ') + service.name"
+                                    :class="isSelectedForBooking(service) ? 'bg-[#E0F1EF] border-[#006D6F]' : 'bg-transparent border-[#A9C7C6] hover:bg-[#006D6F]/5'"
+                                    class="min-h-10 rounded-lg border text-sm font-semibold text-[#006D6F] transition" x-text="isSelectedForBooking(service) ? 'Added ✓' : '+ Add'"></button>
+                            <button type="button" @click="bookNowService(service)" class="min-h-10 rounded-lg bg-[#006D6F] hover:bg-[#06464A] text-white text-sm font-bold transition active:scale-95">Book now</button>
                           </div>
                         </article>
                       </template>
                     </div>
+
+                    <!-- Table: one row per service; duration folds under the name on phones. -->
+                    <div x-show="serviceView === 'table' && getFilteredServices().length" class="rounded-xl border border-[#E4D7C0] overflow-hidden bg-[#FFFDF9]">
+                      <table class="w-full text-sm text-[#1F2937]">
+                        <thead class="bg-[#F7F1E6] text-xs uppercase tracking-wide text-[#6B7280]">
+                          <tr>
+                            <th scope="col" class="text-left font-bold px-3 py-2">Service</th>
+                            <th scope="col" class="hidden sm:table-cell text-left font-bold px-3 py-2">Duration</th>
+                            <th scope="col" class="text-right font-bold px-3 py-2">Price</th>
+                            <th scope="col" class="px-2 py-2"><span class="sr-only">Actions</span></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <template x-for="service in pagedServices()" :key="service.id">
+                            <tr class="border-t border-[#EFE6D6]" :class="isSelectedForBooking(service) ? 'bg-[#E0F1EF]/60' : ''">
+                              <td class="px-3 py-2.5 align-middle w-full">
+                                <span class="font-semibold leading-snug" x-text="service.name"></span>
+                                <span x-show="getPromoForService(service)" class="ml-1 align-middle rounded-full bg-[#FEF3C7] text-[#92400E] text-[11px] font-semibold px-1.5 py-0.5">Promo</span>
+                                <span class="sm:hidden block text-xs text-[#6B7280]" x-text="ServiceDuration.format(service.durationMinutes)"></span>
+                              </td>
+                              <td class="hidden sm:table-cell px-3 py-2.5 text-[#4B5563] whitespace-nowrap" x-text="ServiceDuration.format(service.durationMinutes)"></td>
+                              <td class="px-3 py-2.5 text-right font-bold text-[#8B6914] whitespace-nowrap" x-text="formatPeso(service.price)"></td>
+                              <td class="px-2 py-2 whitespace-nowrap text-right">
+                                <div class="inline-flex gap-1.5">
+                                  <button type="button" @click="toggleServiceSelection(service)" :aria-pressed="isSelectedForBooking(service)"
+                                          :aria-label="(isSelectedForBooking(service) ? 'Remove ' : 'Add ') + service.name" :title="isSelectedForBooking(service) ? 'Remove' : 'Add'"
+                                          :class="isSelectedForBooking(service) ? 'bg-[#006D6F] text-white border-[#006D6F]' : 'text-[#006D6F] border-[#A9C7C6] hover:bg-[#006D6F]/5'"
+                                          class="shrink-0 w-10 h-10 rounded-lg border text-lg font-bold leading-none" x-text="isSelectedForBooking(service) ? '✓' : '+'"></button>
+                                  <button type="button" @click="bookNowService(service)" :aria-label="'Book ' + service.name" class="shrink-0 h-10 px-3 rounded-lg bg-[#006D6F] hover:bg-[#06464A] text-white text-sm font-bold whitespace-nowrap [overflow-wrap:normal]">Book</button>
+                                </div>
+                              </td>
+                            </tr>
+                          </template>
+                        </tbody>
+                      </table>
+                    </div>
+
                     <div x-show="getFilteredServices().length === 0" class="service-empty-state">
                       <p class="text-slate-400 text-xs">No services match your search in this branch.</p>
                       <button type="button" @click="resetServiceFilters()" class="service-add-button mt-2">Clear filters</button>
                     </div>
-                    <nav x-show="servicePageCount() > 1" class="service-pagination" aria-label="Service pages">
-                      <button type="button" @click="changeServicePage(-1)" :disabled="servicePage <= 1" class="service-add-button">Previous</button>
-                      <span class="text-xs" x-text="'Page ' + Math.min(servicePage, servicePageCount()) + ' of ' + servicePageCount()"></span>
-                      <button type="button" @click="changeServicePage(1)" :disabled="servicePage >= servicePageCount()" class="service-add-button">Next</button>
+                    <nav x-show="servicePageCount() > 1" class="flex items-center justify-between gap-3 pt-1" aria-label="Service pages">
+                      <button type="button" @click="changeServicePage(-1)" :disabled="servicePage <= 1" class="service-add-button min-h-10">← Previous</button>
+                      <span class="text-xs text-[#4B5563]" x-text="'Page ' + Math.min(servicePage, servicePageCount()) + ' of ' + servicePageCount()"></span>
+                      <button type="button" @click="changeServicePage(1)" :disabled="servicePage >= servicePageCount()" class="service-add-button min-h-10">Next →</button>
                     </nav>
                   </div>
 
@@ -324,7 +407,7 @@
                   </div>
 
                   <div class="pt-6 border-t border-slate-800 mt-6">
-                    <p class="text-xs text-slate-500 italic">
+                    <p class="prose-justify text-xs text-slate-500 italic">
                       Note: Prices and availability are subject to change. Choose Book Now to check available schedules. Your final price and required payment are shown before confirmation.
                     </p>
                   </div>
@@ -377,6 +460,13 @@
                               </template>
                             </div>
                             <p class="text-slate-500 mt-2">Only times that are still open for this branch are shown here.</p>
+                            <!-- Heads-up: a time inside the online-reschedule cut-off can never be moved online. -->
+                            <div x-show="isInsideRescheduleCutoff(bookingForm.date, bookingForm.time)" role="status"
+                                 class="mt-3 flex gap-2.5 rounded-lg bg-[#FFFBEB] border border-[#F5D58A] border-l-4 border-l-[#B45309] p-3 text-[#4B5563]">
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="2" stroke-linecap="round" aria-hidden="true" class="shrink-0 mt-0.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                              <p class="prose-justify text-sm leading-relaxed"><strong class="text-[#78350F]">This time is less than 24 hours away.</strong>
+                                You can still book it, but you won't be able to reschedule it online. To change it later, please contact the branch.</p>
+                            </div>
                           </div>
                         </div>
                     <!-- Staff availability is part of schedule selection. -->
@@ -407,7 +497,7 @@
                           </template>
                         </div>
                         <p x-show="!staffAvailabilityLoading && !staffAvailabilityError && !getStylistOptions().length" class="text-slate-500">No qualified stylists found. Please choose another schedule.</p>
-                        <p class="text-xs text-slate-500">Available and Busy refer to your selected appointment, including service duration and cleaning time. Current shift labels describe now; they do not confirm a future work schedule. Notify me does not reserve a stylist.</p>
+                        <p class="prose-justify text-xs text-slate-500">Available and Busy refer to your selected appointment, including service duration and cleaning time. Current shift labels describe now; they do not confirm a future work schedule. Notify me does not reserve a stylist.</p>
                       </div>
                     </template>
 
@@ -425,19 +515,11 @@
                           <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-3"><dt class="font-bold text-slate-500">Stylist:</dt><dd class="text-white break-words" x-text="bookingForm.staffId ? (getAvailableStaffForBranch().find(s => String(s.id) === String(bookingForm.staffId)) || {}).name : 'Any available stylist'"></dd></div>
                         </dl>
 
-                        <div class="pt-3 border-t border-slate-700" x-show="customerProfile.loyaltyPoints > 0 && bookingSubtotal() > 0">
-                          <div class="flex items-center justify-between">
-                            <p class="text-slate-300">Redeem loyalty points (<span x-text="customerProfile.loyaltyPoints"></span> available)</p>
-                            <button type="button" @click="bookingForm.useLoyaltyPoints = !bookingForm.useLoyaltyPoints; loadReservationQuote()"
-                                    :class="bookingForm.useLoyaltyPoints ? 'bg-gold-500' : 'bg-slate-700'"
-                                    class="relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-gold-500">
-                              <span :class="bookingForm.useLoyaltyPoints ? 'translate-x-6' : 'translate-x-1'" class="inline-block w-4 h-4 transform bg-white rounded-full transition-transform"></span>
-                            </button>
-                          </div>
-                          <div class="flex justify-between text-slate-300 mt-1" x-show="bookingForm.useLoyaltyPoints">
-                            <span>Discount Applied:</span>
-                            <span class="font-bold text-emerald-400" x-text="'- ' + formatPeso(maxRedeemableDiscount())"></span>
-                          </div>
+                        <div x-show="isInsideRescheduleCutoff(bookingForm.date, bookingForm.time)" role="note"
+                             class="flex gap-2.5 rounded-lg bg-[#FFFBEB] border border-[#F5D58A] border-l-4 border-l-[#B45309] p-3 text-[#4B5563]">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="2" stroke-linecap="round" aria-hidden="true" class="shrink-0 mt-0.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                          <p class="prose-justify text-sm leading-relaxed"><strong class="text-[#78350F]">No online rescheduling for this booking.</strong>
+                            It starts in less than 24 hours, so any change will have to go through the branch.</p>
                         </div>
 
                         <div class="flex justify-between items-center pt-3 border-t border-slate-700">
@@ -499,13 +581,13 @@
                                 </template>
                               </div>
                             </fieldset>
-                            <p x-show="['PayMongo-GCash', 'PayMongo-Maya'].includes(bookingForm.paymentMethod)" class="text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3" x-text="'You\'ll go straight to ' + (bookingForm.paymentMethod === 'PayMongo-Maya' ? 'Maya' : 'GCash') + ' to authorize the payment after confirming — nothing to type. Complete it within 30 minutes. If the payment fails or expires, you can try again or pick another method.'"></p>
-                            <p x-show="bookingForm.paymentMethod === 'PayMongo-Card'" class="text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3">You'll enter your card on PayMongo's secure page after confirming (we never see your card number). Complete it within 30 minutes. If the payment fails or expires, you can try again or pick another method.</p>
+                            <p x-show="['PayMongo-GCash', 'PayMongo-Maya'].includes(bookingForm.paymentMethod)" class="text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3" x-text="'You\'ll go straight to ' + (bookingForm.paymentMethod === 'PayMongo-Maya' ? 'Maya' : 'GCash') + ' to authorize the payment after confirming nothing to type. Complete it within 30 minutes.'"></p>
+                            <p x-show="bookingForm.paymentMethod === 'PayMongo-Card'" class="prose-justify text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3">You'll enter your card on PayMongo's secure page after confirming (we never see your card number). Complete it within 30 minutes.</p>
                             <p x-show="bookingForm.paymentMethod === 'Cash'" class="text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3">Pay at the branch. Your booking stays pending until payment is verified.</p>                          </div>
                         </template>
 
                         <div x-show="depositLocked" class="flex items-center justify-between gap-3">
-                          <span class="text-white" x-show="reservationQuote?.reservationRequirement === 'No Online Reservation'">No online reservation payment required — confirmed after review.</span>
+                          <span class="text-white" x-show="reservationQuote?.reservationRequirement === 'No Online Reservation'">No online reservation payment required, confirmed after review.</span>
                           <span class="text-white" x-show="reservationQuote?.reservationRequirement !== 'No Online Reservation'">Payment option: <strong x-text="formatPeso(requiredDeposit()) + ' via ' + PortalPresentation.methodLabel(bookingForm.paymentMethod) + (bookingForm.depositReference ? ' (Ref: ' + bookingForm.depositReference + ')' : '')"></strong></span>
                           <button type="button" @click="changeDeposit()" x-show="reservationQuote?.reservationRequirement !== 'No Online Reservation'" class="text-gold-400 font-bold hover:underline shrink-0">Change</button>
                         </div>
@@ -516,7 +598,7 @@
                     <template x-if="bookingStep === 'notifications'">
                       <div class="bg-slate-800 p-4 rounded-lg space-y-3">
                         <p class="font-medium text-white">How should we notify you about this booking?</p>
-                        <p class="text-slate-400">We'll send updates on your reservation status (confirmed, schedule changes, reminders) through the channels you enable here.</p>
+                        <p class="prose-justify text-slate-400">We'll send updates on your reservation status (confirmed, schedule changes, reminders) through the channels you enable here.</p>
                         <label class="flex items-center justify-between gap-3 bg-slate-900 border border-slate-700 rounded-lg p-3 cursor-pointer">
                           <span class="text-slate-200">Email updates</span>
                           <input type="checkbox" x-model="customerProfile.notificationPrefs.email" class="w-4 h-4 accent-gold-500">
@@ -555,11 +637,11 @@
 
                           <ul class="list-disc list-inside space-y-1">
                             <li><strong class="text-slate-300">Reservation payment:</strong> A reservation payment is required to hold your appointment slot.</li>
-                            <li><strong class="text-slate-300">50% or full payment:</strong> Depending on the service selected, you must pay either a 50% down payment or the full amount upfront — the required amount is shown before you book.</li>
-                            <li><strong class="text-slate-300">Payment verification:</strong> Online payments (GCash, Maya or card) are processed securely by PayMongo; Cash must be settled in person. Your payment stays "Payment Being Verified" until staff confirm it — you can never verify your own payment.</li>
-                            <li><strong class="text-slate-300">Confirmation rules:</strong> Your requested time is held as Waiting for Confirmation until the branch verifies your payment and confirms it — it is not guaranteed until confirmed.</li>
-                            <li><strong class="text-slate-300">Deposit &amp; rescheduling policy:</strong> Reservation deposits are <u>non-refundable</u>. Need a different time? Reschedule instead (online up to 24 hours before, or by contacting the branch) and your deposit carries over. If you cancel or miss your appointment, the deposit is kept, but that booking can still be rescheduled later using the deposit.</li>
-                            <li><strong class="text-slate-300">Rescheduling:</strong> You may request to reschedule; please do so as early as possible, subject to availability.</li>
+                            <li class="prose-justify"><strong class="text-slate-300">50% or full payment:</strong> Depending on the service selected, you must pay either a 50% down payment or the full amount upfront, the required amount is shown before you book.</li>
+                            <li class="prose-justify"><strong class="text-slate-300">Payment verification:</strong> Online payments (GCash, Maya or card) are processed securely by PayMongo; Cash must be settled in person. Your payment stays "Payment Being Verified" until staff confirm it, you can never verify your own payment.</li>
+                            <li class="prose-justify"><strong class="text-slate-300">Confirmation rules:</strong> Your requested time is held as Waiting for Confirmation until the branch verifies your payment and confirms it, it is not guaranteed until confirmed.</li>
+                            <li class="prose-justify"><strong class="text-slate-300">Deposit &amp; rescheduling policy:</strong> Reservation deposits are <u>non-refundable</u>. Need a different time? Reschedule instead (online up to 24 hours before, or by contacting the branch) and your deposit carries over. If you cancel or miss your appointment, the deposit is kept, but that booking can still be rescheduled later using the deposit.</li>
+                            <li class="prose-justify"><strong class="text-slate-300">Rescheduling:</strong> You may request to reschedule; please do so as early as possible, subject to availability.</li>
                             <li><strong class="text-slate-300">No-show:</strong> Please arrive on time. Repeated no-shows or late cancellations may affect future bookings.</li>
                             <li x-show="lateArrivalRule"><strong class="text-slate-300">Late arrival:</strong> <span x-text="lateArrivalRule"></span></li>
                             <li>Prices and staff availability are confirmed by the branch and may change.</li>

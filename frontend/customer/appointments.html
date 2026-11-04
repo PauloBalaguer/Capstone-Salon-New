@@ -47,14 +47,20 @@
 
     .card-lift { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
     .card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(0, 109, 111, 0.35); }
+    /* Reschedule time buttons: keep the legend colours. portal-colors.css?v=20261103-signout-cream paints every
+       disabled button beige (!important), which hid "Stylist busy" and "Unavailable". */
+    body.salon-portal .lm-slot:disabled[data-slot-state="busy"] { background-color: #FFF1F2 !important; border-color: #FB7185 !important; color: #9F1239 !important; opacity: 1 !important; }
+    body.salon-portal .lm-slot:disabled[data-slot-state="off"] { background-color: #F1F5F9 !important; border-color: #CBD5E1 !important; color: #64748B !important; opacity: 1 !important; }
   </style>
-  <link rel="stylesheet" href="../../frontend/customer/customer-theme.css?v=teal-gold-20261021">
+  <link rel="stylesheet" href="../../frontend/customer/customer-theme.css?v=20261104-notif">
   <script src="../../function/customer/theme-config.js"></script>
 <script src="../../function/shared/booking-validation.js"></script>
-  <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=teal-gold-20261021" />
-  <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=teal-gold-20261021" />
+  <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=20261103b" />
+  <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=20261103-signout-cream" />
   <script src="../../function/shared/toast.js"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
+  <!-- Clean theme: loaded last so it overrides older theme colours. -->
+  <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
 </head>
 <body class="salon-portal bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
@@ -87,10 +93,7 @@
               <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
               <span>My Profile</span>
             </a>
-            <a href="../../backend/auth/logout.php?portal=customer" class="md:hidden w-full text-left flex items-center space-x-3 px-3.5 py-2.5 text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4"></path></svg>
-              <span>Sign Out</span>
-            </a>
+            <a href="../../backend/auth/logout.php?portal=customer" class="md:hidden w-full text-left flex items-center space-x-3 px-3.5 py-2.5 text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H5v14h4M13 8l4 4-4 4M9 12h12"/></svg><span>Sign Out</span></a>
           </div>
         </div>
 
@@ -122,7 +125,7 @@
         </nav>
       </div>
       <div class="p-4 border-t border-slate-800">
-        <a href="../../backend/auth/logout.php?portal=customer" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4"></path></svg><span>Sign Out</span></a>
+        <a href="../../backend/auth/logout.php?portal=customer" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H5v14h4M13 8l4 4-4 4M9 12h12"/></svg><span>Sign Out</span></a>
       </div>
     </aside>
 
@@ -146,10 +149,7 @@
                 <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                 <span>My Profile</span>
               </a>
-              <a href="../../backend/auth/logout.php?portal=customer" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4"></path></svg>
-                <span>Sign Out</span>
-              </a>
+              <a href="../../backend/auth/logout.php?portal=customer" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H5v14h4M13 8l4 4-4 4M9 12h12"/></svg><span>Sign Out</span></a>
             </div>
           </div>
           <h2 class="text-lg font-serif font-bold text-white">My Appointments</h2>
@@ -169,37 +169,32 @@
             <div x-show="isNotificationPanelOpen" x-transition class="customer-notification-panel absolute top-full right-0 mt-2 w-80 bg-slate-800 border border-luxury-800 rounded-lg shadow-lg z-30 flex flex-col" style="display: none;">
             <div class="p-3 border-b border-slate-700 shrink-0 flex items-center justify-between">
               <h4 class="text-base font-bold text-white">Notifications</h4>
+              <button type="button" x-show="notifications.length > 0" @click="markAllNotificationsAsRead()" :disabled="unreadNotificationCount === 0" class="notification-read-all font-semibold">Mark all as read</button>
               <button type="button" @click="isNotificationPanelOpen = false" aria-label="Close notifications" class="notification-close">&times;</button>
             </div>
             <div class="notification-list overflow-y-auto flex-1" aria-live="polite">
               <template x-if="notifications.length === 0"><p class="text-xs text-slate-400 text-center p-8">You're all caught up. Booking updates will appear here.</p></template>
-              <template x-for="notif in notifications" :key="notif.id || notif.time + notif.message">
+              <template x-for="notif in displayNotifications" :key="notif.id || notif.time + notif.message">
                 <article class="notification-card" :class="{ 'notification-unread': !notif.read }">
                   <div class="notification-status" :class="{ 'notification-status-cancelled': notif.type === 'CANCELLED' }" aria-hidden="true">
                     <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="notif.icon"></path></svg>
                   </div>
                   <div class="notification-copy">
-                    <div class="notification-title-row"><p class="notification-title" x-text="notificationDetails(notif).title"></p><span x-show="!notif.read" class="notification-dot" aria-label="Unread"></span></div>
+                    <div class="notification-title-row"><p class="notification-title" x-text="notificationDetails(notif).title"></p><span x-show="!notif.read" class="notification-dot" aria-label="Unread"></span><time class="notification-time" :datetime="notif.createdAt || ''" :title="notif.time" x-text="notificationTime(notif)"></time></div>
                     <p class="notification-summary" x-show="notificationDetails(notif).summary" x-text="notificationDetails(notif).summary"></p>
                     <span class="notification-state-badge" x-show="notificationDetails(notif).status" x-text="notificationDetails(notif).status"></span>
-                    <p class="notification-service" x-show="notificationDetails(notif).service" x-text="notificationDetails(notif).service"></p>
-                    <p class="notification-branch" x-show="notificationDetails(notif).branch" x-text="notificationDetails(notif).branch"></p>
-                    <p class="notification-schedule" x-show="notificationDetails(notif).schedule" x-text="notificationDetails(notif).schedule"></p>
-                    <time class="notification-time" :datetime="notif.createdAt || ''" :title="notif.time" x-text="'Received ' + notificationTime(notif)"></time>
+                    <p class="notification-service" x-show="notificationDetails(notif).service || notificationDetails(notif).schedule" x-text="[notificationDetails(notif).service, notificationDetails(notif).branch, notificationDetails(notif).schedule].filter(Boolean).join(' · ')"></p>
                   </div>
                 </article>
               </template>
-            </div>
-            <div x-show="notifications.length > 0" class="p-2 border-t border-slate-700 shrink-0">
-              <button type="button" @click="markAllNotificationsAsRead()" :disabled="unreadNotificationCount === 0" class="notification-read-all w-full text-center font-semibold">Mark all as read</button>
             </div>
           </div>
           </div>
         </div>
       </header>
 
-      <div class="sm:hidden px-6 pt-4">
-        <button @click="openTrackModal()" class="w-full flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-300 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 px-3 py-2 rounded-lg transition">
+      <div class="sm:hidden px-6 pt-3 flex justify-end">
+        <button @click="openTrackModal()" class="inline-flex items-center gap-1.5 min-h-9 text-xs font-semibold text-[#006D6F] underline underline-offset-2 px-1 transition">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
           <span>Track a Booking</span>
         </button>
@@ -216,70 +211,133 @@
 
       <div x-show="!isBooting" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
 
-        <div class="p-6 space-y-6 pb-24 md:pb-6">
-          <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="flex border border-luxury-800 rounded-lg p-1 bg-slate-900 text-xs">
-              <button @click="appointmentView = 'upcoming'" :class="appointmentView === 'upcoming' ? 'bg-luxury-700 text-white' : 'text-slate-400 hover:bg-slate-800'" class="px-4 py-1.5 rounded-md transition-all duration-200">Upcoming</button>
-              <button @click="appointmentView = 'past'" :class="appointmentView === 'past' ? 'bg-luxury-700 text-white' : 'text-slate-400 hover:bg-slate-800'" class="px-4 py-1.5 rounded-md transition-all duration-200">History</button>
+        <div class="p-6 space-y-6 pb-24 md:pb-6" x-init="['appointmentView', 'appointmentSearchQuery', 'appointmentBranchFilter', 'appointmentStatusFilter', 'appointmentDateFrom', 'appointmentDateTo'].forEach(field => $watch(field, () => { appointmentPage = 1; $nextTick(() => { $el.querySelectorAll('details[open]').forEach(details => { details.open = false; }); }); }))">
+          <!-- Compact toolbar: view switch + book, then search + Filters (panel collapsed by default). -->
+          <div class="space-y-2.5">
+            <div class="flex items-center gap-2">
+              <div role="tablist" aria-label="Appointments" class="flex-1 sm:flex-none grid grid-cols-2 gap-1 p-1 rounded-xl bg-[#EFE6D6]">
+                <button type="button" role="tab" :aria-selected="(appointmentView === 'upcoming').toString()" @click="appointmentView = 'upcoming'"
+                        :class="appointmentView === 'upcoming' ? 'bg-[#006D6F] text-white shadow' : 'text-[#374151] hover:bg-[#E4D7C0]'" class="min-h-10 px-4 rounded-lg text-sm font-semibold transition">Upcoming</button>
+                <button type="button" role="tab" :aria-selected="(appointmentView === 'past').toString()" @click="appointmentView = 'past'"
+                        :class="appointmentView === 'past' ? 'bg-[#006D6F] text-white shadow' : 'text-[#374151] hover:bg-[#E4D7C0]'" class="min-h-10 px-4 rounded-lg text-sm font-semibold transition">History</button>
+              </div>
+              <a href="services-promos.html" class="sm:ml-auto inline-flex items-center justify-center gap-1 min-h-11 px-4 rounded-xl bg-[#006D6F] hover:bg-[#06464A] text-white text-sm font-bold whitespace-nowrap transition active:scale-95">
+                <span aria-hidden="true" class="text-lg leading-none">+</span> Book
+              </a>
             </div>
-            <a href="services-promos.html" class="w-full sm:w-auto text-center bg-gradient-to-r from-luxury-600 to-luxury-800 text-white font-semibold text-xs px-4 py-2 rounded-lg hover:shadow-lg hover:shadow-luxury-600/20 transition active:scale-95">
-              + Book New Appointment
-            </a>
+
+            <div class="flex gap-2">
+              <div class="relative flex-1 min-w-0">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-[#6B7280] pointer-events-none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                <input type="search" aria-label="Search appointments" x-model.debounce.300ms="appointmentSearchQuery" placeholder="Search reference, service, stylist"
+                       class="w-full h-11 pl-9 pr-3 rounded-lg bg-white border border-[#D9C9B4] text-sm text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#006D6F]/30">
+              </div>
+              <button type="button" @click="appointmentFiltersOpen = !appointmentFiltersOpen" :aria-expanded="appointmentFiltersOpen.toString()" aria-controls="appointment-filter-panel"
+                      :class="appointmentFiltersOpen || appointmentPanelFilterCount() ? 'border-[#006D6F] text-[#006D6F] bg-[#E0F1EF]' : 'border-[#D9C9B4] text-[#374151] bg-white'"
+                      class="shrink-0 inline-flex items-center gap-1.5 h-11 px-3 rounded-lg border text-sm font-semibold transition">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+                Filters
+                <span x-show="appointmentPanelFilterCount()" class="min-w-5 h-5 px-1 rounded-full bg-[#006D6F] text-white text-xs leading-5 text-center" x-text="appointmentPanelFilterCount()"></span>
+              </button>
+            </div>
+
+            <section id="appointment-filter-panel" x-show="appointmentFiltersOpen" x-transition.opacity aria-label="Filter appointments"
+                     class="rounded-xl border border-[#E4D7C0] bg-[#FFFDF9] p-3 grid grid-cols-2 gap-x-3 gap-y-2.5">
+              <div>
+                <label for="appointment-branch" class="block text-xs font-bold text-[#6B7280] mb-1">Branch</label>
+                <select id="appointment-branch" x-model="appointmentBranchFilter" class="w-full h-10 px-2 rounded-lg bg-white border border-[#D9C9B4] text-sm text-[#1F2937]">
+                  <option value="">All branches</option>
+                  <template x-for="branch in appointmentFilterBranches()" :key="branch"><option :value="branch" x-text="branch"></option></template>
+                </select>
+              </div>
+              <div>
+                <label for="appointment-status" class="block text-xs font-bold text-[#6B7280] mb-1">Status</label>
+                <select id="appointment-status" x-model="appointmentStatusFilter" class="w-full h-10 px-2 rounded-lg bg-white border border-[#D9C9B4] text-sm text-[#1F2937]">
+                  <option value="">All statuses</option>
+                  <template x-for="status in appointmentFilterStatuses()" :key="status"><option :value="status" x-text="getCustomerStatusLabel(status)"></option></template>
+                </select>
+              </div>
+              <div>
+                <label for="appointment-from" class="block text-xs font-bold text-[#6B7280] mb-1">From</label>
+                <input id="appointment-from" type="date" x-model="appointmentDateFrom" :aria-invalid="appointmentDateRangeInvalid()" aria-describedby="appointment-date-error" class="w-full h-10 px-2 rounded-lg bg-white border border-[#D9C9B4] text-sm text-[#1F2937]">
+              </div>
+              <div>
+                <label for="appointment-to" class="block text-xs font-bold text-[#6B7280] mb-1">To</label>
+                <input id="appointment-to" type="date" x-model="appointmentDateTo" :aria-invalid="appointmentDateRangeInvalid()" aria-describedby="appointment-date-error" class="w-full h-10 px-2 rounded-lg bg-white border border-[#D9C9B4] text-sm text-[#1F2937]">
+              </div>
+              <p id="appointment-date-error" x-show="appointmentDateRangeInvalid()" role="alert" class="col-span-2 text-xs text-rose-700">The end date must be on or after the start date.</p>
+              <div class="col-span-2 flex justify-end gap-2 pt-1">
+                <button type="button" @click="clearAppointmentFilters()" :disabled="!hasAppointmentFilters()" class="service-add-button min-h-10">Clear all</button>
+                <button type="button" @click="appointmentFiltersOpen = false" class="min-h-10 px-4 rounded-lg bg-[#006D6F] text-white text-sm font-bold">Done</button>
+              </div>
+            </section>
+
+            <!-- Count + active filters as removable chips -->
+            <div class="flex items-center gap-2 flex-wrap text-xs">
+              <p class="font-semibold text-[#374151]" role="status"
+                 x-text="(appointmentView === 'upcoming' ? getUpcomingAppointments().length : getPastAppointments().length) + ' booking' + ((appointmentView === 'upcoming' ? getUpcomingAppointments().length : getPastAppointments().length) === 1 ? '' : 's')"></p>
+              <template x-for="chip in [
+                  appointmentBranchFilter && { label: appointmentBranchFilter, clear: () => appointmentBranchFilter = '' },
+                  appointmentStatusFilter && { label: getCustomerStatusLabel(appointmentStatusFilter), clear: () => appointmentStatusFilter = '' },
+                  appointmentDateFrom && { label: 'From ' + appointmentDateFrom, clear: () => appointmentDateFrom = '' },
+                  appointmentDateTo && { label: 'To ' + appointmentDateTo, clear: () => appointmentDateTo = '' },
+                  appointmentSearchQuery && { label: '“' + appointmentSearchQuery + '”', clear: () => appointmentSearchQuery = '' }
+                ].filter(Boolean)" :key="chip.label">
+                <button type="button" @click="chip.clear()" :aria-label="'Remove filter ' + chip.label"
+                        class="inline-flex items-center gap-1 max-w-[12rem] rounded-full bg-[#E0F1EF] text-[#006D6F] font-semibold pl-2.5 pr-1.5 py-1">
+                  <span class="truncate" x-text="chip.label"></span><span aria-hidden="true" class="text-base leading-none">&times;</span>
+                </button>
+              </template>
+            </div>
           </div>
 
-          <section class="appointment-filters" aria-label="Filter appointments">
-            <div><label for="appointment-branch">Branch</label><select id="appointment-branch" x-model="appointmentBranchFilter"><option value="">All branches</option><template x-for="branch in appointmentFilterBranches()" :key="branch"><option :value="branch" x-text="branch"></option></template></select></div>
-            <div><label for="appointment-status">Status</label><select id="appointment-status" x-model="appointmentStatusFilter"><option value="">All statuses</option><template x-for="status in appointmentFilterStatuses()" :key="status"><option :value="status" x-text="getCustomerStatusLabel(status)"></option></template></select></div>
-            <div><label for="appointment-from">Appointment from</label><input id="appointment-from" type="date" x-model="appointmentDateFrom" :aria-invalid="appointmentDateRangeInvalid()" aria-describedby="appointment-date-error"></div>
-            <div><label for="appointment-to">Appointment to</label><input id="appointment-to" type="date" x-model="appointmentDateTo" :aria-invalid="appointmentDateRangeInvalid()" aria-describedby="appointment-date-error"></div>
-            <button type="button" @click="clearAppointmentFilters()" :disabled="!hasAppointmentFilters()" class="service-add-button">Clear filters</button>
-          </section>
-          <p id="appointment-date-error" x-show="appointmentDateRangeInvalid()" role="alert" class="text-xs text-rose-700">The end date must be on or after the start date.</p>
-          <p class="text-xs text-slate-500" role="status" x-text="(appointmentView === 'upcoming' ? getUpcomingAppointments().length : getPastAppointments().length) + ' bookings · Newest bookings first'"></p>
-          <div class="relative">
-            <svg class="w-4 h-4 text-slate-500 absolute top-1/2 left-3 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            <input type="text" aria-label="Search appointments" x-model.debounce.300ms="appointmentSearchQuery" placeholder="Search by reference, service, branch, or stylist..." class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 pl-10 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs">
-          </div>
+          <nav id="appointment-pagination-top" class="flex items-center justify-between gap-3" aria-label="Appointment pagination (top)" x-show="appointmentPageCount() > 1">
+            <button type="button" @click="changeAppointmentPage(-1)" :disabled="currentAppointmentPage() === 1" class="service-add-button min-h-10">← Previous</button>
+            <span class="text-xs text-[#4B5563]" x-text="'Page ' + currentAppointmentPage() + ' of ' + appointmentPageCount()"></span>
+            <button type="button" @click="changeAppointmentPage(1)" :disabled="currentAppointmentPage() === appointmentPageCount()" class="service-add-button min-h-10">Next →</button>
+          </nav>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div id="appointment-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             <template x-if="appointmentView === 'upcoming'">
-              <template x-for="(appt, i) in getUpcomingAppointments()" :key="appt.id">
-                <div class="card-lift stagger-item bg-slate-900 border border-luxury-900 rounded-2xl p-5 space-y-3 flex flex-col justify-between" :style="'animation-delay:' + (i * 70) + 'ms'">
-                  <div>
-                    <div class="flex justify-between items-start">
-                      <p class="font-serif font-bold text-white" x-text="appt.serviceName"></p>
-                      <span :class="getStatusBadgeClass(appt.status)" class="px-2 py-0.5 rounded text-xs font-bold" x-text="appt.status"></span>
-                    </div>
-                    <p class="text-xs text-slate-400" x-text="appt.branchName"></p><p class="text-xs font-mono text-purple-300 break-all">Booking reference: <span x-text="appt.id"></span></p>
-                    <div class="text-xs text-slate-300 mt-3 space-y-1">
-                      <p><strong class="text-slate-500 w-16 inline-block">Date:</strong> <span x-text="appt.date"></span></p>
-                      <p><strong class="text-slate-500 w-16 inline-block">Time:</strong> <span x-text="appt.time"></span></p>
-                      <p><strong class="text-slate-500 w-16 inline-block">Stylist:</strong> <span x-text="appt.staffName"></span></p>
-                      <p x-show="appt.depositAmount"><strong class="text-slate-500 w-16 inline-block">Deposit:</strong> <span x-text="formatPeso(appt.depositAmount) + ' via ' + PortalPresentation.methodLabel(appt.paymentMethod)"></span> <span :class="appt.depositVerified ? 'text-emerald-400' : 'text-amber-400'" class="font-bold" x-text="appt.depositVerified ? '(Verified)' : '(Pending Verification)'"></span></p>
-                    </div>
-                    <!-- Online payment started but not finished; the slot is held for 30 minutes from booking. -->
-                    <a x-show="appt.continuePaymentUrl" :href="appt.continuePaymentUrl" class="mt-3 inline-flex items-center justify-center w-full rounded-lg bg-gradient-to-r from-luxury-600 to-luxury-800 text-white text-xs font-bold py-2 hover:brightness-110 transition"
-                       x-text="'Continue payment — ' + formatPeso(appt.amountDue)"></a>
-                    <details class="mt-3 rounded-lg border border-slate-700 p-3 text-xs text-slate-300">
-                      <summary class="cursor-pointer font-semibold text-purple-300 py-1">View Payment Details</summary>
-                      <div class="mt-2 space-y-1" aria-live="polite">
-                        <p><strong class="font-bold">Service price:</strong> <span x-text="formatPeso(appt.price)"></span></p>
-                        <p><strong class="font-bold">Deposit paid:</strong> <span x-text="formatPeso(appt.depositVerified ? appt.depositAmount || 0 : 0)"></span></p>
-                        <p><strong class="font-bold">Remaining balance:</strong> <strong x-text="formatPeso(appt.remainingBalance)"></strong></p>
-                        <p><strong class="font-bold">Payment method:</strong> <span x-text="PortalPresentation.methodLabel(appt.paymentMethod) || 'Not selected'"></span></p>
-                        <p><strong class="font-bold">Booking status:</strong> <span x-text="appt.status"></span></p>
-                        <p><strong class="font-bold">Payment status:</strong> <span x-text="appointmentPaymentLabel(appt)"></span></p>
-                        <p x-show="!appt.depositVerified && appt.depositAmount" class="text-amber-300">The reported reservation payment is awaiting verification. Do not pay it again while verification is pending.</p>
-                        <p x-show="appt.remainingBalance > 0 && !['Cancelled', 'No-Show'].includes(appt.status)">Pay the remaining balance at the branch via Cash, GCash, or Maya.</p>
-                      </div>
-                    </details>
+              <template x-for="(appt, i) in pagedAppointments()" :key="appt.id">
+                <article class="flex flex-col gap-2 rounded-xl border border-[#E4D7C0] bg-[#FFFDF9] p-4">
+                  <div class="flex items-start justify-between gap-2">
+                    <h3 class="font-semibold text-[15px] leading-snug text-[#1F2937] min-w-0" x-text="appt.serviceName"></h3>
+                    <span :class="getStatusBadgeClass(appt.status)" class="shrink-0 px-2 py-0.5 rounded text-xs font-bold" x-text="appt.status"></span>
                   </div>
-                  <p x-show="appt.status === 'Reschedule Requested'" class="text-xs font-semibold rounded-lg p-2 bg-amber-950 text-amber-300 border border-amber-800">The salon asked to move this appointment. Tap Reschedule to pick a new time — your payment carries over.</p>
-                  <div class="pt-3 border-t border-slate-800 flex gap-2">
-                    <button x-show="canReschedule(appt)" @click="openRescheduleModal(appt)" class="w-full bg-luxury-700 hover:bg-luxury-600 text-white text-xs font-semibold py-1.5 rounded-lg transition active:scale-95">Reschedule</button>
-                    <button @click="openCancelModal(appt.id)" class="w-full bg-rose-900/50 hover:bg-rose-900/80 text-rose-300 text-xs font-semibold py-1.5 rounded-lg transition active:scale-95">Cancel</button>
+                  <p class="flex items-center gap-1.5 text-sm font-semibold text-[#006D6F]">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+                    <span x-text="appointmentScheduleLabel(appt)"></span>
+                  </p>
+                  <p class="text-xs text-[#4B5563]" x-text="[appt.branchName, appt.staffName ? 'with ' + appt.staffName : ''].filter(Boolean).join(' · ')"></p>
+                  <p class="text-xs font-mono text-[#6B7280] break-all" x-text="appt.id"></p>
+
+                  <a x-show="appt.continuePaymentUrl" :href="appt.continuePaymentUrl" class="inline-flex items-center justify-center w-full min-h-10 rounded-lg bg-[#006D6F] hover:bg-[#06464A] text-white text-sm font-bold transition"
+                     x-text="'Continue payment ' + formatPeso(appt.amountDue)"></a>
+                  <p x-show="appt.status === 'Reschedule Requested'" class="prose-justify text-xs font-semibold rounded-lg p-2 bg-[#FFFBEB] text-[#78350F] border border-[#F5D58A]">The salon asked to move this appointment. Tap Reschedule to pick a new time, your payment carries over.</p>
+
+                  <details class="rounded-lg border border-[#EFE6D6] text-xs text-[#4B5563]">
+                    <summary class="cursor-pointer select-none px-3 py-2 font-semibold text-[#374151] flex items-center justify-between gap-2">
+                      <span>Payment details</span>
+                      <span x-show="appt.depositAmount" :class="appt.depositVerified ? 'text-[#15803D]' : 'text-[#B45309]'" class="font-bold"
+                            x-text="formatPeso(appt.depositAmount) + (appt.depositVerified ? ' verified ✓' : ' awaiting verification')"></span>
+                    </summary>
+                    <div class="px-3 pb-3 space-y-1" aria-live="polite">
+                      <p><strong class="font-bold">Service total:</strong> <span x-text="formatPeso(appt.price)"></span></p>
+                      <p><strong class="font-bold">Confirmed payment:</strong> <span x-text="formatPeso(appt.amountPaid || 0)"></span></p>
+                      <p x-show="!(!appt.depositVerified && appt.depositAmount)"><strong class="font-bold">Remaining balance:</strong> <strong x-text="formatPeso(appt.remainingBalance)"></strong></p>
+                      <p><strong class="font-bold">Payment method:</strong> <span x-text="PortalPresentation.methodLabel(appt.paymentMethod) || 'Not selected'"></span></p>
+                      <p><strong class="font-bold">Payment status:</strong> <span x-text="appointmentPaymentLabel(appt)"></span></p>
+                      <p x-show="!appt.depositVerified && appt.depositAmount && !['Cancelled', 'No-Show'].includes(appt.status)" class="prose-justify text-[#B45309]">Your reservation payment is awaiting verification. If you have already paid, please do not pay again.</p>
+                      <p x-show="appt.depositVerified && appt.remainingBalance  class="prose-justify"> 0 && !['Cancelled', 'No-Show'].includes(appt.status)">Pay your remaining balance at the branch via Cash, GCash, or Maya.</p>
+                    </div>
+                  </details>
+
+                  <div class="grid grid-cols-2 gap-2 mt-auto pt-1">
+                    <button x-show="canReschedule(appt)" @click="openRescheduleModal(appt)" class="min-h-10 rounded-lg bg-[#006D6F] hover:bg-[#06464A] text-white text-sm font-semibold transition active:scale-95">Reschedule</button>
+                    <button @click="openCancelModal(appt.id)" :class="canReschedule(appt) ? '' : 'col-span-2'" class="min-h-10 rounded-lg border border-[#FDA4AF] text-[#9F1239] hover:bg-[#FFF1F2] text-sm font-semibold transition active:scale-95">Cancel</button>
                   </div>
-                </div>
+                </article>
               </template>
             </template>
             <template x-if="appointmentView === 'upcoming' && getUpcomingAppointments().length === 0">
@@ -290,41 +348,40 @@
             </template>
 
             <template x-if="appointmentView === 'past'">
-              <template x-for="(appt, i) in getPastAppointments()" :key="appt.id">
-                <div class="card-lift stagger-item bg-slate-900 border border-luxury-900 rounded-2xl p-5 space-y-3 flex flex-col justify-between" :style="'animation-delay:' + (i * 70) + 'ms'">
-                  <div>
-                    <div class="flex justify-between items-start">
-                      <p class="font-serif font-bold text-white" x-text="appt.serviceName"></p>
-                      <span :class="getStatusBadgeClass(appt.status)" class="px-2 py-0.5 rounded text-xs font-bold" x-text="appt.status"></span>
-                    </div>
-                    <p class="text-xs text-slate-400" x-text="appt.branchName"></p><p class="text-xs font-mono text-purple-300 break-all">Booking reference: <span x-text="appt.id"></span></p>
-                    <p x-show="appt.status === 'Cancelled' && appt.paymentExpired" class="text-xs text-slate-500 mt-2">Payment wasn't completed within the 30-minute payment window.</p>
-                    <div class="text-xs text-slate-300 mt-3 space-y-1">
-                      <p><strong class="text-slate-500 w-16 inline-block">Date:</strong> <span x-text="appointmentScheduleLabel(appt)"></span></p>
-                      <p><strong class="text-slate-500 w-16 inline-block">Stylist:</strong> <span x-text="appt.staffName"></span></p>
-                    </div>
-                    <details class="mt-3 rounded-lg border border-slate-700 p-3 text-xs text-slate-300">
-                      <summary class="cursor-pointer font-semibold text-purple-300 py-1">View Payment Details</summary>
-                      <div class="mt-2 space-y-1" aria-live="polite">
-                        <p><strong class="font-bold">Service price:</strong> <span x-text="formatPeso(appt.price)"></span></p>
-                        <p x-show="appt.status !== 'Cancelled'"><strong class="font-bold">Deposit paid:</strong> <span x-text="formatPeso(appt.depositVerified ? appt.depositAmount || 0 : 0)"></span></p>
-                        <p x-show="appt.status === 'Cancelled'"><strong class="font-bold">Amount paid:</strong> <span x-text="formatPeso(appt.amountPaid || 0)"></span></p>
-                        <p x-show="appt.status !== 'Cancelled'"><strong class="font-bold">Remaining balance:</strong> <strong x-text="formatPeso(appt.remainingBalance)"></strong></p>
-                        <p><strong class="font-bold">Payment method:</strong> <span x-text="PortalPresentation.methodLabel(appt.paymentMethod) || 'Not selected'"></span></p>
-                        <p><strong class="font-bold">Payment status:</strong> <span x-text="appointmentPaymentLabel(appt)"></span></p>
-                        <p x-show="!appt.depositVerified && appt.depositAmount" class="text-amber-300">The reported reservation payment is awaiting verification. Do not pay it again while verification is pending.</p>
-                        <p x-show="appt.remainingBalance > 0 && !['Cancelled', 'No-Show'].includes(appt.status)">Pay the remaining balance at the branch via Cash, GCash, or Maya.</p>
-                      </div>
-                    </details>
+              <template x-for="(appt, i) in pagedAppointments()" :key="appt.id">
+                <article class="flex flex-col gap-2 rounded-xl border border-[#E4D7C0] bg-[#FFFDF9] p-4">
+                  <div class="flex items-start justify-between gap-2">
+                    <h3 class="font-semibold text-[15px] leading-snug text-[#1F2937] min-w-0" x-text="appt.serviceName"></h3>
+                    <span :class="getStatusBadgeClass(appt.status)" class="shrink-0 px-2 py-0.5 rounded text-xs font-bold" x-text="appt.status"></span>
                   </div>
-                  <p x-show="hasKeptDeposit(appt)" class="text-xs font-semibold rounded-lg p-2 bg-amber-950 text-amber-300 border border-amber-800"
-                     x-text="'Your ' + formatPeso(appt.depositAmount) + ' deposit is non-refundable, but you can still use it — tap Reschedule to pick a new time.'"></p>
-                  <div class="pt-3 border-t border-slate-800 flex gap-2">
-                    <button x-show="hasKeptDeposit(appt)" @click="openRescheduleModal(appt)" class="w-full bg-luxury-700 hover:bg-luxury-600 text-white text-xs font-semibold py-1.5 rounded-lg transition active:scale-95">Reschedule</button>
-                    <a x-show="!hasKeptDeposit(appt)" href="services-promos.html" class="w-full text-center bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold py-1.5 rounded-lg transition active:scale-95">Book again</a>
-                    <button x-show="['Completed', 'Reviewed'].includes(appt.status)" @click="openReviewModal(appt)" class="w-full bg-gold-600 hover:bg-gold-500 text-slate-950 text-xs font-bold py-1.5 rounded-lg transition active:scale-95 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed" :disabled="!['Completed', 'Reviewed'].includes(appt.status)" x-text="appt.status === 'Reviewed' ? 'Edit Review' : 'Leave Review'"></button>
+                  <p class="flex items-center gap-1.5 text-sm font-semibold text-[#374151]">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+                    <span x-text="appointmentScheduleLabel(appt)"></span>
+                  </p>
+                  <p class="text-xs text-[#4B5563]" x-text="[appt.branchName, appt.staffName ? 'with ' + appt.staffName : ''].filter(Boolean).join(' · ')"></p>
+                  <p class="text-xs font-mono text-[#6B7280] break-all" x-text="appt.id"></p>
+                  <p x-show="appt.status === 'Cancelled' && appt.paymentExpired" class="text-xs text-[#6B7280]">Payment wasn't completed within the 30-minute payment window.</p>
+                  <p x-show="hasKeptDeposit(appt)" class="text-xs font-semibold rounded-lg p-2 bg-[#FFFBEB] text-[#78350F] border border-[#F5D58A]"
+                     x-text="'Your ' + formatPeso(appt.depositAmount) + ' deposit is non-refundable, but you can still use it. Tap Reschedule to pick a new time.'"></p>
+
+                  <details class="rounded-lg border border-[#EFE6D6] text-xs text-[#4B5563]">
+                    <summary class="cursor-pointer select-none px-3 py-2 font-semibold text-[#374151]">Payment details</summary>
+                    <div class="px-3 pb-3 space-y-1" aria-live="polite">
+                      <p><strong class="font-bold">Service total:</strong> <span x-text="formatPeso(appt.price)"></span></p>
+                      <p x-show="appt.status !== 'Cancelled'"><strong class="font-bold">Confirmed payment:</strong> <span x-text="formatPeso(appt.amountPaid || 0)"></span></p>
+                      <p x-show="appt.status === 'Cancelled'"><strong class="font-bold">Amount paid:</strong> <span x-text="formatPeso(appt.amountPaid || 0)"></span></p>
+                      <p x-show="appt.status !== 'Cancelled' && !(!appt.depositVerified && appt.depositAmount)"><strong class="font-bold">Remaining balance:</strong> <strong x-text="formatPeso(appt.remainingBalance)"></strong></p>
+                      <p><strong class="font-bold">Payment method:</strong> <span x-text="PortalPresentation.methodLabel(appt.paymentMethod) || 'Not selected'"></span></p>
+                      <p><strong class="font-bold">Payment status:</strong> <span x-text="appointmentPaymentLabel(appt)"></span></p>
+                    </div>
+                  </details>
+
+                  <div class="flex gap-2 mt-auto pt-1">
+                    <button x-show="hasKeptDeposit(appt)" @click="openRescheduleModal(appt)" class="flex-1 min-h-10 rounded-lg bg-[#006D6F] hover:bg-[#06464A] text-white text-sm font-semibold transition active:scale-95">Reschedule</button>
+                    <a x-show="!hasKeptDeposit(appt)" href="services-promos.html" class="flex-1 inline-flex items-center justify-center min-h-10 rounded-lg border border-[#A9C7C6] text-[#006D6F] hover:bg-[#006D6F]/5 text-sm font-semibold transition active:scale-95">Book again</a>
+                    <button x-show="['Completed', 'Reviewed'].includes(appt.status)" @click="openReviewModal(appt)" class="flex-1 min-h-10 rounded-lg bg-[#B8860B] hover:bg-[#9A6F08] text-white text-sm font-bold transition active:scale-95" x-text="appt.status === 'Reviewed' ? 'Edit review' : 'Leave review'"></button>
                   </div>
-                </div>
+                </article>
               </template>
             </template>
             <template x-if="appointmentView === 'past' && getPastAppointments().length === 0">
@@ -370,90 +427,137 @@
        page header; header + buttons stay put while the middle scrolls. -->
   <div x-show="rescheduleAppt" x-transition.opacity class="fixed inset-0 z-[9998] flex items-center justify-center bg-[#0B2F31]/60 backdrop-blur-sm p-3 sm:p-6" style="display: none;">
     <div x-show="rescheduleAppt" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" @click.outside="closeRescheduleModal()"
-         class="bg-[#FFFDF9] text-[#1F2937] border border-[#E4D7C0] rounded-2xl shadow-2xl w-full max-w-lg max-h-[calc(100vh-2rem)] flex flex-col text-xs overflow-hidden">
-      <div class="flex justify-between items-center px-5 py-4 border-b border-[#E4D7C0] bg-[#006D6F] text-white shrink-0">
-        <h3 class="text-base font-serif font-bold">Reschedule Appointment</h3>
-        <button @click="closeRescheduleModal()" class="text-white/80 hover:text-white text-2xl leading-none" aria-label="Close">&times;</button>
+         @keydown.escape.window="rescheduleAppt && closeRescheduleModal()" role="dialog" aria-modal="true" aria-labelledby="rescheduleTitle"
+         class="bg-[#FFFDF9] text-[#1F2937] border border-[#E4D7C0] rounded-2xl shadow-2xl w-full max-w-lg max-h-[calc(100dvh-2rem)] flex flex-col text-xs overflow-hidden">
+      <div class="flex justify-between items-center pl-5 pr-2 py-2 border-b border-[#E4D7C0] bg-[#006D6F] text-white shrink-0">
+        <h3 id="rescheduleTitle" class="text-base font-serif font-bold">Reschedule Appointment</h3>
+        <button type="button" @click="closeRescheduleModal()" class="w-11 h-11 flex items-center justify-center rounded-lg text-white/85 hover:text-white hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white" aria-label="Close">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
       </div>
 
       <template x-if="rescheduleAppt">
         <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-          <div class="rounded-xl bg-[#F7F1E6] border border-[#E4D7C0] p-3 grid grid-cols-2 gap-x-3 gap-y-2.5">
-            <div><span class="block text-xs text-[#6B7280] font-bold uppercase">Reference</span><span class="font-mono text-[#006D6F] break-all" x-text="rescheduleAppt.id"></span></div>
-            <div><span class="block text-xs text-[#6B7280] font-bold uppercase">Status</span><span :class="getStatusBadgeClass(rescheduleAppt.status)" class="px-2 py-0.5 rounded text-xs font-bold" x-text="rescheduleAppt.status"></span></div>
-            <div class="col-span-2"><span class="block text-xs text-[#6B7280] font-bold uppercase">Service(s)</span><span class="font-semibold text-[#1F2937]" x-text="rescheduleAppt.serviceName"></span></div>
-            <div><span class="block text-xs text-[#6B7280] font-bold uppercase">Branch</span><span x-text="rescheduleAppt.branchName"></span></div>
-            <div><span class="block text-xs text-[#6B7280] font-bold uppercase">Duration</span><span x-text="rescheduleAppt.durationMinutes + ' min'"></span></div>
-            <div x-show="rescheduleAppt.depositAmount"><span class="block text-xs text-[#6B7280] font-bold uppercase">Deposit</span><span x-text="formatPeso(rescheduleAppt.depositAmount)"></span> <span :class="rescheduleAppt.depositVerified ? 'text-[#15803D]' : 'text-[#B45309]'" class="font-bold" x-text="rescheduleAppt.depositVerified ? '(Verified)' : '(Pending)'"></span></div>
+          <!-- What is being moved, in three short lines. -->
+          <div class="rounded-xl bg-[#F7F1E6] border border-[#E4D7C0] p-3 space-y-1">
+            <div class="flex items-start justify-between gap-2">
+              <p class="font-semibold text-sm text-[#1F2937]" x-text="rescheduleAppt.serviceName"></p>
+              <span :class="getStatusBadgeClass(rescheduleAppt.status)" class="shrink-0 px-2 py-0.5 rounded text-xs font-bold" x-text="rescheduleAppt.status"></span>
+            </div>
+            <p class="text-[#4B5563]" x-text="[rescheduleAppt.durationMinutes ? rescheduleAppt.durationMinutes + ' min' : '', rescheduleAppt.branchName].filter(Boolean).join(' · ')"></p>
+            <p class="text-[#4B5563]">
+              <span class="font-mono text-[#006D6F] break-all" x-text="rescheduleAppt.id"></span>
+              <template x-if="rescheduleAppt.depositAmount">
+                <span> · Deposit <span x-text="formatPeso(rescheduleAppt.depositAmount)"></span>
+                  <span :class="rescheduleAppt.depositVerified ? 'text-[#15803D]' : 'text-[#B45309]'" class="font-bold"
+                        x-text="rescheduleAppt.depositVerified ? 'verified ✓' : 'waiting for salon to verify'"></span></span>
+              </template>
+            </p>
           </div>
 
           <div class="rounded-xl bg-[#FEF3C7] border border-[#FCD34D] p-3">
             <span class="block text-xs text-[#92400E] font-bold uppercase">Current schedule</span>
-            <span class="font-semibold text-[#78350F]" x-text="rescheduleAppt.date + ' · ' + rescheduleAppt.time + (rescheduleAppt.staffName ? ' with ' + rescheduleAppt.staffName : '')"></span>
+            <span class="font-semibold text-sm text-[#78350F]" x-text="rescheduleAppt.date + ' · ' + rescheduleAppt.time + (rescheduleAppt.staffName ? ' with ' + rescheduleAppt.staffName : '')"></span>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label for="rescheduleDateInput" class="block text-xs text-[#6B7280] font-bold uppercase mb-1">New date</label>
-              <input id="rescheduleDateInput" type="date" x-model="rescheduleDate" :min="rescheduleMinDate()" @change="loadRescheduleSlots()" class="w-full bg-white text-[#1F2937] rounded-lg p-2.5 border border-[#D9C9B4] focus:outline-none focus:ring-2 focus:ring-[#006D6F]/30">
+          <!-- Too close to the appointment: explain first, no pickers. -->
+          <template x-if="rescheduleBlocked">
+            <div role="alert" class="rounded-xl bg-[#FFFBEB] border border-[#F5D58A] border-l-4 border-l-[#B45309] p-4 flex gap-3">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="2" stroke-linecap="round" aria-hidden="true" class="shrink-0 mt-0.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              <div class="space-y-1.5">
+                <p class="font-serif font-bold text-base leading-snug text-[#78350F]">This booking can no longer be changed online</p>
+                <p class="prose-justify text-sm leading-relaxed text-[#4B5563]" x-show="rescheduleInfo.deadline">
+                  Your appointment is less than <span x-text="rescheduleInfo.cutoffHours"></span> hours away, and online changes are only allowed up to
+                  <span x-text="rescheduleInfo.cutoffHours"></span> hours before the appointment time.
+                </p>
+                <p class="text-sm leading-relaxed text-[#4B5563]" x-show="!rescheduleInfo.deadline" x-text="rescheduleBlocked"></p>
+                <p class="text-sm leading-relaxed text-[#4B5563]">
+                  Need a different time? Please contact <strong class="text-[#1F2937]" x-text="rescheduleInfo.branchName || 'the branch'"></strong> and our staff will help you move it.
+                </p>
+              </div>
             </div>
-            <div>
-              <label for="rescheduleStylistInput" class="block text-xs text-[#6B7280] font-bold uppercase mb-1">Stylist</label>
-              <select id="rescheduleStylistInput" x-model="rescheduleStaffId" @change="loadRescheduleSlots()" :disabled="rescheduleStaffId === null" class="w-full bg-white text-[#1F2937] rounded-lg p-2.5 border border-[#D9C9B4] focus:outline-none focus:ring-2 focus:ring-[#006D6F]/30">
-                <option value="">Any available stylist</option>
-                <template x-for="s in rescheduleStylists" :key="s.id">
-                  <option :value="s.id" :selected="s.id === rescheduleStaffId" x-text="s.name + (s.id === rescheduleCurrentStaffId ? ' (current)' : '')"></option>
-                </template>
-              </select>
-            </div>
-          </div>
+          </template>
 
-          <div>
-            <div class="flex items-center justify-between flex-wrap gap-1 mb-1.5">
-              <span class="text-xs text-[#6B7280] font-bold uppercase"
-                    x-text="rescheduleStylistName() ? 'New time · ' + rescheduleStylistName() + ' availability' : 'New time · any stylist'"></span>
-              <span class="flex items-center gap-2.5 text-xs text-[#6B7280]">
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded border border-[#9CA3AF] bg-white"></span>Open</span>
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-[#006D6F]"></span>Selected</span>
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-[#FFE4E6] border border-[#FDA4AF]"></span>Stylist busy</span>
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-[#F1F5F9] border border-[#E2E8F0]"></span>Unavailable</span>
-              </span>
-            </div>
-            <p x-show="rescheduleLoading" class="text-[#6B7280] italic py-2">Loading open times…</p>
-            <p x-show="rescheduleError" x-text="rescheduleError" class="text-[#881337] bg-[#FFF1F2] border border-[#FDA4AF] rounded-lg p-2.5 font-semibold"></p>
-            <p x-show="!rescheduleLoading && !rescheduleError && rescheduleSlots.length && !rescheduleOpenCount()" class="text-[#6B7280] italic py-2"
-               x-text="rescheduleStylistName() ? rescheduleStylistName() + ' has no free time on this date. Try another day or choose another stylist.' : 'No open times on this date. Try another day.'"></p>
-            <div x-show="!rescheduleLoading && !rescheduleError && rescheduleSlots.length" class="grid grid-cols-3 sm:grid-cols-4 gap-1.5 max-h-56 overflow-y-auto pr-1">
-              <template x-for="slot in rescheduleSlots" :key="slot.time">
-                <button type="button" :disabled="!slot.available || isCurrentSlot(slot.time)" @click="rescheduleTime = slot.time"
-                  :title="slot.reason === 'busy' ? (rescheduleStylistName() || 'Every qualified stylist') + ' is still with another client at this time' : ''"
-                  :class="rescheduleTime === slot.time
-                    ? 'bg-[#006D6F] border-[#006D6F] text-white'
-                    : (slot.reason === 'busy' && !isCurrentSlot(slot.time)
-                      ? 'bg-[#FFF1F2] border-[#FDA4AF] text-[#9F1239] cursor-not-allowed'
-                      : ((!slot.available || isCurrentSlot(slot.time)) ? 'bg-[#F1F5F9] border-[#E2E8F0] text-[#94A3B8] cursor-not-allowed' : 'bg-white border-[#D9C9B4] text-[#1F2937] hover:border-[#006D6F]'))"
-                  class="border rounded-lg py-1.5 px-1 font-semibold transition leading-tight">
-                  <span class="block" :class="(!slot.available || isCurrentSlot(slot.time)) && rescheduleTime !== slot.time ? 'line-through' : ''" x-text="slot.time"></span>
-                  <span x-show="slotReasonLabel(slot) && rescheduleTime !== slot.time" class="block text-xs font-bold" x-text="slotReasonLabel(slot)"></span>
-                </button>
-              </template>
-            </div>
-            <p x-show="rescheduleOpenCount()" class="text-xs text-[#6B7280] mt-1.5"
-               x-text="rescheduleOpenCount() + ' open time' + (rescheduleOpenCount() === 1 ? '' : 's') + ' · each fits your full ' + rescheduleDuration + '-min service before closing' + (rescheduleStylistName() ? ' and ' + rescheduleStylistName() + ' is free the whole time.' : '.')"></p>
-          </div>
+          <template x-if="!rescheduleBlocked">
+            <div class="space-y-4">
+              <p x-show="rescheduleInfo.deadline" class="flex items-center gap-2 text-[#065F46] bg-[#ECFDF5] border border-[#A7F3D0] rounded-lg p-2.5">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" class="shrink-0"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                <span>You can change this online until <strong x-text="rescheduleInfo.deadline"></strong>.</span>
+              </p>
 
-          <ul class="rounded-xl bg-[#F7F1E6] border border-[#E4D7C0] p-3 space-y-1 text-xs text-[#4B5563] list-disc list-inside">
-            <li>Same booking reference, services, and payment — nothing is charged again.</li>
-            <li x-text="rescheduleStylistName() ? 'Your booking moves to ' + rescheduleStylistName() + '. Times when they are still with another client are marked Stylist busy.' : 'Any free qualified stylist is assigned (your current one first, if free).'"></li>
-            <li x-text="rescheduleStatusNote()"></li>
-            <li>Online changes are allowed up to 24 hours before your appointment (anytime if the salon asked you to reschedule, or to use the deposit of a cancelled booking). For later changes, contact the branch.</li>
-          </ul>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label for="rescheduleDateInput" class="block text-xs text-[#6B7280] font-bold uppercase mb-1">New date</label>
+                  <input id="rescheduleDateInput" type="date" x-model="rescheduleDate" :min="rescheduleMinDate()" @change="loadRescheduleSlots()" class="w-full bg-white text-[#1F2937] rounded-lg p-2.5 border border-[#D9C9B4] focus:outline-none focus:ring-2 focus:ring-[#006D6F]/30">
+                </div>
+                <div>
+                  <label for="rescheduleStylistInput" class="block text-xs text-[#6B7280] font-bold uppercase mb-1">Stylist</label>
+                  <select id="rescheduleStylistInput" x-model="rescheduleStaffId" @change="loadRescheduleSlots()" :disabled="rescheduleStaffId === null" class="w-full bg-white text-[#1F2937] rounded-lg p-2.5 border border-[#D9C9B4] focus:outline-none focus:ring-2 focus:ring-[#006D6F]/30">
+                    <template x-for="s in rescheduleStylistsOrdered()" :key="s.id">
+                      <option :value="s.id" :selected="s.id === rescheduleStaffId" x-text="s.name + (s.id === rescheduleCurrentStaffId ? ' (current)' : '')"></option>
+                    </template>
+                    <option value="">Any available stylist</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <span class="block text-xs text-[#6B7280] font-bold uppercase mb-1.5"
+                      x-text="rescheduleStylistName() ? 'New time · ' + rescheduleStylistName() + ' availability' : 'New time · any stylist'"></span>
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2 text-xs text-[#4B5563]" aria-hidden="true">
+                  <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded border-2 border-[#9CA3AF] bg-white"></span>Open</span>
+                  <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded bg-[#006D6F]"></span>Selected</span>
+                  <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded bg-[#FFE4E6] border-2 border-[#FB7185]"></span>Stylist busy</span>
+                  <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded bg-[#E5E7EB] border-2 border-[#9CA3AF]"></span>Unavailable</span>
+                </div>
+                <p x-show="rescheduleLoading" class="text-[#6B7280] italic py-2">Loading open times…</p>
+                <p x-show="rescheduleError" x-text="rescheduleError" class="text-[#881337] bg-[#FFF1F2] border border-[#FDA4AF] rounded-lg p-2.5 font-semibold"></p>
+                <p x-show="!rescheduleLoading && !rescheduleError && rescheduleSlots.length && !rescheduleOpenCount()" class="text-[#6B7280] italic py-2"
+                   x-text="rescheduleStylistName() ? rescheduleStylistName() + ' has no free time on this date. Try another day or choose another stylist.' : 'No open times on this date. Try another day.'"></p>
+                <div x-show="!rescheduleLoading && !rescheduleError && rescheduleSlots.length" class="grid grid-cols-3 sm:grid-cols-4 gap-1.5 max-h-56 overflow-y-auto pr-1">
+                  <template x-for="slot in rescheduleSlots" :key="slot.time">
+                    <button type="button" :disabled="!slot.available || isCurrentSlot(slot.time)" @click="rescheduleTime = slot.time"
+                      :aria-pressed="(rescheduleTime === slot.time).toString()"
+                      :title="slot.reason === 'busy' ? (rescheduleStylistName() || 'Every qualified stylist') + ' is still with another client at this time' : ''"
+                      :class="rescheduleTime === slot.time
+                        ? 'bg-[#006D6F] border-[#006D6F] text-white'
+                        : (slot.reason === 'busy' && !isCurrentSlot(slot.time)
+                          ? 'bg-[#FFF1F2] border-[#FB7185] text-[#9F1239] cursor-not-allowed'
+                          : ((!slot.available || isCurrentSlot(slot.time)) ? 'bg-[#F1F5F9] border-[#CBD5E1] text-[#64748B] cursor-not-allowed' : 'bg-white border-[#D9C9B4] text-[#1F2937] hover:border-[#006D6F]'))"
+                      :data-slot-state="rescheduleTime === slot.time ? 'selected' : (slot.reason === 'busy' && !isCurrentSlot(slot.time) ? 'busy' : ((!slot.available || isCurrentSlot(slot.time)) ? 'off' : 'open'))"
+                      class="lm-slot border rounded-lg py-1.5 px-1 font-semibold transition leading-tight min-h-11">
+                      <span class="block" :class="(!slot.available || isCurrentSlot(slot.time)) && rescheduleTime !== slot.time ? 'line-through' : ''" x-text="slot.time"></span>
+                      <span x-show="slotReasonLabel(slot) && rescheduleTime !== slot.time" class="block text-xs font-bold" x-text="slotReasonLabel(slot)"></span>
+                    </button>
+                  </template>
+                </div>
+              </div>
+
+              <details class="rounded-xl bg-[#F7F1E6] border border-[#E4D7C0] group">
+                <summary class="cursor-pointer select-none p-3 font-semibold text-[#374151] list-none flex items-center justify-between">
+                  How rescheduling works
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="transition-transform group-open:rotate-180" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                </summary>
+                <ul class="px-3 pb-3 space-y-1 text-xs text-[#4B5563] list-disc list-inside">
+                  <li>Same booking reference, services, and payment, nothing is charged again.</li>
+                  <li x-text="rescheduleStylistName() ? 'Your booking moves to ' + rescheduleStylistName() + '. Times when they are still with another client are marked Stylist busy.' : 'Any free qualified stylist is assigned (your current one first, if free).'"></li>
+                  <li x-text="rescheduleStatusNote()"></li>
+                  <li x-text="'Online changes are allowed up to ' + rescheduleInfo.cutoffHours + ' hours before your appointment (anytime if the salon asked you to reschedule, or to use the deposit of a cancelled booking). For later changes, contact the branch.'"></li>
+                </ul>
+              </details>
+            </div>
+          </template>
         </div>
       </template>
 
       <div class="flex gap-2 px-5 py-3 border-t border-[#E4D7C0] bg-[#FFFDF9] shrink-0">
-        <button type="button" @click="closeRescheduleModal()" class="flex-1 px-4 py-2.5 bg-[#EFE6D6] hover:bg-[#E4D7C0] rounded-lg text-[#1F2937] transition font-bold active:scale-95">Keep Current Time</button>
-        <button type="button" @click="confirmReschedule()" :disabled="!rescheduleTime || isRescheduling" class="flex-1 px-4 py-2.5 bg-[#006D6F] hover:bg-[#06464A] text-white font-bold rounded-lg transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed" x-text="isRescheduling ? 'Moving…' : (rescheduleTime ? 'Move to ' + rescheduleTime : 'Pick a time')"></button>
+        <button type="button" @click="closeRescheduleModal()" :class="rescheduleBlocked ? 'flex-1' : 'flex-none px-5'" class="px-4 py-2.5 bg-[#EFE6D6] hover:bg-[#E4D7C0] rounded-lg text-[#1F2937] transition font-bold active:scale-95">Close</button>
+        <template x-if="!rescheduleBlocked">
+          <button type="button" @click="confirmReschedule()" :disabled="!rescheduleTime || isRescheduling"
+                  class="flex-1 px-4 py-2.5 font-bold rounded-lg transition whitespace-nowrap"
+                  :class="rescheduleTime && !isRescheduling ? 'bg-[#006D6F] hover:bg-[#06464A] text-white active:scale-95' : 'bg-[#E5E7EB] text-[#6B7280] cursor-not-allowed'"
+                  x-text="isRescheduling ? 'Moving…' : (rescheduleTime ? 'Confirm: ' + rescheduleChoiceLabel() : 'Choose a time above')"></button>
+        </template>
       </div>
     </div>
   </div>
@@ -466,7 +570,7 @@
       <h3 class="text-base font-serif font-bold text-white">Confirm Cancellation</h3>
       <p class="text-xs text-slate-400">Are you sure you want to cancel this appointment? This action cannot be undone.</p>
       <p x-show="cancelDepositWarning()" x-text="cancelDepositWarning()" class="text-xs font-semibold rounded-lg p-2.5 bg-[#FFF1F2] text-[#881337] border border-[#FDA4AF]"></p>
-      <p class="text-xs text-slate-500">Policy: reservation deposits are non-refundable. Need a different time? Reschedule instead — your deposit carries over.</p>
+      <p class="prose-justify text-xs text-slate-500">Policy: reservation deposits are non-refundable. Need a different time? Reschedule instead, your deposit carries over.</p>
 
       <div class="pt-4 flex flex-col gap-2">
         <button type="button" x-show="cancelAppointmentForReschedule() && canReschedule(cancelAppointmentForReschedule())" @click="rescheduleInsteadOfCancel()" class="w-full px-6 py-2 bg-luxury-700 hover:bg-luxury-600 text-white font-bold rounded-lg transition text-xs active:scale-95">Reschedule Instead</button>
@@ -517,7 +621,7 @@
         <button @click="closeTrackModal()" class="text-slate-400 hover:text-white">&times;</button>
       </div>
 
-      <p class="text-xs text-slate-400">Look up the status of any appointment by its reference code — including one made before you had an account.</p>
+      <p class="prose-justify text-xs text-slate-400">Look up the status of any appointment by its reference code, including one made before you had an account.</p>
 
       <form @submit.prevent="trackBooking()" class="space-y-3 text-xs">
         <div>

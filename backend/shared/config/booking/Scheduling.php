@@ -589,8 +589,8 @@ class Scheduling
     }
 
     /** attendance.notes markers -- shown to staff/cashier/admin so auto-closed hours can be reviewed. */
-    const NOTE_AUTO_CLOSE = 'Auto clock-out at closing time — staff did not sign out';
-    const NOTE_EOD_CLOSE = 'Clocked out at end-of-day close — staff did not sign out';
+    const NOTE_AUTO_CLOSE = 'Auto clock-out at closing time staff did not sign out';
+    const NOTE_EOD_CLOSE = 'Clocked out at end-of-day close staff did not sign out';
 
     /**
      * Automatic attendance Time Out. There's no cron/background worker in

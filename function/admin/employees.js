@@ -38,7 +38,7 @@ function adminStaffApp() {
     getAverageStaffRating() {
       const store = Alpine.store('admin');
       const rated = store.staffList.filter(s => s.rating > 0);
-      if (rated.length === 0) return '—';
+      if (rated.length === 0) return '';
       return (rated.reduce((sum, s) => sum + s.rating, 0) / rated.length).toFixed(1);
     },
 
@@ -65,7 +65,7 @@ function adminStaffApp() {
         .filter(b => b.staffId === staffId && activeStatuses.includes(b.status))
         .map(b => ({
           id: b.id,
-          label: b.isHomeService ? `Home Service — ${b.eventType || b.serviceName}` : b.serviceName,
+          label: b.isHomeService ? `Home Service ${b.eventType || b.serviceName}` : b.serviceName,
           when: b.isHomeService ? b.date : `${b.date} @ ${b.time}`,
           status: b.status
         }));

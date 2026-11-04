@@ -61,14 +61,26 @@ try {
         echo json_encode(['success' => false, 'message' => 'Appointment not found.']);
         exit();
     }
+    // Last moment the customer may still move this booking online (null = no cut-off applies:
+    // the salon asked for the change, or a cancelled booking's kept deposit is being reused).
+    $cutoffHours = Reschedule::CUSTOMER_CUTOFF_HOURS;
+    $noCutoff = $appointment['status'] === 'Reschedule Requested' || Reschedule::isReinstatable($appointment);
+    $deadline = $noCutoff ? null : date('M j, Y \a\t g:i A', strtotime($appointment['appointment_datetime']) - $cutoffHours * 3600);
+    $contact = [
+        'branchName' => $appointment['branch_name'] ?? null,
+        'cutoffHours' => $cutoffHours,
+        'deadline' => $deadline,
+    ];
+
     if ($blocked = Reschedule::blockedReason($appointment, true)) {
         http_response_code(409);
-        echo json_encode(['success' => false, 'message' => $blocked]);
+        // blocked: the modal swaps its pickers for this message.
+        echo json_encode(['success' => false, 'blocked' => true, 'message' => $blocked] + $contact);
         exit();
     }
 
     if (!$isPost) {
-        echo json_encode([
+        echo json_encode($contact + [
             'success' => true,
             'durationMinutes' => $appointment['duration_minutes'],
             'currentStaffId' => $appointment['employee_id'] !== null ? (string) $appointment['employee_id'] : null,

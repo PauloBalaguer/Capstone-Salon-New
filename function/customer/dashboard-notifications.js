@@ -4,7 +4,7 @@ function customerNotificationsMixin() {
   return {
     pushToast(type, message) {
       // Long messages (e.g. refund/cancellation details) get more reading time.
-      LMToast.show(message, type, { duration: Math.max(5000, Math.min(10000, String(message).length * 70)) });
+      LMToast.show(message, type, { duration: Math.max(3000, Math.min(6000, String(message).length * 40)) });
     },
 
     animateCount(prop, target, duration = 900) {
@@ -36,7 +36,24 @@ function customerNotificationsMixin() {
     },
 
     get unreadNotificationCount() {
-      return this.notifications.filter(n => !n.read).length;
+      return this.displayNotifications.filter(n => !n.read).length;
+    },
+
+    // A cancellation and the deposit it forfeited are one event: show one card.
+    // Display only; both rows stay in the database and are marked read together.
+    get displayNotifications() {
+      const refOf = n => (n.message || '').match(/\bLM-(?:[A-Z]+-)+\d{4}-\d+\b/)?.[0] || '';
+      const forfeited = new Map();
+      this.notifications.forEach(n => { if (n.type === 'PAYMENT_FORFEITED' && refOf(n)) forfeited.set(refOf(n), n); });
+      const merged = new Set();
+      const list = this.notifications.map(n => {
+        const deposit = n.type === 'CANCELLED' ? forfeited.get(refOf(n)) : null;
+        if (!deposit) return n;
+        merged.add(deposit);
+        const amount = (deposit.message.match(/₱[\d,.]*\d/) || [''])[0];
+        return { ...n, read: n.read && deposit.read, depositNote: 'Your ' + (amount ? amount + ' ' : '') + 'deposit is non-refundable, but you can still use it by rescheduling.' };
+      });
+      return list.filter(n => !merged.has(n));
     },
 
     notificationDetails(notif) {
@@ -44,8 +61,10 @@ function customerNotificationsMixin() {
       const field = label => message.match(new RegExp('(?:^|\n)' + label + ': ([^\n]+)'))?.[1] || '';
       const reference = message.match(/\bLM-(?:[A-Z]+-)+\d{4}-\d+\b/)?.[0] || '';
       const titles = { CANCELLED: 'Booking cancelled', CONFIRMED: 'Booking confirmed', BOOKING_SUBMITTED: 'Booking request received', PAYMENT_RECEIVED: 'Payment received', PAYMENT_VERIFIED: 'Payment verified', PAYMENT_SUBMITTED: 'Payment submitted', PAYMENT_ATTENTION: 'Payment needs attention', PAYMENT_FORFEITED: 'Deposit forfeited', REFUND_DUE: 'Refund pending', PAYMENT_REFUNDED: 'Payment refunded', RESCHEDULE: 'Schedule updated', COMPLETED: 'Appointment completed', REMINDER: 'Appointment reminder', WAITLIST_OPENING: 'Stylist available', QUOTE_READY: 'Your quote is ready', PAYMENT_REMINDER: 'Payment reminder' };
-      let summary = message.split(/\n\s*\n|\nBooking reference:/)[0].replace(reference, '').replace(/\s+([.,:])/g, '$1').replace(/\s{2,}/g, ' ').trim();
+      let summary = message.split(/\n\s*\n|\nBooking reference:/)[0].replace(' for ' + reference, ' for this booking').replace(reference, '').replace(/\s+([.,:])/g, '$1').replace(/\s{2,}/g, ' ').trim();
       if (notif.type === 'CANCELLED' && /within 30 minutes/i.test(message)) summary = 'Your payment wasn’t completed within 30 minutes.';
+      if (notif.type === 'CANCELLED' && /^You cancelled your appointment\.?$/.test(summary)) summary = '';
+      if (notif.depositNote) summary = notif.depositNote;
       const bookingStatus = field('Booking status');
       const legacy = notif.type === 'BOOKING_SUBMITTED' && typeof PortalPresentation !== 'undefined' ? PortalPresentation.legacyBookingDetails(message) : null;
       const recordedStatus = bookingStatus || legacy?.status || '';

@@ -22,6 +22,8 @@ require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/booking/Scheduling.php';
+require_once '../../backend/shared/config/booking/ArrivalRequest.php';
+require_once '../../backend/shared/config/helpers/StaffMetrics.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -73,6 +75,7 @@ try {
             DATE_FORMAT(a.appointment_datetime, '%Y-%m-%d') AS date,
             DATE_FORMAT(a.appointment_datetime, '%h:%i %p') AS time,
             a.appointment_datetime AS startDateTime,
+            TIMESTAMPDIFF(MINUTE, a.appointment_datetime, NOW()) AS minutesLate,
             COALESCE(SUM(s.duration_minutes), 0) AS durationMinutes,
             a.status AS status,
             a.payment_status AS paymentStatus,
@@ -104,7 +107,12 @@ try {
         ORDER BY a.appointment_datetime ASC
     ");
     $stmt->execute([$myBranch['id']]);
-    $bookings = array_map(function ($row) {
+    $arrivalRequests = ArrivalRequest::openToday($pdo);
+    $graceMinutes = Scheduling::arrivalGraceMinutes() ?? 0;
+    $bookings = array_map(function ($row) use ($arrivalRequests, $graceMinutes) {
+        $row['arrivalRequests'] = $arrivalRequests[$row['id']] ?? [];
+        $row['canMarkNoShow'] = $row['status'] === 'Confirmed' && !$row['checkoutPaid'] && (int) $row['minutesLate'] > $graceMinutes;
+        unset($row['minutesLate']);
         $row['staffId'] = $row['staffId'] !== null ? (string) $row['staffId'] : null;
         $row['price'] = (float) $row['price'];
         $row['depositAmount'] = $row['depositAmount'] !== null ? (float) $row['depositAmount'] : null;
@@ -134,12 +142,12 @@ try {
             CONCAT(e.first_name, ' ', e.last_name) AS name,
             br.branch_key AS branchId,
             e.position AS role,
-            (SELECT COUNT(*) FROM appointments ap WHERE ap.employee_id = e.id AND ap.status = 'Completed') AS completedCount,
+            (SELECT COUNT(*) FROM appointments ap WHERE " . StaffMetrics::worksOnSql('ap', 'e.id') . " AND ap.status IN " . StaffMetrics::FINISHED_STATUSES_SQL . ") AS completedCount,
             (SELECT ROUND(AVG(f.rating), 1) FROM feedback f
                 JOIN appointments ap2 ON ap2.id = f.appointment_id
-                WHERE ap2.employee_id = e.id) AS avgRating,
-            (SELECT COUNT(DISTINCT DATE(at2.clock_in_time)) FROM attendance at2
-                WHERE at2.employee_id = e.id AND at2.clock_in_time >= (NOW() - INTERVAL 30 DAY)) AS attendanceDays,
+                WHERE " . StaffMetrics::worksOnSql('ap2', 'e.id') . ") AS avgRating,
+            " . StaffMetrics::attendedDaysSql('e') . " AS attendanceDays,
+            " . StaffMetrics::branchOpenDaysSql('e') . " AS branchOpenDays,
             (SELECT COALESCE(SUM(p.tip_amount), 0) FROM payments p
                 JOIN appointments ap3 ON ap3.id = p.appointment_id
                 WHERE ap3.employee_id = e.id AND p.status = 'Paid') AS totalTips,
@@ -214,7 +222,7 @@ try {
             'nextAppointment' => $nextAppointment ? $nextAppointment['label'] : null,
             'completedCount' => (int) $row['completedCount'],
             'rating' => $row['avgRating'] !== null ? (float) $row['avgRating'] : 0,
-            'attendance' => min(100, (int) round(((int) $row['attendanceDays'] / 30) * 100)),
+            'attendance' => StaffMetrics::attendanceRate((int) $row['attendanceDays'], (int) $row['branchOpenDays']),
             'totalTips' => (float) $row['totalTips'],
             'specialties' => $row['specialties'] ?: 'No specialties set',
         ];

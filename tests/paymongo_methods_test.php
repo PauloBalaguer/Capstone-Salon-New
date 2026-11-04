@@ -76,14 +76,14 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit(); }
 
 // ---- Test harness ------------------------------------------------------------
 $root = dirname(__DIR__);
-$mysql = 'C:\\xampp\\mysql\\bin\\mysql.exe -uroot -P3307 -h127.0.0.1';
-$dump = 'C:\\xampp\\mysql\\bin\\mysqldump.exe -uroot -P3307 -h127.0.0.1 --routines --triggers';
+$mysql = 'C:\\xampp\\mysql\\bin\\mysql.exe -uroot -P3306 -h127.0.0.1';
+$dump = 'C:\\xampp\\mysql\\bin\\mysqldump.exe -uroot -P3306 -h127.0.0.1 --routines --triggers';
 $testDb = 'capstone_paymongo_test';
 $stateFile = sys_get_temp_dir() . '/paymongo_mock_state.json';
 @unlink($stateFile);
 
 passthru("$mysql -e \"DROP DATABASE IF EXISTS $testDb; CREATE DATABASE $testDb\"");
-passthru("$dump \"new capstone_salon\" | $mysql $testDb", $code);
+passthru("$dump new_capstone_salon | $mysql $testDb", $code);
 if ($code !== 0) exit("Could not clone the database.\n");
 passthru("$mysql $testDb < \"$root\\database\\migrations\\053_paymongo_separate_methods.sql\"");
 $server = proc_open([PHP_BINARY, '-S', '127.0.0.1:8765', __FILE__], [['pipe', 'r'], ['file', 'NUL', 'w'], ['file', 'NUL', 'w']], $pipes);

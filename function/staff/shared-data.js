@@ -23,6 +23,8 @@ document.addEventListener('alpine:init', () => {
     notifications: [],
     isNotificationPanelOpen: false,
     now: new Date(),
+    loadedAt: new Date(),
+    lateGraceMinutes: null,
     busy: false,
 
     toast(message, type = 'success') {
@@ -43,6 +45,8 @@ document.addEventListener('alpine:init', () => {
         }
         this.profile = data.profile;
         this.notificationPrefs = data.notificationPrefs;
+        this.lateGraceMinutes = data.lateGraceMinutes;
+        this.loadedAt = new Date();
         this.appointments = data.appointments;
         this.attendance = data.attendance;
         this.performance = data.performance;
@@ -100,6 +104,59 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
+    // Asks the cashier to act; the booking and payment stay as they are.
+    async requestArrivalHelp(referenceCode, kind) {
+      const question = kind === 'no_show'
+        ? 'Ask the cashier to mark this customer as No-Show? The cashier makes the final decision.'
+        : 'Ask the cashier to reassign or reschedule this booking?';
+      if (!window.confirm(question)) return { success: false };
+      this.busy = true;
+      try {
+        const res = await this.post('backend/staff/requestArrivalHelp.php', { id: referenceCode, kind });
+        this.toast(res.message, res.success ? 'success' : 'error');
+        if (res.success) await this.refresh();
+        return res;
+      } catch {
+        this.toast('Could not send the request. Please try again.', 'error');
+        return { success: false };
+      } finally {
+        this.busy = false;
+      }
+    },
+
+    // appt.minutesLate is from the server's clock when the data loaded; this
+    // keeps it counting up while the page stays open.
+    minutesLate(appt) {
+      return appt.minutesLate + Math.floor((this.now - this.loadedAt) / 60000);
+    },
+
+    // Awaiting a customer past their reserved time. A shared booking's other
+    // stylists have a later window of their own, so this is the main stylist's.
+    isLate(appt) {
+      return appt.status === 'Confirmed' && appt.isMainStylist !== false
+        && appt.date <= this.todayISO() && this.minutesLate(appt) > 0;
+    },
+
+    isBeyondGrace(appt) {
+      return this.isLate(appt) && this.minutesLate(appt) > (this.lateGraceMinutes ?? 0);
+    },
+
+    lateLabel(appt) {
+      if (appt.date < this.todayISO()) return 'Missed date';
+      const minutes = this.minutesLate(appt);
+      return minutes < 60 ? `Late, ${minutes} min` : `Late, ${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+    },
+
+    lateBadgeClass(appt) {
+      return this.isBeyondGrace(appt)
+        ? 'bg-[#FFE4E6] text-[#9F1239] border border-[#FDA4AF]'
+        : 'bg-[#FEF3C7] text-[#92400E] border border-[#FCD34D]';
+    },
+
+    hasArrivalRequest(appt, kind) {
+      return (appt.arrivalRequests || []).includes(kind);
+    },
+
     async logSupplyUsage(itemId, quantity, referenceCode, note) {
       this.busy = true;
       try {
@@ -155,18 +212,37 @@ document.addEventListener('alpine:init', () => {
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     },
 
+    // "YYYY-MM-DD HH:MM" in 24-hour time: appt.time is "01:00 PM", which
+    // would otherwise sort before "08:30 AM".
+    appointmentSortKey(appt) {
+      const [time, meridiem] = appt.time.split(' ');
+      const [h, m] = time.split(':').map(Number);
+      const hours = (h % 12) + (meridiem === 'PM' ? 12 : 0);
+      return `${appt.date} ${String(hours).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    },
+
+    isInactiveAppointment(appt) {
+      return ['Cancelled', 'No-Show'].includes(appt.status);
+    },
+
+    // Earliest first, with bookings that won't happen moved to the bottom.
     getTodayAppointments() {
       const today = this.todayISO();
       return this.appointments
         .filter(a => a.date === today)
-        .sort((a, b) => a.time.localeCompare(b.time));
+        .sort((a, b) => (this.isInactiveAppointment(a) - this.isInactiveAppointment(b))
+          || this.appointmentSortKey(a).localeCompare(this.appointmentSortKey(b)));
+    },
+
+    getActiveTodayCount() {
+      return this.getTodayAppointments().filter(a => !this.isInactiveAppointment(a)).length;
     },
 
     getUpcomingAppointments() {
       const today = this.todayISO();
       return this.appointments
         .filter(a => a.date > today && !['Cancelled', 'Completed'].includes(a.status))
-        .sort((a, b) => a.date.localeCompare(b.date));
+        .sort((a, b) => this.appointmentSortKey(a).localeCompare(this.appointmentSortKey(b)));
     },
 
     getTodayAttendance() {

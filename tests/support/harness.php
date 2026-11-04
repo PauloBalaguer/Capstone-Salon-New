@@ -11,9 +11,9 @@
  */
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit(); }
 
-const TEST_MYSQL = 'C:\\xampp\\mysql\\bin\\mysql.exe -uroot -P3307 -h127.0.0.1';
-const TEST_DUMP = 'C:\\xampp\\mysql\\bin\\mysqldump.exe -uroot -P3307 -h127.0.0.1 --routines --triggers';
-const DEV_DATABASE = 'new capstone_salon';
+const TEST_MYSQL = 'C:\\xampp\\mysql\\bin\\mysql.exe -uroot -P3306 -h127.0.0.1';
+const TEST_DUMP = 'C:\\xampp\\mysql\\bin\\mysqldump.exe -uroot -P3306 -h127.0.0.1 --routines --triggers';
+const DEV_DATABASE = 'new_capstone_salon';
 
 $failures = 0;
 $testDb = '';

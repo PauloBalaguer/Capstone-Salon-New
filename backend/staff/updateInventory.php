@@ -10,6 +10,7 @@
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
+require_once '../../backend/shared/config/helpers/StaffMetrics.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -76,8 +77,8 @@ try {
     // appointments -- never an arbitrary/unrelated booking.
     $appointmentId = null;
     if ($referenceCode !== '') {
-        $stmt = $pdo->prepare('SELECT id FROM appointments WHERE reference_code = ? AND employee_id = ?');
-        $stmt->execute([$referenceCode, $employeeId]);
+        $stmt = $pdo->prepare('SELECT a.id FROM appointments a WHERE a.reference_code = ? AND ' . StaffMetrics::worksOnSql('a', '?'));
+        $stmt->execute([$referenceCode, $employeeId, $employeeId]);
         $appointmentId = $stmt->fetchColumn();
         if (!$appointmentId) {
             http_response_code(403);

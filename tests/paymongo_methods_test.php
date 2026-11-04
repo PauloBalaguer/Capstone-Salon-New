@@ -94,14 +94,15 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit(); }
 
 // ---- Test harness ------------------------------------------------------------
 $root = dirname(__DIR__);
-$mysql = 'C:\\xampp\\mysql\\bin\\mysql.exe -uroot -P3307 -h127.0.0.1';
-$dump = 'C:\\xampp\\mysql\\bin\\mysqldump.exe -uroot -P3307 -h127.0.0.1 --routines --triggers';
+require_once __DIR__ . '/support/dev_db.php'; // DEV_DATABASE, TEST_MYSQL, TEST_DUMP from the .env's DB_NAME / DB_PORT
+$mysql = TEST_MYSQL;
+$dump = TEST_DUMP;
 $testDb = 'capstone_paymongo_test';
 $stateFile = sys_get_temp_dir() . '/paymongo_mock_state.json';
 @unlink($stateFile);
 
 passthru("$mysql -e \"DROP DATABASE IF EXISTS $testDb; CREATE DATABASE $testDb\"");
-passthru("$dump \"new capstone_salon\" | $mysql $testDb", $code);
+passthru("$dump \"" . DEV_DATABASE . "\" | $mysql $testDb", $code);
 if ($code !== 0) exit("Could not clone the database.\n");
 // 057 first: on a dev database that ran 056, 053 can't place its columns until 057 puts paymongo_checkout_url back.
 foreach (['057_restore_paymongo.sql', '053_paymongo_separate_methods.sql', '058_paymongo_gcash_sources.sql'] as $migration) {
@@ -333,12 +334,17 @@ check('a second payment on a paid booking is flagged for refund, not recorded', 
 
 // 2b. Closed the tab: hold expires, slot freed, points back; card page closed. A late Maya payment becomes Refund Due;
 // a GCash source authorized too late is never charged.
-$f = newAppointment('PayMongo-Maya', 23, '31', 50);
+// Each payment is started within the hold, then the clock moves past it.
+$f = newAppointment('PayMongo-Maya', 23, '0', 50);
 PayMongo::startPayment($pdo, 'PayMongo-Maya', $f, $ref($f), 250, 'guest');
-$g = newAppointment('PayMongo-Card', 23, '31');
+$g = newAppointment('PayMongo-Card', 23);
 PayMongo::startPayment($pdo, 'PayMongo-Card', $g, $ref($g), 250, 'guest');
-$k = newAppointment('PayMongo-GCash', 23, '31');
+$k = newAppointment('PayMongo-GCash', 23);
 PayMongo::startPayment($pdo, 'PayMongo-GCash', $k, $ref($k), 250, 'guest');
+$pdo->exec("UPDATE appointments SET created_at = NOW() - INTERVAL 31 MINUTE WHERE id IN ({$f}, {$g}, {$k})");
+$late = false;
+try { PayMongo::startPayment($pdo, 'PayMongo-GCash', $k, $ref($k), 250, 'guest'); } catch (RuntimeException $e) { $late = str_contains($e->getMessage(), 'deadline'); }
+check('past the hold -> a new payment attempt is refused', $late);
 $points = (int) $pdo->query('SELECT loyalty_points FROM customers WHERE id = 23')->fetchColumn();
 PayMongo::releaseExpiredHolds($pdo);
 check('abandoned Maya booking released, loyalty points restored', row('appointments', $f)['status'] === 'Cancelled'

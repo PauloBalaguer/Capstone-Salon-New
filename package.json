@@ -1,0 +1,18 @@
+{
+  "name": "capstone-salon",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Salon Management System Capstone Project",
+  "scripts": {
+    "dev": "tailwindcss -i frontend/shared/input.css -o frontend/shared/output.css --watch",
+    "build": "tailwindcss -i frontend/shared/input.css -o frontend/shared/output.css --minify"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PauloBalaguer/Capstone-Salon-New.git"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "tailwindcss": "^4.3.3"
+  }
+}

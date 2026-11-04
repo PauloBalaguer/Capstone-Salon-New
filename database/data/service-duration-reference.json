@@ -1,0 +1,1895 @@
+{
+    "source":  "Leo_Mejillano_Estimated_Service_Durations_by_Branch.docx",
+    "entries":  [
+                    {
+                        "branch":  "daraga",
+                        "section":  "Promo Deals",
+                        "name":  "Hair cut with blow dry",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Promo Deals",
+                        "name":  "Organic rebonding (any length)",
+                        "minutes":  240
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Promo Deals",
+                        "name":  "Manicure / Pedicure",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Complete Salon Services",
+                        "name":  "Haircut",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Complete Salon Services",
+                        "name":  "Blow dry",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Complete Salon Services",
+                        "name":  "Hair ironing",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Complete Salon Services",
+                        "name":  "Hair setting",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Complete Salon Services",
+                        "name":  "Curl setting",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Hair and Scalp Treatment",
+                        "name":  "Hot oil",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Hair and Scalp Treatment",
+                        "name":  "Hair spa",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Hair and Scalp Treatment",
+                        "name":  "Hair cellophane",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Hair and Scalp Treatment",
+                        "name":  "Hair color",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Hair and Scalp Treatment",
+                        "name":  "Keratin treatment",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Hair and Scalp Treatment",
+                        "name":  "Brazilian treatment",
+                        "minutes":  150
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Hair and Scalp Treatment",
+                        "name":  "Amazon flowers",
+                        "minutes":  180
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Nails and Spa Services",
+                        "name":  "Manicure",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Nails and Spa Services",
+                        "name":  "Pedicure",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Nails and Spa Services",
+                        "name":  "Foot spa",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Nails and Spa Services",
+                        "name":  "Hand spa",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Nails and Spa Services",
+                        "name":  "Semi-gel polish",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Nails and Spa Services",
+                        "name":  "Gel polish",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Nails and Spa Services",
+                        "name":  "Soft gel extensions",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Lash and Brows Special",
+                        "name":  "Eyebrow threading",
+                        "minutes":  15
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Lash and Brows Special",
+                        "name":  "Brow lamination",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Lash and Brows Special",
+                        "name":  "Eyelash lift",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Lash and Brows Special",
+                        "name":  "Eyelash lift w/ tint",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Lash and Brows Special",
+                        "name":  "Eyelash extensions",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Lash and Brows Special",
+                        "name":  "Microblading",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Face and Body Treatment",
+                        "name":  "Underarm wax",
+                        "minutes":  15
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Face and Body Treatment",
+                        "name":  "Underarm whitening",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Face and Body Treatment",
+                        "name":  "Basic facial",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Face and Body Treatment",
+                        "name":  "Diamond peel",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Face and Body Treatment",
+                        "name":  "Whole body massage",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Face and Body Treatment",
+                        "name":  "Body scrub",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Face and Body Treatment",
+                        "name":  "Warts removal",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Hair and Make-Up Services",
+                        "name":  "Hair \u0026 Make-Up",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Hair and Make-Up Services",
+                        "name":  "Wedding Hair \u0026 Make-Up",
+                        "minutes":  180
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Hair and Make-Up Services",
+                        "name":  "Debut Hair \u0026 Make-Up",
+                        "minutes":  150
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Hair and Make-Up Services",
+                        "name":  "Birthday Hair \u0026 Make-Up",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Hair and Make-Up Services",
+                        "name":  "Graduation Hair \u0026 Make-Up",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Daraga Storefront Board — Forever Promo \u0026 Best Sellers",
+                        "name":  "Hair cut w/ blowdry (men and women)",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Daraga Storefront Board — Forever Promo \u0026 Best Sellers",
+                        "name":  "Organic rebond",
+                        "minutes":  240
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Daraga Storefront Board — Forever Promo \u0026 Best Sellers",
+                        "name":  "Hair color",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Daraga Storefront Board — Forever Promo \u0026 Best Sellers",
+                        "name":  "Keratin treatment",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Daraga Storefront Board — Forever Promo \u0026 Best Sellers",
+                        "name":  "Basic facial",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Daraga Storefront Board — Forever Promo \u0026 Best Sellers",
+                        "name":  "Eyelash extensions",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Daraga Storefront Board — Forever Promo \u0026 Best Sellers",
+                        "name":  "Hair \u0026 make-up",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Daraga Storefront Board — Forever Promo \u0026 Best Sellers",
+                        "name":  "Gel polish",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Daraga Storefront Board — Forever Promo \u0026 Best Sellers",
+                        "name":  "Foot spa",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Daraga Storefront Board — Forever Promo \u0026 Best Sellers",
+                        "name":  "Manicure / Pedicure",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Facial",
+                        "name":  "Basic facial / whitening",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Facial",
+                        "name":  "Acne clear facial",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Facial",
+                        "name":  "Add on Dr. Mask",
+                        "minutes":  15
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Footspa",
+                        "name":  "Regular foot spa",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Footspa",
+                        "name":  "Whitening mask",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Footspa",
+                        "name":  "Special foot spa",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Footspa",
+                        "name":  "Waxing",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Nail Care",
+                        "name":  "Regular polish",
+                        "minutes":  20
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Nail Care",
+                        "name":  "Gel polish",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Nail Care",
+                        "name":  "Weekly polish",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Lashes \u0026 Body",
+                        "name":  "Eyelash extension",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Lashes \u0026 Body",
+                        "name":  "Eyelash perming",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Lashes \u0026 Body",
+                        "name":  "Eyelash remover",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Lashes \u0026 Body",
+                        "name":  "Body scrub",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "home-service",
+                        "section":  "Home Service Menu",
+                        "name":  "Hair cut",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "home-service",
+                        "section":  "Home Service Menu",
+                        "name":  "Blow dry",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "home-service",
+                        "section":  "Home Service Menu",
+                        "name":  "Hair ironing",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "home-service",
+                        "section":  "Home Service Menu",
+                        "name":  "Curl setting",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "home-service",
+                        "section":  "Home Service Menu",
+                        "name":  "Hot oil",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "home-service",
+                        "section":  "Home Service Menu",
+                        "name":  "Rebond",
+                        "minutes":  240
+                    },
+                    {
+                        "branch":  "home-service",
+                        "section":  "Home Service Menu",
+                        "name":  "Amazon",
+                        "minutes":  180
+                    },
+                    {
+                        "branch":  "home-service",
+                        "section":  "Home Service Menu",
+                        "name":  "Cellophane",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "home-service",
+                        "section":  "Home Service Menu",
+                        "name":  "Keratin treatment",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "home-service",
+                        "section":  "Home Service Menu",
+                        "name":  "Brazilian blow out",
+                        "minutes":  150
+                    },
+                    {
+                        "branch":  "home-service",
+                        "section":  "Home Service Menu",
+                        "name":  "Hair color",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "home-service",
+                        "section":  "Home Service Menu",
+                        "name":  "Hair and make-up",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "home-service",
+                        "section":  "Home Service Menu",
+                        "name":  "Eyelash extensions",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "home-service",
+                        "section":  "Home Service Menu",
+                        "name":  "Footspa",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "home-service",
+                        "section":  "Home Service Menu",
+                        "name":  "Manicure",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "home-service",
+                        "section":  "Home Service Menu",
+                        "name":  "Gel polish",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "home-service",
+                        "section":  "Home Service Menu",
+                        "name":  "Pedicure",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "home-service",
+                        "section":  "Home Service Menu",
+                        "name":  "Hand spa",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Featured Promo",
+                        "name":  "Threading",
+                        "minutes":  15
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Featured Promo",
+                        "name":  "Underarm waxing",
+                        "minutes":  15
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Featured Promo",
+                        "name":  "Signature facial",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Featured Promo",
+                        "name":  "Whitening drip",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Aesthetics Promo Banner",
+                        "name":  "Microblading",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Aesthetics Promo Banner",
+                        "name":  "Eyeliner",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Aesthetics Promo Banner",
+                        "name":  "Lip pigmentation",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Facial Services",
+                        "name":  "Collagen facial",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Facial Services",
+                        "name":  "Black doll facial",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Facial Services",
+                        "name":  "Diamond peel",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Facial Services",
+                        "name":  "Hydra facial",
+                        "minutes":  75
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Facial Services",
+                        "name":  "Picu rejuvination",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Facial Services",
+                        "name":  "Head spa w/ signature facial",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Facial Services",
+                        "name":  "Stemcell facial",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Facial Services",
+                        "name":  "Platelet rich plasma",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Facial Services",
+                        "name":  "CO2 fractional facial",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Facial Services",
+                        "name":  "Ultraformer HIFU",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Permanent Make-Up",
+                        "name":  "BB blush",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Permanent Make-Up",
+                        "name":  "BB glow",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Permanent Make-Up",
+                        "name":  "Lip pigmentation",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Permanent Make-Up",
+                        "name":  "Eyeliner",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Permanent Make-Up",
+                        "name":  "Microblading",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Lash Services",
+                        "name":  "Eyelash perm",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Lash Services",
+                        "name":  "Eyelash perm w/ tint",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Lash Services",
+                        "name":  "Classic eyelash",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Lash Services",
+                        "name":  "Volume eyelash",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Lash Services",
+                        "name":  "Cat eye eyelash",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Lash Services",
+                        "name":  "Mega volume eyelash",
+                        "minutes":  150
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Lash Services",
+                        "name":  "Hybrid eyelash",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Laser Treatment",
+                        "name":  "Diode laser treatment",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Laser Treatment",
+                        "name":  "IPL underarm",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Laser Treatment",
+                        "name":  "IPL bikini",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Laser Treatment",
+                        "name":  "IPL legs",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Laser Treatment",
+                        "name":  "Tattoo removal (per session)",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Skin Whitening / Gluta",
+                        "name":  "Celebrity drip",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Skin Whitening / Gluta",
+                        "name":  "Luminous drip",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Skin Whitening / Gluta",
+                        "name":  "Mystical drip",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Skin Whitening / Gluta",
+                        "name":  "Cindella drip",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Skin Whitening / Gluta",
+                        "name":  "Snow white drip",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Skin Whitening / Gluta",
+                        "name":  "Glutax drip",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Skin Whitening / Gluta",
+                        "name":  "Pro drip",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Skin Whitening / Gluta",
+                        "name":  "Lush glow push",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Skin Whitening / Gluta",
+                        "name":  "Radiant push",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Skin Whitening / Gluta",
+                        "name":  "Super radiant push",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Facial \u0026 Gluta Add-Ons",
+                        "name":  "Vitamin C",
+                        "minutes":  10
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Facial \u0026 Gluta Add-Ons",
+                        "name":  "L-Carnitine",
+                        "minutes":  10
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Facial \u0026 Gluta Add-Ons",
+                        "name":  "Collagen",
+                        "minutes":  10
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Facial \u0026 Gluta Add-Ons",
+                        "name":  "PDT \u0026 other facial mask",
+                        "minutes":  15
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Waxing",
+                        "name":  "Underarm wax (cold)",
+                        "minutes":  15
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Waxing",
+                        "name":  "Underarm wax (hot)",
+                        "minutes":  20
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Waxing",
+                        "name":  "Leg wax – half (cold)",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Waxing",
+                        "name":  "Leg wax – half (hot)",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Waxing",
+                        "name":  "Leg wax – full (cold)",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Waxing",
+                        "name":  "Leg wax – full (hot)",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Waxing",
+                        "name":  "Brazilian wax",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Mesolipo",
+                        "name":  "Lipo – Face",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Mesolipo",
+                        "name":  "Lipo – Plus",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Mesolipo",
+                        "name":  "Face RF",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Mesolipo",
+                        "name":  "Body RF",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Other",
+                        "name":  "Warts removal (per area)",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Other",
+                        "name":  "Warts removal (per piece)",
+                        "minutes":  15
+                    },
+                    {
+                        "branch":  "daraga",
+                        "section":  "Other",
+                        "name":  "Botox (per area)",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Forever Promo",
+                        "name":  "Haircut w/ blowdry (men/women)",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Forever Promo",
+                        "name":  "Manicure / Pedicure",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Promo Deals",
+                        "name":  "Microblading",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Promo Deals",
+                        "name":  "Organic rebond + free hair treatment",
+                        "minutes":  270
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Promo Deals",
+                        "name":  "Black doll facial",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Promo Deals",
+                        "name":  "Hair color",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Promo Deals",
+                        "name":  "Foot spa",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Hair Services",
+                        "name":  "Haircut",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Hair Services",
+                        "name":  "Blowdry",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Hair Services",
+                        "name":  "Hair spa treatment",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Hair Services",
+                        "name":  "Hair setting / curl",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Hair Services",
+                        "name":  "Hair ironing",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Hair Services",
+                        "name":  "Cellophane treatment",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Hair Services",
+                        "name":  "Keratin treatment",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Hair Services",
+                        "name":  "Organic hair color",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Hair Services",
+                        "name":  "Brazilian treatment",
+                        "minutes":  150
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Hair Services",
+                        "name":  "L’Oréal treatment",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Hair Services",
+                        "name":  "Stem cell treatment",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Hair Services",
+                        "name":  "Brazilian blowout treatment",
+                        "minutes":  150
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Hair Services",
+                        "name":  "Luxury treatment",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Hair Services",
+                        "name":  "Amazon flowers",
+                        "minutes":  180
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Nails | Spa Services",
+                        "name":  "Manicure",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Nails | Spa Services",
+                        "name":  "Pedicure",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Nails | Spa Services",
+                        "name":  "Semi gel",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Nails | Spa Services",
+                        "name":  "Foot spa",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Nails | Spa Services",
+                        "name":  "Special foot spa",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Nails | Spa Services",
+                        "name":  "Hand spa",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Nails | Spa Services",
+                        "name":  "Organic gel polish",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Nails | Spa Services",
+                        "name":  "Soft gel extensions",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Facial Services",
+                        "name":  "Basic organic facial",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Facial Services",
+                        "name":  "Diamond peel",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Facial Services",
+                        "name":  "Acne clear facial",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Facial Services",
+                        "name":  "Hydra facial",
+                        "minutes":  75
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Facial Services",
+                        "name":  "Red cell facial",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Facial Services",
+                        "name":  "PRP facial (vampire facial)",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Skin Brows Specials",
+                        "name":  "Threading",
+                        "minutes":  15
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Skin Brows Specials",
+                        "name":  "Microblading",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Skin Brows Specials",
+                        "name":  "Permanent eyeliner",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Skin Brows Specials",
+                        "name":  "Lip pigmentation",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Skin Brows Specials",
+                        "name":  "BB glow",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Skin Brows Specials",
+                        "name":  "BB blush",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Skin Brows Specials",
+                        "name":  "Warts removal (unlimited)",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Lash Special Services",
+                        "name":  "Eyelash lift",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Lash Special Services",
+                        "name":  "Eyelash lift w/ tint",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Lash Special Services",
+                        "name":  "Classic lash extensions",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Lash Special Services",
+                        "name":  "Volume lash extensions",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Lash Special Services",
+                        "name":  "Cat eye lash extensions",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Lash Special Services",
+                        "name":  "Mega volume lash extensions",
+                        "minutes":  150
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Laser \u0026 Underarm Treatments",
+                        "name":  "Underarm waxing (cold wax)",
+                        "minutes":  15
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Laser \u0026 Underarm Treatments",
+                        "name":  "Underarm waxing (hot wax)",
+                        "minutes":  20
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Laser \u0026 Underarm Treatments",
+                        "name":  "IPL underarm laser (per session)",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Laser \u0026 Underarm Treatments",
+                        "name":  "Diode laser treatment",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Laser \u0026 Underarm Treatments",
+                        "name":  "Underarm bleaching",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Whitening Drips",
+                        "name":  "Celebrity drip",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Whitening Drips",
+                        "name":  "Luminous drip",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Whitening Drips",
+                        "name":  "Mystical drip",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Whitening Drips",
+                        "name":  "Cindella drip",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Whitening Drips",
+                        "name":  "Snow white drip",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Whitening Drips",
+                        "name":  "Glutax drip",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Whitening Drips",
+                        "name":  "Pro drip",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Whitening Push",
+                        "name":  "Lush glow push",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Whitening Push",
+                        "name":  "Radiant push",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Whitening Push",
+                        "name":  "Super radiant push",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Other Services",
+                        "name":  "Leg wax – half (cold wax)",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Other Services",
+                        "name":  "Leg wax – half (hot wax)",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Other Services",
+                        "name":  "Leg wax – full (cold wax)",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Other Services",
+                        "name":  "Leg wax – full (hot wax)",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Other Services",
+                        "name":  "Brazilian wax",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Other Services",
+                        "name":  "Mesolipo (per session)",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Other Services",
+                        "name":  "Botox (per session)",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Other Services",
+                        "name":  "Revok 50 (per session)",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Hair \u0026 Make-Up Services",
+                        "name":  "Wedding",
+                        "minutes":  180
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Hair \u0026 Make-Up Services",
+                        "name":  "Debut",
+                        "minutes":  150
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Hair \u0026 Make-Up Services",
+                        "name":  "Birthday",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "yashano",
+                        "section":  "Hair \u0026 Make-Up Services",
+                        "name":  "Graduation",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Best Sellers",
+                        "name":  "Organic rebond (any length)",
+                        "minutes":  240
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Best Sellers",
+                        "name":  "Eyelash extensions",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Best Sellers",
+                        "name":  "Hair color w/ keratin (any length)",
+                        "minutes":  180
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Best Sellers",
+                        "name":  "Special foot spa",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Best Sellers",
+                        "name":  "Organic hair color (any length)",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Best Sellers",
+                        "name":  "Basic facial",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Best Selling Hair Packages",
+                        "name":  "Rebond + hair color + Brazilian botox",
+                        "minutes":  360
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Best Selling Hair Packages",
+                        "name":  "Hair color + highlights + Brazilian botox",
+                        "minutes":  300
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Best Selling Hair Packages",
+                        "name":  "Hair color + Brazilian botox",
+                        "minutes":  240
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Nails \u0026 Spa",
+                        "name":  "Manicure",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Nails \u0026 Spa",
+                        "name":  "Pedicure",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Nails \u0026 Spa",
+                        "name":  "Foot spa",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Nails \u0026 Spa",
+                        "name":  "Gel polish",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Nails \u0026 Spa",
+                        "name":  "Hand spa",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Nails \u0026 Spa",
+                        "name":  "Special footspa",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Nails \u0026 Spa",
+                        "name":  "Softgel extension",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Facial",
+                        "name":  "Basic facial",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Facial",
+                        "name":  "Acne clear facial",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Facial",
+                        "name":  "Carbon laser peel",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Facial",
+                        "name":  "Timeless anti-aging",
+                        "minutes":  75
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Facial",
+                        "name":  "Aqua facial",
+                        "minutes":  75
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Facial",
+                        "name":  "Meso lipo",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Facial",
+                        "name":  "Firm bright facial (w/ diamond peel)",
+                        "minutes":  75
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Facial Promo Board",
+                        "name":  "Basic facial",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Facial Promo Board",
+                        "name":  "Diamond peel facial",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Facial Promo Board",
+                        "name":  "Acne clear facial",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Facial Promo Board",
+                        "name":  "Skin planing facial",
+                        "minutes":  75
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Facial Promo Board",
+                        "name":  "Carbon laser / black doll",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Facial Promo Board",
+                        "name":  "Platelet rich plasma facial",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Waxing / Threading",
+                        "name":  "Eyebrows",
+                        "minutes":  15
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Waxing / Threading",
+                        "name":  "Upper lips",
+                        "minutes":  10
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Waxing / Threading",
+                        "name":  "Underarms",
+                        "minutes":  15
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Waxing / Threading",
+                        "name":  "Lower legs",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Waxing / Threading",
+                        "name":  "Brazilian",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Waxing / Threading",
+                        "name":  "Warts removal",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Lash and Brows Specials",
+                        "name":  "Korean lash lift",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Lash and Brows Specials",
+                        "name":  "Korean lash lift w/ tint",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Lash and Brows Specials",
+                        "name":  "Classic lash",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Lash and Brows Specials",
+                        "name":  "Mega volume lash",
+                        "minutes":  150
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Lash and Brows Specials",
+                        "name":  "Lash removal",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Lash and Brows Specials",
+                        "name":  "Microblading",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "IPL Permanent Hair Removal",
+                        "name":  "Underarm (per session)",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "IPL Permanent Hair Removal",
+                        "name":  "Bikini (per session)",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Massage Services",
+                        "name":  "Swedish massage",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Massage Services",
+                        "name":  "Shiatsu massage",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Massage Services",
+                        "name":  "Signature massage",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Massage Services",
+                        "name":  "Foot massage",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Beauty Drip",
+                        "name":  "Tationil",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Beauty Drip",
+                        "name":  "TAD",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Beauty Drip",
+                        "name":  "Luminous",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Beauty Drip",
+                        "name":  "Mystical",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Beauty Drip",
+                        "name":  "Cindella",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Beauty Drip",
+                        "name":  "Snow White",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Beauty Drip",
+                        "name":  "Glutax",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Beauty Push",
+                        "name":  "Radiant glow",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Beauty Push",
+                        "name":  "Luminous",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Beauty Push",
+                        "name":  "Super radiant",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Facial",
+                        "name":  "Basic facial",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Facial",
+                        "name":  "Diamond peel",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Facial",
+                        "name":  "Acne clear facial",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Facial",
+                        "name":  "Timeless anti aging",
+                        "minutes":  75
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Facial",
+                        "name":  "Firm bright facial",
+                        "minutes":  75
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Facial",
+                        "name":  "Black doll",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Facial",
+                        "name":  "Vampire facial",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Facial",
+                        "name":  "Special PRP",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Skin Boosters",
+                        "name":  "Acne clear healer",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Skin Boosters",
+                        "name":  "Red cell / stem cell",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Skin Boosters",
+                        "name":  "Lucia / anti melasma",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Add-Ons",
+                        "name":  "Vitamin C",
+                        "minutes":  10
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Add-Ons",
+                        "name":  "Collagen",
+                        "minutes":  10
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Add-Ons",
+                        "name":  "L-Carnitine",
+                        "minutes":  10
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Mesolipo",
+                        "name":  "Lipo – Face",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Mesolipo",
+                        "name":  "Lipo – Plus",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Mesolipo",
+                        "name":  "Face RF",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Mesolipo",
+                        "name":  "Body RF",
+                        "minutes":  45
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "IPL Laser",
+                        "name":  "Underarm whitening",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "IPL Laser",
+                        "name":  "Bikini whitening",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Other",
+                        "name":  "BB glow (per session)",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Other",
+                        "name":  "BB blush (per session)",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Other",
+                        "name":  "Botox (per area)",
+                        "minutes":  30
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Other",
+                        "name":  "Warts removal (per area)",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "cabangan",
+                        "section":  "Other",
+                        "name":  "Warts removal (per piece)",
+                        "minutes":  15
+                    },
+                    {
+                        "branch":  "group-wide",
+                        "section":  "Permanent Make-Up",
+                        "name":  "6D eyebrow microblading",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "group-wide",
+                        "section":  "Permanent Make-Up",
+                        "name":  "Top eyeliner",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "group-wide",
+                        "section":  "Permanent Make-Up",
+                        "name":  "Derma pen",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "group-wide",
+                        "section":  "Permanent Make-Up",
+                        "name":  "Korean BB glow",
+                        "minutes":  60
+                    },
+                    {
+                        "branch":  "group-wide",
+                        "section":  "Permanent Make-Up",
+                        "name":  "Combo brows",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "group-wide",
+                        "section":  "Permanent Make-Up",
+                        "name":  "Lip pigmentation",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "group-wide",
+                        "section":  "Permanent Make-Up",
+                        "name":  "Package: Lips 6D \u0026 eyeliner",
+                        "minutes":  240
+                    },
+                    {
+                        "branch":  "group-wide",
+                        "section":  "Permanent Make-Up",
+                        "name":  "Package: Lip pigmentation \u0026 combo brows",
+                        "minutes":  210
+                    },
+                    {
+                        "branch":  "group-wide",
+                        "section":  "Eyelash Extensions",
+                        "name":  "Classic lash",
+                        "minutes":  90
+                    },
+                    {
+                        "branch":  "group-wide",
+                        "section":  "Eyelash Extensions",
+                        "name":  "Volume lash",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "group-wide",
+                        "section":  "Eyelash Extensions",
+                        "name":  "Cat eye lash",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "group-wide",
+                        "section":  "Eyelash Extensions",
+                        "name":  "Doll eye lash",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "group-wide",
+                        "section":  "Eyelash Extensions",
+                        "name":  "Hybrid lash",
+                        "minutes":  120
+                    },
+                    {
+                        "branch":  "group-wide",
+                        "section":  "Eyelash Extensions",
+                        "name":  "Mega volume lash",
+                        "minutes":  150
+                    }
+                ]
+}

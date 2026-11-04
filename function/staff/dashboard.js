@@ -6,6 +6,7 @@ function staffDashboardApp() {
     allFeedback: [],
     modalAttendanceDays: 0,
     modalAttendanceRate: 0,
+    modalBranchOpenDays: 0,
 
     mobileSearch: '',
     mobileTab: 'today',
@@ -40,6 +41,7 @@ function staffDashboardApp() {
           this.allFeedback = res.allFeedback;
           this.modalAttendanceDays = res.attendanceDays;
           this.modalAttendanceRate = res.attendanceRate;
+          this.modalBranchOpenDays = res.branchOpenDays;
         } else {
           Alpine.store('staff').toast(res.message || 'Failed to load performance data.', 'error');
         }
@@ -60,7 +62,7 @@ function staffDashboardApp() {
       } else {
         list = store.appointments
           .filter(a => ['Completed', 'Reviewed'].includes(a.status))
-          .sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time))
+          .sort((a, b) => store.appointmentSortKey(b).localeCompare(store.appointmentSortKey(a)))
           .slice(0, 10);
       }
 

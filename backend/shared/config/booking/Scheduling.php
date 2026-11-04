@@ -106,6 +106,20 @@ class Scheduling
         return ctype_digit($value) ? (int) $value : null;
     }
 
+    /** Whole minutes since the reserved start (negative before it), by MySQL's clock. */
+    public static function minutesLate(PDO $pdo, array $appointment): int
+    {
+        $stmt = $pdo->prepare('SELECT TIMESTAMPDIFF(MINUTE, ?, NOW())');
+        $stmt->execute([$appointment['appointment_datetime']]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    /** With no grace period configured, any time after the reserved start counts as past it. */
+    public static function isPastArrivalGrace(PDO $pdo, array $appointment): bool
+    {
+        return self::minutesLate($pdo, $appointment) > (self::arrivalGraceMinutes() ?? 0);
+    }
+
     /**
      * The late-arrival rule shown to customers (Terms & Conditions, booking
      * confirmation screens and emails), or null when no grace period is set

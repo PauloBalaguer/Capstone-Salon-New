@@ -69,6 +69,7 @@ try {
         ],
     ];
 
+    $hold = PayMongo::HOLD_MINUTES;
     $stmt = $pdo->prepare("
         SELECT
             a.reference_code AS id, a.created_at AS createdAt,
@@ -91,7 +92,9 @@ try {
             EXISTS (SELECT 1 FROM payment_transactions pt WHERE pt.appointment_id = a.id AND pt.event = 'checkout_expired' AND pt.created_at >= COALESCE(a.cancelled_at, a.created_at)) AS paymentExpired,
             a.reminder_sent AS reminderSent,
             -- Unpaid online booking still holding its slot: offer Continue payment.
-            CASE WHEN a.status = 'Pending' AND a.deposit_paid = 0 AND a.preferred_payment_method LIKE 'PayMongo%' THEN a.online_payment_token END AS paymentToken,
+            CASE WHEN a.status = 'Pending' AND a.deposit_paid = 0 AND a.preferred_payment_method LIKE 'PayMongo%'
+                AND NOW() < LEAST(a.appointment_datetime, DATE_ADD(a.created_at, INTERVAL {$hold} MINUTE)) THEN a.online_payment_token END AS paymentToken,
+            DATE_FORMAT(LEAST(a.appointment_datetime, DATE_ADD(a.created_at, INTERVAL {$hold} MINUTE)), '%l:%i %p') AS paymentDeadline,
             COALESCE(SUM(s.duration_minutes), 30) AS durationMinutes
         FROM appointments a
         LEFT JOIN employees e ON e.id = a.employee_id

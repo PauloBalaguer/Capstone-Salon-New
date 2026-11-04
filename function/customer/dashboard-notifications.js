@@ -53,18 +53,29 @@ function customerNotificationsMixin() {
         const amount = (deposit.message.match(/₱[\d,.]*\d/) || [''])[0];
         return { ...n, read: n.read && deposit.read, depositNote: 'Your ' + (amount ? amount + ' ' : '') + 'deposit is non-refundable, but you can still use it by rescheduling.' };
       });
-      return list.filter(n => !merged.has(n));
+      // Built from live booking data, not stored rows, so it disappears as soon
+      // as the booking is paid or released. Stays unread until then.
+      const pendingPayments = (this.appointments || []).filter(a => a.continuePaymentUrl).map(a => {
+        const amount = a.amountDue ? new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(a.amountDue) + ' ' : '';
+        return {
+          id: 'pending-payment-' + a.id, type: 'PAYMENT_PENDING', read: false, icon: this.notificationIcons.reminder,
+          message: `Booking ${a.id} is waiting for payment. Pay ${amount}by ${a.paymentDeadline} (PH) to keep your slot. No need to book again.`,
+          actionUrl: a.continuePaymentUrl, actionLabel: 'Continue payment'
+        };
+      });
+      return [...pendingPayments, ...list.filter(n => !merged.has(n))];
     },
 
     notificationDetails(notif) {
       const message = notif.message || '';
       const field = label => message.match(new RegExp('(?:^|\n)' + label + ': ([^\n]+)'))?.[1] || '';
       const reference = message.match(/\bLM-(?:[A-Z]+-)+\d{4}-\d+\b/)?.[0] || '';
-      const titles = { CANCELLED: 'Booking cancelled', CONFIRMED: 'Booking confirmed', BOOKING_SUBMITTED: 'Booking request received', PAYMENT_RECEIVED: 'Payment received', PAYMENT_VERIFIED: 'Payment verified', PAYMENT_SUBMITTED: 'Payment submitted', PAYMENT_ATTENTION: 'Payment needs attention', PAYMENT_FORFEITED: 'Deposit forfeited', REFUND_DUE: 'Refund pending', PAYMENT_REFUNDED: 'Payment refunded', RESCHEDULE: 'Schedule updated', COMPLETED: 'Appointment completed', REMINDER: 'Appointment reminder', WAITLIST_OPENING: 'Stylist available', QUOTE_READY: 'Your quote is ready', PAYMENT_REMINDER: 'Payment reminder' };
+      const titles = { CANCELLED: 'Booking cancelled', CONFIRMED: 'Booking confirmed', BOOKING_SUBMITTED: 'Booking request received', PAYMENT_RECEIVED: 'Payment received', PAYMENT_VERIFIED: 'Payment verified', PAYMENT_SUBMITTED: 'Payment submitted', PAYMENT_ATTENTION: 'Payment needs attention', PAYMENT_FORFEITED: 'Deposit forfeited', REFUND_DUE: 'Refund pending', PAYMENT_REFUNDED: 'Payment refunded', RESCHEDULE: 'Schedule updated', COMPLETED: 'Appointment completed', REMINDER: 'Appointment reminder', WAITLIST_OPENING: 'Stylist available', QUOTE_READY: 'Your quote is ready', PAYMENT_REMINDER: 'Payment reminder', PAYMENT_PENDING: 'Payment pending' };
       let summary = message.split(/\n\s*\n|\nBooking reference:/)[0].replace(' for ' + reference, ' for this booking').replace(reference, '').replace(/\s+([.,:])/g, '$1').replace(/\s{2,}/g, ' ').trim();
       if (notif.type === 'CANCELLED' && /within 30 minutes/i.test(message)) summary = 'Your payment wasn’t completed within 30 minutes.';
       if (notif.type === 'CANCELLED' && /^You cancelled your appointment\.?$/.test(summary)) summary = '';
       if (notif.depositNote) summary = notif.depositNote;
+      if (notif.type === 'PAYMENT_PENDING') summary = message; // Keeps the booking reference visible.
       const bookingStatus = field('Booking status');
       const legacy = notif.type === 'BOOKING_SUBMITTED' && typeof PortalPresentation !== 'undefined' ? PortalPresentation.legacyBookingDetails(message) : null;
       const recordedStatus = bookingStatus || legacy?.status || '';

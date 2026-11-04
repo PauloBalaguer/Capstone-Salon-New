@@ -1,6 +1,6 @@
 # Tests
 
-Self-checking PHP scripts. Each one copies the dev database (`new capstone_salon`)
+Self-checking PHP scripts. Each one copies the dev database (`new_capstone_salon`)
 into a throwaway database, runs the real backend code against the copy, prints
 one `PASS` / `FAIL` line per check, drops the copy, and exits with code 1 if
 anything failed. Your dev data is only read, never changed.
@@ -10,11 +10,11 @@ nothing is emailed, texted or charged. PayMongo is a local mock server.
 
 ## Requirements (XAMPP on Windows)
 
-- **MySQL running** in the XAMPP Control Panel, on port **3307** with user `root`
+- **MySQL running** in the XAMPP Control Panel, on port **3306** with user `root`
   and no password (the same settings as `backend/shared/config/setup/database.php`).
-  If your MySQL uses 3306, change `-P3307` in `tests/support/harness.php` and
+  If your MySQL uses another port, change `-P3306` in `tests/support/harness.php` and
   `tests/paymongo_methods_test.php`.
-- The dev database `new capstone_salon` imported, with at least two customer
+- The dev database `new_capstone_salon` imported, with at least two customer
   accounts, the admin and the Daraga cashier (the normal dev data has these).
 - `composer install` done once (the app loads its settings through it).
 - Free local ports **8765** and **8766** (the mock PayMongo API).
@@ -29,6 +29,7 @@ From the project folder (`C:\xampp\htdocs\Capstone-Salon`) in PowerShell:
 C:\xampp\php\php.exe tests\booking_concurrency_test.php
 C:\xampp\php\php.exe tests\event_team_test.php
 C:\xampp\php\php.exe tests\booking_exceptions_test.php
+C:\xampp\php\php.exe tests\arrival_request_test.php
 C:\xampp\php\php.exe tests\paymongo_methods_test.php
 C:\xampp\php\php.exe tests\env_test.php
 ```
@@ -50,6 +51,7 @@ Each test takes about 5–15 seconds, mostly to copy the database. Lines like
 | `event_team_test.php` | **Two events that need the same team on the same day**, through the admin staff-assignment endpoint. The team is blocked for travel + setup + service + buffer (migration 054), not the old flat 2 hours. Covers: whole-team checks, a back-to-back assignment, salon bookings blocked during an event, a customer reschedule refused when the team is busy, and what the public availability check shows. |
 | `booking_exceptions_test.php` | **A failed PayMongo (GCash) payment, then a retry** through the real result-page and "Try again" endpoints. The test then follows the booking through staff verification and cashier checkout, and checks that **the revenue report matches the payment log** and the cashier payment exactly. **No-show**: the deposit is kept (Forfeited), logged once, and nothing happens automatically. **Late arrival within and beyond the grace period** (`SALON_LATE_GRACE_MINUTES`): the arrival review says which, and changes nothing. **Cancellation with a deposit**: the non-refundable policy is applied once, only to money actually held. |
 | `paymongo_methods_test.php` | The separate GCash / Maya / Card methods in detail, including more failure cases: a Maya payment cancelled and retried, a card declined, an abandoned payment, and a late payment after the hold expired (Refund Due). |
+| `arrival_request_test.php` | **Late or absent customers: the stylist asks, the cashier decides.** A no-show request is only accepted past the grace period and changes nothing by itself, and it reaches only that branch's cashiers. The cashier's No-Show is refused inside the grace period, for future bookings, for visits already checked out and for other branches, and keeps the deposit once. |
 | `env_test.php` | The private `.env` loading. |
 
 ## How it works
@@ -65,7 +67,7 @@ Each test takes about 5–15 seconds, mostly to copy the database. Lines like
 
 ## When a test fails
 
-- **"Could not clone the database."**: MySQL isn't running, or isn't on port 3307.
+- **"Could not clone the database."**: MySQL isn't running, or isn't on port 3306.
 - **"The dev database needs ..."**: the dev data is missing the accounts or
   stylists the test builds on. Re-import the dev data or add them.
 - A `FAIL` line names the case that broke. Run that one test again to confirm,

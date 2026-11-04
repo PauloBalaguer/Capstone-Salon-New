@@ -62,6 +62,8 @@
       find('grace').innerHTML = '<b class="block text-base"></b><span></span><span class="block mt-1">Nothing is cancelled or marked as a no-show automatically. Starting, reassigning, rescheduling or marking a no-show is your decision.</span>';
       find('grace').querySelector('b').textContent = verdictTitle;
       find('grace').querySelector('span').textContent = verdictText;
+      // Staff can't mark a no-show or reschedule; they ask the cashier from the booking card.
+      if (review.canReschedule === false) find('grace').querySelector('span.block').textContent = 'Nothing is cancelled or marked as a no-show automatically. If the customer does not arrive, or the service cannot fit, send a request to the cashier from My Assignments.';
       find('summary').textContent = `${reference}\nReserved: ${scheduled}\nActual service start: ${review.actualStart} (${review.durationMinutes} minutes)\nArrival: ${late}\nPayment: ${review.paymentStatus} (unchanged by this review)\n${review.reason || 'Review qualified staff below.'}`;
       for (const staff of review.staff) {
         const option = document.createElement('option');

@@ -151,7 +151,9 @@ function actionsFor(b) {
   const checkout = `<a href="payment.html?ref=${encodeURIComponent(b.id)}" class="text-emerald-700 font-bold hover:underline">Checkout</a>`;
   const isDue = (b.date || '') <= localDateYmd(new Date());
   if (b.status === 'Confirmed') {
-    return `${details}<button data-action="arrival" data-ref="${ref}" class="text-teal-700 font-bold hover:underline">Review Arrival</button>${isDue ? checkout : ''}<button data-action="reassign" data-ref="${ref}" class="text-amber-700 font-bold hover:underline">${b.staffName ? 'Reassign' : 'Assign'} Staff</button>${reschedule}`;
+    const noShow = b.canMarkNoShow ? `<button data-action="no-show" data-ref="${ref}" class="text-rose-700 font-bold hover:underline">Mark No-Show</button>` : '';
+    const requests = (b.arrivalRequests || []).map(kind => `<span class="block mt-1 text-xs font-semibold text-rose-700">${kind === 'no_show' ? 'Stylist requests No-Show' : 'Stylist asks to reassign or reschedule'}</span>`).join('');
+    return `${details}<button data-action="arrival" data-ref="${ref}" class="text-teal-700 font-bold hover:underline">Review Arrival</button>${isDue ? checkout : ''}<button data-action="reassign" data-ref="${ref}" class="text-amber-700 font-bold hover:underline">${b.staffName ? 'Reassign' : 'Assign'} Staff</button>${reschedule}${noShow}${requests}`;
   }
   if (b.status === 'Reschedule Requested') {
     return `${details}${reschedule}<button data-action="cancel" data-ref="${ref}" class="text-rose-700 font-bold hover:underline">Cancel</button>`;
@@ -433,6 +435,17 @@ async function cancelBooking(ref) {
   if (result.success) await refreshData();
 }
 
+async function markNoShow(ref) {
+  const b = state.data.bookings.find(x => x.id === ref);
+  const depositNote = b && b.depositAmount && ['Down Payment Verified', 'Fully Paid'].includes(b.paymentStatus)
+    ? `\n\nThe ${CashierApp.formatCurrency(b.depositAmount)} deposit is NON-REFUNDABLE and will be kept.`
+    : '';
+  if (!window.confirm('Mark this customer as No-Show? Check first that they have not arrived.' + depositNote)) return;
+  const result = await CashierApp.post('updateStatus.php', { id: ref, status: 'No-Show' });
+  CashierApp.toast(result.message || (result.success ? 'Marked as No-Show.' : 'Failed to update booking.'), result.success ? 'success' : 'error');
+  if (result.success) await refreshData();
+}
+
 function wireStaticEvents() {
   document.getElementById('statusTabs').addEventListener('click', (e) => {
     const btn = e.target.closest('.tab-btn');
@@ -452,6 +465,7 @@ function wireStaticEvents() {
       case 'reassign': openReassignModal(ref); break;
       case 'reschedule': openRescheduleModal(ref); break;
       case 'cancel': cancelBooking(ref); break;
+      case 'no-show': markNoShow(ref); break;
     }
   });
 

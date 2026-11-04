@@ -38,7 +38,7 @@ function staffAppointmentsApp() {
         list = list.filter(a => a.clientName.toLowerCase().includes(q) || a.id.toLowerCase().includes(q));
       }
 
-      return [...list].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+      return [...list].sort((a, b) => store.appointmentSortKey(a).localeCompare(store.appointmentSortKey(b)));
     },
 
     async logSupplyForAppointment(referenceCode) {

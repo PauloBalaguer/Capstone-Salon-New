@@ -174,6 +174,7 @@
                   <div class="flex items-center gap-2 flex-wrap">
                     <span class="text-xs font-bold text-white" x-text="appt.clientName"></span>
                     <span :class="$store.staff.getStatusBadgeClass(appt.status)" class="px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap" x-text="appt.status"></span>
+                    <span x-show="$store.staff.isLate(appt)" :class="$store.staff.lateBadgeClass(appt)" class="px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap" x-text="$store.staff.lateLabel(appt)"></span>
                   </div>
                   <p class="text-xs text-slate-400 mt-0.5" x-text="appt.serviceName"></p>
                   <p x-show="appt.otherStylists" class="text-xs text-slate-500 mt-0.5" x-text="'Shared booking with ' + appt.otherStylists"></p>
@@ -205,6 +206,12 @@
                         class="px-4 py-2 rounded-lg text-xs font-bold uppercase bg-teal-600 hover:bg-teal-700 text-white transition-all active:scale-95 disabled:opacity-50">Start Service</button>
                       <button x-show="appt.isMainStylist !== false && appt.status === 'In Progress'" @click="$store.staff.completeService(appt.id)" :disabled="$store.staff.busy"
                         class="px-4 py-2 rounded-lg text-xs font-bold uppercase bg-emerald-600 hover:bg-emerald-700 text-white transition-all active:scale-95 disabled:opacity-50">Complete Service</button>
+                      <button x-show="$store.staff.isBeyondGrace(appt) && !$store.staff.hasArrivalRequest(appt, 'no_show')" @click="$store.staff.requestArrivalHelp(appt.id, 'no_show')" :disabled="$store.staff.busy"
+                        class="px-4 py-2 rounded-lg text-xs font-bold uppercase bg-[#9F1239] hover:bg-[#881337] text-white transition-all active:scale-95 disabled:opacity-50">Request No-Show</button>
+                      <button x-show="$store.staff.isLate(appt) && !$store.staff.hasArrivalRequest(appt, 'reschedule')" @click="$store.staff.requestArrivalHelp(appt.id, 'reschedule')" :disabled="$store.staff.busy"
+                        class="px-4 py-2 rounded-lg text-xs font-bold uppercase bg-[#B45309] hover:bg-[#92400E] text-white transition-all active:scale-95 disabled:opacity-50">Ask Cashier to Reschedule</button>
+                      <span x-show="appt.status === 'Confirmed' && $store.staff.hasArrivalRequest(appt, 'no_show')" class="text-xs font-semibold text-[#9F1239]">No-show request sent. Waiting for the cashier.</span>
+                      <span x-show="appt.status === 'Confirmed' && $store.staff.hasArrivalRequest(appt, 'reschedule')" class="text-xs font-semibold text-[#92400E]">Reschedule request sent. Waiting for the cashier.</span>
                       <span x-show="appt.status === 'Pending'" class="text-xs text-slate-500 italic">Waiting for admin/cashier confirmation.</span>
                       <span x-show="appt.isMainStylist === false && ['Confirmed', 'In Progress'].includes(appt.status)" class="text-xs text-slate-500 italic">Shared booking -- you do the service(s) above; the main stylist starts and completes it.</span>
                       <span x-show="appt.status === 'Confirmed' && appt.date > new Date().toLocaleDateString('en-CA')" class="text-xs text-slate-500 italic">Scheduled for a later date -- you can start it on the day itself.</span>

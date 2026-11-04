@@ -13,6 +13,7 @@ require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/helpers/LoyaltyTier.php';
+require_once '../../backend/shared/config/helpers/LoyaltyCard.php';
 require_once '../../backend/shared/config/booking/HomeServiceRequest.php';
 require_once '../../backend/shared/config/booking/ServiceDuration.php';
 require_once '../../backend/shared/config/payments/ReservationPayment.php';
@@ -58,6 +59,7 @@ try {
         'phone' => $customer['phone_number'],
         'memberSince' => date('Y-m-d', strtotime($customer['created_at'])),
         'loyaltyPoints' => (int) $customer['loyalty_points'],
+        'loyaltyCard' => LoyaltyCard::summary($pdo, $customerId),
         // Frequency-based status (backend/shared/config/helpers/LoyaltyTier.php).
         'loyaltyTier' => LoyaltyTier::forCustomer($pdo, $customerId) + ['ladder' => LoyaltyTier::ladder()],
         'profilePicture' => $customer['profile_picture'],

@@ -7,7 +7,7 @@
  * applies the deposit policy (backend/shared/config/booking/CancellationPolicy.php): a held
  * deposit is non-refundable and is kept, but the cancelled booking can still
  * be rescheduled later to use it (backend/shared/config/booking/Reschedule.php).
- * Ownership is enforced by joining through the session's customer_id —
+ * Ownership is enforced by joining through the session's customer_id
  * a customer can never cancel someone else's appointment by guessing an id.
  *
  * POST preview=1 returns what would happen to the deposit without
@@ -98,8 +98,8 @@ try {
     // that now need refunding.
     $when = date('M j, Y g:i A', strtotime($appointment['appointment_datetime']));
     $depositLine = match ($outcome) {
-        'Refund Due' => ' Deposit of ₱' . number_format((float) $appointment['deposit_amount'], 2) . ' is Refund Due — process it in Admin > Appointments.',
-        'Forfeited' => ' Deposit of ₱' . number_format((float) $appointment['deposit_amount'], 2) . ' kept (non-refundable) — the customer can reschedule to use it.',
+        'Refund Due' => ' Deposit of ₱' . number_format((float) $appointment['deposit_amount'], 2) . ' is Refund Due process it in Admin > Appointments.',
+        'Forfeited' => ' Deposit of ₱' . number_format((float) $appointment['deposit_amount'], 2) . ' kept (non-refundable) the customer can reschedule to use it.',
         default => '',
     };
     $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "BOOKING", ?)')

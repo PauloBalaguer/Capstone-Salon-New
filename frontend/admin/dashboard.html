@@ -8,12 +8,16 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-  <link rel="stylesheet" href="../../frontend/admin/admin-theme.css?v=teal-gold-20261021">
+  <link rel="stylesheet" href="../../frontend/admin/admin-theme.css?v=20261103">
   <script src="../../function/admin/theme-config.js"></script>
-  <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=teal-gold-20261021" />
-  <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=teal-gold-20261021" />
+  <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=20261103b" />
+  <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=20261103-signout-cream" />
   <script src="../../function/shared/toast.js"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
+  <link rel="stylesheet" href="../../frontend/shared/mobile-nav.css?v=20261103c">
+  <script src="../../function/shared/mobile-nav.js?v=20261103" defer></script>
+  <!-- Clean theme: loaded last so it overrides older theme colours. -->
+  <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
 </head>
 <body class="salon-portal bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="adminDashboardApp()" x-init="init()" x-cloak>
@@ -74,15 +78,7 @@
 
       <div>
         <div class="p-4 border-t border-slate-800">
-          <a href="../../backend/auth/logout.php?portal=admin" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4"></path></svg>
-            <span>Sign Out</span>
-          </a>
-        </div>
-        <div class="p-4 bg-slate-950 border-t border-slate-800/80 text-xs text-slate-400 space-y-1">
-          <p class="font-bold text-slate-300">STI College Legazpi</p>
-          <p>Capstone Project Proposal &copy; 2026</p>
-          <p class="text-xs text-luxury-400 italic">Centralized Digital Multi-Branch Solution</p>
+          <a href="../../backend/auth/logout.php?portal=admin" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H5v14h4M13 8l4 4-4 4M9 12h12"/></svg><span>Sign Out</span></a>
         </div>
       </div>
     </aside>
@@ -103,27 +99,19 @@
             </button>
 
             <div x-show="open" @click.outside="open = false" x-cloak class="portal-notification-panel admin-notification-panel absolute right-0 mt-2 w-80 bg-slate-900 border border-luxury-800 rounded-xl shadow-xl z-50" role="region" aria-label="Admin notifications">
-              <div class="admin-notice-header"><strong>Notifications</strong><button type="button" @click="open = false" aria-label="Close notifications">&times;</button></div>
+              <div class="admin-notice-header"><strong>Notifications</strong><button type="button" class="lm-notif-readall" x-show="$store.admin.notifications.length > 0" @click="$store.admin.markAllNotificationsAsRead()" :disabled="$store.admin.notificationsReadBusy || !$store.admin.unreadNotifications()" x-text="$store.admin.notificationsReadBusy ? 'Saving...' : 'Mark all as read'"></button><button type="button" @click="open = false" aria-label="Close notifications">&times;</button></div>
               <div class="overflow-y-auto admin-notice-list">
                 <template x-if="$store.admin.notifications.length === 0"><p class="p-4 text-xs text-slate-500">No updates yet.</p></template>
                 <template x-for="item in $store.admin.notifications" :key="item.id">
                   <article class="admin-notice-card" :class="{ 'portal-notification-unread': !item.isRead }">
-                    <div class="flex items-center justify-between gap-2"><strong x-text="PortalPresentation.adminNotice(item).title"></strong><span x-show="!item.isRead" class="admin-notice-unread">Unread</span></div>
-                    <p class="admin-notice-reference" x-show="PortalPresentation.adminNotice(item).reference" x-text="PortalPresentation.adminNotice(item).reference"></p>
-                    <dl class="admin-notice-fields">
-                      <div x-show="PortalPresentation.adminNotice(item).customer"><dt>Customer</dt><dd x-text="PortalPresentation.adminNotice(item).customer"></dd></div>
-                      <div x-show="PortalPresentation.adminNotice(item).branch"><dt>Branch</dt><dd x-text="PortalPresentation.adminNotice(item).branch"></dd></div>
-                      <div x-show="PortalPresentation.adminNotice(item).schedule"><dt>Schedule</dt><dd x-text="PortalPresentation.adminNotice(item).schedule"></dd></div>
-                      <div x-show="PortalPresentation.adminNotice(item).payment"><dt>Payment</dt><dd x-text="PortalPresentation.adminNotice(item).payment"></dd></div>
-                    </dl>
+                    <div class="lm-notif-title"><strong x-text="PortalPresentation.adminNotice(item).title"></strong><span x-show="!item.isRead" class="lm-notif-dot" role="img" aria-label="Unread"></span><time class="lm-notif-time" x-text="PortalPresentation.shortTime(item)"></time></div>
+                    <p class="lm-notif-line" x-text="PortalPresentation.noticeLine([PortalPresentation.adminNotice(item).reference, PortalPresentation.adminNotice(item).customer, PortalPresentation.adminNotice(item).branch, PortalPresentation.adminNotice(item).schedule, PortalPresentation.adminNotice(item).payment])"></p>
                     <p x-show="PortalPresentation.adminNotice(item).summary" class="portal-notification-message" x-text="PortalPresentation.adminNotice(item).summary"></p>
-                    <p class="admin-notice-time" x-text="PortalPresentation.receivedTime(item)"></p>
                   </article>
                 </template>
               </div>
-              <div class="admin-notice-footer" x-show="$store.admin.notifications.length > 0">
+              <div class="admin-notice-footer" x-show="$store.admin.notificationReadError">
                 <p role="alert" class="text-xs text-rose-700" x-show="$store.admin.notificationReadError" x-text="$store.admin.notificationReadError"></p>
-                <button type="button" @click="$store.admin.markAllNotificationsAsRead()" :disabled="$store.admin.notificationsReadBusy || !$store.admin.unreadNotifications()" x-text="$store.admin.notificationsReadBusy ? 'Saving...' : 'Mark all as read'"></button>
               </div>
             </div>
           </div>
@@ -134,7 +122,7 @@
         <section class="bg-slate-900 border border-luxury-900 rounded-2xl p-5" aria-label="Collected payments overview">
           <h3 class="text-sm text-slate-300">Net collected payments</h3>
           <p class="text-2xl font-serif font-bold text-emerald-400 mt-1" x-text="$store.admin.formatCurrency($store.admin.getTotalRevenue())"></p>
-          <p class="text-xs text-slate-400 mt-2">All-time verified collections, including off-site payments and checkout tips, less completed refunds.</p>
+          <p class="prose-justify text-xs text-slate-400 mt-2">All-time verified collections, including off-site payments and checkout tips, less completed refunds.</p>
         </section>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

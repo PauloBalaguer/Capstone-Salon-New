@@ -3,13 +3,13 @@
 /**
  * Public: Get Available Staff
  *
- * No login required — powers the required "Select Staff" step of the guest
+ * No login required powers the required "Select Staff" step of the guest
  * booking flow (after branch/services/date/time are chosen, before guest
  * details). Returns only staff who are active at the branch, can perform
  * every selected service (staff_services), and have no overlapping
  * appointment during the selected window. Mirrors the qualification and
  * conflict checks already used by admin/assignStaff.php,
- * cashier/assignStaff.php, and submitGuestBooking.php's auto-assignment —
+ * cashier/assignStaff.php, and submitGuestBooking.php's auto-assignment
  * see backend/shared/config/booking/Scheduling.php for the shared duration/overlap logic.
  */
 

@@ -26,7 +26,7 @@ document.addEventListener('alpine:init', () => {
     busy: false,
 
     toast(message, type = 'success') {
-      LMToast.show(message, type, { duration: 3600 });
+      LMToast.show(message, type, { duration: 3000 });
     },
 
     async refresh() {

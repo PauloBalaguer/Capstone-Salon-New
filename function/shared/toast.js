@@ -6,7 +6,7 @@
      action: optional { label, onClick } button
    Phones and tablets (below lg): a dark pill at the top of the
    screen grows into a card, then shrinks back and fades after
-   `duration` (default 5s). Desktop (lg+): cream cards stack in
+   `duration` (default 3s). Desktop (lg+): cream cards stack in
    the bottom-right corner, at most 3, each with a close button.
 
    Every portal's own toast helper calls
@@ -229,7 +229,7 @@ const LMToast = (function () {
   function notify(opts) {
     if (!opts || !opts.message) return;
     const type = TYPE[ALIAS[opts.type] || opts.type] || TYPE.info;
-    const duration = opts.duration || 5000;
+    const duration = opts.duration || 3000;
     (DESKTOP.matches ? showCard : showIsland)(opts, type, duration);
   }
 

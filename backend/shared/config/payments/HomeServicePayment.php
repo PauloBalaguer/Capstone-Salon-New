@@ -60,7 +60,7 @@ final class HomeServicePayment
                 "We received your {$peso} payment for home service {$reference} via {$method}. "
                 . ($totals['due'] <= 0 ? 'Status: Paid in Full. Thank you!' : 'Remaining balance: ₱' . number_format($totals['due'], 2) . '.'));
             $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "PAYMENT", ?)')
-                ->execute(["Home service {$reference}: {$peso} balance received via {$method}" . ($totals['due'] <= 0 ? ' — fully paid.' : ' — ₱' . number_format($totals['due'], 2) . ' still due.')]);
+                ->execute(["Home service {$reference}: {$peso} balance received via {$method}" . ($totals['due'] <= 0 ? ' fully paid.' : ' ₱' . number_format($totals['due'], 2) . ' still due.')]);
         }
         return $totals;
     }
@@ -77,7 +77,7 @@ final class HomeServicePayment
         $totals = self::totals($pdo, (int) $request['id']);
         if ($totals['due'] <= 0) throw new RuntimeException('Nothing is left to pay on this request.');
         if ($totals['due'] < PayMongo::MIN_AMOUNT) {
-            throw new RuntimeException('The balance is below PayMongo\'s ₱' . number_format(PayMongo::MIN_AMOUNT, 2) . ' minimum — collect it in person.');
+            throw new RuntimeException('The balance is below PayMongo\'s ₱' . number_format(PayMongo::MIN_AMOUNT, 2) . ' minimum collect it in person.');
         }
 
         $reference = $request['reference_code'];
@@ -93,7 +93,7 @@ final class HomeServicePayment
 
         CustomerNotifier::notify($pdo, (int) $request['customer_id'], 'QUOTE_READY',
             "Your remaining balance for home service {$reference} is ₱" . number_format($totals['due'], 2) . '. '
-            . "Pay it online (GCash, Maya or card): {$checkout['url']} — or pay in cash on the event day.");
+            . "Pay it online (GCash, Maya or card): {$checkout['url']} or pay in cash on the event day.");
         return $checkout['url'];
     }
 

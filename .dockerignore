@@ -1,0 +1,18 @@
+# Allowlist: nothing enters the build unless it is named here.
+*
+!composer.json
+!composer.lock
+!index.html
+!frontend
+!function
+!backend
+!docker
+
+# Private or dev-only files inside the allowed folders.
+**/.env*
+**/*.md
+**/*.sql
+**/*.log
+**/.gitkeep
+backend/shared/config/credentials
+backend/shared/storage

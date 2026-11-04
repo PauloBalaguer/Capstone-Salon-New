@@ -3,7 +3,7 @@
 /**
  * Public: Get Staff Roster
  *
- * No login required — powers the Stylists & Team page's per-branch roster,
+ * No login required powers the Stylists & Team page's per-branch roster,
  * including each employee's live shift_status (kept up to date by the
  * automatic staff login/logout attendance system, see backend/auth/login.php
  * and Scheduling::autoCloseAttendance). Front Desk roles (Cashier, Stock

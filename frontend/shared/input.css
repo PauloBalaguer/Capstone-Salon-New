@@ -1,5 +1,5 @@
 /* Tailwind v4 entry. Build: npm run build (or npm run dev to watch).
-   Output: frontend/shared/output.css — every page links that file. */
+   Output: frontend/shared/output.css every page links that file. */
 @import "tailwindcss" source(none);
 @import "./legacy.css" layer(components);
 
@@ -10,7 +10,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  /* Teal — primary brand */
+  /* Teal primary brand */
   --color-teal-50: #F4FBFA;
   --color-teal-100: #E5F2F0;
   --color-teal-200: #C7E0DD;
@@ -20,7 +20,7 @@
   --color-teal-700: #06464A;
   --color-teal-900: #043437;
 
-  /* Gold — accent */
+  /* Gold accent */
   --color-gold-100: #FAF2DC;
   --color-gold-200: #F5E7C4;
   --color-gold-300: #ECD184;

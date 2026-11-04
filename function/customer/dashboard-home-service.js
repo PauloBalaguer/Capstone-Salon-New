@@ -40,6 +40,14 @@ function customerHomeServiceMixin() {
     homeServiceFutureCompleted(request) {
       return request.status === 'Completed' && new Date(request.preferredDate + 'T' + (request.preferredTime || '00:00:00') + '+08:00').getTime() > Date.now();
     },
+    // One status line for a Completed request, so the card never says "Completed"
+    // and "check the status" / "pay the balance" in separate, conflicting boxes.
+    homeServiceCompletedNote(request) {
+      if (request.status !== 'Completed') return '';
+      if (this.homeServiceFutureCompleted(request)) return 'Marked completed before the event date. Please contact the branch to confirm this booking.';
+      if (request.quotePrice != null && request.balanceDue > 0) return 'Service completed · ' + this.formatPeso(request.balanceDue) + ' balance due at the branch.';
+      return '';
+    },
     homeServicePaymentLabel(request) {
       return request.paymentStatus === 'Down Payment Verified' ? 'Deposit verified' : request.paymentStatus || 'Not recorded';
     },
@@ -155,7 +163,7 @@ function customerHomeServiceMixin() {
         'Payment Required': 'Awaiting Payment',
         'Payment Being Verified': 'Payment / Schedule Under Review',
         'Quote Ready': 'Quotation Ready',
-        'Staff Assigned': 'Confirmed — Team Assigned',
+        'Staff Assigned': 'Confirmed Team Assigned',
         'Confirmed': 'Confirmed',
         'Completed': 'Completed',
         'Cancelled': 'Cancelled'
@@ -176,7 +184,7 @@ function customerHomeServiceMixin() {
     openHomeServiceModal() {
       AddressForms.defaultService();
       this.homeServiceError = '';
-      this.homeServiceForm.preferredDate = getLocalISODate();
+      this.homeServiceForm.preferredDate = ''; // customer must pick a date (no preset)
       this.refreshEventAvailability();
       this.isHomeServiceSuccess = false;
       this.isHomeServiceModalOpen = true;
@@ -184,7 +192,7 @@ function customerHomeServiceMixin() {
     closeHomeServiceModal() {
       if (this.isSubmittingHomeService) return;
       this.isHomeServiceModalOpen = false;
-      this.homeServiceForm = { address: '', eventType: 'Standard Home Service', otherEventType: '', weddingPackage: '', clients: '', services: [], venueDetails: '', preferredDate: getLocalISODate(), preferredTime: '', requests: '', agreedToTerms: false };
+      this.homeServiceForm = { address: '', eventType: 'Standard Home Service', otherEventType: '', weddingPackage: '', clients: '', services: [], venueDetails: '', preferredDate: '', preferredTime: '', requests: '', agreedToTerms: false };
     },
 
     submitHomeServiceRequest() {
@@ -242,7 +250,7 @@ function customerHomeServiceMixin() {
           this.addNotification('success', `Your home service request ${body.request.id} has been received. We will contact you at ${this.customerProfile.phone} about availability, pricing, staff, and any required payment.`);
           this.isHomeServiceModalOpen = false;
           this.isHomeServiceSuccess = true;
-          this.homeServiceForm = { address: '', eventType: 'Standard Home Service', otherEventType: '', weddingPackage: '', clients: '', services: [], venueDetails: '', preferredDate: getLocalISODate(), preferredTime: '', requests: '', agreedToTerms: false };
+          this.homeServiceForm = { address: '', eventType: 'Standard Home Service', otherEventType: '', weddingPackage: '', clients: '', services: [], venueDetails: '', preferredDate: '', preferredTime: '', requests: '', agreedToTerms: false };
           this.pushToast('success', body.message || 'Home service request submitted!');
         })
         .catch(() => {

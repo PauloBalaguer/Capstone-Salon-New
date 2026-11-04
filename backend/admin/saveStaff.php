@@ -3,7 +3,7 @@
 /**
  * Admin: Create/Edit Staff
  *
- * Editing only touches name/branch/position — rating, completedCount,
+ * Editing only touches name/branch/position rating, completedCount,
  * status, and attendance are computed in getDashboardData.php, not stored,
  * so they're not accepted here. Creating a new staff member needs a login
  * account (employees.user_id is NOT NULL + unique), so email + phone are

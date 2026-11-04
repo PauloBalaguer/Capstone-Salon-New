@@ -1,5 +1,5 @@
-@import url("../../frontend/shared/brand-palette.css");
-@import url("../../frontend/shared/responsive-base.css?v=balanced-type-20261020-1");
+@import url("../../frontend/shared/brand-palette.css?v=20261103b");
+@import url("../../frontend/shared/responsive-base.css?v=20261103b");
 
 :root {
   --admin-deep-teal: var(--brand-teal);
@@ -460,7 +460,7 @@ select {
   min-height: 2.75rem;
 }
 aside h1 { font-family: var(--font-body) !important; }
-h1, h2, h3, label, button { overflow-wrap: anywhere; }
+h1, h2, h3, label, button { overflow-wrap: break-word; }
 main { min-width: 0; min-height: 0; }
 aside { overflow-y: auto; }
 main > header { height: auto; min-height: 4rem; flex-wrap: wrap; gap: 0.75rem; padding-block: 0.75rem; }

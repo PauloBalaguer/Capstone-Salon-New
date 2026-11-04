@@ -6,11 +6,45 @@ function customerAppointmentsMixin() {
     appointmentStatusFilter: '',
     appointmentDateFrom: '',
     appointmentDateTo: '',
+    appointmentPage: 1,
+    appointmentPageSize: 6,
+    filteredAppointmentList() {
+      return this.appointmentView === 'past' ? this.getPastAppointments() : this.getUpcomingAppointments();
+    },
+    appointmentPageCount() {
+      return Math.max(1, Math.ceil(this.filteredAppointmentList().length / this.appointmentPageSize));
+    },
+    currentAppointmentPage() {
+      return Math.max(1, Math.min(this.appointmentPage, this.appointmentPageCount()));
+    },
+    pagedAppointments() {
+      const start = (this.currentAppointmentPage() - 1) * this.appointmentPageSize;
+      return this.filteredAppointmentList().slice(start, start + this.appointmentPageSize);
+    },
+    appointmentPageLabel() {
+      const total = this.filteredAppointmentList().length;
+      const start = total ? (this.currentAppointmentPage() - 1) * this.appointmentPageSize + 1 : 0;
+      const end = Math.min(start + this.appointmentPageSize - 1, total);
+      return 'Showing ' + start + '–' + end + ' of ' + total + ' appointments';
+    },
+    changeAppointmentPage(delta) {
+      this.appointmentPage = Math.max(1, Math.min(this.currentAppointmentPage() + delta, this.appointmentPageCount()));
+      this.$nextTick(() => {
+        const list = document.getElementById('appointment-list');
+        list?.querySelectorAll('details[open]').forEach(details => { details.open = false; });
+        document.getElementById('appointment-pagination-top')?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      });
+    },
     appointmentFilterBranches() {
       return [...new Set(this.appointments.map(a => a.branchName).filter(Boolean))].sort();
     },
     appointmentFilterStatuses() {
       return [...new Set(this.appointments.map(a => a.status === 'Reviewed' ? 'Completed' : a.status).filter(Boolean))].sort();
+    },
+    // Filters panel (branch/status/dates) is collapsed behind a "Filters" button.
+    appointmentFiltersOpen: false,
+    appointmentPanelFilterCount() {
+      return [this.appointmentBranchFilter, this.appointmentStatusFilter, this.appointmentDateFrom, this.appointmentDateTo].filter(Boolean).length;
     },
     hasAppointmentFilters() {
       return !!((this.appointmentSearchQuery || '').trim() || this.appointmentBranchFilter || this.appointmentStatusFilter || this.appointmentDateFrom || this.appointmentDateTo);
@@ -74,8 +108,14 @@ function customerAppointmentsMixin() {
       return past.sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
     },
 
+    // Dashboard "Next Appointment" card: the soonest future active booking.
+    // Ignores the My Appointments search/filters on purpose so they can't hide it.
     getNextAppointment() {
-      return this.getUpcomingAppointments().sort((a, b) => parseApptDateTime(a.date, a.time) - parseApptDateTime(b.date, b.time))[0] || null;
+      const now = new Date();
+      const active = ['Pending', 'Confirmed', 'In Progress', 'Reschedule Requested', 'Reschedule Required'];
+      return (this.appointments || [])
+        .filter(appt => appt.date && active.includes(appt.status) && parseApptDateTime(appt.date, appt.time) >= now)
+        .sort((a, b) => parseApptDateTime(a.date, a.time) - parseApptDateTime(b.date, b.time))[0] || null;
     },
 
     // Asks the backend what the cancellation policy would do to this
@@ -103,7 +143,7 @@ function customerAppointmentsMixin() {
       const p = this.cancelPreview;
       if (!p || !p.depositOutcome) return '';
       const amount = '₱' + Number(p.depositAmount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 });
-      return 'Deposits are non-refundable — your ' + amount + ' deposit will NOT be refunded if you cancel. '
+      return 'Deposits are non-refundable your ' + amount + ' deposit will NOT be refunded if you cancel. '
         + 'Reschedule instead to keep using it (you can also reschedule a cancelled booking later).';
     },
     // "Reschedule Instead" from the cancel dialog: swap straight into the
@@ -157,6 +197,20 @@ function customerAppointmentsMixin() {
     rescheduleError: '',
     isRescheduling: false,
     rescheduleRequest: 0,
+    // From the server: why online rescheduling is closed (null = allowed), the
+    // last moment it is allowed, and which branch to contact instead.
+    rescheduleBlocked: null,
+    rescheduleInfo: { deadline: null, cutoffHours: 24, branchName: '' },
+    // "Nov 5, 10:00 AM" for the confirm button.
+    rescheduleChoiceLabel() {
+      if (!this.rescheduleDate || !this.rescheduleTime) return '';
+      const [y, m, d] = this.rescheduleDate.split('-').map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' + this.rescheduleTime;
+    },
+    // Current stylist first in the dropdown.
+    rescheduleStylistsOrdered() {
+      return [...this.rescheduleStylists].sort((a, b) => (b.id === this.rescheduleCurrentStaffId) - (a.id === this.rescheduleCurrentStaffId));
+    },
     canReschedule(appt) {
       return ['Pending', 'Confirmed', 'Reschedule Requested'].includes(appt.status) || this.hasKeptDeposit(appt);
     },
@@ -174,6 +228,8 @@ function customerAppointmentsMixin() {
       this.rescheduleStaffId = null;
       this.rescheduleStylists = [];
       this.rescheduleCurrentStaffId = null;
+      this.rescheduleBlocked = null;
+      this.rescheduleInfo = { deadline: null, cutoffHours: 24, branchName: appt.branchName || '' };
       this.rescheduleDate = appt.date >= this.rescheduleMinDate() ? appt.date : this.rescheduleMinDate();
       this.loadRescheduleSlots();
     },
@@ -191,6 +247,7 @@ function customerAppointmentsMixin() {
       this.rescheduleSlots = [];
       this.rescheduleTime = '';
       this.rescheduleError = '';
+      this.rescheduleBlocked = null;
     },
     rescheduleOpenCount() {
       return this.rescheduleSlots.filter(s => s.available).length;
@@ -218,6 +275,10 @@ function customerAppointmentsMixin() {
         .then(r => r.json())
         .then(body => {
           if (requestId !== this.rescheduleRequest) return; // superseded by a newer date/stylist pick
+          if (body.cutoffHours !== undefined) {
+            this.rescheduleInfo = { deadline: body.deadline || null, cutoffHours: body.cutoffHours || 24, branchName: body.branchName || this.rescheduleInfo.branchName };
+          }
+          if (body.blocked) { this.rescheduleBlocked = body.message; return; }
           if (!body.success) { this.rescheduleError = body.message || 'Could not load open times.'; return; }
           this.rescheduleStylists = body.stylists || [];
           this.rescheduleCurrentStaffId = body.currentStaffId;
@@ -275,7 +336,7 @@ function customerAppointmentsMixin() {
     },
 
     // Uses the same .admin-badge chips as the admin/cashier workspaces
-    // (frontend/admin/admin-theme.css) instead of raw Tailwind color pairs —
+    // (frontend/admin/admin-theme.css) instead of raw Tailwind color pairs
     // those chips are already tuned for readable contrast on the portal's
     // light cream background; the old bg-indigo-950/text-indigo-400 pairing
     // in particular rendered near-invisible light text on a light chip.

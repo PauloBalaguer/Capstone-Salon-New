@@ -6,7 +6,30 @@ function customerBookingMixin() {
     serviceSearch: '',
     serviceCategory: '',
     servicePage: 1,
-    servicePageSize: 6,
+    // Catalog layout: 'cards' or 'table' (remembered per browser).
+    serviceView: (() => { try { return localStorage.getItem('serviceView') === 'table' ? 'table' : 'cards'; } catch (e) { return 'cards'; } })(),
+    get servicePageSize() { return this.serviceView === 'table' ? 15 : 9; },
+    setServiceView(view) {
+      this.serviceView = view;
+      this.servicePage = 1;
+      try { localStorage.setItem('serviceView', view); } catch (e) { /* storage blocked */ }
+    },
+    serviceBranches: [
+      { key: 'daraga', short: 'Daraga', name: 'Leo Mejillano Salon (Daraga)' },
+      { key: 'yashano', short: 'Yashano', name: 'Skin Brows (Yashano)' },
+      { key: 'cabangan', short: 'Cabangan', name: 'Lash & Brows (Cabangan)' },
+    ],
+    chooseServiceBranch(key) {
+      if (this.selectedBranchForServices === key) return;
+      this.selectedBranchForServices = key;
+      this.clearBookingSelection();
+      this.resetServiceFilters();
+      this.prefillBookingForm();
+    },
+    serviceCount() {
+      const n = this.getFilteredServices().length;
+      return n + ' service' + (n === 1 ? '' : 's');
+    },
     resetServiceFilters() {
       this.serviceSearch = '';
       this.serviceCategory = '';
@@ -14,6 +37,18 @@ function customerBookingMixin() {
     },
     serviceCategories() {
       return [...new Set((this.servicesCatalog[this.selectedBranchForServices] || []).map(s => s.category).filter(Boolean))].sort();
+    },
+    // Categories are "Group / Name": group them under <optgroup> headings so each
+    // option shows only its short name (values stay the full category).
+    serviceCategoryGroups() {
+      const groups = new Map();
+      for (const category of this.serviceCategories()) {
+        const parts = category.split('/');
+        const group = parts.length > 1 ? parts.shift().trim() : 'Other';
+        if (!groups.has(group)) groups.set(group, []);
+        groups.get(group).push({ value: category, label: parts.join('/').trim() || category });
+      }
+      return [...groups].map(([group, items]) => ({ group, items }));
     },
     serviceCategoryLabel(category) {
       return (category || 'Service').split('/').pop().trim();
@@ -51,7 +86,7 @@ function customerBookingMixin() {
       this.reservationQuote = null;
       this.reservationQuoteLoading = true;
       this.depositLocked = false;
-      const params = new URLSearchParams({ branch: this.bookingForm.branch, useLoyaltyPoints: this.bookingForm.useLoyaltyPoints ? '1' : '0', paymentPlan: this.bookingForm.paymentPlan || 'deposit' });
+      const params = new URLSearchParams({ branch: this.bookingForm.branch, paymentPlan: this.bookingForm.paymentPlan || 'deposit' });
       this.selectedServicesForBooking.forEach(s => params.append('serviceIds[]', s.id));
       try {
         const response = await fetch('../../backend/public/getReservationQuote.php?' + params);
@@ -84,7 +119,7 @@ function customerBookingMixin() {
     },
 
     // Live, duration-aware availability check against the same authoritative
-    // Scheduling logic the backend uses to accept/reject the booking — not
+    // Scheduling logic the backend uses to accept/reject the booking not
     // just the client-side snapshot in allBookings (which can go stale the
     // moment another customer books). Called whenever the date or selected
     // services change so the schedule step only ever shows real openings.
@@ -152,7 +187,7 @@ function customerBookingMixin() {
         this.selectedServicesForBooking.push({ ...service, branch: this.selectedBranchForServices });
       }
       // Total duration just changed, which shifts which slots still fit
-      // before closing time — refresh the live availability once a date is
+      // before closing time refresh the live availability once a date is
       // already chosen (e.g. customer adjusts services after reaching schedule).
       if (this.bookingForm.date) this.refreshAvailableSlots();
     },
@@ -166,7 +201,7 @@ function customerBookingMixin() {
         // The backend only accepts real services.id values (submitBooking.php
         // validates serviceIds against the services table), so a promo whose
         // linked service can't be found in the active catalog isn't bookable
-        // right now — bail out instead of sending an id it will reject.
+        // right now bail out instead of sending an id it will reject.
         const service = this.servicesCatalog[this.selectedBranchForServices]?.find(s => s.id === promo.serviceId);
         if (!service) {
           this.pushToast('error', 'This promotion is currently unavailable for booking. Please contact the salon directly.');
@@ -310,25 +345,9 @@ function customerBookingMixin() {
     bookingEstimatedEndTime() {
       return ServiceDuration.endTime(this.bookingForm.date, this.bookingForm.time, this.bookingDurationMinutes());
     },
-    // Mirrors backend/customer/submitBooking.php's math exactly: floor the
-    // subtotal down to a whole number of points first, then convert that
-    // back to pesos — not the other way around. Converting a peso value
-    // straight to points (subtotal capped, then treated as pesos) drifts
-    // from what the backend actually charges whenever the subtotal isn't an
-    // exact multiple of the point value.
-    maxRedeemablePoints() {
-      const subtotal = this.bookingSubtotal();
-      const availablePoints = this.customerProfile.loyaltyPoints;
-      const maxPointsForSubtotal = Math.floor(subtotal / this.loyaltyPointValue + 0.0000001);
-      return Math.min(availablePoints, maxPointsForSubtotal);
-    },
-    maxRedeemableDiscount() {
-      return Math.round(this.maxRedeemablePoints() * this.loyaltyPointValue * 100) / 100;
-    },
+    // Loyalty card rewards are handled separately from booking payment.
     finalBookingTotal() {
-      let total = this.bookingSubtotal();
-      if (this.bookingForm.useLoyaltyPoints) total -= this.maxRedeemableDiscount();
-      return total > 0 ? total : 0;
+      return Math.max(0, this.bookingSubtotal());
     },
 
     // Payment display uses the authoritative backend quote.
@@ -345,8 +364,8 @@ function customerBookingMixin() {
 
     // Duration-aware: a slot is unavailable if starting the currently
     // selected services there would run past closing, would push more than
-    // bookingSlotLimit branch appointments overlapping at once, or — when a
-    // specific stylist is chosen — would double-book that stylist against
+    // bookingSlotLimit branch appointments overlapping at once, or when a
+    // specific stylist is chosen would double-book that stylist against
     // any appointment (of any customer) that overlaps the new one's window.
     // Mirrors Scheduling::branchWindowIsFull()/staffHasConflict()/
     // exceedsClosingTime() on the backend, which is the authoritative check;
@@ -393,7 +412,6 @@ function customerBookingMixin() {
       this.bookingForm.depositReference = '';
       this.bookingForm.paymentPlan = 'deposit';
       this.depositLocked = false;
-      this.bookingForm.useLoyaltyPoints = false;
       this.bookingForm.agreedToTerms = false;
       this.bookingStep = 'schedule';
       this.slotAvailabilityMap = {};
@@ -410,7 +428,7 @@ function customerBookingMixin() {
     },
 
     // Only offers stylists who (a) work this branch, (b) qualify for every
-    // selected service, and (c) — once a date/time is chosen — aren't
+    // selected service, and (c) once a date/time is chosen aren't
     // already booked across that window by any other appointment. This is
     // what stops a customer from picking a stylist who's actually busy at
     // the schedule they just chose.
@@ -499,7 +517,7 @@ function customerBookingMixin() {
       if (!this.depositLocked) return this.pushToast('error', 'Please submit your reservation deposit before confirming.');
       if (!this.bookingForm.customerName || !this.bookingForm.customerPhone) return this.pushToast('error', 'Please provide your name and contact number.');
       if (!/^09\d{9}$/.test(this.bookingForm.customerPhone)) return this.pushToast('error', 'Please enter a valid mobile number (e.g. 09XXXXXXXXX).');
-      // Client-side preview re-check — the authoritative check happens on
+      // Client-side preview re-check the authoritative check happens on
       // the backend inside a locking transaction right before it inserts
       // the appointment (see backend/customer/submitBooking.php), since the
       // slot could have been taken by someone else in the time it took the
@@ -528,7 +546,6 @@ function customerBookingMixin() {
       }
       formData.append('quoteToken', this.reservationQuote.quoteToken);
       formData.append('depositReference', this.bookingForm.depositReference);
-      formData.append('useLoyaltyPoints', this.bookingForm.useLoyaltyPoints ? '1' : '0');
       formData.append('paymentPlan', this.bookingForm.paymentPlan || 'deposit');
       formData.append('agreedToTerms', this.bookingForm.agreedToTerms ? '1' : '0');
 
@@ -538,17 +555,12 @@ function customerBookingMixin() {
           this.isSubmittingBooking = false;
 
           if (!body.success) {
-            // Already has a booking waiting for payment (e.g. pressed Back on GCash / Maya / card).
-            if (body.heldBooking && confirm(body.message + '\n\nContinue paying ' + body.heldBooking.reference + ' now?')) {
-              window.location.href = body.heldBooking.resultUrl;
-              return;
-            }
             this.bookingError = body.message || 'Something went wrong while booking your appointment.';
             this.pushToast('error', this.bookingError);
             if (body.errors?.customerName || body.errors?.customerPhone) this.bookingStep = 'review';
             // The backend found the slot taken (or the previously qualifying
             // stylist no longer free) in the moments between this form
-            // loading and submitting — send the customer back to reschedule
+            // loading and submitting send the customer back to reschedule
             // instead of leaving them stuck on a dead time slot.
             if (body.quoteChanged) {
               this.reservationQuote = null;
@@ -562,11 +574,12 @@ function customerBookingMixin() {
             return;
           }
 
-          // Online payment: hand off to PayMongo in this tab (the GCash / Maya authorization page, or the
-          // card page), which returns to frontend/public/payment-result.html when done.
+          // Online payment: hand off to PayMongo (the GCash / Maya authorization page, or the card page),
+          // which returns to frontend/public/payment-result.html when done.
           if (body.checkoutUrl) {
             this.isSubmittingBooking = true;
-            window.location.href = body.checkoutUrl;
+            // Back from PayMongo shows "Continue payment" for this booking instead of inviting a second one.
+            PendingPayment.handOff(body.checkoutUrl, body.resultUrl, body.reference);
             return;
           }
 
@@ -581,12 +594,9 @@ function customerBookingMixin() {
             status: appt.status,
             durationMinutes: appt.durationMinutes
           });
-          this.customerProfile.loyaltyPoints = body.loyaltyPoints;
-          this.animateCount('displayLoyaltyPoints', body.loyaltyPoints, 500);
           this.animateCount('displayServiceCount', countCompletedServices(this.appointments), 500);
           this.sendBookingConfirmation(appt);
 
-          this.bookingForm.useLoyaltyPoints = false;
           this.bookingSuccessDetails = appt;
           this.showBookingForm = false;
           this.showBookingSuccess = true;

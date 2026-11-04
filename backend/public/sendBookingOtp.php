@@ -3,7 +3,7 @@
 /**
  * Public: Send Guest Booking OTP
  *
- * No login required — sends a 6-digit email verification code before a
+ * No login required sends a 6-digit email verification code before a
  * guest's appointment request (see submitGuestBooking.php) is created,
  * so the booking can't be submitted under an email the guest doesn't
  * control. Unlike forgotPassword.php, there's no account to enumerate

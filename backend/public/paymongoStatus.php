@@ -45,7 +45,7 @@ function depositResult(PDO $pdo, PDOStatement $select, string $reference, bool $
     $row = $select->fetch();
     $paid = (int) $row['deposit_paid'] === 1;
     $method = $paid ? $row['deposit_method'] : ($homeService ? null : $row['preferred_payment_method']);
-    $payable = !$paid && PayMongo::isConfigured() && ($homeService ? $row['status'] === 'Payment Required' : $row['status'] === 'Pending');
+    $payable = ($homeService || (int) $row['hold_seconds_remaining'] > 0) && !$paid && PayMongo::isConfigured() && ($homeService ? $row['status'] === 'Payment Required' : $row['status'] === 'Pending');
     return [
         'success' => true,
         'type' => $homeService ? 'home_service' : 'appointment',
@@ -62,9 +62,8 @@ function depositResult(PDO $pdo, PDOStatement $select, string $reference, bool $
         'paymentId' => $paid ? $row['paymongo_payment_id'] : null,
         'paidAt' => $paid ? $row['deposit_recorded_at'] : null,
         'holdMinutes' => PayMongo::HOLD_MINUTES,
+        'holdSecondsRemaining' => $homeService ? null : max(0, (int) $row['hold_seconds_remaining']),
         'methods' => $payable ? array_map(fn($m) => ['value' => $m, 'label' => PayMongo::label($m)], PayMongo::METHODS) : [],
-        // The still-open PayMongo page of the current attempt (method = 'method'), reopened instead of starting another one.
-        'payUrl' => $payable && $sync['state'] === 'pending' ? ($row['paymongo_checkout_url'] ?? null) : null,
     ];
 }
 
@@ -120,7 +119,7 @@ try {
     $stmt = $pdo->prepare('
         SELECT id, customer_id, reference_code, status, payment_status, deposit_paid, deposit_amount, deposit_method,
                deposit_recorded_at, reservation_amount_due, preferred_payment_method, paymongo_payment_id, online_payment_token,
-               paymongo_checkout_url
+               TIMESTAMPDIFF(SECOND, NOW(), LEAST(appointment_datetime, DATE_ADD(created_at, INTERVAL ' . PayMongo::HOLD_MINUTES . ' MINUTE))) AS hold_seconds_remaining
         FROM appointments WHERE reference_code = ? LIMIT 1
     ');
     $stmt->execute([$reference]);

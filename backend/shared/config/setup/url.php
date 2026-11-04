@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/env.php';
+
 /**
  * A couple of endpoints need to build a link back into the site (e.g. the
  * password-reset email link, or a redirect to a role's dashboard). Rather than
@@ -21,9 +23,17 @@ function getProjectBaseUrl(): string
  * needed anywhere the link has to work outside the browser that requested
  * it, e.g. in an emailed account-setup link, where a root-relative path
  * alone can't be resolved.
+ *
+ * APP_URL wins when set. A live server needs it: the cron workers have no
+ * request to read a host from, and HTTP_HOST comes from the visitor, so it
+ * must not decide where emailed account-setup and payment links point.
  */
 function getProjectFullBaseUrl(): string
 {
+    $appUrl = env('APP_URL');
+    if ($appUrl !== '') {
+        return rtrim($appUrl, '/');
+    }
     $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
     return $scheme . '://' . $host . getProjectBaseUrl();

@@ -3,7 +3,7 @@
 // dashboard-helpers.js, dashboard-state.js, and dashboard-notifications.js
 // are required on every page. The rest (dashboard-appointments.js,
 // dashboard-booking.js, dashboard-reviews.js, dashboard-home-service.js,
-// dashboard-profile.js, dashboard-track-booking.js) are optional — each
+// dashboard-profile.js, dashboard-track-booking.js) are optional each
 // page's <script> list only includes the ones its own markup actually
 // uses, and the ones left out are simply skipped here instead of merged
 // in as empty.
@@ -32,7 +32,7 @@ function customerApp() {
       // Pulls the logged-in customer's profile, appointments, reviews, home
       // service requests, and the shared catalogs from the real backend.
       // Requires an active PHP session, so this only works when the page is
-      // served through Apache (http://localhost/CAPSTONE/...) — Live Server
+      // served through Apache (http://localhost/CAPSTONE/...) Live Server
       // can't execute PHP or hold that session cookie.
       loadDashboardData() {
         this.isBooting = true;
@@ -78,7 +78,6 @@ function customerApp() {
             if (this.prefillBookingForm) this.prefillBookingForm();
             this.checkForReminders();
 
-            this.animateCount('displayLoyaltyPoints', this.customerProfile.loyaltyPoints);
             this.animateCount('displayServiceCount', countCompletedServices(this.appointments));
             setTimeout(() => { this.isBooting = false; }, 450);
           })

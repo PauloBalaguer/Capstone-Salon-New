@@ -45,11 +45,13 @@
             #receiptCard { box-shadow: none !important; border: none !important; }
         }
     </style>
-    <link rel="stylesheet" href="../../frontend/cashier/cashier-theme.css?v=teal-gold-20261021">
-  <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=teal-gold-20261021" />
-  <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=teal-gold-20261021" />
+    <link rel="stylesheet" href="../../frontend/cashier/cashier-theme.css?v=20261103">
+  <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=20261103b" />
+  <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=20261103-signout-cream" />
   <script src="../../function/shared/toast.js"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
+  <!-- Clean theme: loaded last so it overrides older theme colours. -->
+  <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
 </head>
 <body class="salon-portal bg-gray-100 font-sans antialiased min-h-screen flex flex-col items-center py-10 px-4">
 
@@ -113,6 +115,7 @@
         </div>
 
         <div class="space-y-1 border-t border-dashed border-gray-300 pt-3">
+            <p id="receiptLoyaltyReward" class="hidden text-xs text-emerald-700"></p>
             <div class="flex justify-between text-gray-500">
                 <span>Subtotal</span>
                 <span id="receiptSubtotal">₱0.00</span>

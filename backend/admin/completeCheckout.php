@@ -7,6 +7,7 @@ require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/notifications/CustomerNotifier.php';
 require_once '../../backend/shared/config/booking/Scheduling.php';
 require_once '../../backend/shared/config/helpers/LoyaltyTier.php';
+require_once '../../backend/shared/config/helpers/LoyaltyCard.php';
 
 sendCorsHeaders();
 AuditLog::captureRequest();
@@ -73,21 +74,8 @@ try {
 
     $pdo->prepare("UPDATE appointments SET status = 'Completed', payment_status = 'Fully Paid' WHERE id = ?")->execute([$appointment['id']]);
 
-    // Loyalty points earned on completion, same rate + per-service weighting
-    // (customer scoring) as cashier/payment.php.
-    $stmt = $pdo->prepare('
-        SELECT s.price, s.loyalty_multiplier AS loyaltyMultiplier
-        FROM appointment_services aps
-        JOIN services s ON s.id = aps.service_id
-        WHERE aps.appointment_id = ?
-    ');
-    $stmt->execute([$appointment['id']]);
-    $bookedServices = $stmt->fetchAll();
-    $pointsEarned = LoyaltyTier::earnedPoints((float)$appointment['total_price'], $bookedServices);
-    if ($pointsEarned > 0) {
-        $pdo->prepare('UPDATE customers SET loyalty_points = loyalty_points + ? WHERE id = ?')
-            ->execute([$pointsEarned, $appointment['customer_id']]);
-    }
+    // Both checkout paths earn the same shared customer stamps.
+    LoyaltyCard::earn($pdo, $appointment, (float) $appointment['total_price']);
 
     $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "PAYMENT", ?)')
         ->execute(["Booking {$referenceCode} paid in full (PHP " . number_format((float) $appointment['total_price'], 2) . ")."]);

@@ -58,7 +58,7 @@ try {
         exit();
     }
 
-    // Code is valid. Note: we deliberately don't delete it here — the final
+    // Code is valid. Note: we deliberately don't delete it here the final
     // reset in resetPassword.php re-validates and consumes it, so this step
     // is just a UX gate that reveals the new-password fields.
     $verify_limiter->clear();

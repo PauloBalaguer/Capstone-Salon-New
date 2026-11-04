@@ -1,4 +1,4 @@
-/* frontend/cashier/appointments.html — Branch Appointment Pipeline.
+/* frontend/cashier/appointments.html Branch Appointment Pipeline.
    Branch is fixed by the logged-in Cashier's account (server-side); see
    database/migrations/007_cashier_branch_lock.sql. bookings is already
    scoped to that one branch by getDashboardData.php. */
@@ -16,7 +16,10 @@ const state = {
 async function init() {
   CashierApp.initChrome();
   wireStaticEvents();
-  setActiveTab('Pending');
+  // The dashboard cards link here with ?tab=...
+  const requestedTab = new URLSearchParams(window.location.search).get('tab');
+  const validTab = [...document.querySelectorAll('#statusTabs .tab-btn')].some(btn => btn.dataset.tab === requestedTab);
+  setActiveTab(validTab ? requestedTab : 'Pending');
   await refreshData();
 }
 
@@ -50,10 +53,10 @@ function setActiveTab(tab) {
 }
 
 /* Real duration/price/service values sometimes come back empty (a booking
-   with no linked appointment_services row, for example) -- show "—" rather
+   with no linked appointment_services row, for example) -- show "" rather
    than a blank cell. */
 function cellOrDash(value) {
-  return value === null || value === undefined || value === '' ? '—' : escapeHtml(String(value));
+  return value === null || value === undefined || value === '' ? '' : escapeHtml(String(value));
 }
 
 function paymentStatusBadgeClass(status) {
@@ -105,7 +108,7 @@ function renderAppointments() {
       <td class="p-2.5 font-semibold text-slate-800 capitalize">${escapeHtml(b.clientName)}</td>
       <td class="p-2.5">${cellOrDash(b.clientPhone)}</td>
       <td class="p-2.5">${cellOrDash(b.serviceName)}</td>
-      <td class="p-2.5">${b.durationMinutes ? b.durationMinutes + ' min' : '—'}</td>
+      <td class="p-2.5">${b.durationMinutes ? b.durationMinutes + ' min' : ''}</td>
       <td class="p-2.5 capitalize">${cellOrDash(b.staffName)}</td>
       <td class="p-2.5">
         <span class="text-xs font-bold px-2 py-0.5 rounded ${statusBadgeClass(b.status)}${b.status === 'In Progress' ? ' badge-live' : ''}">${escapeHtml(b.status)}</span>
@@ -127,7 +130,7 @@ function actionsFor(b) {
   // which reinstates it with that deposit (backend/shared/config/booking/Reschedule.php).
   if (hasKeptDeposit(b)) {
     return `${details}<button data-action="reschedule" data-ref="${ref}" class="text-amber-700 font-bold hover:underline">Reschedule</button>
-      <span class="block mt-1 text-xs leading-snug text-rose-700 font-semibold whitespace-normal max-w-[14rem]">No refund — ${CashierApp.formatCurrency(b.depositAmount || 0)} deposit is non-refundable. The customer can reschedule to use it.</span>`;
+      <span class="block mt-1 text-xs leading-snug text-rose-700 font-semibold whitespace-normal max-w-[14rem]">No refund ${CashierApp.formatCurrency(b.depositAmount || 0)} deposit is non-refundable. The customer can reschedule to use it.</span>`;
   }
 
   if (b.status === 'Pending') {
@@ -180,14 +183,14 @@ function showDetails(ref) {
       <div><span class="text-gray-400 block text-xs uppercase font-bold">Date</span>${cellOrDash(b.date)}</div>
       <div><span class="text-gray-400 block text-xs uppercase font-bold">Time</span>${cellOrDash(b.time)} &ndash; ${cellOrDash(b.endTime)}</div>
       <div class="col-span-2"><span class="text-gray-400 block text-xs uppercase font-bold">Service(s)</span>${cellOrDash(b.serviceName)}</div>
-      <div><span class="text-gray-400 block text-xs uppercase font-bold">Duration</span>${b.durationMinutes ? b.durationMinutes + ' min' : '—'}</div>
+      <div><span class="text-gray-400 block text-xs uppercase font-bold">Duration</span>${b.durationMinutes ? b.durationMinutes + ' min' : ''}</div>
       <div><span class="text-gray-400 block text-xs uppercase font-bold">Staff</span>${cellOrDash(b.staffName)}</div>
       <div><span class="text-gray-400 block text-xs uppercase font-bold">Payment Status</span>${cellOrDash(PortalPresentation.paymentStatus(b.paymentStatus))}</div>
       <div><span class="text-gray-400 block text-xs uppercase font-bold">Total</span>${CashierApp.formatCurrency(b.price)}</div>
       ${b.depositAmount || b.depositReference ? `
       <div class="col-span-2 border-t border-gray-100 pt-2 mt-1">
         <span class="text-gray-400 block text-xs uppercase font-bold mb-1">${b.depositVerified ? 'Verified Payment' : 'Self-Reported Payment (unverified)'}</span>
-        <p>Amount: <strong>${b.depositAmount ? CashierApp.formatCurrency(b.depositAmount) : '—'}</strong> via <strong>${cellOrDash(PortalPresentation.methodLabel(b.paymentMethod))}</strong></p>
+        <p>Amount: <strong>${b.depositAmount ? CashierApp.formatCurrency(b.depositAmount) : ''}</strong> via <strong>${cellOrDash(PortalPresentation.methodLabel(b.paymentMethod))}</strong></p>
         <p>Reference: <strong>${cellOrDash(b.depositReference)}</strong></p>
       </div>` : ''}
     </div>
@@ -316,10 +319,10 @@ function openRescheduleModal(ref) {
     ['Client', `<span class="capitalize">${cellOrDash(b.clientName)}</span>`],
     ['Contact', cellOrDash(b.clientPhone)],
     ['Service(s)', cellOrDash(b.serviceName), true],
-    ['Duration', b.durationMinutes ? b.durationMinutes + ' min' : '—'],
+    ['Duration', b.durationMinutes ? b.durationMinutes + ' min' : ''],
     ['Total', CashierApp.formatCurrency(b.price)],
     ['Payment', `<span class="text-xs font-bold px-2 py-0.5 rounded ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(PortalPresentation.paymentStatus(b.paymentStatus))}</span>`],
-    ['Deposit', b.depositAmount ? CashierApp.formatCurrency(b.depositAmount) + (b.depositVerified ? ' (verified)' : ' (unverified)') : '—'],
+    ['Deposit', b.depositAmount ? CashierApp.formatCurrency(b.depositAmount) + (b.depositVerified ? ' (verified)' : ' (unverified)') : ''],
   ];
   document.getElementById('rescheduleInfo').innerHTML = info.map(([label, value, wide]) => `
     <div class="${wide ? 'col-span-2' : ''}"><span class="block text-xs text-gray-400 font-bold uppercase">${label}</span><span class="text-slate-800">${value}</span></div>
@@ -327,7 +330,7 @@ function openRescheduleModal(ref) {
   document.getElementById('rescheduleCurrent').textContent = b.date + ' · ' + b.time + ' – ' + (b.endTime || '') + (b.staffName ? ' with ' + titleCase(b.staffName) : '');
   const verified = ['Down Payment Verified', 'Fully Paid'].includes(b.paymentStatus);
   document.getElementById('rescheduleStatusNote').textContent = hasKeptDeposit(b)
-    ? `Reinstates this cancelled booking — its ${CashierApp.formatCurrency(b.depositAmount)} non-refundable deposit is applied to the new time (${b.depositVerified ? 'status becomes Confirmed' : 'status becomes Pending until the deposit is verified'}).`
+    ? `Reinstates this cancelled booking its ${CashierApp.formatCurrency(b.depositAmount)} non-refundable deposit is applied to the new time (${b.depositVerified ? 'status becomes Confirmed' : 'status becomes Pending until the deposit is verified'}).`
     : b.status === 'Reschedule Requested'
       ? `Status changes to ${verified ? 'Confirmed (payment already verified)' : 'Pending (payment still needs verifying)'}.`
       : `Status stays ${b.status}.`;
@@ -422,7 +425,7 @@ function hasKeptDeposit(b) {
 async function cancelBooking(ref) {
   const b = state.data.bookings.find(x => x.id === ref);
   const depositNote = b && b.depositAmount && ['Down Payment Verified', 'Fully Paid'].includes(b.paymentStatus)
-    ? `\n\nThe ${CashierApp.formatCurrency(b.depositAmount)} deposit is NON-REFUNDABLE. Consider "Reschedule" instead — the customer can also reschedule later to use it.`
+    ? `\n\nThe ${CashierApp.formatCurrency(b.depositAmount)} deposit is NON-REFUNDABLE. Consider "Reschedule" instead the customer can also reschedule later to use it.`
     : '';
   if (!window.confirm('Cancel this booking?' + depositNote)) return;
   const result = await CashierApp.post('updateStatus.php', { id: ref, status: 'Cancelled' });

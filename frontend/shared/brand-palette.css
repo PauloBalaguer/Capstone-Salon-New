@@ -1,4 +1,5 @@
-/* Shared brand colors: accent fills and readable foregrounds. */
+/* Shared brand colors: accent fills and readable foregrounds.
+   The Salon Portal Palette. clean-theme.css builds the clean layout on these. */
 :root {
   --brand-teal: #006D6F;
   --brand-teal-dark: #06464A;

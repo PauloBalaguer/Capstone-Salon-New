@@ -38,12 +38,16 @@
 
         .badge-live { @apply animate-pulse; }
     </style>
-    <link rel="stylesheet" href="../../frontend/cashier/cashier-theme.css?v=teal-gold-20261021">
+    <link rel="stylesheet" href="../../frontend/cashier/cashier-theme.css?v=20261103">
 <script src="../../function/shared/booking-validation.js"></script>
-  <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=teal-gold-20261021" />
-  <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=teal-gold-20261021" />
+  <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=20261103b" />
+  <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=20261103-signout-cream" />
   <script src="../../function/shared/toast.js"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
+  <link rel="stylesheet" href="../../frontend/shared/mobile-nav.css?v=20261103c">
+  <script src="../../function/shared/mobile-nav.js?v=20261103" defer></script>
+  <!-- Clean theme: loaded last so it overrides older theme colours. -->
+  <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
 </head>
 <body class="salon-portal bg-gray-100 font-sans antialiased flex h-screen overflow-hidden">
 
@@ -96,14 +100,7 @@
 
         <div>
             <div class="px-3 pb-2">
-                <a href="../../backend/auth/logout.php?portal=cashier" id="btnSignOut" class="w-full text-left flex items-center space-x-3 px-4 py-2.5 rounded-lg text-xs transition-all text-rose-400 hover:bg-rose-900/40 hover:text-rose-300">
-                    <i class="fa-solid fa-right-from-bracket w-5 text-center"></i>
-                    <span>Sign Out</span>
-                </a>
-            </div>
-            <div class="p-4 bg-slate-950 border-t border-slate-800 text-xs text-slate-400 space-y-0.5">
-                <div><i class="fa-solid fa-circle-nodes text-green-400 mr-1"></i> Multi-branch Sync Online</div>
-                <div class="text-slate-500">v2.0.0 (RAD Prototype)</div>
+                <a href="../../backend/auth/logout.php?portal=cashier" id="btnSignOut" class="w-full text-left flex items-center space-x-3 px-4 py-2.5 rounded-lg text-xs transition-all text-rose-400 hover:bg-rose-900/40 hover:text-rose-300"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H5v14h4M13 8l4 4-4 4M9 12h12"/></svg><span>Sign Out</span></a>
             </div>
         </div>
     </aside>
@@ -122,30 +119,30 @@
 
         <section class="flex-1 p-6 overflow-y-auto space-y-6">
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" id="statCardsContainer">
-                <div class="stagger-item bg-white p-3.5 rounded-xl shadow-sm border border-gray-200">
+                <a href="#queueContainer" class="stagger-item block bg-[#FFFDF9] p-3.5 rounded-xl shadow-sm border border-gray-200 hover:border-[#006D6F] focus-visible:border-[#006D6F] transition-colors">
                     <p class="text-xs text-gray-400 uppercase font-bold tracking-wide">Today's Appointments</p>
                     <p class="text-2xl font-black text-slate-800 mt-1" id="statTodayAppointments">0</p>
-                </div>
-                <div class="stagger-item bg-white p-3.5 rounded-xl shadow-sm border border-gray-200">
+                </a>
+                <a href="appointments.html?tab=Pending" class="stagger-item block bg-[#FFFDF9] p-3.5 rounded-xl shadow-sm border border-gray-200 hover:border-[#006D6F] focus-visible:border-[#006D6F] transition-colors">
                     <p class="text-xs text-gray-400 uppercase font-bold tracking-wide">Pending Confirmation</p>
-                    <p class="text-2xl font-black text-amber-600 mt-1" id="statPendingConfirmation">0</p>
-                </div>
-                <div class="stagger-item bg-white p-3.5 rounded-xl shadow-sm border border-gray-200">
+                    <p class="text-2xl font-black text-slate-800 mt-1" id="statPendingConfirmation">0</p>
+                </a>
+                <a href="payment.html#verifyList" class="stagger-item block bg-[#FFFDF9] p-3.5 rounded-xl shadow-sm border border-gray-200 hover:border-[#006D6F] focus-visible:border-[#006D6F] transition-colors">
                     <p class="text-xs text-gray-400 uppercase font-bold tracking-wide">Payments to Verify</p>
-                    <p class="text-2xl font-black text-rose-600 mt-1" id="statPaymentsToVerify">0</p>
-                </div>
-                <div class="stagger-item bg-white p-3.5 rounded-xl shadow-sm border border-gray-200">
+                    <p class="text-2xl font-black text-slate-800 mt-1" id="statPaymentsToVerify">0</p>
+                </a>
+                <a href="appointments.html?tab=All" class="stagger-item block bg-[#FFFDF9] p-3.5 rounded-xl shadow-sm border border-gray-200 hover:border-[#006D6F] focus-visible:border-[#006D6F] transition-colors">
                     <p class="text-xs text-gray-400 uppercase font-bold tracking-wide">Walk-Ins Today</p>
                     <p class="text-2xl font-black text-slate-800 mt-1" id="statWalkInsToday">0</p>
-                </div>
-                <div class="stagger-item bg-white p-3.5 rounded-xl shadow-sm border border-gray-200">
+                </a>
+                <a href="appointments.html?tab=In%20Progress" class="stagger-item block bg-[#FFFDF9] p-3.5 rounded-xl shadow-sm border border-gray-200 hover:border-[#006D6F] focus-visible:border-[#006D6F] transition-colors">
                     <p class="text-xs text-gray-400 uppercase font-bold tracking-wide">In Progress</p>
-                    <p class="text-2xl font-black text-teal-600 mt-1" id="statInProgress">0</p>
-                </div>
-                <div class="stagger-item bg-white p-3.5 rounded-xl shadow-sm border border-gray-200">
+                    <p class="text-2xl font-black text-slate-800 mt-1" id="statInProgress">0</p>
+                </a>
+                <a href="payment.html#checkoutList" class="stagger-item block bg-[#FFFDF9] p-3.5 rounded-xl shadow-sm border border-gray-200 hover:border-[#006D6F] focus-visible:border-[#006D6F] transition-colors">
                     <p class="text-xs text-gray-400 uppercase font-bold tracking-wide">Ready for Checkout</p>
-                    <p class="text-2xl font-black text-emerald-600 mt-1" id="statReadyForCheckout">0</p>
-                </div>
+                    <p class="text-2xl font-black text-slate-800 mt-1" id="statReadyForCheckout">0</p>
+                </a>
             </div>
 
             <div class="stagger-item flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-200">
@@ -204,6 +201,6 @@
     </div>
 
     <script src="../../function/cashier/cashier-common.js"></script>
-    <script src="../../function/cashier/dashboard.js"></script>
+    <script src="../../function/cashier/dashboard.js?v=20261104-cards"></script>
 </body>
 </html>

@@ -213,7 +213,7 @@
     document.getElementById('bookPaymentPlanWrap').classList.add('hidden');
     const depositPlanRadio = document.querySelector('input[name="bookPaymentPlan"][value="deposit"]');
     if (depositPlanRadio) depositPlanRadio.checked = true;
-    document.getElementById('bookDepositRequired').textContent = '—';
+    document.getElementById('bookDepositRequired').textContent = '';
     bookReservationQuote = null;
     bookQuoteRequest++;
     document.getElementById('bookDepositGate').classList.add('hidden');
@@ -231,7 +231,7 @@
     if (bookingModalOverlay.classList.contains('opacity-0')) openBookingModal();
     document.getElementById('bookingAccessPanel').classList.add('hidden');
     document.getElementById('bookingFormPanel').classList.remove('hidden');
-    document.getElementById('bookingModeText').textContent = 'Guest booking — just your name and mobile number are required.';
+    document.getElementById('bookingModeText').textContent = 'Guest booking just your name and mobile number are required.';
     document.getElementById('bookingModeBadge').textContent = 'Guest';
     document.getElementById('bookingModeBadge').className = 'shrink-0 rounded-full bg-copper/10 border border-copper/25 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-copper-dark';
     document.getElementById('bookingModalBox').scrollTop = 0;
@@ -276,7 +276,7 @@
     continueAsGuestBooking();
   }
 
-  // Wedding Packages — rendered from backend/public/getWeddingPackages.php
+  // Wedding Packages rendered from backend/public/getWeddingPackages.php
   // so admins can edit/add packages from the admin panel.
   const WEDDING_PACKAGE_STYLES = {
     Plain: {
@@ -334,7 +334,7 @@
       dot.className = styles.dot;
       const span = document.createElement('span');
       span.style.textAlign = 'justify';
-      span.textContent = feature.replace(/\s+—\s+/g, ' ');
+      span.textContent = feature.replace(/\s+\s+/g, ' ');
       li.appendChild(dot);
       li.appendChild(span);
       list.appendChild(li);
@@ -553,7 +553,7 @@
           cats: [
             { name: 'Hair Services', g: 'hair', items: [['Haircut','30'], ['Blow Dry','50'], ['Hair Ironing','199'], ['Hair Setting','250'], ['Curl Setting','350'], ['Organic Rebonding (any length)','999']] },
             { name: 'Hair & Scalp Treatment', g: 'hair', items: [['Hot Oil','199'], ['Hair Spa','299'], ['Hair Cellophane','399'], ['Keratin Treatment','499'], ['Brazilian Treatment','899'], ['Hair Color','499'], ['Amazon Flowers','3,500']] },
-            { name: 'Hair & Make-Up Services', g: 'hair', items: [['Hair & Make-up — Wedding','700'], ['Hair & Make-up — Debut','700'], ['Hair & Make-up — Birthday','700'], ['Hair & Make-up — Graduation','700']] },
+            { name: 'Hair & Make-Up Services', g: 'hair', items: [['Hair & Make-up Wedding','700'], ['Hair & Make-up Debut','700'], ['Hair & Make-up Birthday','700'], ['Hair & Make-up Graduation','700']] },
             { name: 'Nails & Spa Services', g: 'nails', items: [['Manicure','49'], ['Pedicure','49'], ['Hand Spa','399'], ['Semi-Gel Polish','199'], ['Gel Polish','399'], ['Soft Gel Extensions','1,500']] },
             { name: 'Lash & Brows Special', g: 'lash', items: [['Eyebrow Threading','50'], ['Brow Lamination','399'], ['Eyelash Lift','399'], ['Eyelash Lift w/ Tint','599'], ['Eyelash Extensions','599'], ['Microblading','2,500']] },
             { name: 'Face & Body Treatment', g: 'skin', items: [['Underarm Wax','100'], ['Underarm Whitening','300'], ['Basic Facial','499'], ['Diamond Peel','599'], ['Whole Body Massage','499'], ['Body Scrub','999'], ['Warts Removal','1,500']] }
@@ -591,7 +591,7 @@
     }
   };
 
-  // Section 5 of the price list — "GROUP-WIDE PROMOS & PACKAGES", valid at all three branches.
+  // Section 5 of the price list "GROUP-WIDE PROMOS & PACKAGES", valid at all three branches.
   const GROUP_WIDE_MENU = {
     title: 'Group-Wide Promos & Packages', sub: 'Valid at all three branches',
     cats: [
@@ -693,7 +693,7 @@
     bData.menus.forEach(m => m.cats.forEach(c => {
       if (activeSvcGroup !== 'all' && c.g !== activeSvcGroup) return;
       c.items.forEach(item => {
-        if (!q || item[0].toLowerCase().includes(q)) filtered.push({ category: c, item });
+        if (!q || item[0].toLowerCase().includes(q)) filtered.push({ menu: m, category: c, item });
       });
     }));
     const shown = filtered.length;
@@ -701,46 +701,22 @@
     currentSvcPage = Math.min(Math.max(1, currentSvcPage), pageCount);
     const offset = (currentSvcPage - 1) * SVC_PAGE_SIZE;
     const pageItems = filtered.slice(offset, offset + SVC_PAGE_SIZE);
-    let html = '';
-
-    bData.menus.forEach(m => {
-      m.cats.forEach(c => {
-        const items = pageItems.filter(entry => entry.category === c).map(entry => entry.item);
-        if (!items.length) return;
-
-        const rows = items.map(i => {
-          const name = i[0], price = i[1], tag = i[2];
-          return `
-            <button type="button" class="svc-row w-full flex items-center py-2.5 text-left border-b border-bronze/10 last:border-0"
-                    data-svc="${escAttr(name)}" data-price="${escAttr(price)}">
-              <span class="min-w-0">
-                <span class="flex flex-wrap items-center gap-2"><span class="text-xs font-semibold text-ink">${name}</span>
-                  ${tag ? `<span class="text-[9px] font-bold uppercase tracking-widest text-copper-dark bg-copper/15 rounded-full px-2 py-0.5">${tag}</span>` : ''}
-                </span>
-                <span class="block text-xs text-ink/60 mt-1"><strong>Duration:</strong> ${escAttr(serviceMenuDuration(currentSvcBranch, m.title, c.name, name, price))}</span>
-                <span class="block text-xs text-ink/60 mt-1"><strong>Required payment:</strong> ${escAttr(serviceMenuReservation(currentSvcBranch, m.title, c.name, name, price))}</span>
-              </span>
-              <span class="svc-lead"></span>
-              <span class="svc-book mr-2">Book</span>
-              <span class="text-xs font-bold text-ink whitespace-nowrap">₱${price}</span>
-            </button>`;
-        }).join('');
-
-        html += `
-          <div class="svc-acc bg-panel rounded-2xl mb-3 ${svcAllOpen || q ? 'open' : ''} border border-bronze/20">
-            <button type="button" class="svc-acc-head w-full px-5 py-3.5 flex justify-between items-center gap-3 text-left">
-              <span class="font-bold text-xs uppercase tracking-widest text-plum">${c.name}</span>
-              <span class="flex items-center gap-3 shrink-0">
-                <span class="text-[10px] font-semibold text-ink/35">${items.length} item${items.length > 1 ? 's' : ''}</span>
-                <svg class="svc-chev text-ink/40" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
-              </span>
-            </button>
-            <div class="svc-acc-panel">
-              <div class="px-5 pb-2 border-t border-bronze/10">${rows}</div>
-            </div>
-          </div>`;
-      });
-    });
+    // Cards in page order; the whole card opens the booking form (.svc-row click handler).
+    const html = pageItems.map(({ menu, category, item }) => {
+      const name = item[0], price = item[1], tag = item[2];
+      return `
+        <button type="button" class="svc-row svc-card" data-svc="${escAttr(name)}" data-price="${escAttr(price)}">
+          <span class="svc-card-cat">${category.name}</span>
+          <span class="svc-card-top">
+            <span class="svc-card-name">${name}</span>
+            <span class="svc-card-price">₱${price}</span>
+          </span>
+          ${tag ? `<span class="svc-card-tag">${tag}</span>` : ''}
+          <span class="svc-card-meta"><strong>Duration:</strong> ${escAttr(serviceMenuDuration(currentSvcBranch, menu.title, category.name, name, price))}</span>
+          <span class="svc-card-meta"><strong>Required payment:</strong> ${escAttr(serviceMenuReservation(currentSvcBranch, menu.title, category.name, name, price))}</span>
+          <span class="svc-card-book">Book</span>
+        </button>`;
+    }).join('');
 
     svcMenus.innerHTML = html;
     if (svcEmpty) svcEmpty.classList.toggle('hidden', shown > 0);
@@ -772,7 +748,7 @@
     pagination.innerHTML = html + button(currentSvcPage + 1, 'Next', currentSvcPage === pageCount);
   }
 
-  /* Services menu interactions — delegated so they survive re-renders. */
+  /* Services menu interactions delegated so they survive re-renders. */
   (function () {
     const svcMenus = document.getElementById('svcMenus');
     if (!svcMenus) return;
@@ -882,7 +858,7 @@
   // sets by hand for the public site.
   const STAFF_STATUS_META = {
     'On Duty': { cls: 'is-available', label: 'Available now', note: 'Currently clocked in and able to take walk-ins or bookings.' },
-    'With Client': { cls: 'is-busy', label: 'With a client', note: 'Attending to another guest right now — book ahead for a later slot.' },
+    'With Client': { cls: 'is-busy', label: 'With a client', note: 'Attending to another guest right now book ahead for a later slot.' },
     'Off Shift': { cls: '', label: 'Off duty', note: "Not clocked in at the moment. Book an appointment for a time they're scheduled to work." }
   };
   function staffStatusMeta(status) {
@@ -957,7 +933,7 @@
       .then(res => {
         if (requestId !== staffRosterRequestId || currentStaffBranch !== branch) return;
         if (!res.success) {
-          roster.innerHTML = '<p class="text-center text-sm text-copper-dark py-10">Couldn\'t load the team roster — please try again.</p>';
+          roster.innerHTML = '<p class="text-center text-sm text-copper-dark py-10">Couldn\'t load the team roster please try again.</p>';
           return;
         }
         staffRosterCache[branch] = res;
@@ -966,7 +942,7 @@
       .catch(() => {
         if (requestId !== staffRosterRequestId || currentStaffBranch !== branch) return;
         if (!staffRosterCache[branch]) {
-          roster.innerHTML = '<p class="text-center text-sm text-copper-dark py-10">Couldn\'t load the team roster — please try again.</p>';
+          roster.innerHTML = '<p class="text-center text-sm text-copper-dark py-10">Couldn\'t load the team roster please try again.</p>';
         }
       });
   }
@@ -1059,7 +1035,7 @@
       spec: "Hair, nails, skin, brows and make-up services at our Daraga flagship.",
       hours: '8:00 AM – 8:00 PM', hoursNote: 'Open Daily',
       phone: '0918 536 8016', tel: '+639185368016', email: 'leomejillano88@yahoo.com',
-      phone2: '0907 869 6035', tel2: '+639078696035', phone2Label: 'Aesthetics line — Nurse Jemar',
+      phone2: '0907 869 6035', tel2: '+639078696035', phone2Label: 'Aesthetics line Nurse Jemar',
       img: 'frontend/shared/image/Daraga.png'
     },
     yashano: {
@@ -1070,7 +1046,7 @@
       spec: "Skin, brow and beauty treatments at Yashano Mall, beside Angel's Pizza.",
       hours: '9:30 AM – 8:00 PM', hoursNote: 'Open Daily',
       phone: '0918 536 8016', tel: '+639185368016', email: '',
-      phone2: '0907 869 6035', tel2: '+639078696035', phone2Label: 'Aesthetics line — Nurse Jemar',
+      phone2: '0907 869 6035', tel2: '+639078696035', phone2Label: 'Aesthetics line Nurse Jemar',
       img: 'frontend/shared/image/Yashano.jpg'
     },
     cabangan: {
@@ -1117,7 +1093,7 @@
     else phone2.removeAttribute('href');
     const image = document.getElementById('bImg');
     image.src = b.img;
-    image.alt = b.name + ' — ' + BRANCH_LABEL[key] + ' branch';
+    image.alt = b.name + ' ' + BRANCH_LABEL[key] + ' branch';
     const groups = new Set(SERVICE_DATA[key].menus.flatMap(menu => menu.cats.map(category => category.g)));
     document.getElementById('bServiceCategories').innerHTML = SERVICE_GROUPS
       .filter(group => group.k !== 'all' && group.k !== 'deals' && groups.has(group.k))
@@ -1127,7 +1103,7 @@
     button.addEventListener('click', () => renderBranchDetails(button.dataset.b));
   });
   // Status vocabulary matches the `home_service_requests.status` ENUM in
-  // the database exactly (see trackBooking.php) — 'Cancelled' is a
+  // the database exactly (see trackBooking.php) 'Cancelled' is a
   // terminal state handled separately, not a step in this progression.
   const HS_STATUSES = ['Pending Review', 'Confirmed', 'Completed'];
   // Customer-facing labels -- the database enum ('Pending Review', etc.) is
@@ -1262,7 +1238,7 @@
     el.innerHTML = dp
       ? 'Estimated DP for ' + escAttr(hsSelectedWeddingPackage.name) + ': <b class="text-plum text-[15px]">' + (dp.fixed ? '' : 'about ') + hsPeso(dp.amount) + '</b> ' +
         '<span class="text-ink/50">' + (dp.fixed ? '(fixed reservation fee)' : '(≈30% of ' + hsPeso(hsSelectedWeddingPackage.price) + ')') + '</span>'
-      : '<span class="text-ink/60">Your DP is set in your quote — usually around 30% of the total, depending on venue, number of clients and services.</span>';
+      : '<span class="text-ink/60">Your DP is set in your quote usually around 30% of the total, depending on venue, number of clients and services.</span>';
   }
 
   function hsFillWeddingSummary(selector) {
@@ -1272,9 +1248,9 @@
     const values = {
       name: pkg.name,
       price: hsPeso(pkg.price),
-      fee: dp.fixed ? hsPeso(dp.amount) : 'about ' + hsPeso(dp.amount) + ' (estimate — confirmed in your quote)',
+      fee: dp.fixed ? hsPeso(dp.amount) : 'about ' + hsPeso(dp.amount) + ' (estimate confirmed in your quote)',
       balance: (dp.fixed ? '' : 'about ') + hsPeso(pkg.price - dp.amount) + ' (paid on the event day)',
-      venue: document.getElementById('hsVenue').value.trim() || '—',
+      venue: document.getElementById('hsVenue').value.trim() || '',
       date: hsFmtDate(document.getElementById('hsDate').value),
       time: hsFmtTime(document.getElementById('hsTime').value)
     };
@@ -1350,7 +1326,7 @@
       if (!/^09\d{9}$/.test(phone)) { fieldError('hsPhone', 'Please enter a valid 11-digit mobile number (09XXXXXXXXX).'); return; }
       // Required: guests track and reschedule with reference + email, and get updates there.
       const email = document.getElementById('hsEmail').value.trim();
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { fieldError('hsEmail', 'Please enter a valid email address — you\'ll use it to track and reschedule your request.'); return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { fieldError('hsEmail', 'Please enter a valid email address you\'ll use it to track and reschedule your request.'); return; }
 
       hsGo(2);
     } else if (from === 2) {
@@ -1391,13 +1367,13 @@
   }
 
   function hsFmtDate(d) {
-    if (!d) return '—';
+    if (!d) return '';
     const dt = new Date(d + 'T00:00:00');
     return isNaN(dt) ? d : dt.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
   }
 
   function hsFmtTime(t) {
-    if (!t) return '—';
+    if (!t) return '';
     const [h, m] = t.split(':').map(Number);
     const ap = h >= 12 ? 'PM' : 'AM';
     const hr = h % 12 === 0 ? 12 : h % 12;
@@ -1531,7 +1507,7 @@
     const email = document.getElementById('hsEmail').value.trim();
     document.getElementById('rvName').textContent = document.getElementById('hsName').value.trim();
     document.getElementById('rvPhone').textContent = document.getElementById('hsPhone').value.trim();
-    document.getElementById('rvEmail').textContent = email || '—';
+    document.getElementById('rvEmail').textContent = email || '';
     document.getElementById('rvEmailRow').classList.toggle('hidden', !email);
     document.getElementById('rvEvent').textContent = document.getElementById('hsEventType').value === 'Other' ? document.getElementById('hsOtherEvent').value.trim() : document.getElementById('hsEventType').value;
     document.getElementById('rvDate').textContent = hsFmtDate(document.getElementById('hsDate').value);
@@ -1547,7 +1523,7 @@
     document.getElementById('rvWeddingPackageCard').classList.toggle('hidden', !isWedding);
     if (isWedding) hsFillWeddingSummary('[data-review-wedding]');
     hsRenderDpEstimate();
-    document.getElementById('rvNotes').textContent = document.getElementById('hsNotes').value.trim() || '—';
+    document.getElementById('rvNotes').textContent = document.getElementById('hsNotes').value.trim() || '';
   }
 
   function hsSubmit() {
@@ -1679,7 +1655,7 @@
           hsFeedbackEmail = email;
           hsRatings.service = 0; hsRatings.staff = 0;
           document.querySelectorAll('#hsFeedback .fb-star').forEach(s => { s.className = 'fb-star text-bronze/40 hover:text-copper transition'; });
-          document.getElementById('fbFor').textContent = 'For booking ' + res.reference + ' — ' + (res.event || res.services || '') + '.';
+          document.getElementById('fbFor').textContent = 'For booking ' + res.reference + ' ' + (res.event || res.services || '') + '.';
           fb.classList.remove('hidden');
         } else {
           fb.classList.add('hidden');
@@ -1726,7 +1702,7 @@
 
 
   const BRANCH_LABEL = { daraga: 'Daraga Main', yashano: 'Yashano Mall', cabangan: 'Cabangan' };
-  // Real branch_id values from the `branches` table — the booking select's
+  // Real branch_id values from the `branches` table the booking select's
   // <option> values are these IDs, not the labels above.
   const BRANCH_ID_BY_KEY = { daraga: 1, yashano: 2, cabangan: 3 };
   const BRANCH_LABEL_BY_ID = Object.fromEntries(
@@ -1794,7 +1770,7 @@
           <span class="text-[10px] font-bold tracking-[0.16em] uppercase text-copper-dark bg-copper/15 rounded-full px-3 py-1.5">${b.badge}</span>
           <span class="text-[11px] font-bold flex items-center gap-1.5 text-ink/55">
             <span class="live-dot" data-live="${b.key}"></span>
-            <span data-live-label="${b.key}">—</span>
+            <span data-live-label="${b.key}"></span>
           </span>
         </div>
         <h3 class="font-display text-[1.6rem] leading-tight mt-5">${b.name}</h3>
@@ -1941,32 +1917,14 @@
       'Your stylist has started. Sit back this is the good part.',
       'All done. A short rating form is waiting for you it takes about twenty seconds.'
     ];
-    let i = 0, started = false;
-
-    const paint = () => {
-      nodes.forEach((n, k) => {
-        n.classList.toggle('on', k <= i);
-        n.classList.toggle('now', k === i);
-      });
-      rail.style.width = (i / (nodes.length - 1) * 100) + '%';
-      msg.textContent = COPY[i];
-    };
-
-    const advance = () => { i = (i + 1) % nodes.length; paint(); };
-
-    const begin = () => {
-      if (started) return;
-      started = true;
-      paint();
-      setInterval(advance, 2600);
-    };
-
-    if ('IntersectionObserver' in window) {
-      const io = new IntersectionObserver(entries => {
-        entries.forEach(en => { if (en.isIntersecting) { begin(); io.disconnect(); } });
-      }, { threshold: 0.4 });
-      io.observe(rail.closest('.trk-rail'));
-    } else { begin(); }
+    // Static sample: shows the first step only (no auto-advancing animation).
+    const i = 0;
+    nodes.forEach((n, k) => {
+      n.classList.toggle('on', k <= i);
+      n.classList.toggle('now', k === i);
+    });
+    rail.style.width = '0%';
+    msg.textContent = COPY[i];
   })();
 
   (function () {
@@ -1999,7 +1957,7 @@
      ============================================================ */
 
   // Matches the `appointments.status` ENUM in the database (see
-  // trackBooking.php) — 'Cancelled', 'No-Show', and 'Reviewed' are
+  // trackBooking.php) 'Cancelled', 'No-Show', and 'Reviewed' are
   // terminal/derived states handled separately, not steps here.
   const APPT_STATUSES = ['Pending', 'Confirmed', 'In Progress', 'Completed'];
 
@@ -2063,9 +2021,9 @@
          [HS_CONFIRMED_STATUSES.includes(res.status) ? 'Confirmed date' : 'Preferred date', hsFmtDate(res.date) + (res.time ? ' · ' + escAttr(res.time) : '')],
          ['Location', escAttr(res.venue)],
          ...(res.quote ? [['Quote', peso(res.quote)]] : []),
-         ...(res.reservationFee ? [['Reservation fee', peso(res.reservationFee) + (res.feePaid ? ' — paid' : ' — not yet paid')]] : []),
-         ['Details', escAttr(res.requests || '—').replace(/\n/g, '<br>')]]
-      : [['Type', 'In-salon appointment'], ['Branch', escAttr(res.branch || '—')],
+         ...(res.reservationFee ? [['Reservation fee', peso(res.reservationFee) + (res.feePaid ? ' paid' : ' not yet paid')]] : []),
+         ['Details', escAttr(res.requests || '').replace(/\n/g, '<br>')]]
+      : [['Type', 'In-salon appointment'], ['Branch', escAttr(res.branch || '')],
          ['Service', escAttr(res.services) + (res.price ? ' · ₱' + Number(res.price).toFixed(0) : '')],
          ['Date', fmtApptDate(res.date) + ' · ' + escAttr(res.time)]];
 
@@ -2078,15 +2036,12 @@
       '<div class="mt-6 pt-5 border-t border-bronze/25 text-sm space-y-1.5">' +
         detail.map(r => '<p><span class="text-ink/50">' + r[0] + ':</span> <b>' + r[1] + '</b></p>').join('') +
       '</div>' +
-      // Unpaid reservation fee / payment -- GCash, Maya or Card via PayMongo.
+      // Home service reservation fee (down payment) -- GCash, Maya or Card via PayMongo.
       // One button per method; the PayMongo payment is created when it is opened.
-      (res.payUrls
+      (isHome && res.payUrls
         ? '<div class="mt-5 rounded-2xl bg-copper/10 border border-copper/30 p-4 text-sm">' +
-            (isHome
-              ? '<p class="font-bold text-ink">Pay your ' + peso(res.reservationFee) + ' reservation fee to confirm this request.</p>' +
-                '<p class="text-ink/60 text-[13px] mt-1">The remaining balance is paid on the event day.</p>'
-              : '<p class="font-bold text-ink">Pay your ' + peso(res.amountDue) + ' reservation payment to keep this booking.</p>' +
-                '<p class="text-ink/60 text-[13px] mt-1">Your slot is held for 30 minutes from booking.</p>') +
+            '<p class="font-bold text-ink">Pay your ' + peso(res.reservationFee) + ' reservation fee to confirm this request.</p>' +
+            '<p class="text-ink/60 text-[13px] mt-1">The remaining balance is paid on the event day.</p>' +
             '<div class="mt-3 grid gap-2">' + [['PayMongo-GCash', 'gcash'], ['PayMongo-Maya', 'maya'], ['PayMongo-Card', 'card']].map(([method, logo]) =>
               '<a href="' + escAttr(res.payUrls[method]) + '" class="flex items-center gap-3 rounded-full border border-bronze/50 bg-white hover:border-plum px-3 py-2 font-bold transition"><span class="pm-logo pm-logo--' + logo + '" aria-hidden="true"></span>Pay with ' + PAY_METHOD_NAMES[method] + '</a>').join('') + '</div>' +
           '</div>'
@@ -2097,9 +2052,9 @@
           ? '<div class="mt-5 rounded-2xl bg-copper/10 border border-copper/30 p-4 text-sm">' +
               '<p class="font-bold text-ink">Remaining balance: ' + peso(res.balanceDue) + '</p>' +
               '<p class="text-ink/60 text-[13px] mt-1">Paid ' + peso(res.amountPaid) + ' of ' + peso(res.quote) + '.' + (res.balancePayUrl ? '' : ' Pay in cash on the event day, or ask us for an online payment link.') + '</p>' +
-              (res.balancePayUrl ? '<a href="' + escAttr(res.balancePayUrl) + '" class="mt-3 inline-flex w-full justify-center rounded-full bg-plum hover:bg-plum/85 text-white font-bold py-3 transition">Pay ' + peso(res.balanceDue) + ' now — GCash, Maya or card</a>' : '') +
+              (res.balancePayUrl ? '<a href="' + escAttr(res.balancePayUrl) + '" class="mt-3 inline-flex w-full justify-center rounded-full bg-plum hover:bg-plum/85 text-white font-bold py-3 transition">Pay ' + peso(res.balanceDue) + ' now GCash, Maya or card</a>' : '') +
             '</div>'
-          : '<div class="mt-5 rounded-2xl bg-[#DCFCE7] border border-[#86EFAC] p-4 text-sm font-bold text-[#166534]">Fully paid ✓ — thank you!</div>')
+          : '<div class="mt-5 rounded-2xl bg-[#DCFCE7] border border-[#86EFAC] p-4 text-sm font-bold text-[#166534]">Fully paid ✓ thank you!</div>')
         : '') +
       // Home service online reschedule (backend/public/rescheduleHomeService.php).
       (isHome ? renderHomeServiceReschedule(res) : '');
@@ -2220,7 +2175,7 @@
         updateDepositRequiredDisplay();
         refreshSlotGridIfReady();
       })
-      .catch(() => { if (requestId === branchServicesRequestId) box.innerHTML = '<span class="text-copper-dark">Couldn\'t load services — please try again.</span>'; });
+      .catch(() => { if (requestId === branchServicesRequestId) box.innerHTML = '<span class="text-copper-dark">Couldn\'t load services please try again.</span>'; });
   }
 
   /* "2 selected · 1 hr 30 min · ₱999" above the service list. */
@@ -2266,7 +2221,7 @@
     waitlistContext = busyStaff.length ? context : null;
     wrap.classList.toggle('hidden', !busyStaff.length);
     document.getElementById('bookWaitlistStaff').innerHTML = busyStaff
-      .map(s => '<option value="' + escAttr(s.id) + '">' + escAttr(s.name) + (s.role ? ' — ' + escAttr(s.role) : '') + '</option>').join('');
+      .map(s => '<option value="' + escAttr(s.id) + '">' + escAttr(s.name) + (s.role ? ' ' + escAttr(s.role) : '') + '</option>').join('');
   }
 
   document.getElementById('bookWaitlistBtn')?.addEventListener('click', () => {
@@ -2344,7 +2299,7 @@
                   '</button>').join('') + '</div>'
               : '<p class="text-[12px] text-copper-dark">No stylist at this branch offers this service.</p>') +
             (svc.staff.length && !svc.staff.some(s => s.available)
-              ? '<p class="mt-1.5 text-[11px] text-copper-dark">Everyone who does this service is busy at ' + escAttr(svc.start) + ' — pick another time, or join a waitlist below.</p>' : '') +
+              ? '<p class="mt-1.5 text-[11px] text-copper-dark">Everyone who does this service is busy at ' + escAttr(svc.start) + ' pick another time, or join a waitlist below.</p>' : '') +
           '</div>').join('') +
           (services.length > 1 ? '<p class="text-[11px] text-ink/55">Your services are done one after another, starting ' + escAttr(services[0].start) + '. The same stylist can do more than one if they\'re free.</p>' : '');
 
@@ -2366,7 +2321,7 @@
           });
         });
       })
-      .catch(() => { if (requestId === staffListRequestId) box.innerHTML = '<span class="text-copper-dark">Couldn\'t load staff — please try again.</span>'; });
+      .catch(() => { if (requestId === staffListRequestId) box.innerHTML = '<span class="text-copper-dark">Couldn\'t load staff please try again.</span>'; });
   }
 
   function refreshStaffListIfReady() {
@@ -2467,7 +2422,7 @@
       // required amount may no longer match what was submitted, so make
       // them resubmit rather than silently keep a stale deposit.
       if (bookDepositLocked) {
-        showToast('Services changed — please update your deposit details.');
+        showToast('Services changed please update your deposit details.');
         unlockDepositGate();
       }
     }
@@ -2489,7 +2444,7 @@
     bookReservationQuote = null;
     const button = document.getElementById('bookDepositLockBtn');
     button.disabled = true;
-    ['bookPaymentServices', 'bookPaymentTotal', 'bookPaymentRequirement', 'bookDepositRequired', 'bookPaymentBalance'].forEach(id => document.getElementById(id).textContent = '—');
+    ['bookPaymentServices', 'bookPaymentTotal', 'bookPaymentRequirement', 'bookDepositRequired', 'bookPaymentBalance'].forEach(id => document.getElementById(id).textContent = '');
     const params = new URLSearchParams({ branch: document.getElementById('bookBranchSelect').value });
     const selected = document.querySelectorAll('.book-service-check:checked');
     if (!selected.length) { document.getElementById('bookQuoteError').textContent = 'Select a service to see Pay Now.'; return null; }
@@ -2523,7 +2478,7 @@
         const locked = document.getElementById('bookDepositLocked');
         locked.classList.remove('hidden');
         locked.classList.add('flex');
-        document.getElementById('bookDepositLockedSummary').textContent = 'No online reservation payment required — confirmed after review.';
+        document.getElementById('bookDepositLockedSummary').textContent = 'No online reservation payment required confirmed after review.';
       } else {
         document.getElementById('bookDepositForm').classList.remove('hidden');
         document.getElementById('bookDepositLocked').classList.add('hidden');
@@ -2575,8 +2530,8 @@
     locked.classList.add('flex');
     document.getElementById('bookDepositLockedSummary').textContent =
       method !== 'Cash'
-        ? formatReservationMoney(amount) + ' — pay with ' + PAY_METHOD_NAMES[method] + ' after you confirm'
-        : formatReservationMoney(amount) + ' via ' + method + (bookDepositInfo.reference ? ' (Ref: ' + bookDepositInfo.reference + ')' : ' — pay in person');
+        ? formatReservationMoney(amount) + ' pay with ' + PAY_METHOD_NAMES[method] + ' after you confirm'
+        : formatReservationMoney(amount) + ' via ' + method + (bookDepositInfo.reference ? ' (Ref: ' + bookDepositInfo.reference + ')' : ' pay in person');
 
     document.getElementById('bookScheduleSection').classList.remove('hidden');
     document.getElementById('bookName').focus();
@@ -2647,11 +2602,12 @@
     bookingModalBox.scrollTop = 0;
     document.getElementById('bookingReviewHeading').focus();
 
-    // Every guest booking is verified with a code: emailed when an email was
-    // given, otherwise texted to the mobile number (backend/public/sendBookingOtp.php).
-    document.getElementById('bookReviewConfirm').textContent = bookVerifyLabel(email);
-    document.getElementById('bookReviewNextNote').textContent = 'Next, verify your ' + (email ? 'email' : 'mobile number')
-      + '. Your request will remain pending until the branch confirms your appointment and deposit.';
+    // No email means nothing to OTP-verify -- the confirm button submits
+    // straight to the backend instead of first requesting an email code.
+    document.getElementById('bookReviewConfirm').textContent = email ? 'Continue to email verification' : 'Confirm booking';
+    document.getElementById('bookReviewNextNote').textContent = email
+      ? 'Next, verify your email. Your request will remain pending until the branch confirms your appointment and deposit.'
+      : 'Your request will remain pending until the branch confirms your appointment and deposit.';
   });
 
   document.getElementById('bookReviewEdit').addEventListener('click', () => {
@@ -2661,10 +2617,6 @@
     bookingModalBox.scrollTop = 0;
   });
 
-  function bookVerifyLabel(email) {
-    return email ? 'Continue to email verification' : 'Text me a verification code';
-  }
-
   document.getElementById('bookReviewConfirm').addEventListener('click', () => {
     if (!pendingBooking) return;
     const email = pendingBooking.email;
@@ -2672,6 +2624,18 @@
 
     const submitBtn = document.getElementById('bookReviewConfirm');
     if (submitBtn.disabled) return;
+
+    // No email was given, so there's nothing to OTP-verify -- submit the
+    // booking directly with the same backend endpoint and payment rules
+    // used for the email-verified path.
+    if (!email) {
+      submitBtn.disabled = true;
+      document.getElementById('bookReviewEdit').disabled = true;
+      submitBtn.textContent = 'Booking…';
+      finalizeGuestBooking(pendingBooking, '', submitBtn, 'Confirm booking')
+        .finally(() => { document.getElementById('bookReviewEdit').disabled = false; });
+      return;
+    }
 
     submitBtn.disabled = true;
     document.getElementById('bookReviewEdit').disabled = true;
@@ -2686,16 +2650,15 @@
       .then(res => {
         submitBtn.disabled = false;
         document.getElementById('bookReviewEdit').disabled = false;
-        submitBtn.textContent = bookVerifyLabel(email);
+        submitBtn.textContent = 'Continue to email verification';
         if (pendingBooking !== reviewedBooking) return;
         if (!res.success) {
           showToast(res.message);
-          if (res.retryAfter) startBookOtpCooldown(res.retryAfter, submitBtn, bookVerifyLabel(email));
+          if (res.retryAfter) startBookOtpCooldown(res.retryAfter, submitBtn, 'Continue to email verification');
           return;
         }
 
-        document.getElementById('bookOtpHeading').textContent = email ? 'Verify your email' : 'Verify your mobile number';
-        document.getElementById('bookOtpEmailLabel').textContent = email || reviewedBooking.phone;
+        document.getElementById('bookOtpEmailLabel').textContent = email;
         document.getElementById('bookingFormPanel').classList.add('hidden');
         document.getElementById('bookingReviewPanel').classList.add('hidden');
         document.getElementById('bookingOtpPanel').classList.remove('hidden');
@@ -2707,7 +2670,7 @@
       .catch(() => {
         submitBtn.disabled = false;
         document.getElementById('bookReviewEdit').disabled = false;
-        submitBtn.textContent = bookVerifyLabel(email);
+        submitBtn.textContent = 'Continue to email verification';
         showToast('A network error occurred. Please try again.');
       });
   });
@@ -2815,11 +2778,6 @@
         if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = idleLabel; }
 
         if (!res.success) {
-          // Already has a booking waiting for payment (e.g. pressed Back on GCash / Maya / card).
-          if (res.heldBooking && confirm(res.message + '\n\nContinue paying ' + res.heldBooking.reference + ' now?')) {
-            window.location.href = res.heldBooking.resultUrl;
-            return false;
-          }
           showToast(res.message);
           BookingFormValidation.message(submitBtn, res.message || 'Could not send your booking. Please try again.');
           if (res.errors || res.conflict) {
@@ -2840,11 +2798,12 @@
           return false;
         }
 
-        // Online payment: hand off to PayMongo in this tab (the GCash / Maya authorization page, or the
-        // card page), which returns to frontend/public/payment-result.html when done.
+        // Online payment: hand off to PayMongo (the GCash / Maya authorization page, or the card page), which
+        // returns to frontend/public/payment-result.html when done.
         if (res.checkoutUrl) {
           if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Redirecting to payment…'; }
-          window.location.href = res.checkoutUrl;
+          // Back from PayMongo shows "Continue payment" for this booking instead of inviting a second one.
+          PendingPayment.handOff(res.checkoutUrl, res.resultUrl, res.reference);
           return true;
         }
 
@@ -2911,7 +2870,7 @@
     closeBookingModal();
     trackModalOverlay.classList.remove('opacity-0', 'pointer-events-none');
     trackModalBox.classList.remove('scale-95');
-    if (prefillRef && prefillRef !== '—') {
+    if (prefillRef && prefillRef !== '') {
       document.getElementById('apptTrkRef').value = prefillRef;
     }
     if (prefillPhone) {
@@ -2958,7 +2917,7 @@
           apptRatings = { service: 0, staff: 0 };
           document.querySelectorAll('.appt-star').forEach(s => s.classList.remove('on'));
           document.getElementById('apptFbFor').textContent =
-            'For booking ' + res.reference + ' — ' + (res.type === 'home_service' ? res.event : res.services) + '.';
+            'For booking ' + res.reference + ' ' + (res.type === 'home_service' ? res.event : res.services) + '.';
           fb.classList.remove('hidden');
         } else {
           fb.classList.add('hidden');

@@ -85,7 +85,7 @@ try {
         $pdo->prepare("UPDATE appointments SET status = 'Reviewed' WHERE id = ?")->execute([$appt['id']]);
         $pdo->commit();
 
-        echo json_encode(['success' => true, 'message' => 'Thank you — your rating has been sent to the branch.']);
+        echo json_encode(['success' => true, 'message' => 'Thank you your rating has been sent to the branch.']);
         exit();
     }
 
@@ -103,7 +103,7 @@ try {
         $ins = $pdo->prepare('INSERT INTO feedback (home_service_request_id, customer_id, rating, comments, is_public, created_at) VALUES (?, ?, ?, ?, 1, NOW())');
         $ins->execute([$hs['id'], $hs['customer_id'], $rating, $fullComment]);
 
-        echo json_encode(['success' => true, 'message' => 'Thank you — your rating has been sent to the branch.']);
+        echo json_encode(['success' => true, 'message' => 'Thank you your rating has been sent to the branch.']);
         exit();
     }
 

@@ -8,12 +8,16 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-  <link rel="stylesheet" href="../../frontend/admin/admin-theme.css?v=teal-gold-20261021">
+  <link rel="stylesheet" href="../../frontend/admin/admin-theme.css?v=20261103">
   <script src="../../function/admin/theme-config.js"></script>
-  <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=teal-gold-20261021" />
-  <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=teal-gold-20261021" />
+  <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=20261103b" />
+  <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=20261103-signout-cream" />
   <script src="../../function/shared/toast.js"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
+  <link rel="stylesheet" href="../../frontend/shared/mobile-nav.css?v=20261103c">
+  <script src="../../function/shared/mobile-nav.js?v=20261103" defer></script>
+  <!-- Clean theme: loaded last so it overrides older theme colours. -->
+  <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
 </head>
 <body class="salon-portal bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="adminReportsApp()" x-init="init()" x-cloak>
@@ -74,15 +78,7 @@
 
       <div>
         <div class="p-4 border-t border-slate-800">
-          <a href="../../backend/auth/logout.php?portal=admin" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4"></path></svg>
-            <span>Sign Out</span>
-          </a>
-        </div>
-        <div class="p-4 bg-slate-950 border-t border-slate-800/80 text-xs text-slate-400 space-y-1">
-          <p class="font-bold text-slate-300">STI College Legazpi</p>
-          <p>Capstone Project Proposal &copy; 2026</p>
-          <p class="text-xs text-luxury-400 italic">Centralized Digital Multi-Branch Solution</p>
+          <a href="../../backend/auth/logout.php?portal=admin" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H5v14h4M13 8l4 4-4 4M9 12h12"/></svg><span>Sign Out</span></a>
         </div>
       </div>
     </aside>
@@ -102,27 +98,19 @@
               <span class="absolute top-0 right-0 w-2.5 h-2.5 bg-rose-500 rounded-full border border-slate-900" x-show="$store.admin.unreadNotifications() > 0"></span>
             </button>
             <div x-show="open" @click.outside="open = false" x-cloak class="portal-notification-panel admin-notification-panel absolute right-0 mt-2 w-80 bg-slate-900 border border-luxury-800 rounded-xl shadow-xl z-50" role="region" aria-label="Admin notifications">
-              <div class="admin-notice-header"><strong>Notifications</strong><button type="button" @click="open = false" aria-label="Close notifications">&times;</button></div>
+              <div class="admin-notice-header"><strong>Notifications</strong><button type="button" class="lm-notif-readall" x-show="$store.admin.notifications.length > 0" @click="$store.admin.markAllNotificationsAsRead()" :disabled="$store.admin.notificationsReadBusy || !$store.admin.unreadNotifications()" x-text="$store.admin.notificationsReadBusy ? 'Saving...' : 'Mark all as read'"></button><button type="button" @click="open = false" aria-label="Close notifications">&times;</button></div>
               <div class="overflow-y-auto admin-notice-list">
                 <template x-if="$store.admin.notifications.length === 0"><p class="p-4 text-xs text-slate-500">No updates yet.</p></template>
                 <template x-for="item in $store.admin.notifications" :key="item.id">
                   <article class="admin-notice-card" :class="{ 'portal-notification-unread': !item.isRead }">
-                    <div class="flex items-center justify-between gap-2"><strong x-text="PortalPresentation.adminNotice(item).title"></strong><span x-show="!item.isRead" class="admin-notice-unread">Unread</span></div>
-                    <p class="admin-notice-reference" x-show="PortalPresentation.adminNotice(item).reference" x-text="PortalPresentation.adminNotice(item).reference"></p>
-                    <dl class="admin-notice-fields">
-                      <div x-show="PortalPresentation.adminNotice(item).customer"><dt>Customer</dt><dd x-text="PortalPresentation.adminNotice(item).customer"></dd></div>
-                      <div x-show="PortalPresentation.adminNotice(item).branch"><dt>Branch</dt><dd x-text="PortalPresentation.adminNotice(item).branch"></dd></div>
-                      <div x-show="PortalPresentation.adminNotice(item).schedule"><dt>Schedule</dt><dd x-text="PortalPresentation.adminNotice(item).schedule"></dd></div>
-                      <div x-show="PortalPresentation.adminNotice(item).payment"><dt>Payment</dt><dd x-text="PortalPresentation.adminNotice(item).payment"></dd></div>
-                    </dl>
+                    <div class="lm-notif-title"><strong x-text="PortalPresentation.adminNotice(item).title"></strong><span x-show="!item.isRead" class="lm-notif-dot" role="img" aria-label="Unread"></span><time class="lm-notif-time" x-text="PortalPresentation.shortTime(item)"></time></div>
+                    <p class="lm-notif-line" x-text="PortalPresentation.noticeLine([PortalPresentation.adminNotice(item).reference, PortalPresentation.adminNotice(item).customer, PortalPresentation.adminNotice(item).branch, PortalPresentation.adminNotice(item).schedule, PortalPresentation.adminNotice(item).payment])"></p>
                     <p x-show="PortalPresentation.adminNotice(item).summary" class="portal-notification-message" x-text="PortalPresentation.adminNotice(item).summary"></p>
-                    <p class="admin-notice-time" x-text="PortalPresentation.receivedTime(item)"></p>
                   </article>
                 </template>
               </div>
-              <div class="admin-notice-footer" x-show="$store.admin.notifications.length > 0">
+              <div class="admin-notice-footer" x-show="$store.admin.notificationReadError">
                 <p role="alert" class="text-xs text-rose-700" x-show="$store.admin.notificationReadError" x-text="$store.admin.notificationReadError"></p>
-                <button type="button" @click="$store.admin.markAllNotificationsAsRead()" :disabled="$store.admin.notificationsReadBusy || !$store.admin.unreadNotifications()" x-text="$store.admin.notificationsReadBusy ? 'Saving...' : 'Mark all as read'"></button>
               </div>
             </div>
           </div>
@@ -136,7 +124,7 @@
 
       <div class="p-6 space-y-6">
 
-        <div class="bg-slate-900 border border-luxury-900 rounded-xl p-4 flex flex-wrap items-center gap-3">
+        <div class="report-filters bg-slate-900 border border-luxury-900 rounded-xl p-4 flex flex-wrap items-center gap-3">
           <span class="text-xs text-slate-400 font-semibold">Report Type:</span>
           <select aria-label="Report type" x-model="reportType" class="bg-slate-950 text-slate-300 text-xs rounded-lg p-2 border border-slate-800 focus:ring-purple-500 focus:outline-none">
             <option value="appointments">Appointments</option>
@@ -168,7 +156,7 @@
         <p x-show="reportType === 'activity'" class="text-xs text-slate-400">Activity logs use date, search and role filters. Branch filtering is not available for this log.</p>
         <p x-show="collectionsLoading" role="status" class="text-sm text-slate-300">Loading collected payments...</p>
         <p x-show="collectionsError" x-text="collectionsError" role="alert" class="text-sm text-rose-300"></p>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div data-stat-grid class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div class="bg-slate-900 border border-luxury-900 rounded-2xl p-5 shadow-xl">
             <span class="text-xs text-slate-400 uppercase">Net Collected Payments</span>
             <h4 class="text-2xl font-serif font-bold text-emerald-400 mt-1" x-text="$store.admin.formatCurrency(getReportTotalRevenue())"></h4>
@@ -229,7 +217,7 @@
         <!-- Revenue / Sales report -->
         <div x-show="reportType === 'revenue'" class="bg-slate-900 border border-luxury-900 p-5 rounded-2xl space-y-4">
           <h3 class="font-serif text-base font-bold text-white">Branch Revenue Comparison</h3>
-          <p class="text-xs text-slate-400">Verified collections by payment date, including checkout tips. Reservation payments and balances are counted once; completed refunds are deducted. Unpaid balances are excluded. Legacy deposits without a recorded collection date appear only in all-time totals.</p>
+          <p class="prose-justify text-xs text-slate-400">Verified collections by payment date, including checkout tips. Reservation payments and balances are counted once; completed refunds are deducted. Unpaid balances are excluded. Legacy deposits without a recorded collection date appear only in all-time totals.</p>
           <div class="space-y-4 py-2">
             <template x-for="branch in getRevenueByBranch()" :key="branch.id">
               <div class="space-y-1.5">
@@ -255,15 +243,15 @@
 
         <div x-show="reportType === 'revenue'" class="overflow-x-auto rounded-xl border border-slate-800">
           <table class="w-full text-left text-sm text-slate-300">
-            <caption class="text-left p-3 text-slate-300">Collected transactions — same records as CSV export</caption>
+            <caption class="text-left p-3 text-slate-300">Collected transactions, same records as CSV export</caption>
             <thead class="bg-slate-950"><tr><th scope="col" class="p-3">Reference</th><th scope="col" class="p-3">Branch</th><th scope="col" class="p-3">Collection date</th><th scope="col" class="p-3">Transaction</th><th scope="col" class="p-3">Method</th><th scope="col" class="p-3">Amount</th></tr></thead>
-            <tbody><template x-for="row in collections" :key="row.id"><tr class="border-t border-slate-800"><td class="p-3 font-mono" x-text="row.reference"></td><td class="p-3" x-text="row.branchName"></td><td class="p-3 whitespace-nowrap" x-text="row.collectedAt || 'Not recorded (legacy)'"></td><td class="p-3" x-text="row.kind"></td><td class="p-3" x-text="PortalPresentation.methodLabel(row.method) || '—'"></td><td class="p-3 whitespace-nowrap" x-text="$store.admin.formatCurrency(row.amount)"></td></tr></template></tbody>
+            <tbody><template x-for="row in collections" :key="row.id"><tr class="border-t border-slate-800"><td class="p-3 font-mono" x-text="row.reference"></td><td class="p-3" x-text="row.branchName"></td><td class="p-3 whitespace-nowrap" x-text="row.collectedAt || 'Not recorded (legacy)'"></td><td class="p-3" x-text="row.kind"></td><td class="p-3" x-text="PortalPresentation.methodLabel(row.method) || ''"></td><td class="p-3 whitespace-nowrap" x-text="$store.admin.formatCurrency(row.amount)"></td></tr></template></tbody>
           </table>
         </div>
         <!-- Staff Performance report -->
         <div x-show="reportType === 'staff'" class="bg-slate-900 border border-luxury-900 p-5 rounded-2xl space-y-4">
           <h3 class="font-serif text-base font-bold text-white">Staff Performance</h3>
-          <p class="text-xs text-slate-400">Real, separate metrics — no combined score (see Staff & Performance Hub).</p>
+          <p class="text-xs text-slate-400">Real, separate metrics, no combined score (see Staff & Performance Hub).</p>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-300">
               <thead class="bg-slate-950 text-slate-400 uppercase text-xs">
@@ -336,7 +324,7 @@
             <template x-for="review in getReportFeedback()" :key="review.id">
               <div class="p-3 bg-slate-950 border border-slate-800/80 rounded-xl flex justify-between items-center text-xs">
                 <div>
-                  <span class="font-semibold text-slate-100 block" x-text="review.clientName + ' — ' + (review.bookingReference || '—')"></span>
+                  <span class="font-semibold text-slate-100 block" x-text="review.clientName + ' ' + (review.bookingReference || '')"></span>
                   <span class="text-xs text-slate-400" x-text="(review.branchId ? $store.admin.getBranchName(review.branchId) : 'Off-Site') + ' · ' + review.date"></span>
                 </div>
                 <span class="font-bold text-gold-400" x-text="review.rating + ' / 5'"></span>
@@ -353,7 +341,7 @@
           <div class="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h3 class="font-serif text-base font-bold text-white">Online Payment Log</h3>
-              <p class="text-xs text-slate-400">Latest 300 matching checkout, payment, expiry, webhook and refund events. CSV exports these same filtered records.</p>
+              <p class="prose-justify text-xs text-slate-400">Latest 300 matching checkout, payment, expiry, webhook and refund events. CSV exports these same filtered records.</p>
             </div>
             <form @submit.prevent="loadPaymentLog()" class="flex gap-2">
               <input x-model="paymentLogSearch" type="text" placeholder="Booking reference…" class="bg-slate-950 text-slate-300 text-xs rounded-lg p-2 border border-slate-800 focus:ring-purple-500 focus:outline-none">
@@ -370,11 +358,11 @@
                 <template x-for="e in getFilteredPaymentLog()" :key="e.id">
                   <tr class="text-slate-300 align-top">
                     <td class="p-2 whitespace-nowrap text-slate-400" x-text="e.createdAt"></td>
-                    <td class="p-2 whitespace-nowrap font-semibold" x-text="e.reference || '—'"></td>
+                    <td class="p-2 whitespace-nowrap font-semibold" x-text="e.reference || ''"></td>
                     <td class="p-2 whitespace-nowrap"><span class="admin-badge" :class="paymentEventBadge(e.event)" x-text="paymentEventLabel(e.event)"></span></td>
-                    <td class="p-2 whitespace-nowrap" x-text="e.amount !== null ? $store.admin.formatCurrency(e.amount) : '—'"></td>
-                    <td class="p-2 whitespace-nowrap" x-text="e.status || '—'"></td>
-                    <td class="p-2 font-mono text-xs text-slate-400" x-text="e.externalId || '—'"></td>
+                    <td class="p-2 whitespace-nowrap" x-text="e.amount !== null ? $store.admin.formatCurrency(e.amount) : ''"></td>
+                    <td class="p-2 whitespace-nowrap" x-text="e.status || ''"></td>
+                    <td class="p-2 font-mono text-xs text-slate-400" x-text="e.externalId || ''"></td>
                     <td class="p-2 text-xs text-slate-500 max-w-xs truncate" :title="e.details" x-text="e.details || ''"></td>
                   </tr>
                 </template>
@@ -389,7 +377,7 @@
           <div class="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h3 class="font-serif text-base font-bold text-white">PayMongo Reconciliation</h3>
-              <p class="text-xs text-slate-400">Checks every payment PayMongo received against the bookings in this system. Uses the date filter above (default: last 30 days). Branch filter doesn't apply.</p>
+              <p class="prose-justify text-xs text-slate-400">Checks every payment PayMongo received against the bookings in this system. Uses the date filter above (default: last 30 days). Branch filter doesn't apply.</p>
             </div>
             <div class="flex items-center gap-3">
               <label class="flex items-center gap-1.5 text-xs text-slate-400"><input type="checkbox" x-model="reconcileIssuesOnly"> Issues only</label>
@@ -418,19 +406,19 @@
                     <template x-for="r in reconcileRows()" :key="r.paymentId + r.reference">
                       <tr class="text-slate-300 align-top">
                         <td class="p-2 whitespace-nowrap text-slate-400" x-text="r.paidAt"></td>
-                        <td class="p-2 whitespace-nowrap font-semibold" x-text="r.reference || '—'"></td>
+                        <td class="p-2 whitespace-nowrap font-semibold" x-text="r.reference || ''"></td>
                         <td class="p-2 min-w-[14rem]"><span class="admin-badge" :class="reconcileBadge(r.severity)" x-text="r.severity === 'ok' ? 'OK' : (r.severity === 'danger' ? 'Problem' : 'Check')"></span> <span class="block mt-1 text-xs text-slate-400" x-text="r.issue"></span></td>
-                        <td class="p-2 whitespace-nowrap" x-text="r.amount !== null ? $store.admin.formatCurrency(r.amount) + (r.method ? ' · ' + r.method : '') : '—'"></td>
-                        <td class="p-2 whitespace-nowrap" x-text="r.fee !== null ? $store.admin.formatCurrency(r.fee) : '—'"></td>
-                        <td class="p-2 whitespace-nowrap" x-text="r.refunded ? $store.admin.formatCurrency(r.refunded) : '—'"></td>
-                        <td class="p-2 whitespace-nowrap" x-text="r.systemPaymentStatus ? (r.systemPaymentStatus + (r.systemAmount !== null ? ' · ' + $store.admin.formatCurrency(r.systemAmount) : '')) : '—'"></td>
-                        <td class="p-2 font-mono text-xs text-slate-400" x-text="r.paymentId || '—'"></td>
+                        <td class="p-2 whitespace-nowrap" x-text="r.amount !== null ? $store.admin.formatCurrency(r.amount) + (r.method ? ' · ' + r.method : '') : ''"></td>
+                        <td class="p-2 whitespace-nowrap" x-text="r.fee !== null ? $store.admin.formatCurrency(r.fee) : ''"></td>
+                        <td class="p-2 whitespace-nowrap" x-text="r.refunded ? $store.admin.formatCurrency(r.refunded) : ''"></td>
+                        <td class="p-2 whitespace-nowrap" x-text="r.systemPaymentStatus ? (r.systemPaymentStatus + (r.systemAmount !== null ? ' · ' + $store.admin.formatCurrency(r.systemAmount) : '')) : ''"></td>
+                        <td class="p-2 font-mono text-xs text-slate-400" x-text="r.paymentId || ''"></td>
                         <td class="p-2"><button type="button" x-show="r.canSync" @click="syncPayment(r)" class="text-xs font-bold text-amber-400 hover:underline whitespace-nowrap">Record payment</button></td>
                       </tr>
                     </template>
                   </tbody>
                 </table>
-                <p x-show="reconcileRows().length === 0" class="text-slate-500 text-xs italic text-center py-6" x-text="reconcileIssuesOnly ? 'No issues — everything matches.' : 'No PayMongo payments in this period.'"></p>
+                <p x-show="reconcileRows().length === 0" class="text-slate-500 text-xs italic text-center py-6" x-text="reconcileIssuesOnly ? 'No issues everything matches.' : 'No PayMongo payments in this period.'"></p>
               </div>
             </div>
           </template>
@@ -441,7 +429,7 @@
           <div class="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h3 class="font-serif text-base font-bold text-white">Activity Log</h3>
-              <p class="text-xs text-slate-400">Who changed what and when: bookings, payments, services, staff, settings, sign-ins and failed sign-ins. Uses the date filter above. Newest first.</p>
+              <p class="prose-justify text-xs text-slate-400">Who changed what and when: bookings, payments, services, staff, settings, sign-ins and failed sign-ins. Uses the date filter above. Newest first.</p>
             </div>
             <form @submit.prevent="loadActivityLog()" class="flex flex-wrap gap-2">
               <select x-model="activityRole" class="bg-slate-950 text-slate-300 text-xs rounded-lg p-2 border border-slate-800 focus:ring-purple-500 focus:outline-none">
@@ -466,12 +454,12 @@
                 <template x-for="entry in activityLog" :key="entry.id">
                   <tr class="text-slate-300 align-top">
                     <td class="p-2 whitespace-nowrap text-slate-400" x-text="entry.createdAt"></td>
-                    <td class="p-2 whitespace-nowrap"><span class="font-semibold" x-text="entry.actor || '—'"></span> <span class="block text-xs text-slate-500" x-text="entry.role || 'Guest'"></span></td>
+                    <td class="p-2 whitespace-nowrap"><span class="font-semibold" x-text="entry.actor || ''"></span> <span class="block text-xs text-slate-500" x-text="entry.role || 'Guest'"></span></td>
                     <td class="p-2">
                       <span x-text="entry.label"></span>
                       <pre x-show="activityExpandedId === entry.id" class="mt-2 whitespace-pre-wrap text-xs text-slate-400 bg-slate-950 border border-slate-800 rounded-lg p-2" x-text="activityDetails(entry) + (entry.ip ? '\nIP: ' + entry.ip : '')"></pre>
                     </td>
-                    <td class="p-2 whitespace-nowrap font-mono text-xs" x-text="entry.reference || '—'"></td>
+                    <td class="p-2 whitespace-nowrap font-mono text-xs" x-text="entry.reference || ''"></td>
                     <td class="p-2"><span class="admin-badge" :class="entry.outcome === 'failed' ? 'admin-badge--danger' : 'admin-badge--success'" x-text="entry.outcome === 'failed' ? 'Failed' : 'OK'"></span> <span class="block mt-1 text-xs text-slate-500" x-text="entry.message || ''"></span></td>
                     <td class="p-2"><button type="button" @click="activityExpandedId = activityExpandedId === entry.id ? null : entry.id" class="text-xs font-bold text-gold-400 hover:underline whitespace-nowrap" x-text="activityExpandedId === entry.id ? 'Hide' : 'Details'"></button></td>
                   </tr>

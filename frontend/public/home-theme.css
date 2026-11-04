@@ -1,5 +1,5 @@
-@import url("../../frontend/shared/brand-palette.css");
-@import url("../../frontend/shared/responsive-base.css?v=balanced-type-20261020-1");
+@import url("../../frontend/shared/brand-palette.css?v=20261103b");
+@import url("../../frontend/shared/responsive-base.css?v=20261103b");
 
 /* Manual popover puts notifications above modal backdrops in the top layer. */
 #toast {
@@ -61,7 +61,7 @@
   --c-bronze: 74 92 90;
   --c-copper: 232 197 108;
   --c-copper-pale: 62 51 24;
-  --c-copper-dark: 236 209 143;   /* used as text — lightens in dark */
+  --c-copper-dark: 236 209 143;   /* used as text lightens in dark */
   --c-ink: 237 233 225;           /* primary text flips to cream */
   --c-panel: 22 33 33;            /* card surface */
   --c-plum: 32 168 170;           /* brand teal, brightened for dark */
@@ -252,7 +252,7 @@ html { scroll-behavior: smooth; }
             background: rgb(var(--c-bronze) / .7); border-radius: 999px; overflow: hidden; }
 .trk-fill { height: 100%; width: 0%; background: rgb(var(--c-plum)); border-radius: 999px;
             transition: width .7s cubic-bezier(.22,1,.36,1); }
-.trk-nodes { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); }
+.trk-nodes { position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .trk-node { text-align: center; }
 .trk-dot { display: block; width: 21px; height: 21px; margin: 0 auto; border-radius: 999px;
            background: rgb(var(--c-sand-100)); border: 3px solid rgb(var(--c-bronze) / .9);
@@ -263,6 +263,8 @@ html { scroll-behavior: smooth; }
 .trk-node.on .trk-dot { border-color: rgb(var(--c-plum)); background: rgb(var(--c-plum)); }
 .trk-node.on p { color: rgb(var(--c-plum)); }
 .trk-node.now .trk-dot { transform: scale(1.18); box-shadow: 0 0 0 6px rgb(var(--c-plum) / .18); }
+/* Phones: four step labels must share ~320px, so shrink them instead of overflowing. */
+@media (max-width: 480px) { .trk-node p { font-size: .68rem; letter-spacing: .02em; } }
 
 .testi-slide { position: absolute; inset: 0; opacity: 0; visibility: hidden;
                transform: translateY(14px); transition: opacity .55s ease, transform .55s ease, visibility .55s; }
@@ -575,3 +577,16 @@ button, input:not([type="checkbox"]):not([type="radio"]), select { min-height: 2
   line-height: 1.5;
   letter-spacing: .04em;
 }
+/* Services & Pricing: clean cards (same look as the customer Services tab). Light and dark use the tokens. */
+.svc-card { display: flex; flex-direction: column; gap: 6px; width: 100%; padding: 14px 16px; text-align: left; border-radius: 14px;
+  background: rgb(var(--c-panel)); border: 1px solid rgb(var(--c-bronze) / .55); transition: border-color .2s; }
+.svc-card:hover, .svc-card:focus-visible { border-color: rgb(var(--c-plum)); }
+.svc-card-cat { font-size: .6875rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: rgb(var(--c-plum)); }
+.svc-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.svc-card-name { min-width: 0; font-size: .9375rem; font-weight: 600; line-height: 1.35; color: rgb(var(--c-ink)); }
+.svc-card-price { flex-shrink: 0; font-size: .9375rem; font-weight: 700; color: rgb(var(--c-ink)); }
+.svc-card-tag { align-self: flex-start; padding: 2px 8px; border-radius: 999px; font-size: .625rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: rgb(var(--c-copper-dark)); background: rgb(var(--c-copper) / .15); }
+.svc-card-meta { font-size: .75rem; line-height: 1.45; color: rgb(var(--c-ink) / .68); }
+.svc-card-book { align-self: stretch; margin-top: auto; padding: 8px 12px; border-radius: 999px; text-align: center; font-size: .875rem; font-weight: 700; color: #fff; background: rgb(var(--c-plum)); }
+.svc-card:hover .svc-card-book { filter: brightness(1.1); }

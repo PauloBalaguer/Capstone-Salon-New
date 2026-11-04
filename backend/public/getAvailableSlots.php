@@ -3,7 +3,7 @@
 /**
  * Public: Get Available Time Slots
  *
- * No login required — powers the time-slot picker on the public landing
+ * No login required powers the time-slot picker on the public landing
  * page's guest booking form. A slot is unavailable if starting a booking
  * there would push the branch to Scheduling::slotLimit() concurrent
  * appointments at any point during the selected services' total duration,

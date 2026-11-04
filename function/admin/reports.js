@@ -64,7 +64,7 @@ function adminReportsApp() {
     paymentEventLabel(event) {
       const labels = {
         checkout_created: 'Card checkout created', intent_created: 'GCash/Maya payment started', payment_paid: 'Paid',
-        payment_failed: 'Payment failed/cancelled', duplicate_payment: 'Second payment — refund it', checkout_expired: 'Expired (unpaid)',
+        payment_failed: 'Payment failed/cancelled', duplicate_payment: 'Second payment refund it', checkout_expired: 'Expired (unpaid)',
         webhook_received: 'Webhook received', webhook_rejected: 'Webhook rejected', api_error: 'Error',
         deposit_forfeited: 'Deposit forfeited', refund_due: 'Refund due', refunded: 'Refunded',
         refund_requested: 'Refund sent to PayMongo', refund_failed: 'Refund failed'

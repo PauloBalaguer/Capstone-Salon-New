@@ -1,4 +1,4 @@
-/* frontend/cashier/receipt.html — printable receipt lookup.
+/* frontend/cashier/receipt.html printable receipt lookup.
    Reads ?ref=<reference_code>&pid=<payment id> from the URL and renders
    the itemized breakdown returned by backend/cashier/receipt.php. */
 
@@ -49,6 +49,10 @@ function renderReceipt(receipt) {
   `).join('') || '<p class="text-gray-400 italic py-3 text-center">No itemized lines.</p>';
 
   document.getElementById('receiptSubtotal').textContent = CashierApp.formatCurrency(receipt.subtotal);
+  const rewardNote = document.getElementById('receiptLoyaltyReward');
+  rewardNote.classList.toggle('hidden', !receipt.loyaltyDiscount);
+  rewardNote.textContent = (receipt.loyaltyRewardType === 'treatment' ? 'Free hair treatment reward' : '20% loyalty reward')
+    + ': saved ' + CashierApp.formatCurrency(receipt.loyaltyDiscount || 0) + ' (included in service prices).';
   // The reservation deposit was paid before the visit, so it's deducted here --
   // otherwise Subtotal + Tip wouldn't add up to Total Paid.
   const reservation = Number(receipt.reservationReceived) || 0;

@@ -6,13 +6,15 @@ window.PortalPresentation = {
   },
   adminNotice(notification) {
     const message = notification.message || '';
-    const booking = message.match(/^(?:New|Guest) booking (LM-(?:[A-Z]+-)+\d{4}-\d+) from (.+?) at (.+?) on (.+?)(?:\s+[—–]\s+(.+))?\.?$/i);
+    const booking = message.match(/^(?:New|Guest) booking (LM-(?:[A-Z]+-)+\d{4}-\d+) from (.+?) at (.+?) on (.+?)(?:\s+[–]\s+(.+))?\.?$/i);
     if (booking) {
       const payment = (booking[5] || '').replace(/\.$/, '');
       return {title:'New booking', reference:booking[1], customer:booking[2], branch:booking[3].match(/\(([^)]+)\)$/)?.[1] || booking[3], schedule:booking[4].replace(/\.$/, ''), payment:/in progress/i.test(payment) ? 'In progress' : /awaiting verification/i.test(payment) ? 'Needs review' : '', summary:''};
     }
     const details = this.notificationDetails(notification);
-    return {title:this.notificationTitle(notification.type), reference:message.match(/\bLM-(?:[A-Z]+-)+\d{4}-\d+\b/)?.[0] || '', customer:'', branch:details.branch, schedule:details.schedule, payment:'', summary:details.summary};
+    const reference = message.match(/\bLM-(?:[A-Z]+-)+\d{4}-\d+\b/)?.[0] || '';
+    const title = /\bwas cancelled\b/i.test(message) ? 'Booking cancelled' : this.notificationTitle(notification.type);
+    return {title, reference:details.summary.includes(reference) ? '' : reference, customer:'', branch:details.branch, schedule:details.schedule, payment:'', summary:details.summary};
   },
   receivedTime(notification) {
     if (!notification.createdAt) return 'Received ' + (notification.time || '');
@@ -22,6 +24,18 @@ window.PortalPresentation = {
     if (minutes >= 0 && minutes < 1) return 'Received just now';
     if (minutes > 0 && minutes < 60) return 'Received ' + minutes + ' min ago';
     return 'Received ' + new Intl.DateTimeFormat('en-US', {timeZone:'Asia/Manila',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}).format(date);
+  },
+  // Short time for the card header ("3 min ago").
+  shortTime(notification) {
+    if (!notification.createdAt && notification.time) {
+      const parsed = new Date(notification.time);
+      if (!Number.isNaN(parsed.getTime())) return new Intl.DateTimeFormat('en-US', {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}).format(parsed);
+    }
+    return this.receivedTime(notification).replace(/^Received\s+/, '');
+  },
+  // Details on one line for compact notification cards.
+  noticeLine(parts) {
+    return parts.filter(Boolean).join(' · ');
   },
   legacyBookingDetails(message) {
     const match = message.trim().match(/^Your booking request has been received:\s*(.+?) at (.+?) on (?:Monday, |Tuesday, |Wednesday, |Thursday, |Friday, |Saturday, |Sunday, )?([A-Za-z]+) (\d{1,2}), (\d{4}) at (\d{1,2}):(\d{2})\s*(AM|PM)\.\s*Status:\s*(.+?)\.?$/i);

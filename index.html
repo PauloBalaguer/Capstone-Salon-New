@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Leo Mejillano Salon & Beauty — Official Web Portal</title>
+  <title>Leo Mejillano Salon & Beauty, Official Web Portal</title>
   <meta name="description"
-    content="Leo Mejillano Salon & Beauty — hair, skin, nails, makeup, brows, lashes, and event styling across three Albay branches." />
+    content="Leo Mejillano Salon & Beauty hair, skin, nails, makeup, brows, lashes, and event styling across three Albay branches." />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -36,12 +36,18 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="frontend/public/home-theme.css?v=teal-gold-20261021" />
+  <link rel="stylesheet" href="frontend/public/home-theme.css?v=svc-cards-20261104" />
 <script src="function/shared/booking-validation.js"></script>
-  <link rel="stylesheet" href="frontend/shared/responsive-base.css?v=teal-gold-20261021" />
+  <link rel="stylesheet" href="frontend/shared/responsive-base.css?v=20261103b" />
   <link rel="stylesheet" href="frontend/public/public-colors.css?v=teal-gold-20261021" />
-  <link rel="stylesheet" href="frontend/shared/payment-methods.css" />
+  <link rel="stylesheet" href="frontend/shared/payment-methods.css?v=20261104-payment-logos" />
   <script src="function/shared/portal-presentation.js"></script>
+  <style>
+    /* Justified text leaves big gaps on narrow phones: left-align there. */
+    @media (min-width: 640px) { [data-justify] { text-align: justify; } }
+  </style>
+  <!-- Clean theme: loaded last so it overrides older theme colours. -->
+  <link rel="stylesheet" href="frontend/shared/clean-theme.css?v=20261104-notif4">
 </head>
 
 <body class="bg-sand-100 text-ink font-body antialiased">
@@ -53,7 +59,7 @@
     class="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-sand-100/90 border-b border-bronze/15 transition-all duration-300">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 h-19 flex items-center justify-between gap-4">
       <button onclick="switchTab('home-tab')" class="brand-lockup shrink-0 text-left focus:outline-none"
-        aria-label="Leo Mejillano Salon and Beauty — Home">
+        aria-label="Leo Mejillano Salon and Beauty Home">
         <div class="brand-logo-wrap">
           <img id="brandLogo" src="frontend/shared/icon/header icon.png" alt="Leo Mejillano logo" class="brand-logo" />
         </div>
@@ -217,7 +223,7 @@
         <h3 class="font-display text-2xl mb-1 text-ink">
           Book an appointment
         </h3>
-        <p class="text-xs text-ink/60 mb-6">
+        <p class="prose-justify text-xs text-ink/60 mb-6">
           Choose your services and schedule, review your details, then verify your email. You can book without creating an account.
         </p>
         <div class="grid gap-3">
@@ -236,7 +242,7 @@
             class="mt-2 rounded-full bg-plum text-white font-bold text-base px-6 py-3 hover:brightness-110 transition">Track your booking</button>
           <p class="text-xs text-ink/60 mt-2">Use your booking reference and mobile number. No login needed.</p>
         </div>
-        <div class="mt-5 rounded-xl bg-copper/10 border border-copper/20 p-4 text-xs text-ink/65 leading-relaxed text-justify">
+        <div class="mt-5 rounded-xl bg-copper/10 border border-copper/20 p-4 text-xs text-ink/65 leading-relaxed sm:text-justify">
           <b class="text-copper-dark">Before you book:</b> Available times depend on your selected branch,
           service, and staff availability. Your booking request will remain
           <b>Waiting for Confirmation</b> until the branch reviews and confirms it.
@@ -251,7 +257,7 @@
               Book an appointment
             </h3>
             <p id="bookingModeText" class="text-xs text-ink/60">
-              Guest booking — email and mobile number are used for
+              Guest booking, email and mobile number are used for
               confirmation.
             </p>
           </div>
@@ -278,10 +284,10 @@
               required>
               <option value="">Choose a branch...</option>
               <option value="1">
-                Daraga Main — Salon &amp; Make-Up Studio
+                Daraga Main, Salon &amp; Make-Up Studio
               </option>
-              <option value="2">Yashano Mall — Skin Brows</option>
-              <option value="3">Cabangan — Lash &amp; Brows</option>
+              <option value="2">Yashano Mall, Skin Brows</option>
+              <option value="3">Cabangan, Lash &amp; Brows</option>
             </select>
             <p id="bookBranchLockNote" class="hidden text-xs text-ink/50 mt-1.5"></p>
           </div>
@@ -312,7 +318,7 @@
 
           <div id="bookStaffSection" class="hidden">
             <p id="bookStaffLabel" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Select staff</p>
-            <p class="text-xs text-ink/60 mb-2">Pick a stylist for each service. <span class="text-[#15803D] font-semibold">Available</span> stylists are free for that service; <span class="text-[#9F1239] font-semibold">Busy</span> ones are still with another client.</p>
+            <p class="prose-justify text-xs text-ink/60 mb-2">Pick a stylist for each service. <span class="text-[#15803D] font-semibold">Available</span> stylists are free for that service; <span class="text-[#9F1239] font-semibold">Busy</span> ones are still with another client.</p>
             <div id="bookStaffList" role="group" aria-labelledby="bookStaffLabel" class="rounded-xl border border-bronze/50 bg-sand-100 p-3 text-xs text-ink/50">
               Choose your branch, services, date, and time to see available staff.
             </div>
@@ -333,16 +339,16 @@
 
           <div id="bookDepositGate" class="hidden rounded-xl border border-plum/30 bg-plum/5 p-4">
             <p class="text-xs font-bold tracking-widest uppercase text-plum mb-1">GUEST RESERVATION PAYMENT REQUIRED</p>
-            <p class="text-base text-ink/60 mb-2">Your selected schedule is available. Complete the required guest reservation payment below to continue.</p>
-            <p class="text-base text-ink/60 mb-2">Pay a deposit (50% of the total, minimum ₱100 — some services require full payment) or pay the full amount now.</p>
+            <p class="prose-justify text-base text-ink/60 mb-2">Your selected schedule is available. Complete the required guest reservation payment below to continue.</p>
+            <p class="prose-justify text-base text-ink/60 mb-2">Pay a deposit (50% of the total, minimum ₱100, some services require full payment) or pay the full amount now.</p>
             <p class="text-base text-ink/60 mb-3">Your booking will remain Waiting for Confirmation until the branch verifies your payment.</p>
             <p id="bookQuoteError" class="text-base text-copper-dark mb-2" role="status"></p>
             <dl class="space-y-2 text-base border-y border-bronze/30 py-3 mb-3">
-              <div><dt class="text-ink/60">Selected Service</dt><dd id="bookPaymentServices">—</dd></div>
-              <div class="flex justify-between gap-3"><dt>Service Total</dt><dd id="bookPaymentTotal">—</dd></div>
-              <div class="flex justify-between gap-3"><dt>Reservation Requirement</dt><dd id="bookPaymentRequirement" class="text-right">—</dd></div>
-              <div class="flex justify-between gap-3 font-bold text-plum"><dt>Pay Now</dt><dd id="bookDepositRequired">—</dd></div>
-              <div class="flex justify-between gap-3"><dt>Balance to Pay Later</dt><dd id="bookPaymentBalance">—</dd></div>
+              <div><dt class="text-ink/60">Selected Service</dt><dd id="bookPaymentServices"></dd></div>
+              <div class="flex justify-between gap-3"><dt>Service Total</dt><dd id="bookPaymentTotal"></dd></div>
+              <div class="flex justify-between gap-3"><dt>Reservation Requirement</dt><dd id="bookPaymentRequirement" class="text-right"></dd></div>
+              <div class="flex justify-between gap-3 font-bold text-plum"><dt>Pay Now</dt><dd id="bookDepositRequired"></dd></div>
+              <div class="flex justify-between gap-3"><dt>Balance to Pay Later</dt><dd id="bookPaymentBalance"></dd></div>
             </dl>
 
             <div id="bookDepositForm" class="space-y-3">
@@ -379,15 +385,15 @@
                 </div>
               </fieldset>
               <div id="bookDepositEwalletNote" class="hidden text-xs text-ink/55 bg-sand-100 border border-bronze/40 rounded-lg p-3">
-                After you confirm, you'll go straight to <b data-wallet-name>GCash</b> to authorize the payment — nothing
-                to type. Your slot is held for 30 minutes while you pay. If the payment fails or expires, you can try again or pick another method.
+                After you confirm, you'll go straight to <b data-wallet-name>GCash</b> to authorize the payment, nothing
+                to type. Your slot is held for 30 minutes while you pay.
               </div>
               <div id="bookDepositOnlineNote" class="hidden text-xs text-ink/55 bg-sand-100 border border-bronze/40 rounded-lg p-3">
                 After you confirm, you'll enter your card on PayMongo's secure page (we never see your card number). Your
-                slot is held for 30 minutes while you pay. If the payment fails or expires, you can try again or pick another method.
+                slot is held for 30 minutes while you pay.
               </div>
               <div id="bookDepositCashNote" class="hidden text-xs text-ink/55 bg-sand-100 border border-bronze/40 rounded-lg p-3">
-                Cash deposits can't be verified remotely — bring the deposit amount to the branch. Your slot is held as
+                Cash deposits can't be verified remotely, bring the deposit amount to the branch. Your slot is held as
                 <b>Pending</b> (not locked) until you pay in person and staff confirm it.
               </div>
               <button type="button" id="bookDepositLockBtn"
@@ -405,7 +411,7 @@
           <div class="rounded-xl border border-plum/20 bg-plum/5 p-4 text-sm text-ink/75 leading-relaxed">
             <p class="font-bold text-plum">Why create an account?</p>
             <ul class="mt-1.5 space-y-1 list-disc list-inside">
-              <li><b>Earn loyalty points</b>: 1 point for every ₱20 of completed services (some services earn more). Guest bookings don't earn points.</li>
+              <li class="prose-justify"><b>Earn loyalty points</b>: 1 point for every ₱20 of completed services (some services earn more). Guest bookings don't earn points.</li>
               <li><b>Redeem them</b> on your next booking: each point takes ₱0.10 off.</li>
               <li>Move up to Silver, Gold and VIP status as you visit, and see all your bookings in one place.</li>
             </ul>
@@ -438,7 +444,7 @@
               address <span class="normal-case font-normal text-ink/35">(optional)</span></label>
             <input id="bookEmail" type="email" autocomplete="email" maxlength="254" placeholder="you@email.com"
               class="w-full px-4 py-2.5 border border-bronze bg-white text-ink placeholder:text-ink/50 shadow-sm rounded-xl text-base focus:outline-none focus:border-plum transition" />
-            <p class="text-xs text-ink/40 mt-1">We'll send a short code to confirm your booking: to this email if you add one, otherwise by text to your mobile number.</p>
+            <p class="text-xs text-ink/40 mt-1">If you provide an email, we'll send a short code to confirm it.</p>
           </div>
 
           <div>
@@ -459,15 +465,15 @@
             <div class="text-xs text-ink/60 leading-relaxed pr-1">
               <ul class="list-disc list-inside space-y-1">
                 <li><b>Reservation payment:</b> A reservation payment is required to hold your appointment slot.</li>
-                <li><b>50% or full payment:</b> Depending on the service selected, you must pay either a 50% down payment or the full amount upfront — the required amount is shown before you book.</li>
-                <li><b>Payment verification:</b> Online payments (GCash, Maya or card) are processed securely by PayMongo; Cash must be settled in person. Your payment stays "Awaiting Verification" until staff confirm it — customers can never verify their own payment.</li>
-                <li><b>Confirmation rules:</b> Your requested time is held as <b>Pending</b> until the branch verifies your payment and confirms it — it is not guaranteed until confirmed.</li>
-                <li><b>Deposit &amp; rescheduling policy:</b> Reservation deposits are <u>non-refundable</u>. Need a different time? Reschedule instead (online up to 24 hours before, or by contacting the branch) and your deposit carries over. If you cancel or miss your appointment, the deposit is kept, but that booking can still be rescheduled later using the deposit.</li>
-                <li><b>Rescheduling:</b> You may request to reschedule; please do so as early as possible, subject to availability.</li>
+                <li class="prose-justify"><b>50% or full payment:</b> Depending on the service selected, you must pay either a 50% down payment or the full amount upfront, the required amount is shown before you book.</li>
+                <li class="prose-justify"><b>Payment verification:</b> Online payments (GCash, Maya or card) are processed securely by PayMongo; Cash must be settled in person. Your payment stays "Awaiting Verification" until staff confirm it, customers can never verify their own payment.</li>
+                <li class="prose-justify"><b>Confirmation rules:</b> Your requested time is held as <b>Pending</b> until the branch verifies your payment and confirms it, it is not guaranteed until confirmed.</li>
+                <li class="prose-justify"><b>Deposit &amp; rescheduling policy:</b> Reservation deposits are <u>non-refundable</u>. Need a different time? Reschedule instead (online up to 24 hours before, or by contacting the branch) and your deposit carries over. If you cancel or miss your appointment, the deposit is kept, but that booking can still be rescheduled later using the deposit.</li>
+                <li class="prose-justify"><b>Rescheduling:</b> You may request to reschedule; please do so as early as possible, subject to availability.</li>
                 <li><b>No-show:</b> Please arrive on time. Repeated no-shows or late cancellations may affect future bookings.</li>
                 <li data-late-rule class="hidden"><b>Late arrival:</b> <span data-late-rule-text></span></li>
                 <li>Prices and staff availability are confirmed by the branch and may change.</li>
-                <li>As a guest, you consent to being contacted at the number/email provided for confirmations and reminders.</li>
+                <li class="prose-justify">As a guest, you consent to being contacted at the number/email provided for confirmations and reminders.</li>
               </ul>
             </div>
             <label class="flex items-start gap-2 mt-3 text-xs text-ink/70 cursor-pointer">
@@ -481,7 +487,7 @@
             Review guest booking
           </button>
           <p class="text-xs text-ink/40 text-center leading-relaxed">
-            Review your guest details, confirm your request to receive a booking reference (we'll send a code to your email, or by text to your mobile number). The branch will confirm your appointment separately.
+            Review your guest details, confirm your request to receive a booking reference (email verification applies when you provide an email). The branch will confirm your appointment separately.
           </p>
         </form>
       </div>
@@ -496,8 +502,8 @@
       </div>
 
       <div id="bookingOtpPanel" class="hidden">
-        <h3 id="bookOtpHeading" class="font-display text-2xl mb-1 text-ink">Verify your email</h3>
-        <p class="text-xs text-ink/60 mb-6">
+        <h3 class="font-display text-2xl mb-1 text-ink">Verify your email</h3>
+        <p class="prose-justify text-xs text-ink/60 mb-6">
           We sent a 6-digit code to
           <span id="bookOtpEmailLabel" class="font-bold text-ink"></span>.
           Enter it below to submit your booking request. The branch will confirm availability.
@@ -546,12 +552,12 @@
         <p class="text-base text-plum mt-2 font-bold">Pending confirmation</p>
         <p class="text-base text-ink/60 mt-2">The branch will review your request and deposit. Check your booking status before your visit.</p>
         <p class="text-base text-ink/60 mt-2">
-          Keep this reference — you'll need it to track your appointment.
+          Keep this reference, you'll need it to track your appointment.
         </p>
 
         <div class="mt-6 rounded-2xl bg-copper/10 border border-copper/30 px-5 py-5">
           <span class="block text-xs font-bold uppercase tracking-widest text-copper-dark">Booking reference</span>
-          <span class="block font-display text-3xl text-ink mt-1.5" id="bookRef">—</span>
+          <span class="block font-display text-3xl text-ink mt-1.5" id="bookRef"></span>
         </div>
 
         <div class="mt-5 rounded-2xl border border-bronze/30 bg-sand-100 px-5 py-5 text-left text-base space-y-2"
@@ -596,7 +602,7 @@
       </button>
 
       <h3 class="font-display text-2xl mb-1 text-ink">Track your booking</h3>
-      <p class="text-xs text-ink/60 mb-6">
+      <p class="prose-justify text-xs text-ink/60 mb-6">
         Enter your booking reference and the mobile number you used to book.
         No account or login needed. You can also track home &amp; event requests here.
       </p>
@@ -769,7 +775,7 @@
               </svg>
             </h1>
 
-            <p class="mt-6 text-ink/65 text-[15px] sm:text-[17px] leading-relaxed max-w-xl" style="text-align: justify;">
+            <p class="prose-justify mt-6 text-ink/65 text-[15px] sm:text-[17px] leading-relaxed max-w-xl" data-justify>
               Hair, skin, nails, make-up, brows, lashes, and event styling
               from
               <strong class="text-ink/80 whitespace-nowrap">Leo Mejillano Salon &amp; Beauty</strong>
@@ -796,7 +802,7 @@
                 class="text-plum shrink-0" aria-hidden="true">
                 <path d="M20 6L9 17l-5-5" />
               </svg>
-              Guest booking — your name and number is all we need. No account
+              Guest booking, your name and number is all we need. No account
               to create.
             </p>
 
@@ -930,21 +936,21 @@
               </h2>
               <div class="hair-strand-divider max-w-45 my-7"></div>
 
-              <div class="space-y-4 text-[15px] text-ink/70 leading-relaxed max-w-xl" style="text-align: justify;">
-                <p>
+              <div class="space-y-4 text-[15px] text-ink/70 leading-relaxed max-w-xl" data-justify>
+                <p class="prose-justify">
                   Discover Leo Mejillano’s hair and beauty services across our
                   three branches in Albay. Visit our
                   <strong class="text-ink/85">Salon &amp; Make-Up Studio in Daraga</strong>,
                   <strong class="text-ink/85">Skin Brows inside Yashano Mall</strong>,
                   or <strong class="text-ink/85">Lash &amp; Brows on Rizal Street in Cabangan</strong>.
                 </p>
-                <p>
+                <p class="prose-justify">
                   From a fresh haircut to beautifully styled brows, each branch
                   offers services to help you look and feel your best. Our team
                   listens to your preferences and helps you choose a look that
                   suits you.
                 </p>
-                <p>
+                <p class="prose-justify">
                   Getting ready for a special occasion? Our home and event
                   services bring hair and makeup styling to you for weddings,
                   debuts, graduations, and photoshoots.
@@ -1045,7 +1051,7 @@
             <h2 class="font-display text-3xl sm:text-4xl mt-3">
               Drag to see the difference
             </h2>
-            <p class="text-white/65 text-base mt-4 leading-relaxed">
+            <p class="prose-justify text-white/65 text-base mt-4 leading-relaxed">
               Pull the handle across each result. No filters, no retouching this is what walks back out the&nbsp;door.
             </p>
           </div>
@@ -1096,7 +1102,7 @@
               <h3 class="font-display text-2xl sm:text-3xl mt-2.5" id="baTitle">
                 Organic Rebonding
               </h3>
-              <p class="text-white/65 text-base mt-4 leading-relaxed" id="baBlurb">
+              <p class="prose-justify text-white/65 text-base mt-4 leading-relaxed" id="baBlurb">
                 Any length, one sitting. Straightened without the chemical
                 smell, finished with a keratin seal so it grows out soft
                 instead of snapping.
@@ -1123,109 +1129,59 @@
             <h2 class="font-display text-3xl sm:text-4xl mt-3">
               Book your appointment your way
             </h2>
-            <p class="text-ink/60 text-base mt-4 leading-relaxed">
+            <p class="prose-justify text-ink/60 text-base mt-4 leading-relaxed">
               Create an account for faster future bookings, or choose guest booking when you want to book without registering.
             </p>
           </div>
 
           <ol class="grid sm:grid-cols-2 lg:grid-cols-5 gap-5">
-            <li class="sr sr-d1 step-card">
+            <li class="prose-justify sr sr-d1 step-card">
               <span class="step-num">01</span>
               <p class="font-display text-lg mt-4">Open the booking form</p>
-              <p class="text-xs text-ink/60 mt-2 leading-relaxed" style="text-align: justify;">
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed" data-justify>
                 Tap Book an Appointment, then choose Book as a guest or sign in
                 through the Client Portal.
               </p>
             </li>
-            <li class="sr sr-d2 step-card">
+            <li class="prose-justify sr sr-d2 step-card">
               <span class="step-num">02</span>
               <p class="font-display text-lg mt-4">Choose services and schedule</p>
-              <p class="text-xs text-ink/60 mt-2 leading-relaxed" style="text-align: justify;">
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed" data-justify>
                 Choose your branch and services, then select an available date
                 and time.
               </p>
             </li>
-            <li class="sr sr-d3 step-card">
+            <li class="prose-justify sr sr-d3 step-card">
               <span class="step-num">03</span>
               <p class="font-display text-lg mt-4">
                 Enter your contact details
               </p>
-              <p class="text-xs text-ink/60 mt-2 leading-relaxed" style="text-align: justify;">
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed" data-justify>
                 Enter or review your name, mobile number, and email address so
                 the branch can reach you.
               </p>
             </li>
-            <li class="sr sr-d4 step-card">
+            <li class="prose-justify sr sr-d4 step-card">
               <span class="step-num">04</span>
               <p class="font-display text-lg mt-4">Review and submit</p>
-              <p class="text-xs text-ink/60 mt-2 leading-relaxed" style="text-align: justify;">
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed" data-justify>
                 Review your details. For guest bookings, verify your email before
                 submitting. Your request stays pending until the branch confirms it.
               </p>
             </li>
-            <li class="sr sr-d5 step-card">
+            <li class="prose-justify sr sr-d5 step-card">
               <span class="step-num">05</span>
               <p class="font-display text-lg mt-4">Track your booking</p>
-              <p class="text-xs text-ink/60 mt-2 leading-relaxed" style="text-align: justify;">
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed" data-justify>
                 Track a guest booking with your reference and mobile number,
                 or view your bookings in the Client Portal.
               </p>
+              <button type="button" onclick="openTrackModal()"
+                class="mt-3 inline-flex items-center gap-1 text-xs font-bold text-plum underline underline-offset-2 hover:brightness-110">
+                Track a booking <span aria-hidden="true">&rarr;</span>
+              </button>
             </li>
           </ol>
-
-          <div class="sr mt-12 grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-            <div class="rounded-[26px] border border-bronze/30 bg-sand-100 p-7">
-              <p class="text-xs font-bold tracking-[0.16em] uppercase text-copper-dark">
-                Client Portal
-              </p>
-              <h3 class="font-display text-2xl mt-2">Your appointments and account</h3>
-              <p class="text-base text-ink/60 mt-3 leading-relaxed">
-                Log in or create an account to book appointments, view your
-                bookings, and manage your profile.
-              </p>
-              <a href="frontend/auth/login.html"
-                class="inline-block mt-5 rounded-full bg-plum text-white font-bold text-base px-6 py-3 hover:brightness-110 transition">
-                Client Portal
-              </a>
-            </div>
-            <div class="rounded-[26px] border border-plum/20 bg-plum/5 p-7">
-              <p class="text-xs font-bold tracking-[0.16em] uppercase text-plum">
-                Team Portal
-              </p>
-              <h3 class="font-display text-2xl mt-2">For staff, cashiers, and admins</h3>
-              <p class="text-base text-ink/60 mt-3 leading-relaxed">
-                Sign in with your email and password, or use your role and PIN,
-                to access the salon tools available to your team role.
-              </p>
-              <button onclick="goToPortalLogin()"
-                class="mt-5 rounded-full bg-plum text-white font-bold text-base px-6 py-3 hover:brightness-110 transition">
-                Login
-              </button>
-            </div>
-            <div class="rounded-[26px] border border-bronze/30 bg-sand-100 p-7">
-              <p class="text-xs font-bold tracking-[0.16em] uppercase text-copper-dark">
-                Guest booking
-              </p>
-              <h3 class="font-display text-2xl mt-2">
-                No registration required
-              </h3>
-              <p class="text-base text-ink/60 mt-3 leading-relaxed">
-                Book without creating an account. Choose your services and
-                schedule, enter your contact details, and verify your email
-                to submit your request.
-              </p>
-              <button onclick="continueAsGuestBooking()"
-                class="mt-5 rounded-full border border-ink/20 font-bold text-base px-6 py-3 hover:border-plum hover:text-plum transition">
-                Book as a guest
-              </button>
-              <div class="mt-5 border-t border-bronze/30 pt-4">
-                <p class="text-base text-ink/60">Already booked?</p>
-                <button type="button" onclick="openTrackModal()"
-                  class="mt-2 rounded-full bg-plum text-white font-bold text-base px-6 py-3 hover:brightness-110 transition">Track your booking</button>
-                <p class="text-xs text-ink/60 mt-2">No login needed. Have your booking reference and mobile number ready.</p>
-              </div>
-            </div>
-          </div>
 
           <div class="sr mt-12 bg-sand-100 border border-bronze/30 rounded-[26px] p-7 sm:p-9">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-8">
@@ -1337,7 +1293,7 @@
               <div class="testi-stars">★★★★★</div>
               <blockquote class="font-display text-xl sm:text-[1.6rem] leading-snug mt-4">
                 The rebonding held up for months and the colour match was
-                exactly what I asked for — first time that's happened
+                exactly what I asked for, first time that's happened
                 anywhere.
               </blockquote>
               <figcaption class="text-base text-ink/50 mt-5 font-semibold">
@@ -1431,7 +1387,7 @@
             <h2 class="font-display text-3xl sm:text-4xl mt-3">
               Services &amp; Pricing
             </h2>
-            <p class="text-ink/60 text-base mt-4 leading-relaxed">
+            <p class="prose-justify text-ink/60 text-base mt-4 leading-relaxed">
               Prices are set per branch, so pick a location first. Final
               pricing may still vary a little depending on hair length and
               condition. Tap any item on the menu to open the booking form
@@ -1458,19 +1414,19 @@
               <button data-s="daraga" aria-haspopup="dialog" aria-controls="servicesPopup" class="svc-tab-btn branch-card">
                 <span class="branch-card-name">Daraga Main</span>
                 <span class="branch-card-type">Salon &amp; Make-Up Studio</span>
-                <span class="branch-card-note" style="text-align: justify;">Complete hair, nail, skin, make-up, and aesthetic services to help you look and feel confident.</span>
+                <span class="branch-card-note" data-justify>Complete hair, nail, skin, make-up, and aesthetic services to help you look and feel confident.</span>
                 <span class="branch-card-flag">Salon & Make-Up Studio</span>
               </button>
               <button data-s="yashano" aria-haspopup="dialog" aria-controls="servicesPopup" class="svc-tab-btn branch-card">
                 <span class="branch-card-name">Yashano Mall</span>
                 <span class="branch-card-type">Skin Brows</span>
-                <span class="branch-card-note" style="text-align: justify;">Professional skin care, facial, and eyebrow services for a fresh and beautiful look.</span>
+                <span class="branch-card-note" data-justify>Professional skin care, facial, and eyebrow services for a fresh and beautiful look.</span>
                 <span class="branch-card-flag">Skin &amp; brows</span>
               </button>
               <button data-s="cabangan" aria-haspopup="dialog" aria-controls="servicesPopup" class="svc-tab-btn branch-card">
                 <span class="branch-card-name">Cabangan</span>
                 <span class="branch-card-type">Lash &amp; Brows</span>
-                <span class="branch-card-note" style="text-align: justify;">Quality lash extensions, lash lifts, and eyebrow services based on your preferred style.</span>
+                <span class="branch-card-note" data-justify>Quality lash extensions, lash lifts, and eyebrow services based on your preferred style.</span>
                 <span class="branch-card-flag">Lash &amp; brows</span>
               </button>
             </div>
@@ -1500,7 +1456,7 @@
           <div id="svcGroups" class="max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-10">
           </div>
 
-          <div class="max-w-3xl mx-auto mb-8">
+          <div class="max-w-4xl mx-auto mb-8">
             <div class="relative">
               <svg class="absolute left-5 top-1/2 -translate-y-1/2 text-ink/30" width="16" height="16"
                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
@@ -1519,14 +1475,14 @@
             </div>
             <div class="flex justify-between items-center gap-4 mt-3 px-2">
               <span class="text-xs font-semibold text-ink/40" id="svcCount" role="status" aria-live="polite" aria-atomic="true"></span>
-              <button id="svcExpandAll"
+              <button id="svcExpandAll" hidden
                 class="text-xs font-bold uppercase tracking-widest text-plum hover:text-copper-dark transition shrink-0">
                 Open All
               </button>
             </div>
           </div>
 
-          <div id="svcMenus" class="max-w-3xl mx-auto scroll-mt-24 focus:outline-none" tabindex="-1" role="region" aria-label="Service results"></div>
+          <div id="svcMenus" class="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-3 scroll-mt-24 focus:outline-none" tabindex="-1" role="region" aria-label="Service results"></div>
           <p id="svcEmpty" class="hidden text-center text-base text-ink/50 py-10">
             No matching services found for this branch filter.
           </p>
@@ -1559,7 +1515,7 @@
             <h2 class="font-display text-3xl sm:text-4xl mt-3">
               Stylists &amp; Salon Team
             </h2>
-            <p class="text-ink/60 text-base mt-4 leading-relaxed">
+            <p class="prose-justify text-ink/60 text-base mt-4 leading-relaxed">
               Meet our stylists and specialists across our three Albay hubs. Tap any artist card to request a slot with them directly.
             </p>
           </div>
@@ -1633,7 +1589,7 @@
             <h2 class="font-display text-3xl sm:text-4xl mt-3">
               Beauty Services, Wherever You Are
             </h2>
-            <p class="text-white/65 text-base mt-4 leading-relaxed">
+            <p class="prose-justify text-white/65 text-base mt-4 leading-relaxed">
               Explore our three Leo Mejillano locations across Albay and choose the branch that fits your beauty needs.
             </p>
           </div>
@@ -1704,7 +1660,7 @@
               Bring professional Leo Mejillano beauty services directly to
               your home, venue, or special event.
             </p>
-            <p class="text-white/60 text-base mt-4 max-w-lg leading-relaxed">
+            <p class="prose-justify text-white/60 text-base mt-4 max-w-lg leading-relaxed">
               Whether you're preparing for a wedding, debut, graduation, gala,
               or personal celebration, our professional team can bring the
               beauty experience directly to you.
@@ -1931,7 +1887,7 @@
                     No account? No problem. You can request a home service
                     using your name and contact number.
                   </p>
-                  <p class="text-xs text-ink/65 mt-1.5 leading-relaxed">
+                  <p class="prose-justify text-xs text-ink/65 mt-1.5 leading-relaxed">
                     <b>Why create an account?</b> Members earn loyalty points on completed salon services
                     (1 point per ₱20) and redeem them on later bookings (₱0.10 per point).
                     <a href="frontend/auth/register.html" class="font-bold text-plum underline">Create a free account</a>
@@ -1940,7 +1896,7 @@
 
                 <div class="mt-6 rounded-2xl border border-plum/30 bg-plum/5 p-5">
                   <p class="text-xs font-bold tracking-widest uppercase text-plum mb-1">Albay Province only</p>
-                  <p class="text-[12.5px] text-ink/60">Home Service is currently available only within Albay Province. Your preferred date and time are a request only — our team confirms availability, pricing, staff, and any required payment after review.</p>
+                  <p class="prose-justify text-[12.5px] text-ink/60">Home Service is currently available only within Albay Province. Your preferred date and time are a request only, our team confirms availability, pricing, staff, and any required payment after review.</p>
                 </div>
 
                 <div class="flex justify-end mt-7">
@@ -2012,7 +1968,7 @@
                 </div>
                 <div class="mt-6 rounded-2xl border border-bronze/30 bg-sand-100 p-5">
                   <b class="text-base">Your schedule is a request</b>
-                  <p class="text-xs text-ink/55 mt-1">Our team will review your preferred date, time, venue, and service requirements. Your request remains Under Review until we contact you and confirm the arrangements. No payment is collected when you submit this request.</p>
+                  <p class="prose-justify text-xs text-ink/55 mt-1">Our team will review your preferred date, time, venue, and service requirements. Your request remains Under Review until we contact you and confirm the arrangements. No payment is collected when you submit this request.</p>
                 </div>
 
                 <div class="flex justify-between mt-7">
@@ -2038,7 +1994,7 @@
                   <div id="hsWeddingPackageGrid" role="group" aria-labelledby="hsServicesHeading" class="grid sm:grid-cols-2 gap-4"></div>
                   <div id="hsWeddingLiveSummary" class="hidden mt-6 rounded-2xl border border-copper/35 bg-copper/10 p-5">
                     <span class="text-xs font-bold uppercase tracking-widest text-copper-dark">Package Summary</span>
-                    <p class="text-xs text-ink/55 mt-2">No payment now. The reservation fee (DP) is an estimate until your quote — you pay it online after review; the remaining balance is paid on the event day.</p>
+                    <p class="prose-justify text-xs text-ink/55 mt-2">No payment now. The reservation fee (DP) is an estimate until your quote, you pay it online after review; the remaining balance is paid on the event day.</p>
                     <div class="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-base mt-3">
                       <p><span class="text-ink/50">Wedding Package:</span> <b data-wedding-summary="name"></b></p>
                       <p><span class="text-ink/50">Package Price:</span> <b data-wedding-summary="price"></b></p>
@@ -2130,39 +2086,39 @@
                     <span class="text-xs font-bold uppercase tracking-widest text-copper">Customer</span>
                     <p class="text-base mt-2">
                       <span class="text-ink/50">Name:</span>
-                      <b id="rvName">—</b>
+                      <b id="rvName"></b>
                     </p>
                     <p class="text-base mt-1">
                       <span class="text-ink/50">Phone:</span>
-                      <b id="rvPhone">—</b>
+                      <b id="rvPhone"></b>
                     </p>
                     <p class="text-base mt-1" id="rvEmailRow">
                       <span class="text-ink/50">Email:</span>
-                      <b id="rvEmail">—</b>
+                      <b id="rvEmail"></b>
                     </p>
                   </div>
                   <div class="rounded-2xl border border-bronze/25 bg-sand-100 p-5">
                     <span class="text-xs font-bold uppercase tracking-widest text-copper">Event</span>
                     <p class="text-base mt-2">
                       <span class="text-ink/50">Event Type:</span>
-                      <b id="rvEvent">—</b>
+                      <b id="rvEvent"></b>
                     </p>
                     <p class="text-base mt-1">
                       <span class="text-ink/50">Preferred Date:</span>
-                      <b id="rvDate">—</b>
+                      <b id="rvDate"></b>
                     </p>
                     <p class="text-base mt-1">
                       <span class="text-ink/50">Preferred Time:</span>
-                      <b id="rvTime">—</b>
+                      <b id="rvTime"></b>
                     </p>
                     <p class="text-base mt-1">
                       <span class="text-ink/50">Number of Clients:</span>
-                      <b id="rvClients">—</b>
+                      <b id="rvClients"></b>
                     </p>
                   </div>
                   <div class="rounded-2xl border border-bronze/25 bg-sand-100 p-5">
                     <span class="text-xs font-bold uppercase tracking-widest text-copper">Location</span>
-                    <p class="text-base mt-2" id="rvVenue">—</p>
+                    <p class="text-base mt-2" id="rvVenue"></p>
                     <p class="text-xs text-ink/55 mt-1" id="rvVenueDetails"></p>
                   </div>
                   <div id="rvStandardServicesCard" class="rounded-2xl border border-bronze/25 bg-sand-100 p-5">
@@ -2184,7 +2140,7 @@
                   <div class="rounded-2xl border border-bronze/25 bg-sand-100 p-5">
                     <span class="text-xs font-bold uppercase tracking-widest text-copper">Additional
                       Requirements</span>
-                    <p class="text-base mt-2 leading-relaxed" id="rvNotes">—</p>
+                    <p class="text-base mt-2 leading-relaxed" id="rvNotes"></p>
                   </div>
 
                   <div class="rounded-2xl border border-bronze/25 bg-sand-100 p-5">
@@ -2194,27 +2150,27 @@
                         <li>Home Service requests are subject to staff availability and approval.</li>
                         <li>Your preferred date and time are not guaranteed until confirmed.</li>
                         <li>Home Service is available only within Albay Province.</li>
-                        <li>Final pricing, assigned staff, travel arrangements, and required payment are confirmed after review.</li>
+                        <li class="prose-justify">Final pricing, assigned staff, travel arrangements, and required payment are confirmed after review.</li>
                         <li>Additional services may change the final price.</li>
                         <li>Please provide accurate venue and contact details.</li>
                         <li>Cancellation or rescheduling should be requested as early as possible.</li>
-                        <li>A reservation fee (DP) is required to confirm your booking: ₱2,000 fixed for Wedding Package D; for other packages and events it is set in your quote (usually about 30%). Pay it online via GCash, Maya or card (PayMongo). The DP is non-refundable but carries over if you reschedule.</li>
+                        <li class="prose-justify">A reservation fee (DP) is required to confirm your booking: ₱2,000 fixed for Wedding Package D; for other packages and events it is set in your quote (usually about 30%). Pay it online via GCash, Maya or card (PayMongo). The DP is non-refundable but carries over if you reschedule.</li>
                       </ul>
                     </div>
                     <!-- How payment works + estimated DP -->
                     <div class="mt-4 rounded-2xl bg-plum/5 border border-plum/20 p-4 text-[12.5px] text-ink/75 space-y-2.5">
                       <p class="font-bold text-plum text-xs">How payment works</p>
                       <ol class="list-decimal list-inside space-y-1 leading-relaxed">
-                        <li><b>No payment now</b> — just submit this request.</li>
+                        <li><b>No payment now</b> just submit this request.</li>
                         <li>We review it and email your <b>quote</b> with a <b>reservation fee (DP)</b>.</li>
-                        <li>Pay the DP <b>online via GCash, Maya or card</b> (PayMongo) from the email link or <b>Track Your Home Service</b> — your request is then <b>confirmed automatically</b>.</li>
+                        <li class="prose-justify">Pay the DP <b>online via GCash, Maya or card</b> (PayMongo) from the email link or <b>Track Your Home Service</b> your request is then <b>confirmed automatically</b>.</li>
                         <li>Pay the <b>remaining balance on the event day</b>.</li>
                       </ol>
                       <div class="rounded-xl bg-panel border border-plum/20 p-3">
                         <p id="hsDpEstimate">Your DP is set in your quote.</p>
                         <p class="text-xs text-ink/50 mt-1">The final amount is confirmed in your quote.</p>
                       </div>
-                      <p class="text-xs text-ink/55">The DP is <b>non-refundable</b>, but it carries over if you <b>reschedule</b> (online, at least 3 days before the event).</p>
+                      <p class="prose-justify text-xs text-ink/55">The DP is <b>non-refundable</b>, but it carries over if you <b>reschedule</b> (online, at least 3 days before the event).</p>
                     </div>
                     <label class="flex items-start gap-2 mt-3 text-xs text-ink/70 cursor-pointer">
                       <input type="checkbox" id="hsAgreeTerms" class="mt-0.5 accent-plum" required>
@@ -2254,7 +2210,7 @@
                 </div>
                 <div class="mt-7 rounded-2xl bg-plum text-white p-6 text-center">
                   <span class="text-xs font-bold uppercase tracking-widest text-copper">Booking Reference</span>
-                  <div class="font-display text-3xl mt-2" id="hsRef">—</div>
+                  <div class="font-display text-3xl mt-2" id="hsRef"></div>
                   <p class="text-xs text-white/60 mt-2">
                     Save this reference number so you can track your request.
                   </p>
@@ -2317,7 +2273,7 @@
               </ul>
               <div class="mt-6 pt-5 border-t border-white/15">
                 <b class="text-xs uppercase tracking-widest text-copper">Important Notice</b>
-                <p class="text-xs text-white/65 mt-2 leading-relaxed">
+                <p class="prose-justify text-xs text-white/65 mt-2 leading-relaxed">
                   Home and event service requests are subject to staff
                   availability, location coverage, scheduling limits, and
                   confirmation by the Leo Mejillano Salon team.
@@ -2335,8 +2291,8 @@
             <h3 class="font-display text-2xl sm:text-3xl mt-3">
               Track Your Home Service
             </h3>
-            <p class="text-base text-ink/60 mt-3 leading-relaxed">
-              Check your request's status, pay your reservation fee, or move it to a new date — using the
+            <p class="prose-justify text-base text-ink/60 mt-3 leading-relaxed">
+              Check your request's status, pay your reservation fee, or move it to a new date, using the
               reference number and the email address you gave when you requested.
             </p>
           </div>
@@ -2367,7 +2323,7 @@
             <div class="bg-sand-100 border border-bronze/25 rounded-[24px] p-6">
               <span class="text-xs font-bold tracking-widest uppercase text-copper">How to reschedule</span>
               <ol class="mt-3 space-y-2.5 text-xs text-ink/75 leading-relaxed list-decimal list-inside">
-                <li>Enter your <b>booking reference</b> (e.g. LM-HOM-2026-000041) and the <b>email</b> you used, then tap <b>Track Request</b>.</li>
+                <li class="prose-justify">Enter your <b>booking reference</b> (e.g. LM-HOM-2026-000041) and the <b>email</b> you used, then tap <b>Track Request</b>.</li>
                 <li>Open <b>“Need a different date? Reschedule online”</b> below your request.</li>
                 <li>Pick a <b>new date and time</b> at least <b>3 days</b> away, then tap <b>Move my booking</b>.</li>
                 <li>You'll get an <b>email confirmation</b> of the new schedule. Your assigned team is notified too.</li>
@@ -2379,11 +2335,11 @@
               <ul class="mt-3 space-y-2.5 text-xs text-ink/75 leading-relaxed">
                 <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>Reschedule online at least <b>3 days (72 hours)</b> before your event. Closer than that, please call <b>0918 536 8016</b>.</span></li>
                 <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>You can move a request online up to <b>2 times</b>. After that, contact the branch.</span></li>
-                <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>If stylists are already assigned, the <b>whole team must be free</b> on the new date — otherwise pick another date.</span></li>
-                <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>Your <b>quote and reservation fee carry over</b> to the new date. Reservation fees are <b>non-refundable</b> — reschedule instead of cancelling.</span></li>
+                <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>If stylists are already assigned, the <b>whole team must be free</b> on the new date, otherwise pick another date.</span></li>
+                <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>Your <b>quote and reservation fee carry over</b> to the new date. Reservation fees are <b>non-refundable</b> reschedule instead of cancelling.</span></li>
                 <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>Your request is <b>confirmed only after the reservation fee is paid</b> (pay online via GCash, Maya or card from this page).</span></li>
                 <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>Requests already <b>in progress, completed or cancelled</b> can't be rescheduled online.</span></li>
-                <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>All updates — quote, payment link and schedule changes — are sent to your <b>email</b>. Check your spam folder if you don't see them.</span></li>
+                <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>All updates, quote, payment link and schedule changes, are sent to your <b>email</b>. Check your spam folder if you don't see them.</span></li>
               </ul>
             </div>
           </div>
@@ -2733,8 +2689,9 @@
   <script src="function/shared/address-form.js"></script>
   <script src="function/shared/service-duration.js"></script>
   <script src="function/shared/toast.js"></script>
+  <script src="function/shared/pending-payment.js"></script>
   <script src="function/shared/late-arrival-rule.js"></script>
-  <script src="function/public/main.js?v=paymethods-20261025"></script>
+  <script src="function/public/main.js?v=svc-cards-20261104"></script>
 </body>
 
 </html>

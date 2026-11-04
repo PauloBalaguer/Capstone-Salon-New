@@ -49,7 +49,7 @@ if (ini_get("session.use_cookies")) {
 session_destroy();
 
 // Every "Sign Out" link in the app is a plain <a href="...logout.php">, i.e.
-// a full-page navigation, never a fetch() call — so callers need a redirect
+// a full-page navigation, never a fetch() call so callers need a redirect
 // back to the login page, not a JSON body.
 header('Location: ' . getProjectBaseUrl() . '/frontend/auth/login.html');
 exit();

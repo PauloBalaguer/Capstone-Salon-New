@@ -3,7 +3,7 @@
 /**
  * Public: Get Wedding Packages
  *
- * No login required — powers the "Wedding Packages" section on the public
+ * No login required powers the "Wedding Packages" section on the public
  * landing page (index.html).
  */
 

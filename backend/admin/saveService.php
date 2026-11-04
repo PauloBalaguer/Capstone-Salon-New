@@ -39,6 +39,7 @@ $durationProvided = array_key_exists('durationMinutes', $_POST);
 $durationMinutes = $durationProvided ? ServiceDuration::parse($_POST['durationMinutes']) : null;
 $price = filter_var(trim($_POST['price'] ?? ''), FILTER_VALIDATE_FLOAT);
 $active = filter_var($_POST['active'] ?? true, FILTER_VALIDATE_BOOLEAN);
+$treatmentEligible = filter_var($_POST['loyaltyTreatmentEligible'] ?? false, FILTER_VALIDATE_BOOLEAN) ? 1 : 0;
 
 // Loyalty scoring weight -- 1.00 is the standard rate (1 point per PHP20);
 // admins can raise this for services they want to reward more heavily
@@ -100,9 +101,9 @@ try {
         $durationLabel = ServiceDuration::format($durationMinutes);
         $pdo->prepare('
             UPDATE services SET branch_id = ?, service_name = ?, description = ?, category = ?,
-                duration_minutes = ?, duration_label = ?, price = ?, loyalty_multiplier = ?, payment_requirement = ?, is_active = ?
+                duration_minutes = ?, duration_label = ?, price = ?, loyalty_multiplier = ?, payment_requirement = ?, is_active = ?, loyalty_treatment_eligible = ?
             WHERE id = ?
-        ')->execute([$branchId, $name, $description ?: null, $category ?: null, $durationMinutes, $durationLabel, $price, $loyaltyMultiplier, $paymentRequirement, $active ? 1 : 0, $serviceId]);
+        ')->execute([$branchId, $name, $description ?: null, $category ?: null, $durationMinutes, $durationLabel, $price, $loyaltyMultiplier, $paymentRequirement, $active ? 1 : 0, $treatmentEligible, $serviceId]);
 
         $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "SERVICE", ?)')
             ->execute(["Service updated: {$name}."]);
@@ -113,9 +114,9 @@ try {
 
     $durationLabel = ServiceDuration::format($durationMinutes);
     $pdo->prepare('
-        INSERT INTO services (branch_id, service_name, description, category, duration_minutes, duration_label, price, loyalty_multiplier, payment_requirement, is_active)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ')->execute([$branchId, $name, $description ?: null, $category ?: null, $durationMinutes, $durationLabel, $price, $loyaltyMultiplier, $paymentRequirement, $active ? 1 : 0]);
+        INSERT INTO services (branch_id, service_name, description, category, duration_minutes, duration_label, price, loyalty_multiplier, payment_requirement, is_active, loyalty_treatment_eligible)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ')->execute([$branchId, $name, $description ?: null, $category ?: null, $durationMinutes, $durationLabel, $price, $loyaltyMultiplier, $paymentRequirement, $active ? 1 : 0, $treatmentEligible]);
 
     $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "SERVICE", ?)')
         ->execute(["New service added: {$name}."]);

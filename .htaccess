@@ -17,9 +17,19 @@
   Require all denied
 </FilesMatch>
 
-# Environment and Composer files. The real .env belongs outside htdocs; this
-# blocks one that is copied here by mistake, plus .env.example.
-<FilesMatch "^(?:\.env.*|composer\.(?:json|lock))$">
+# Environment, Composer and project files. The real .env belongs outside htdocs;
+# this blocks one that is copied here by mistake, plus .env.example.
+<FilesMatch "^(?:\.env.*|composer\.(?:json|lock)|package(?:-lock)?\.json|skills-lock\.json|vercel\.json|Dockerfile.*|.*\.(?:md|sql|log))$">
   Require all denied
 </FilesMatch>
+
+# Never list a folder's contents.
+Options -Indexes
+
+# Not for the browser: packages, dev-only scripts and data, session files and
+# the include-only backend code. Dot-folders too (.git), except .well-known,
+# which hosts use to issue the HTTPS certificate.
 RedirectMatch 404 /vendor/
+RedirectMatch 404 /(?:database|tests|node_modules|docker)(?:/|$)
+RedirectMatch 404 /backend/shared(?:/|$)
+RedirectMatch 404 /\.(?!well-known)

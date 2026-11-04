@@ -437,6 +437,8 @@ try {
             c.id, CONCAT(c.first_name, ' ', c.last_name) AS name, c.phone_number AS phone,
             c.user_id IS NOT NULL AS isRegistered,
             c.loyalty_points AS loyaltyPoints,
+            (SELECT COUNT(*) FROM loyalty_stamps ls WHERE ls.customer_id = c.id) AS loyaltyStamps,
+            (SELECT COUNT(*) FROM loyalty_rewards lr WHERE lr.customer_id = c.id AND lr.redeemed_at IS NULL) AS availableRewards,
             GROUP_CONCAT(DISTINCT br.branch_key) AS branchKeys,
             COUNT(a.id) AS visits,
             SUM(CASE WHEN " . LoyaltyTier::VISIT_CONDITION . " THEN 1 ELSE 0 END) AS recentVisits,
@@ -460,6 +462,8 @@ try {
             'branchIds' => $row['branchKeys'] ? explode(',', $row['branchKeys']) : [],
             'visits' => (int) $row['visits'],
             'loyaltyPoints' => (int) $row['loyaltyPoints'],
+            'loyaltyStamps' => (int) $row['loyaltyStamps'] % 10,
+            'availableRewards' => (int) $row['availableRewards'],
             // Frequency-based status (backend/shared/config/helpers/LoyaltyTier.php).
             'loyaltyTier' => LoyaltyTier::fromVisits((int) $row['recentVisits'])['tier'],
             'recentVisits' => (int) $row['recentVisits'],
@@ -510,7 +514,7 @@ try {
     $stmt = $pdo->query("
         SELECT sv.id, br.branch_key AS branchId, sv.service_name AS name, sv.description,
                sv.category, sv.duration_minutes AS durationMinutes, sv.duration_label AS durationLabel,
-               sv.price, sv.loyalty_multiplier AS loyaltyMultiplier, sv.payment_requirement AS paymentRequirement,
+               sv.price, sv.loyalty_multiplier AS loyaltyMultiplier, sv.loyalty_treatment_eligible, sv.payment_requirement AS paymentRequirement,
                sv.is_active AS active
         FROM services sv
         LEFT JOIN branches br ON br.id = sv.branch_id
@@ -527,6 +531,7 @@ try {
             'durationLabel' => $row['durationLabel'],
             'price' => (float) $row['price'],
             'loyaltyMultiplier' => (float) $row['loyaltyMultiplier'],
+            'loyaltyTreatmentEligible' => (bool) $row['loyalty_treatment_eligible'],
             // 'Half Payment' is the legacy DB value for the same rule as the
             // spec's '50% Down Payment' label -- normalized here so the
             // frontend only ever sees the three canonical rule names.

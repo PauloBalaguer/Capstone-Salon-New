@@ -102,7 +102,7 @@ function adminBookingsApp() {
       if (this.bookingFilterBranch === 'all') return 'Varies by branch';
       if (this.bookingFilterBranch === 'off-site') return 'Not applicable (off-site)';
       const branch = Alpine.store('admin').branches.find(b => b.id === this.bookingFilterBranch);
-      return branch ? branch.slotLimit + ' concurrent' : '—';
+      return branch ? branch.slotLimit + ' concurrent' : '';
     },
 
     getServicesForBranch(branchId) {

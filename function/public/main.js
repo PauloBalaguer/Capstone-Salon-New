@@ -1036,7 +1036,7 @@
       hours: '8:00 AM – 8:00 PM', hoursNote: 'Open Daily',
       phone: '0918 536 8016', tel: '+639185368016', email: 'leomejillano88@yahoo.com',
       phone2: '0907 869 6035', tel2: '+639078696035', phone2Label: 'Aesthetics line Nurse Jemar',
-      img: 'frontend/shared/image/Daraga.png'
+      img: 'frontend/shared/image/Daraga.webp'
     },
     yashano: {
       tag: 'Mall Studio',

@@ -1,21 +1,23 @@
 # Tests
 
-Self-checking PHP scripts. Each one copies the dev database (`new capstone_salon`)
-into a throwaway database, runs the real backend code against the copy, prints
-one `PASS` / `FAIL` line per check, drops the copy, and exits with code 1 if
-anything failed. Your dev data is only read, never changed.
+Self-checking PHP scripts. Each one copies the dev database (`DB_NAME` from your
+private `.env`) into a throwaway database, runs the real backend code against the
+copy, prints one `PASS` / `FAIL` line per check, drops the copy, and exits with
+code 1 if anything failed. Your dev data is only read, never changed.
+`loyalty_card_test.php` is the exception: it runs on the dev database itself,
+inside a transaction it rolls back.
 
 No API keys are needed. The tests point the app at an empty settings folder, so
 nothing is emailed, texted or charged. PayMongo is a local mock server.
 
 ## Requirements (XAMPP on Windows)
 
-- **MySQL running** in the XAMPP Control Panel, on port **3307** with user `root`
-  and no password (the same settings as `backend/shared/config/setup/database.php`).
-  If your MySQL uses 3306, change `-P3307` in `tests/support/harness.php` and
-  `tests/paymongo_methods_test.php`.
-- The dev database `new capstone_salon` imported, with at least two customer
-  accounts, the admin and the Daraga cashier (the normal dev data has these).
+- **MySQL running** in the XAMPP Control Panel with user `root` and no password.
+  The tests use the `DB_NAME` and `DB_PORT` from your private `.env`, like the app
+  (defaults: `new_capstone_salon`, port 3306); `tests/support/dev_db.php` reads
+  them without loading any API key.
+- That dev database imported, with at least two customer accounts, the admin
+  and the Daraga cashier (the normal dev data has these).
 - `composer install` done once (the app loads its settings through it).
 - Free local ports **8765** and **8766** (the mock PayMongo API).
 
@@ -56,7 +58,7 @@ Each test takes about 5–15 seconds, mostly to copy the database. Lines like
 
 ## How it works
 
-- `support/harness.php` copies the database (and applies migrations 053, 054, 057 and 058 to
+- `support/harness.php` copies the database (and applies migrations 053, 054, 055 (loyalty card), 057 and 058 to
   the copy, in case the dev database doesn't have them yet), then provides
   `check()` and `run_endpoint()`.
 - `support/endpoint.php` runs one real endpoint (for example
@@ -67,7 +69,8 @@ Each test takes about 5–15 seconds, mostly to copy the database. Lines like
 
 ## When a test fails
 
-- **"Could not clone the database."**: MySQL isn't running, or isn't on port 3307.
+- **"Could not clone the database."** or **"Database connection failed."**: MySQL
+  isn't running, or isn't on the `DB_PORT` in your `.env`.
 - **"The dev database needs ..."**: the dev data is missing the accounts or
   stylists the test builds on. Re-import the dev data or add them.
 - A `FAIL` line names the case that broke. Run that one test again to confirm,

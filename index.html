@@ -444,7 +444,7 @@
               address <span class="normal-case font-normal text-ink/35">(optional)</span></label>
             <input id="bookEmail" type="email" autocomplete="email" maxlength="254" placeholder="you@email.com"
               class="w-full px-4 py-2.5 border border-bronze bg-white text-ink placeholder:text-ink/50 shadow-sm rounded-xl text-base focus:outline-none focus:border-plum transition" />
-            <p class="text-xs text-ink/40 mt-1">If you provide an email, we'll send a short code to confirm it.</p>
+            <p class="text-xs text-ink/40 mt-1">We'll send a short code to confirm your booking: to this email, or by text if you leave it blank.</p>
           </div>
 
           <div>
@@ -502,7 +502,7 @@
       </div>
 
       <div id="bookingOtpPanel" class="hidden">
-        <h3 class="font-display text-2xl mb-1 text-ink">Verify your email</h3>
+        <h3 id="bookOtpHeading" class="font-display text-2xl mb-1 text-ink">Verify your email</h3>
         <p class="prose-justify text-xs text-ink/60 mb-6">
           We sent a 6-digit code to
           <span id="bookOtpEmailLabel" class="font-bold text-ink"></span>.

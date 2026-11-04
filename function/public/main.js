@@ -2602,12 +2602,11 @@
     bookingModalBox.scrollTop = 0;
     document.getElementById('bookingReviewHeading').focus();
 
-    // No email means nothing to OTP-verify -- the confirm button submits
-    // straight to the backend instead of first requesting an email code.
-    document.getElementById('bookReviewConfirm').textContent = email ? 'Continue to email verification' : 'Confirm booking';
-    document.getElementById('bookReviewNextNote').textContent = email
-      ? 'Next, verify your email. Your request will remain pending until the branch confirms your appointment and deposit.'
-      : 'Your request will remain pending until the branch confirms your appointment and deposit.';
+    // Every guest booking is verified with a code: emailed when an email was
+    // given, otherwise texted to the mobile number (backend/public/sendBookingOtp.php).
+    document.getElementById('bookReviewConfirm').textContent = bookVerifyLabel(email);
+    document.getElementById('bookReviewNextNote').textContent = 'Next, verify your ' + (email ? 'email' : 'mobile number')
+      + '. Your request will remain pending until the branch confirms your appointment and deposit.';
   });
 
   document.getElementById('bookReviewEdit').addEventListener('click', () => {
@@ -2617,6 +2616,10 @@
     bookingModalBox.scrollTop = 0;
   });
 
+  function bookVerifyLabel(email) {
+    return email ? 'Continue to email verification' : 'Text me a verification code';
+  }
+
   document.getElementById('bookReviewConfirm').addEventListener('click', () => {
     if (!pendingBooking) return;
     const email = pendingBooking.email;
@@ -2624,18 +2627,6 @@
 
     const submitBtn = document.getElementById('bookReviewConfirm');
     if (submitBtn.disabled) return;
-
-    // No email was given, so there's nothing to OTP-verify -- submit the
-    // booking directly with the same backend endpoint and payment rules
-    // used for the email-verified path.
-    if (!email) {
-      submitBtn.disabled = true;
-      document.getElementById('bookReviewEdit').disabled = true;
-      submitBtn.textContent = 'Booking…';
-      finalizeGuestBooking(pendingBooking, '', submitBtn, 'Confirm booking')
-        .finally(() => { document.getElementById('bookReviewEdit').disabled = false; });
-      return;
-    }
 
     submitBtn.disabled = true;
     document.getElementById('bookReviewEdit').disabled = true;
@@ -2650,15 +2641,16 @@
       .then(res => {
         submitBtn.disabled = false;
         document.getElementById('bookReviewEdit').disabled = false;
-        submitBtn.textContent = 'Continue to email verification';
+        submitBtn.textContent = bookVerifyLabel(email);
         if (pendingBooking !== reviewedBooking) return;
         if (!res.success) {
           showToast(res.message);
-          if (res.retryAfter) startBookOtpCooldown(res.retryAfter, submitBtn, 'Continue to email verification');
+          if (res.retryAfter) startBookOtpCooldown(res.retryAfter, submitBtn, bookVerifyLabel(email));
           return;
         }
 
-        document.getElementById('bookOtpEmailLabel').textContent = email;
+        document.getElementById('bookOtpHeading').textContent = email ? 'Verify your email' : 'Verify your mobile number';
+        document.getElementById('bookOtpEmailLabel').textContent = email || reviewedBooking.phone;
         document.getElementById('bookingFormPanel').classList.add('hidden');
         document.getElementById('bookingReviewPanel').classList.add('hidden');
         document.getElementById('bookingOtpPanel').classList.remove('hidden');
@@ -2670,7 +2662,7 @@
       .catch(() => {
         submitBtn.disabled = false;
         document.getElementById('bookReviewEdit').disabled = false;
-        submitBtn.textContent = 'Continue to email verification';
+        submitBtn.textContent = bookVerifyLabel(email);
         showToast('A network error occurred. Please try again.');
       });
   });
@@ -2745,10 +2737,6 @@
     document.getElementById('bookingModalBox').scrollTop = 0;
   });
 
-  // Shared by both guest-booking completion paths: with an email (after the
-  // OTP form) and without one (straight from the review step, since there's
-  // nothing to verify). Same backend endpoint, same booking system, same
-  // payment rules either way -- only whether otpCode is populated differs.
   let guestBookingSubmitting = false;
   function finalizeGuestBooking(booking, otpCode, submitBtn, idleLabel) {
     if (guestBookingSubmitting) return Promise.resolve(false);

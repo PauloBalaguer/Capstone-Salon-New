@@ -538,6 +538,11 @@ function customerBookingMixin() {
           this.isSubmittingBooking = false;
 
           if (!body.success) {
+            // Already has a booking waiting for payment (e.g. pressed Back on GCash / Maya / card).
+            if (body.heldBooking && confirm(body.message + '\n\nContinue paying ' + body.heldBooking.reference + ' now?')) {
+              window.location.href = body.heldBooking.resultUrl;
+              return;
+            }
             this.bookingError = body.message || 'Something went wrong while booking your appointment.';
             this.pushToast('error', this.bookingError);
             if (body.errors?.customerName || body.errors?.customerPhone) this.bookingStep = 'review';
@@ -557,12 +562,10 @@ function customerBookingMixin() {
             return;
           }
 
-          // Online payment: hand off to PayMongo (the GCash / Maya authorization page, or the card page),
-          // which returns to frontend/public/payment-result.html when done.
+          // Online payment: hand off to PayMongo in this tab (the GCash / Maya authorization page, or the
+          // card page), which returns to frontend/public/payment-result.html when done.
           if (body.checkoutUrl) {
             this.isSubmittingBooking = true;
-            // Back from PayMongo shows "Continue payment" for this booking instead of inviting a second one.
-            if (body.resultUrl) PendingPayment.remember(body.reference, body.resultUrl);
             window.location.href = body.checkoutUrl;
             return;
           }

@@ -5,8 +5,11 @@
  *
  * PayMongo POSTs here when a customer pays:
  *   checkout_session.payment.paid -- Card (and legacy combined) checkouts
- *   payment.paid / payment.failed -- GCash / Maya Payment Intents, matched by
- *                                    payment_intent_id
+ *   source.chargeable             -- the customer authorized a GCash Source;
+ *                                    sync() creates the Payment from it
+ *   payment.paid / payment.failed -- Maya (and older GCash) Payment Intents,
+ *                                    matched by payment_intent_id; GCash
+ *                                    source payments, matched by source id
  * The signature is verified with the webhook secret, then the attempt is
  * re-read from PayMongo's API (PayMongo::sync) rather than trusting the
  * payload. sync() is idempotent, so duplicate deliveries change nothing.
@@ -59,14 +62,18 @@ try {
     PaymentLog::record($pdo, 'webhook_received', $appointment ? (int) $appointment['id'] : null,
         $appointment['reference_code'] ?? null, $eventId, null, $eventType, $raw);
 
-    if (in_array($eventType, ['payment.paid', 'payment.failed'], true)) {
-        // GCash / Maya. The event carries the payment; its intent says which booking.
-        $intentId = $event['data']['attributes']['payment_intent_id'] ?? null;
+    if (in_array($eventType, ['payment.paid', 'payment.failed', 'source.chargeable'], true)) {
+        // GCash / Maya. source.chargeable carries the GCash source; a payment event carries the
+        // payment, whose intent (Maya, older GCash) or source (GCash) says which booking.
+        $attributes = $event['data']['attributes'] ?? [];
+        [$column, $attemptId] = $eventType === 'source.chargeable' ? ['paymongo_source_id', $checkoutId]
+            : (!empty($attributes['payment_intent_id']) ? ['paymongo_payment_intent_id', $attributes['payment_intent_id']]
+                : ['paymongo_source_id', $attributes['source']['id'] ?? null]);
         $matched = false;
         foreach (['appointments' => false, 'home_service_requests' => true] as $table => $isHomeService) {
-            if (!$intentId) break;
-            $stmt = $pdo->prepare("SELECT id FROM {$table} WHERE paymongo_payment_intent_id = ? LIMIT 1");
-            $stmt->execute([$intentId]);
+            if (!$attemptId) break;
+            $stmt = $pdo->prepare("SELECT id FROM {$table} WHERE {$column} = ? LIMIT 1");
+            $stmt->execute([$attemptId]);
             if ($row = $stmt->fetch()) {
                 PayMongo::sync($pdo, $row, $isHomeService);
                 $matched = true;

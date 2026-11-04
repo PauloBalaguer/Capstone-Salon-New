@@ -22,6 +22,7 @@ const SMS_PREFIX = 'Leo Mejillano Salon: ';
  */
 const SMS_TEMPLATES = [
     'BOOKING_SUBMITTED' => 'We received your booking {ref} for {when}. We will text you once it is confirmed.',
+    'PAYMENT_LINK' => 'Booking {ref} for {when} is on hold until paid. To pay, open Track a Booking on our website.',
     'CONFIRMED' => 'Your booking {ref} on {when} is confirmed. See you!',
     'CANCELLED' => 'Your booking {ref} on {when} was cancelled. Please contact the branch if this is unexpected.',
     'RESCHEDULE' => 'There is a schedule update for your booking {ref}. Please check your email for details.',

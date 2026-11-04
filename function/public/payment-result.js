@@ -1,13 +1,12 @@
-// Landing page PayMongo returns to after paying (outcome=success / cancel for
-// the card page, outcome=return for the GCash / Maya authorization page).
-// Asks backend/public/paymongoStatus.php whether the payment went through --
-// never trusts the redirect itself. While PayMongo is still confirming, the
-// check is retried briefly. Two more entry points:
+// The payment page for every online payment. Asks backend/public/paymongoStatus.php
+// whether the payment went through -- never trusts a redirect itself.
+//   outcome=pay&method=...  -- after booking, and pay links from Track a booking /
+//                              emails: "Pay with <method>" first, the others below
 //   outcome=choose          -- "Continue payment": shows the method buttons
-//   outcome=pay&method=...  -- home service pay links: starts that method
-// The method buttons ("Try again" / "Choose another method") call
-// backend/public/paymongoPay.php, which creates a NEW payment for the same
-// booking and returns the page to send the customer to.
+//   outcome=success/cancel/return -- PayMongo sending the customer back
+// A method button sends this tab to PayMongo, which returns here when done.
+// It reopens the booking's current attempt when it's still open (payUrl),
+// otherwise backend/public/paymongoPay.php creates a NEW payment for the same booking.
 (function () {
   const params = new URLSearchParams(window.location.search);
   const ref = params.get('ref') || '';
@@ -34,30 +33,37 @@
     el(valueId).textContent = value || '';
   }
 
+  let last = null; // latest paymongoStatus.php answer
+
   function startPayment(method) {
+    // replace(): Back from PayMongo shouldn't land on this "Opening…" state.
+    const open = url => window.location.replace(url);
     el('resultMethods').classList.add('hidden');
     el('resultReason').classList.add('hidden');
     show('Opening ' + (method === 'PayMongo-Card' ? 'the secure card page' : method === 'PayMongo-Maya' ? 'Maya' : 'GCash') + '…', 'Taking you to PayMongo to complete the payment.');
+    // Not after a cancel: the GCash page of a failed source can't be paid again.
+    if (last && last.payUrl && last.method === method && outcome !== 'cancel') { open(last.payUrl); return; }
     fetch('../../backend/public/paymongoPay.php', {
       method: 'POST',
       body: new URLSearchParams({ ref, token, method, from: fromCustomer ? 'customer' : 'guest' })
     })
       .then(r => r.json())
       .then(data => {
-        // replace(): Back from PayMongo shouldn't land here and start yet another payment.
-        if (data.checkoutUrl) { window.location.replace(data.checkoutUrl); return; }
+        if (data.checkoutUrl) { open(data.checkoutUrl); return; }
         if (data.paid) { check(); return; }
         // Re-show the method buttons, keeping this message on top.
-        check(() => show('Payment unavailable', data.message || 'Please try again in a moment.'));
+        check(() => { el('resultReason').classList.add('hidden'); show('Payment unavailable', data.message || 'Please try again in a moment.'); });
       })
       .catch(() => show('Something went wrong', 'We could not start the payment. Please refresh this page.'));
   }
 
-  // "Try again with <last method>" first, then the others as "Choose another method".
+  // "Try again with" / "Pay with" <method> first, then the others as "Choose another method".
   function offerMethods(data) {
     const box = el('resultMethods');
     if (!data.methods || !data.methods.length) return;
-    const retry = outcome !== 'choose' && data.methods.some(m => m.value === data.method) ? data.method : null;
+    const failed = data.state === 'failed' || outcome === 'cancel';
+    const first = failed || data.payUrl ? data.method : outcome === 'pay' ? params.get('method') : null;
+    const retry = data.methods.some(m => m.value === first) ? first : null;
     const ordered = retry ? [...data.methods.filter(m => m.value === retry), ...data.methods.filter(m => m.value !== retry)] : data.methods;
     box.innerHTML = '';
     if (retry) {
@@ -73,7 +79,7 @@
       button.className = 'flex items-center gap-3 rounded-full border px-4 py-2.5 text-sm font-bold transition '
         + (primary ? 'order-1 bg-plum text-white border-plum hover:brightness-110' : 'order-3 border-bronze/60 hover:bg-sand-200');
       button.innerHTML = '<span class="pm-logo pm-logo--' + LOGOS[m.value] + '" aria-hidden="true"></span><span></span>';
-      button.lastChild.textContent = (primary ? 'Try again with ' : 'Pay with ') + m.label.replace(' (PayMongo)', '');
+      button.lastChild.textContent = (primary && failed ? 'Try again with ' : 'Pay with ') + m.label.replace(' (PayMongo)', '');
       button.addEventListener('click', () => startPayment(m.value));
       box.appendChild(button);
     });
@@ -81,7 +87,6 @@
   }
 
   function renderPaid(data) {
-    PendingPayment.forget();
     el('resultAmountLabel').textContent = 'Amount paid';
     el('resultAmount').textContent = peso(data.amountPaid);
     detail('resultMethodRow', 'resultMethod', data.methodLabel);
@@ -128,14 +133,13 @@
     el('resultAmountLabel').textContent = data.type === 'home_service' ? 'Reservation fee due' : 'Amount due';
     el('resultAmount').textContent = peso(data.amountDue);
     if (data.type !== 'home_service' && data.status === 'Cancelled') {
-      PendingPayment.forget();
       show('Booking released', 'This booking was cancelled because the payment was not completed in time. Please book again.');
       return;
     }
     const keepSlot = data.type === 'home_service'
       ? 'Your request is confirmed only after the reservation fee is paid.'
       : 'Your slot is held for ' + data.holdMinutes + ' minutes after booking — pay before then, or the booking is released automatically.';
-    if (outcome === 'choose' && data.state !== 'failed') {
+    if (['choose', 'pay'].includes(outcome) && data.state !== 'failed') {
       show('Complete your payment', 'Choose how to pay. ' + keepSlot);
     } else if (data.state === 'failed' || outcome === 'cancel') {
       show('Payment was cancelled', 'No money was taken. ' + keepSlot);
@@ -158,6 +162,7 @@
         if (!data.success) { show('Payment link not found', data.message || 'Please check your booking reference.'); return; }
         const pending = data.kind === 'balance' ? !data.paid : data.state === 'pending';
         if (pending && polls-- > 0) { setTimeout(() => check(after), 3000); return; }
+        last = data;
         render(data);
         if (after) after();
       })
@@ -165,6 +170,5 @@
   }
 
   if (!ref || !token) show('Payment link not found', 'This payment link is incomplete.');
-  else if (outcome === 'pay' && LOGOS[params.get('method')]) startPayment(params.get('method'));
   else check();
 })();

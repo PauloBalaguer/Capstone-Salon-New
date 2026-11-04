@@ -56,7 +56,6 @@
   <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=teal-gold-20261021" />
   <script src="../../function/shared/toast.js"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
-  <script src="../../function/shared/pending-payment.js"></script>
 </head>
 <body class="salon-portal services-page bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
@@ -500,8 +499,8 @@
                                 </template>
                               </div>
                             </fieldset>
-                            <p x-show="['PayMongo-GCash', 'PayMongo-Maya'].includes(bookingForm.paymentMethod)" class="text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3" x-text="'You\'ll go straight to ' + (bookingForm.paymentMethod === 'PayMongo-Maya' ? 'Maya' : 'GCash') + ' to authorize the payment after confirming — nothing to type. Complete it within 30 minutes.'"></p>
-                            <p x-show="bookingForm.paymentMethod === 'PayMongo-Card'" class="text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3">You'll enter your card on PayMongo's secure page after confirming (we never see your card number). Complete it within 30 minutes.</p>
+                            <p x-show="['PayMongo-GCash', 'PayMongo-Maya'].includes(bookingForm.paymentMethod)" class="text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3" x-text="'You\'ll go straight to ' + (bookingForm.paymentMethod === 'PayMongo-Maya' ? 'Maya' : 'GCash') + ' to authorize the payment after confirming — nothing to type. Complete it within 30 minutes. If the payment fails or expires, you can try again or pick another method.'"></p>
+                            <p x-show="bookingForm.paymentMethod === 'PayMongo-Card'" class="text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3">You'll enter your card on PayMongo's secure page after confirming (we never see your card number). Complete it within 30 minutes. If the payment fails or expires, you can try again or pick another method.</p>
                             <p x-show="bookingForm.paymentMethod === 'Cash'" class="text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3">Pay at the branch. Your booking stays pending until payment is verified.</p>                          </div>
                         </template>
 

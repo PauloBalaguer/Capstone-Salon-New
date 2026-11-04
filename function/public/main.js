@@ -2078,12 +2078,15 @@
       '<div class="mt-6 pt-5 border-t border-bronze/25 text-sm space-y-1.5">' +
         detail.map(r => '<p><span class="text-ink/50">' + r[0] + ':</span> <b>' + r[1] + '</b></p>').join('') +
       '</div>' +
-      // Home service reservation fee (down payment) -- GCash, Maya or Card via PayMongo.
+      // Unpaid reservation fee / payment -- GCash, Maya or Card via PayMongo.
       // One button per method; the PayMongo payment is created when it is opened.
-      (isHome && res.payUrls
+      (res.payUrls
         ? '<div class="mt-5 rounded-2xl bg-copper/10 border border-copper/30 p-4 text-sm">' +
-            '<p class="font-bold text-ink">Pay your ' + peso(res.reservationFee) + ' reservation fee to confirm this request.</p>' +
-            '<p class="text-ink/60 text-[13px] mt-1">The remaining balance is paid on the event day.</p>' +
+            (isHome
+              ? '<p class="font-bold text-ink">Pay your ' + peso(res.reservationFee) + ' reservation fee to confirm this request.</p>' +
+                '<p class="text-ink/60 text-[13px] mt-1">The remaining balance is paid on the event day.</p>'
+              : '<p class="font-bold text-ink">Pay your ' + peso(res.amountDue) + ' reservation payment to keep this booking.</p>' +
+                '<p class="text-ink/60 text-[13px] mt-1">Your slot is held for 30 minutes from booking.</p>') +
             '<div class="mt-3 grid gap-2">' + [['PayMongo-GCash', 'gcash'], ['PayMongo-Maya', 'maya'], ['PayMongo-Card', 'card']].map(([method, logo]) =>
               '<a href="' + escAttr(res.payUrls[method]) + '" class="flex items-center gap-3 rounded-full border border-bronze/50 bg-white hover:border-plum px-3 py-2 font-bold transition"><span class="pm-logo pm-logo--' + logo + '" aria-hidden="true"></span>Pay with ' + PAY_METHOD_NAMES[method] + '</a>').join('') + '</div>' +
           '</div>'
@@ -2644,12 +2647,11 @@
     bookingModalBox.scrollTop = 0;
     document.getElementById('bookingReviewHeading').focus();
 
-    // No email means nothing to OTP-verify -- the confirm button submits
-    // straight to the backend instead of first requesting an email code.
-    document.getElementById('bookReviewConfirm').textContent = email ? 'Continue to email verification' : 'Confirm booking';
-    document.getElementById('bookReviewNextNote').textContent = email
-      ? 'Next, verify your email. Your request will remain pending until the branch confirms your appointment and deposit.'
-      : 'Your request will remain pending until the branch confirms your appointment and deposit.';
+    // Every guest booking is verified with a code: emailed when an email was
+    // given, otherwise texted to the mobile number (backend/public/sendBookingOtp.php).
+    document.getElementById('bookReviewConfirm').textContent = bookVerifyLabel(email);
+    document.getElementById('bookReviewNextNote').textContent = 'Next, verify your ' + (email ? 'email' : 'mobile number')
+      + '. Your request will remain pending until the branch confirms your appointment and deposit.';
   });
 
   document.getElementById('bookReviewEdit').addEventListener('click', () => {
@@ -2659,6 +2661,10 @@
     bookingModalBox.scrollTop = 0;
   });
 
+  function bookVerifyLabel(email) {
+    return email ? 'Continue to email verification' : 'Text me a verification code';
+  }
+
   document.getElementById('bookReviewConfirm').addEventListener('click', () => {
     if (!pendingBooking) return;
     const email = pendingBooking.email;
@@ -2666,18 +2672,6 @@
 
     const submitBtn = document.getElementById('bookReviewConfirm');
     if (submitBtn.disabled) return;
-
-    // No email was given, so there's nothing to OTP-verify -- submit the
-    // booking directly with the same backend endpoint and payment rules
-    // used for the email-verified path.
-    if (!email) {
-      submitBtn.disabled = true;
-      document.getElementById('bookReviewEdit').disabled = true;
-      submitBtn.textContent = 'Booking…';
-      finalizeGuestBooking(pendingBooking, '', submitBtn, 'Confirm booking')
-        .finally(() => { document.getElementById('bookReviewEdit').disabled = false; });
-      return;
-    }
 
     submitBtn.disabled = true;
     document.getElementById('bookReviewEdit').disabled = true;
@@ -2692,15 +2686,16 @@
       .then(res => {
         submitBtn.disabled = false;
         document.getElementById('bookReviewEdit').disabled = false;
-        submitBtn.textContent = 'Continue to email verification';
+        submitBtn.textContent = bookVerifyLabel(email);
         if (pendingBooking !== reviewedBooking) return;
         if (!res.success) {
           showToast(res.message);
-          if (res.retryAfter) startBookOtpCooldown(res.retryAfter, submitBtn, 'Continue to email verification');
+          if (res.retryAfter) startBookOtpCooldown(res.retryAfter, submitBtn, bookVerifyLabel(email));
           return;
         }
 
-        document.getElementById('bookOtpEmailLabel').textContent = email;
+        document.getElementById('bookOtpHeading').textContent = email ? 'Verify your email' : 'Verify your mobile number';
+        document.getElementById('bookOtpEmailLabel').textContent = email || reviewedBooking.phone;
         document.getElementById('bookingFormPanel').classList.add('hidden');
         document.getElementById('bookingReviewPanel').classList.add('hidden');
         document.getElementById('bookingOtpPanel').classList.remove('hidden');
@@ -2712,7 +2707,7 @@
       .catch(() => {
         submitBtn.disabled = false;
         document.getElementById('bookReviewEdit').disabled = false;
-        submitBtn.textContent = 'Continue to email verification';
+        submitBtn.textContent = bookVerifyLabel(email);
         showToast('A network error occurred. Please try again.');
       });
   });
@@ -2820,6 +2815,11 @@
         if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = idleLabel; }
 
         if (!res.success) {
+          // Already has a booking waiting for payment (e.g. pressed Back on GCash / Maya / card).
+          if (res.heldBooking && confirm(res.message + '\n\nContinue paying ' + res.heldBooking.reference + ' now?')) {
+            window.location.href = res.heldBooking.resultUrl;
+            return false;
+          }
           showToast(res.message);
           BookingFormValidation.message(submitBtn, res.message || 'Could not send your booking. Please try again.');
           if (res.errors || res.conflict) {
@@ -2840,12 +2840,10 @@
           return false;
         }
 
-        // Online payment: hand off to PayMongo (the GCash / Maya authorization page, or the card page), which
-        // returns to frontend/public/payment-result.html when done.
+        // Online payment: hand off to PayMongo in this tab (the GCash / Maya authorization page, or the
+        // card page), which returns to frontend/public/payment-result.html when done.
         if (res.checkoutUrl) {
           if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Redirecting to payment…'; }
-          // Back from PayMongo shows "Continue payment" for this booking instead of inviting a second one.
-          if (res.resultUrl) PendingPayment.remember(res.reference, res.resultUrl);
           window.location.href = res.checkoutUrl;
           return true;
         }

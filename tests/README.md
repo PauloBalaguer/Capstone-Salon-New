@@ -29,6 +29,7 @@ From the project folder (`C:\xampp\htdocs\Capstone-Salon`) in PowerShell:
 C:\xampp\php\php.exe tests\booking_concurrency_test.php
 C:\xampp\php\php.exe tests\event_team_test.php
 C:\xampp\php\php.exe tests\booking_exceptions_test.php
+C:\xampp\php\php.exe tests\guest_otp_test.php
 C:\xampp\php\php.exe tests\paymongo_methods_test.php
 C:\xampp\php\php.exe tests\env_test.php
 ```
@@ -49,12 +50,13 @@ Each test takes about 5–15 seconds, mostly to copy the database. Lines like
 | `booking_concurrency_test.php` | **Two customers book the same stylist and slot at the same time** from two parallel PHP processes: exactly one booking succeeds, the other gets "slot unavailable". The test proves both requests were inside their booking transaction at the same moment. Also: overlapping start times raced in parallel, and two different stylists at the same time (both allowed). **Overlapping windows** (starting or ending halfway through another booking), the **30-minute cleaning buffer**, and **several services booked back to back** (the stylist is busy for their total). |
 | `event_team_test.php` | **Two events that need the same team on the same day**, through the admin staff-assignment endpoint. The team is blocked for travel + setup + service + buffer (migration 054), not the old flat 2 hours. Covers: whole-team checks, a back-to-back assignment, salon bookings blocked during an event, a customer reschedule refused when the team is busy, and what the public availability check shows. |
 | `booking_exceptions_test.php` | **A failed PayMongo (GCash) payment, then a retry** through the real result-page and "Try again" endpoints. The test then follows the booking through staff verification and cashier checkout, and checks that **the revenue report matches the payment log** and the cashier payment exactly. **No-show**: the deposit is kept (Forfeited), logged once, and nothing happens automatically. **Late arrival within and beyond the grace period** (`SALON_LATE_GRACE_MINUTES`): the arrival review says which, and changes nothing. **Cancellation with a deposit**: the non-refundable policy is applied once, only to money actually held. |
-| `paymongo_methods_test.php` | The separate GCash / Maya / Card methods in detail, including more failure cases: a Maya payment cancelled and retried, a card declined, an abandoned payment, and a late payment after the hold expired (Refund Due). |
+| `guest_otp_test.php` | Guest booking verification. With no email, the booking needs the code **texted to the mobile number**: refused with no code, with a wrong code or with a reused code, and a clear error when the text can't be sent. With an email, the emailed code is used. |
+| `paymongo_methods_test.php` | The separate GCash / Maya / Card methods in detail, including more failure cases. **GCash (a PayMongo Source)**: charged exactly once when it becomes chargeable, however often the result page and webhook sync; Fail / Expire on the GCash page; a payment declined after authorization; never charged once the booking was released; older GCash bookings with a Payment Intent still sync. Also a Maya payment cancelled and retried, a card declined, an abandoned payment, and a late Maya payment after the hold expired (Refund Due). |
 | `env_test.php` | The private `.env` loading. |
 
 ## How it works
 
-- `support/harness.php` copies the database (and applies migrations 053–054 to
+- `support/harness.php` copies the database (and applies migrations 053, 054, 057 and 058 to
   the copy, in case the dev database doesn't have them yet), then provides
   `check()` and `run_endpoint()`.
 - `support/endpoint.php` runs one real endpoint (for example

@@ -48,7 +48,7 @@ backend/                  🖥️ what the server does
     storage/sessions/       PHP session files (git-ignored)
 database/                 🗄️ database
   schema/                 capstone.sql (full schema)
-  migrations/             002_… → 051_… numbered changes
+  migrations/             002_… → 057_… numbered changes
   seeders/                demo / landing data
   scripts/                CLI helpers (create_admin, create_cashier, sync_*, refresh_*)
   data/                   import reference data

@@ -9,7 +9,7 @@ function queuePaymentReminders(PDO $pdo): int
     if ($pdo->inTransaction()) throw new LogicException('Run payment reminders outside a transaction.');
     $hold = PayMongo::HOLD_MINUTES;
     $start = max(0, $hold - 10);
-    $stmt = $pdo->prepare("SELECT id FROM appointments WHERE preferred_payment_method IN (?, ?, ?, ?) AND deposit_paid = 0 AND status = 'Pending' AND (paymongo_checkout_id IS NOT NULL OR paymongo_payment_intent_id IS NOT NULL) AND created_at <= NOW() - INTERVAL $start MINUTE AND created_at > NOW() - INTERVAL $hold MINUTE ORDER BY id");
+    $stmt = $pdo->prepare("SELECT id FROM appointments WHERE preferred_payment_method IN (?, ?, ?, ?) AND deposit_paid = 0 AND status = 'Pending' AND (paymongo_checkout_id IS NOT NULL OR paymongo_payment_intent_id IS NOT NULL OR paymongo_source_id IS NOT NULL) AND created_at <= NOW() - INTERVAL $start MINUTE AND created_at > NOW() - INTERVAL $hold MINUTE ORDER BY id");
     $stmt->execute([PayMongo::LEGACY_METHOD, ...PayMongo::METHODS]);
     $queued = 0;
     foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $id) {

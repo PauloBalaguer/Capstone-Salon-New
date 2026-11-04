@@ -13,8 +13,12 @@ require_once __DIR__ . '/../setup/env.php';
  * Keys come from PAYMONGO_SECRET_KEY / PAYMONGO_WEBHOOK_SECRET in the private
  * .env (see setup/env.php and .env.example). Every call uses the secret key.
  *
- *   'PayMongo-GCash' / 'PayMongo-Maya' -- Payment Intent + Payment Method:
- *       the customer goes straight to the GCash / Maya authorization page.
+ *   'PayMongo-GCash' -- Source: the customer goes straight to the GCash page,
+ *       and Fail / Cancel there comes back through redirect.failed. Once
+ *       authorized the source is chargeable and chargeSource() creates the
+ *       Payment. (Older GCash bookings have a Payment Intent, like Maya.)
+ *   'PayMongo-Maya' -- Payment Intent + Payment Method: the customer goes
+ *       straight to the Maya authorization page.
  *   'PayMongo-Card' -- Checkout Session limited to cards, so card details are
  *       typed on PayMongo's hosted page and never touch this server.
  *   'PayMongo' -- the old combined checkout; historical bookings and home
@@ -62,7 +66,7 @@ final class PayMongo
         return $method === self::LEGACY_METHOD || in_array($method, self::METHODS, true);
     }
 
-    /** GCash / Maya: Payment Intent with a direct redirect. */
+    /** GCash / Maya: a direct redirect to the wallet's page (Source for GCash, Payment Intent for Maya). */
     public static function isEwallet(?string $method): bool
     {
         return $method === self::METHOD_GCASH || $method === self::METHOD_MAYA;
@@ -83,8 +87,13 @@ final class PayMongo
 
     private static function request(string $method, string $path, ?array $payload = null): array
     {
-        $ch = curl_init((self::credentials()['api_base'] ?? self::API) . $path); // api_base: tests/paymongo_methods_test.php's mock only
+        // One handle for every request: GCash / Maya make three calls back to back, and reusing the
+        // connection skips a fresh DNS + TLS handshake for each (the slow part on XAMPP).
+        static $ch = null;
+        $ch ??= curl_init();
+        curl_reset($ch);
         curl_setopt_array($ch, [
+            CURLOPT_URL => (self::credentials()['api_base'] ?? self::API) . $path, // api_base: tests/paymongo_methods_test.php's mock only
             CURLOPT_CUSTOMREQUEST => $method,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => 20,
@@ -100,7 +109,6 @@ final class PayMongo
         $body = curl_exec($ch);
         $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $error = curl_error($ch);
-        curl_close($ch);
 
         if ($body === false) {
             throw new RuntimeException('PayMongo request failed: ' . $error);
@@ -146,8 +154,9 @@ final class PayMongo
 
     /**
      * Starts a payment for an unpaid appointment (or, with $homeService, a
-     * home service reservation fee) with one of METHODS: a new Payment
-     * Intent for GCash / Maya, a card-only Checkout Session for Card. Every
+     * home service reservation fee) with one of METHODS: a new Source for
+     * GCash, a new Payment Intent for Maya, a card-only Checkout Session for
+     * Card. Every
      * try creates a new attempt -- a failed one is never reused. Billing is
      * filled from the customer record, so the customer types nothing. Keeps
      * the row's online_payment_token so earlier result-page links stay valid.
@@ -179,7 +188,21 @@ final class PayMongo
             try { self::request('POST', '/checkout_sessions/' . rawurlencode($row['paymongo_checkout_id']) . '/expire'); } catch (RuntimeException $e) {}
         }
 
-        if (self::isEwallet($method)) {
+        if ($method === self::METHOD_GCASH) {
+            $source = self::request('POST', '/sources', ['data' => ['attributes' => [
+                'type' => 'gcash',
+                'amount' => (int) round($amount * 100), // centavos
+                'currency' => 'PHP',
+                // Fail / Cancel on the GCash page goes to 'failed'. Neither is trusted: the result page asks sync().
+                'redirect' => ['success' => $returnUrl, 'failed' => self::resultUrl($baseUrl, $reference, $token, 'cancel', $from)],
+            ] + (count($billing) === 3 ? ['billing' => $billing] : [])]])['data'];
+            $url = $source['attributes']['redirect']['checkout_url'] ?? null;
+            if (!$url) throw new RuntimeException('PayMongo did not return the ' . self::label($method) . ' authorization page.');
+            // paymongo_payment_id: a declined charge of the previous source must not be read as this one's.
+            $pdo->prepare("UPDATE {$table} SET paymongo_source_id = ?, paymongo_payment_id = NULL, paymongo_payment_intent_id = NULL, paymongo_checkout_id = NULL, paymongo_checkout_url = ?, online_payment_token = ? WHERE id = ?")
+                ->execute([$source['id'], $url, $token, $id]);
+            [$event, $attemptId] = ['source_created', $source['id']];
+        } elseif (self::isEwallet($method)) {
             $type = self::PAYMENT_TYPES[$method];
             $intent = self::request('POST', '/payment_intents', ['data' => ['attributes' => [
                 'amount' => (int) round($amount * 100), // centavos
@@ -197,15 +220,16 @@ final class PayMongo
             ]]])['data']['attributes'] ?? [];
             $url = $attached['next_action']['redirect']['url'] ?? null;
             if (!$url) throw new RuntimeException('PayMongo did not return the ' . self::label($method) . ' authorization page.');
-            $pdo->prepare("UPDATE {$table} SET paymongo_payment_intent_id = ?, paymongo_checkout_id = NULL, paymongo_checkout_url = NULL, online_payment_token = ? WHERE id = ?")
-                ->execute([$intent['id'], $token, $id]);
+            // The authorization page is kept so the result page can open this same attempt (paymongoStatus.php payUrl).
+            $pdo->prepare("UPDATE {$table} SET paymongo_payment_intent_id = ?, paymongo_source_id = NULL, paymongo_checkout_id = NULL, paymongo_checkout_url = ?, online_payment_token = ? WHERE id = ?")
+                ->execute([$intent['id'], $url, $token, $id]);
             [$event, $attemptId] = ['intent_created', $intent['id']];
         } else {
             $checkout = self::createCheckout($reference, $amount, $description,
                 self::resultUrl($baseUrl, $reference, $token, 'success', $from),
                 self::resultUrl($baseUrl, $reference, $token, 'cancel', $from), ['card'], $billing);
             $url = $checkout['url'];
-            $pdo->prepare("UPDATE {$table} SET paymongo_checkout_id = ?, paymongo_checkout_url = ?, paymongo_payment_intent_id = NULL, online_payment_token = ? WHERE id = ?")
+            $pdo->prepare("UPDATE {$table} SET paymongo_checkout_id = ?, paymongo_checkout_url = ?, paymongo_payment_intent_id = NULL, paymongo_source_id = NULL, online_payment_token = ? WHERE id = ?")
                 ->execute([$checkout['id'], $url, $token, $id]);
             [$event, $attemptId] = ['checkout_created', $checkout['id']];
         }
@@ -215,7 +239,36 @@ final class PayMongo
         }
         PaymentLog::record($pdo, $event, $homeService ? null : $id, $reference, $attemptId, $amount, 'unpaid',
             ['method' => $method] + ($homeService ? ['type' => 'home_service'] : []));
-        return ['url' => $url, 'resultUrl' => self::resultUrl($baseUrl, $reference, $token, 'choose', $from)];
+        // "Continue payment" after pressing Back on PayMongo: this booking's result page, method first.
+        return ['url' => $url, 'resultUrl' => self::resultUrl($baseUrl, $reference, $token, 'pay', $from, $method)];
+    }
+
+    /**
+     * The customer's newest booking still holding a slot while it waits for
+     * online payment, as a ready-to-send 409 answer -- so pressing Back on
+     * GCash / Maya / card and booking again sends them to "Continue payment"
+     * instead of holding a second slot. Call after releaseExpiredHolds().
+     */
+    public static function heldBooking(PDO $pdo, int $customerId, string $from): ?array
+    {
+        $stmt = $pdo->prepare("
+            SELECT reference_code, online_payment_token FROM appointments
+            WHERE customer_id = ? AND status = 'Pending' AND deposit_paid = 0 AND online_payment_token IS NOT NULL
+              AND preferred_payment_method IN (?, ?, ?, ?)
+            ORDER BY id DESC LIMIT 1
+        ");
+        $stmt->execute([$customerId, self::LEGACY_METHOD, ...self::METHODS]);
+        $row = $stmt->fetch();
+        if (!$row) return null;
+        return [
+            'success' => false,
+            'message' => "Your booking {$row['reference_code']} is still waiting for payment, so there's no need to book again. "
+                . 'Finish paying it, or wait until it is released (' . self::HOLD_MINUTES . ' minutes after booking) to book something else.',
+            'heldBooking' => [
+                'reference' => $row['reference_code'],
+                'resultUrl' => self::resultUrl(getProjectFullBaseUrl(), $row['reference_code'], $row['online_payment_token'], 'choose', $from),
+            ],
+        ];
     }
 
     /**
@@ -234,14 +287,16 @@ final class PayMongo
     }
 
     /**
-     * Asks PayMongo about the booking's current attempt (Payment Intent for
-     * GCash / Maya, Checkout Session for Card / legacy) and records the
+     * Asks PayMongo about the booking's current attempt (Source for GCash,
+     * Payment Intent for Maya / older GCash, Checkout Session for Card /
+     * legacy), charges a GCash source once it's chargeable, and records the
      * deposit once it's paid. Returns ['state' => 'paid' | 'pending' |
      * 'failed', 'reason' => PayMongo's failure message or null]:
      *   pending -- not finished yet (awaiting authorization / processing,
      *              or a card page still open)
      *   failed  -- cancelled or declined (intent back to
-     *              awaiting_payment_method) or the card page expired
+     *              awaiting_payment_method, source cancelled / expired)
+     *              or the card page expired
      * Idempotent: webhook, result page and cron may all call it; recording
      * is guarded by the row lock and deposit_paid = 0.
      */
@@ -257,7 +312,23 @@ final class PayMongo
         $expected = (float) ($homeService ? $row['deposit_amount'] : ($row['reservation_amount_due'] ?? $row['deposit_amount']));
 
         // Only a server-to-server API response can supply payment evidence.
-        if ($row['paymongo_payment_intent_id']) {
+        if ($row['paymongo_source_id']) {
+            $source = self::request('GET', '/sources/' . rawurlencode($row['paymongo_source_id']))['data'] ?? [];
+            $attributes = $source['attributes'] ?? [];
+            if (($source['id'] ?? '') !== $row['paymongo_source_id'] || ($attributes['currency'] ?? '') !== 'PHP'
+                || (int) ($attributes['amount'] ?? -1) !== (int) round($expected * 100)) {
+                throw new RuntimeException('PayMongo source does not match this booking.');
+            }
+            $status = $attributes['status'] ?? '';
+            $payment = $status === 'chargeable' || $row['paymongo_payment_id'] ? self::chargeSource($pdo, $row, $homeService, $expected) : null;
+            $paymentStatus = $payment['attributes']['status'] ?? '';
+            $paid = $paymentStatus === 'paid' ? $payment : null;
+            $failed = $paymentStatus === 'failed' || (!$payment && in_array($status, ['cancelled', 'expired', 'failed'], true));
+            $error = $paymentStatus === 'failed'
+                ? ['failed_code' => $payment['attributes']['failed_code'] ?? null, 'failed_message' => $payment['attributes']['failed_message'] ?? null]
+                : ($failed ? ['failed_message' => 'GCash payment was cancelled or did not go through.'] : null);
+            $details = ['source_id' => $source['id']];
+        } elseif ($row['paymongo_payment_intent_id']) {
             $intent = self::request('GET', '/payment_intents/' . rawurlencode($row['paymongo_payment_intent_id']))['data'] ?? [];
             $attributes = $intent['attributes'] ?? [];
             if (($intent['id'] ?? '') !== $row['paymongo_payment_intent_id'] || ($attributes['currency'] ?? '') !== 'PHP'
@@ -319,6 +390,45 @@ final class PayMongo
             return true;
         }
         return false;
+    }
+
+    /**
+     * The Payment for the row's chargeable GCash source: created once, under
+     * the row lock, and its id saved straight away, so the webhook and the
+     * result page arriving together never charge twice. Later calls re-read
+     * that payment. Null if the deposit was recorded meanwhile, or if the
+     * booking was released or cancelled first: an uncharged source moves no
+     * money, so there is nothing to refund.
+     */
+    private static function chargeSource(PDO $pdo, array $row, bool $homeService, float $amount): ?array
+    {
+        if ($homeService) require_once __DIR__ . '/../booking/HomeServiceRequest.php';
+        $table = $homeService ? 'home_service_requests' : 'appointments';
+        $ownsTransaction = !$pdo->inTransaction();
+        if ($ownsTransaction) $pdo->beginTransaction();
+        try {
+            $current = $homeService ? HomeServiceRequest::lock($pdo, (int) $row['id']) : Scheduling::lockAppointment($pdo, (int) $row['id']);
+            if ((int) $current['deposit_paid'] === 1 || $current['paymongo_source_id'] !== $row['paymongo_source_id']
+                || (!$current['paymongo_payment_id'] && in_array($current['status'], ['Cancelled', 'Completed'], true))) {
+                $payment = null;
+            } elseif ($current['paymongo_payment_id']) {
+                $payment = self::request('GET', '/payments/' . rawurlencode($current['paymongo_payment_id']))['data'] ?? null;
+            } else {
+                $payment = self::request('POST', '/payments', ['data' => ['attributes' => [
+                    'amount' => (int) round($amount * 100), // centavos
+                    'currency' => 'PHP',
+                    'description' => ($homeService ? 'Home service reservation fee ' : 'Reservation payment ') . $current['reference_code'],
+                    'metadata' => ['reference' => $current['reference_code'], ($homeService ? 'home_service_id' : 'appointment_id') => (string) $current['id']],
+                    'source' => ['id' => $current['paymongo_source_id'], 'type' => 'source'],
+                ]]])['data'];
+                $pdo->prepare("UPDATE {$table} SET paymongo_payment_id = ? WHERE id = ?")->execute([$payment['id'], $current['id']]);
+            }
+            if ($ownsTransaction) $pdo->commit();
+            return $payment;
+        } catch (Throwable $e) {
+            if ($ownsTransaction && $pdo->inTransaction()) $pdo->rollBack();
+            throw $e;
+        }
     }
 
     private static function firstPaid(array $payments): ?array
@@ -494,14 +604,14 @@ final class PayMongo
         try {
             $stmt = $pdo->prepare("
                 SELECT id, customer_id, employee_id, appointment_datetime, reference_code, status, deposit_paid,
-                       paymongo_checkout_id, paymongo_payment_intent_id, loyalty_points_used, reservation_amount_due
+                       paymongo_checkout_id, paymongo_payment_intent_id, paymongo_source_id, loyalty_points_used, reservation_amount_due
                 FROM appointments
                 WHERE preferred_payment_method IN (?, ?, ?, ?) AND deposit_paid = 0 AND status = 'Pending'
                   AND created_at < NOW() - INTERVAL " . self::HOLD_MINUTES . " MINUTE
             ");
             $stmt->execute([self::LEGACY_METHOD, ...self::METHODS]);
             foreach ($stmt->fetchAll() as $appointment) {
-                $attemptId = $appointment['paymongo_payment_intent_id'] ?: $appointment['paymongo_checkout_id'];
+                $attemptId = $appointment['paymongo_source_id'] ?: $appointment['paymongo_payment_intent_id'] ?: $appointment['paymongo_checkout_id'];
                 try {
                     if (self::sync($pdo, $appointment)['state'] === 'paid') continue; // Paid after all -- webhook was missed.
                     if ($appointment['paymongo_checkout_id']) {

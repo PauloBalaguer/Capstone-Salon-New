@@ -63,6 +63,8 @@ function depositResult(PDO $pdo, PDOStatement $select, string $reference, bool $
         'paidAt' => $paid ? $row['deposit_recorded_at'] : null,
         'holdMinutes' => PayMongo::HOLD_MINUTES,
         'methods' => $payable ? array_map(fn($m) => ['value' => $m, 'label' => PayMongo::label($m)], PayMongo::METHODS) : [],
+        // The still-open PayMongo page of the current attempt (method = 'method'), reopened instead of starting another one.
+        'payUrl' => $payable && $sync['state'] === 'pending' ? ($row['paymongo_checkout_url'] ?? null) : null,
     ];
 }
 
@@ -117,7 +119,8 @@ try {
 
     $stmt = $pdo->prepare('
         SELECT id, customer_id, reference_code, status, payment_status, deposit_paid, deposit_amount, deposit_method,
-               deposit_recorded_at, reservation_amount_due, preferred_payment_method, paymongo_payment_id, online_payment_token
+               deposit_recorded_at, reservation_amount_due, preferred_payment_method, paymongo_payment_id, online_payment_token,
+               paymongo_checkout_url
         FROM appointments WHERE reference_code = ? LIMIT 1
     ');
     $stmt->execute([$reference]);

@@ -22,6 +22,11 @@ require_once __DIR__ . '/../booking/Scheduling.php';
  * also queue a short text to customers.phone_number unless the customer
  * turned SMS off (notify_sms). Best-effort: an SMS problem is logged and
  * never undoes the booking change or the email.
+ *
+ * $payUrl (a booking waiting for online payment): the link goes in the
+ * message and email, so the customer can pay from any device even after
+ * closing the browser; the SMS becomes PAYMENT_LINK, which points to Track
+ * a Booking instead (texts carry no links -- see setup/sms.php).
  */
 final class CustomerNotifier
 {
@@ -46,8 +51,9 @@ final class CustomerNotifier
     // In-salon appointment emails that repeat the late-arrival rule (when one is configured).
     private const LATE_RULE_TYPES = ['BOOKING_SUBMITTED', 'CONFIRMED', 'RESCHEDULE', 'REMINDER'];
 
-    public static function notify(PDO $pdo, int $customerId, string $type, string $message, ?string $reference = null): bool
+    public static function notify(PDO $pdo, int $customerId, string $type, string $message, ?string $reference = null, ?string $payUrl = null): bool
     {
+        if ($payUrl) $message .= "\n\nPay online here: {$payUrl}";
         $ownsTransaction = !$pdo->inTransaction();
         if ($ownsTransaction) $pdo->beginTransaction();
         else $pdo->exec('SAVEPOINT customer_notification');
@@ -90,15 +96,16 @@ final class CustomerNotifier
             $subject = $type === 'PAYMENT_VERIFIED' && ($details['paymentStatus'] ?? '') === 'Fully Paid' ? 'Your full payment was received' : self::EMAIL_SUBJECTS[$type];
             EmailOutbox::queue($pdo, $customer['email'], $subject . ($reference ? " ({$reference})" : ''), $body, $reference);
         }
-        if (isset(SMS_TEMPLATES[$type]) && (int) $customer['notify_sms'] === 1) {
+        $smsType = $payUrl ? 'PAYMENT_LINK' : $type;
+        if (isset(SMS_TEMPLATES[$smsType]) && (int) $customer['notify_sms'] === 1) {
             $pdo->exec('SAVEPOINT customer_sms');
             try {
                 $vars = [];
                 if ($reference) $vars['{ref}'] = $reference;
                 if ($details) $vars['{when}'] = formatSmsWhen($details['scheduled']);
-                $sms = renderSms($type, $vars);
-                if ($sms) SmsOutbox::queue($pdo, $customer['phone_number'], $type, $sms, $reference);
-                else error_log("SMS not queued ({$type}): no booking details for the message.");
+                $sms = renderSms($smsType, $vars);
+                if ($sms) SmsOutbox::queue($pdo, $customer['phone_number'], $smsType, $sms, $reference);
+                else error_log("SMS not queued ({$smsType}): no booking details for the message.");
                 $pdo->exec('RELEASE SAVEPOINT customer_sms');
             } catch (Throwable $e) {
                 try { $pdo->exec('ROLLBACK TO SAVEPOINT customer_sms'); } catch (Throwable $ignored) {}

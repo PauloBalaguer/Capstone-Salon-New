@@ -40,8 +40,9 @@ function clone_database(string $name): PDO
     passthru(TEST_MYSQL . " -e \"DROP DATABASE IF EXISTS {$name}; CREATE DATABASE {$name}\"");
     passthru(TEST_DUMP . ' "' . DEV_DATABASE . '" | ' . TEST_MYSQL . " {$name}", $code);
     if ($code !== 0) exit("Could not clone the database.\n");
-    // Newer migrations may not be applied to the dev database yet; both are safe to run twice.
-    foreach (['053_paymongo_separate_methods.sql', '054_event_durations.sql'] as $migration) {
+    // Newer migrations may not be applied to the dev database yet; all are safe to run twice.
+    // 057 first: on a dev database that ran 056, 053 can't place its columns until 057 puts paymongo_checkout_url back.
+    foreach (['057_restore_paymongo.sql', '053_paymongo_separate_methods.sql', '054_event_durations.sql', '058_paymongo_gcash_sources.sql'] as $migration) {
         passthru(TEST_MYSQL . " {$name} < \"{$root}\\database\\migrations\\{$migration}\"");
     }
     register_shutdown_function(fn() => passthru(TEST_MYSQL . " -e \"DROP DATABASE IF EXISTS {$name}\""));

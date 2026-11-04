@@ -23,7 +23,7 @@ final class ReservationPayment
             || !in_array($method, ['Cash', 'GCash', 'Maya', PayMongo::LEGACY_METHOD, ...PayMongo::METHODS], true)) {
             throw new RuntimeException('Enter the payment amount and method actually received.');
         }
-        $onlineAttempt = !empty($appointment['paymongo_checkout_id']) || !empty($appointment['paymongo_payment_intent_id']);
+        $onlineAttempt = !empty($appointment['paymongo_checkout_id']) || !empty($appointment['paymongo_payment_intent_id']) || !empty($appointment['paymongo_source_id']);
         if (PayMongo::isOnline($method) || PayMongo::isOnline($appointment['deposit_method'] ?? null)
             || ($onlineAttempt && empty($appointment['deposit_paid']))) {
             if (!PayMongo::isOnline($method) || empty($appointment['deposit_paid'])

@@ -380,11 +380,11 @@
               </fieldset>
               <div id="bookDepositEwalletNote" class="hidden text-xs text-ink/55 bg-sand-100 border border-bronze/40 rounded-lg p-3">
                 After you confirm, you'll go straight to <b data-wallet-name>GCash</b> to authorize the payment — nothing
-                to type. Your slot is held for 30 minutes while you pay.
+                to type. Your slot is held for 30 minutes while you pay. If the payment fails or expires, you can try again or pick another method.
               </div>
               <div id="bookDepositOnlineNote" class="hidden text-xs text-ink/55 bg-sand-100 border border-bronze/40 rounded-lg p-3">
                 After you confirm, you'll enter your card on PayMongo's secure page (we never see your card number). Your
-                slot is held for 30 minutes while you pay.
+                slot is held for 30 minutes while you pay. If the payment fails or expires, you can try again or pick another method.
               </div>
               <div id="bookDepositCashNote" class="hidden text-xs text-ink/55 bg-sand-100 border border-bronze/40 rounded-lg p-3">
                 Cash deposits can't be verified remotely — bring the deposit amount to the branch. Your slot is held as
@@ -438,7 +438,7 @@
               address <span class="normal-case font-normal text-ink/35">(optional)</span></label>
             <input id="bookEmail" type="email" autocomplete="email" maxlength="254" placeholder="you@email.com"
               class="w-full px-4 py-2.5 border border-bronze bg-white text-ink placeholder:text-ink/50 shadow-sm rounded-xl text-base focus:outline-none focus:border-plum transition" />
-            <p class="text-xs text-ink/40 mt-1">If you provide an email, we'll send a short code to confirm it.</p>
+            <p class="text-xs text-ink/40 mt-1">We'll send a short code to confirm your booking: to this email if you add one, otherwise by text to your mobile number.</p>
           </div>
 
           <div>
@@ -481,7 +481,7 @@
             Review guest booking
           </button>
           <p class="text-xs text-ink/40 text-center leading-relaxed">
-            Review your guest details, confirm your request to receive a booking reference (email verification applies when you provide an email). The branch will confirm your appointment separately.
+            Review your guest details, confirm your request to receive a booking reference (we'll send a code to your email, or by text to your mobile number). The branch will confirm your appointment separately.
           </p>
         </form>
       </div>
@@ -496,7 +496,7 @@
       </div>
 
       <div id="bookingOtpPanel" class="hidden">
-        <h3 class="font-display text-2xl mb-1 text-ink">Verify your email</h3>
+        <h3 id="bookOtpHeading" class="font-display text-2xl mb-1 text-ink">Verify your email</h3>
         <p class="text-xs text-ink/60 mb-6">
           We sent a 6-digit code to
           <span id="bookOtpEmailLabel" class="font-bold text-ink"></span>.
@@ -2733,7 +2733,6 @@
   <script src="function/shared/address-form.js"></script>
   <script src="function/shared/service-duration.js"></script>
   <script src="function/shared/toast.js"></script>
-  <script src="function/shared/pending-payment.js"></script>
   <script src="function/shared/late-arrival-rule.js"></script>
   <script src="function/public/main.js?v=paymethods-20261025"></script>
 </body>

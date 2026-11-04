@@ -127,9 +127,9 @@ C:\xampp\php\php.exe C:\xampp\htdocs\Capstone-Salon\backend\shared\cron\sendAppo
    allows. On Pro, change them to `*/5 * * * *`: payment reminders have a short
    window and daily runs will miss most of them.
 5. **Check after deploying:** log in on two tabs and refresh repeatedly, try a
-   test payment, and open `frontend/shared/image/Daraga.png` and
-   `frontend/shared/video/gallery-07.mp4`. Both are over Vercel's documented
-   4.5 MB limit, so compress them or move them to Vercel Blob if they fail.
+   test payment, and open `frontend/shared/image/Daraga.webp` and
+   `frontend/shared/video/gallery-07.mp4`. Vercel's documented limit is 4.5 MB
+   per file, so keep every image and video under it.
 
 ## Deploying to a live server
 

@@ -83,9 +83,8 @@ if ($serviceStaff && $staffId <= 0) $staffId = $serviceStaff[$serviceIds[0] ?? 0
 $allowedPaymentMethods = ['Cash', ...PayMongo::METHODS];
 
 // Only Full Name and Contact Number are required to book as a guest -- no
-// account needed. Email is optional; when the guest does provide one, it's
-// verified by OTP as an extra confirmation channel, but its absence never
-// blocks a booking.
+// account needed. Email is optional; every booking is still verified by a
+// code, sent to the email if given, otherwise texted to the mobile number.
 if ($fullName === '' || $contact === '' || $branchId <= 0 || $date === '' || $time === '' || empty($serviceIds)
     || !in_array($paymentMethod, $allowedPaymentMethods, true) || $staffId <= 0
 ) {
@@ -100,11 +99,14 @@ if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     exit();
 }
 
-if ($email !== '' && $otpCode === '') {
+// Every guest booking is verified: by the emailed code, or -- with no email --
+// the code texted to the mobile number (see sendBookingOtp.php).
+if ($otpCode === '') {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Please enter the verification code sent to your email.']);
+    echo json_encode(['success' => false, 'message' => 'Please enter the verification code sent to your ' . ($email !== '' ? 'email.' : 'mobile number.')]);
     exit();
 }
+$verificationKey = $email !== '' ? $email : 'sms:' . normalizePhPhone($contact);
 
 if (PayMongo::isOnline($paymentMethod) && !PayMongo::isConfigured()) {
     http_response_code(503);
@@ -132,21 +134,18 @@ if ($otp_fail_limiter->isExceeded()) {
 try {
     $pdo = Database::getInstance();
 
-    // Email is optional, so OTP verification only applies when one was given.
-    if ($email !== '') {
-        $stmt = $pdo->prepare('SELECT code, expires_at FROM booking_verifications WHERE email = ?');
-        $stmt->execute([$email]);
-        $verification = $stmt->fetch();
+    $stmt = $pdo->prepare('SELECT code, expires_at FROM booking_verifications WHERE email = ?');
+    $stmt->execute([$verificationKey]);
+    $verification = $stmt->fetch();
 
-        if (!$verification || !hash_equals($verification['code'], $otpCode) || new DateTime() > new DateTime($verification['expires_at'])) {
-            $otp_fail_limiter->record();
-            http_response_code(403);
-            echo json_encode(['success' => false, 'message' => 'Invalid or expired verification code.']);
-            exit();
-        }
-
-        $otp_fail_limiter->clear();
+    if (!$verification || !hash_equals($verification['code'], $otpCode) || new DateTime() > new DateTime($verification['expires_at'])) {
+        $otp_fail_limiter->record();
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'Invalid or expired verification code.']);
+        exit();
     }
+
+    $otp_fail_limiter->clear();
 
     $stmt = $pdo->prepare('SELECT id, branch_key, branch_name FROM branches WHERE id = ?');
     $stmt->execute([$branchId]);
@@ -260,12 +259,14 @@ try {
     // The booking's main stylist is whoever does the first service.
     $employeeId = $serviceStaff[$serviceIds[0]];
 
-    // Reuse an existing customer record by phone, but only silently attach to
-    // one with a linked (registered) account if the OTP-verified email
-    // matches that account's email on file. Otherwise a stranger who merely
-    // knows someone's phone number could get a booking attached to that
-    // person's real account.
+    // Reuse an existing customer record by phone, but only attach to one with
+    // a linked (registered) account when the guest proved they own it: the
+    // code was texted to this number (no email given), or the OTP-verified
+    // email matches that account's email on file. Otherwise a stranger who
+    // merely knows someone's phone number could get a booking attached to
+    // that person's real account.
     $existingCustomer = false;
+    $phoneVerified = $email === '';
 
     // The email was OTP-verified above, so a booking made with a registered
     // customer's email belongs to that account: attach it there instead of
@@ -283,10 +284,10 @@ try {
         $existingCustomer = $stmt->fetch();
     }
 
-    if ($existingCustomer && $existingCustomer['email'] !== null && strcasecmp($existingCustomer['email'], $email) !== 0) {
+    if ($existingCustomer && $existingCustomer['email'] !== null && !$phoneVerified && strcasecmp($existingCustomer['email'], $email) !== 0) {
         $pdo->rollBack();
         http_response_code(409);
-        echo json_encode(['success' => false, 'message' => 'This mobile number is linked to an existing account. Please log in to book, or use the mobile number and email on that account.']);
+        echo json_encode(['success' => false, 'message' => 'This mobile number is linked to an account with a different email. Log in to book, use the email on that account, or leave the email blank to verify this number by text.']);
         exit();
     }
 
@@ -324,8 +325,8 @@ try {
     $refStmt->execute([$appointmentId]);
     $referenceCode = $refStmt->fetchColumn();
 
+    $pdo->prepare('DELETE FROM booking_verifications WHERE email = ?')->execute([$verificationKey]);
     if ($email !== '') {
-        $pdo->prepare('DELETE FROM booking_verifications WHERE email = ?')->execute([$email]);
         // OTP-verified above -- lets booking/status emails reach this guest,
         // and fills the PayMongo billing email below.
         $pdo->prepare('UPDATE customers SET email = ? WHERE id = ? AND user_id IS NULL')->execute([$email, $customerId]);

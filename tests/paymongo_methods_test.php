@@ -9,6 +9,20 @@
  * then drops the clone. Prints one line per check; exits 1 on any failure.
  */
 
+// ---- The real webhook endpoint, on its own php -S: it calls the mock below, and one php -S can't call itself.
+if (PHP_SAPI === 'cli-server' && $_SERVER['SERVER_PORT'] === '8767') {
+    $root = dirname(__DIR__);
+    require_once $root . '/backend/shared/config/setup/database.php';
+    require_once $root . '/backend/shared/config/payments/PayMongo.php';
+    require_once $root . '/backend/shared/config/notifications/EmailOutbox.php';
+    (new ReflectionProperty(Database::class, 'db_name'))->setValue(null, 'capstone_paymongo_test');
+    (new ReflectionProperty(PayMongo::class, 'credentials'))->setValue(null, ['secret_key' => 'sk_test_mock', 'webhook_secret' => 'whsk_test', 'api_base' => 'http://127.0.0.1:8765']);
+    (new ReflectionProperty(EmailOutbox::class, 'hookRegistered'))->setValue(null, true);
+    chdir($root . '/backend/public'); // the endpoint includes '../../backend/...' relative to its folder
+    require $root . '/backend/public/paymongoWebhook.php';
+    exit();
+}
+
 // ---- Mock PayMongo API (this file is the php -S router) ---------------------
 if (PHP_SAPI === 'cli-server') {
     $file = sys_get_temp_dir() . '/paymongo_mock_state.json';
@@ -118,6 +132,9 @@ register_shutdown_function(function () use ($server, $mysql, $testDb, $stateFile
 
 // Tests never deliver mail or texts: point env() at a folder with no .env, so Brevo and textbee have no keys...
 putenv('SALON_SECRETS_DIR=' . __DIR__ . DIRECTORY_SEPARATOR . 'no-secrets');
+$webhookServer = proc_open([PHP_BINARY, '-S', '127.0.0.1:8767', __FILE__], [['pipe', 'r'], ['file', 'NUL', 'w'], ['file', 'NUL', 'w']], $webhookPipes);
+usleep(500000);
+register_shutdown_function(fn() => proc_terminate($webhookServer));
 require_once $root . '/backend/shared/config/setup/database.php';
 require_once $root . '/backend/shared/config/payments/PayMongo.php';
 require_once $root . '/backend/shared/config/payments/ReservationPayment.php';
@@ -163,6 +180,19 @@ function failIntent(string $intentId, string $message): void {
 // GCash Source: Authorize makes it chargeable (charge_as 'failed' = GCash declines the payment); Fail / Expire end it.
 function setSource(string $sourceId, string $status, string $chargeAs = 'paid'): void {
     edit(function (&$s) use ($sourceId, $status, $chargeAs) { $s['sources'][$sourceId]['status'] = $status; $s['sources'][$sourceId]['charge_as'] = $chargeAs; });
+}
+// PayMongo delivering an event to the real webhook endpoint, signed like theirs. Returns the HTTP status.
+function webhook(string $type, array $data, string $secret = 'whsk_test'): int {
+    $raw = json_encode(['data' => ['id' => 'evt_' . uniqid(), 'type' => 'event', 'attributes' => ['type' => $type, 'livemode' => false, 'data' => $data]]]);
+    $t = time();
+    $ch = curl_init('http://127.0.0.1:8767/backend/public/paymongoWebhook.php');
+    curl_setopt_array($ch, [CURLOPT_POST => true, CURLOPT_POSTFIELDS => $raw, CURLOPT_RETURNTRANSFER => true, CURLOPT_HTTPHEADER => [
+        'Content-Type: application/json', 'Paymongo-Signature: t=' . $t . ',te=' . hash_hmac('sha256', "{$t}.{$raw}", $secret) . ',li=']]);
+    curl_exec($ch);
+    return curl_getinfo($ch, CURLINFO_HTTP_CODE);
+}
+function charges(string $sourceId): int {
+    return count(array_filter(calls('POST', '#^/payments$#'), fn($c) => $c['body']['source']['id'] === $sourceId));
 }
 function payCheckout(string $sessionId): string {
     $payId = '';
@@ -400,6 +430,38 @@ setSource(row('home_service_requests', $hs2)['paymongo_source_id'], 'chargeable'
 $sync($hs2, true);
 check('home service GCash source -> charged and recorded once as PayMongo-GCash', $sync($hs2, true)['state'] === 'paid'
     && $pdo->query("SELECT method FROM home_service_payments WHERE home_service_request_id = {$hs2}")->fetchAll(PDO::FETCH_COLUMN) === ['PayMongo-GCash']);
+
+// The webhook alone (the customer never returns to the result page): source.chargeable becomes a payment, once.
+$w = newAppointment('PayMongo-GCash');
+PayMongo::startPayment($pdo, 'PayMongo-GCash', $w, $ref($w), 250, 'guest');
+$srcW = row('appointments', $w)['paymongo_source_id'];
+setSource($srcW, 'chargeable');
+$chargeable = ['id' => $srcW, 'type' => 'source'];
+check('webhook with a bad signature -> refused, nothing charged', webhook('source.chargeable', $chargeable, 'wrong_secret') === 401 && charges($srcW) === 0);
+check('webhook source.chargeable -> payment created, deposit recorded as PayMongo-GCash', webhook('source.chargeable', $chargeable) === 200 && charges($srcW) === 1
+    && (int) row('appointments', $w)['deposit_paid'] === 1 && row('appointments', $w)['deposit_method'] === 'PayMongo-GCash');
+$payW = row('appointments', $w)['paymongo_payment_id'];
+$repeat = webhook('source.chargeable', $chargeable);
+$paidEvent = webhook('payment.paid', ['id' => $payW, 'type' => 'payment', 'attributes' => ['status' => 'paid', 'payment_intent_id' => null, 'source' => ['id' => $srcW, 'type' => 'gcash']]]);
+check('repeat delivery and the payment.paid that follows -> still one payment, one record', $repeat === 200 && $paidEvent === 200 && charges($srcW) === 1 && logCount('payment_paid', $payW) === 1);
+
+$pdo->exec("INSERT INTO home_service_requests (reference_code, customer_id, address, event_type, preferred_date, preferred_time, status, payment_status, quote_price, deposit_amount, deposit_paid, online_payment_token)
+    VALUES ('', 23, 'Test venue', 'Debut', CURDATE() + INTERVAL 90 DAY, '10:00:00', 'Payment Required', 'Payment Required', 5000, 1500, 0, '" . str_repeat('c', 32) . "')");
+$hs3 = (int) $pdo->lastInsertId();
+PayMongo::startPayment($pdo, 'PayMongo-GCash', $hs3, row('home_service_requests', $hs3)['reference_code'], 1500, 'guest', true);
+$srcH = row('home_service_requests', $hs3)['paymongo_source_id'];
+setSource($srcH, 'chargeable');
+check('webhook source.chargeable for a home service -> charged and recorded', webhook('source.chargeable', ['id' => $srcH, 'type' => 'source']) === 200 && charges($srcH) === 1
+    && (int) row('home_service_requests', $hs3)['deposit_paid'] === 1);
+
+// Authorized on an old GCash page after pressing "Try again": never charged, so there's nothing to refund.
+$v = newAppointment('PayMongo-GCash');
+PayMongo::startPayment($pdo, 'PayMongo-GCash', $v, $ref($v), 250, 'guest');
+$oldSrc = row('appointments', $v)['paymongo_source_id'];
+PayMongo::startPayment($pdo, 'PayMongo-GCash', $v, $ref($v), 250, 'guest');
+setSource($oldSrc, 'chargeable');
+check('webhook for a replaced GCash attempt -> accepted, not charged', webhook('source.chargeable', ['id' => $oldSrc, 'type' => 'source']) === 200 && charges($oldSrc) === 0
+    && (int) row('appointments', $v)['deposit_paid'] === 0);
 
 // 6. Booking again while a booking waits for payment -> offered that booking instead of a second slot.
 $pdo->exec("INSERT INTO customers (first_name, last_name, phone_number) VALUES ('Held', 'Test', '09170000999')");

@@ -120,7 +120,9 @@ C:\xampp\php\php.exe C:\xampp\htdocs\Capstone-Salon\backend\shared\cron\sendAppo
    `DB_SSL_CA=/etc/ssl/certs/ca-certificates.crt`, `APP_URL`, `CRON_SECRET`, plus
    the PayMongo, Brevo and textbee keys from `.env.example`.
 3. **PayMongo:** register `https://your-domain.com/backend/public/paymongoWebhook.php`
-   and put the returned secret in `PAYMONGO_WEBHOOK_SECRET`.
+   with the events `source.chargeable`, `payment.paid`, `payment.failed` and
+   `checkout_session.payment.paid`, and put the returned secret in
+   `PAYMONGO_WEBHOOK_SECRET`.
 4. **Cron:** `vercel.json` runs each job once a day, the most the Hobby plan
    allows. On Pro, change them to `*/5 * * * *`: payment reminders have a short
    window and daily runs will miss most of them.
@@ -179,9 +181,10 @@ in**. When `APP_URL` starts with `https://`, login only works over HTTPS.
 ### 6. Connect the outside services
 
 - **PayMongo:** register the webhook
-  `https://your-domain.com/backend/public/paymongoWebhook.php`, then put the
-  returned `whsk_...` secret in `PAYMONGO_WEBHOOK_SECRET`. Keep test keys until
-  you've tried a full payment.
+  `https://your-domain.com/backend/public/paymongoWebhook.php` with the events
+  `source.chargeable`, `payment.paid`, `payment.failed` and
+  `checkout_session.payment.paid`, then put the returned `whsk_...` secret in
+  `PAYMONGO_WEBHOOK_SECRET`. Keep test keys until you've tried a full payment.
 - **Cron:** run each of these every few minutes, using the PHP path the host shows:
   ```
   php /path/to/public_html/backend/shared/cron/sendQueuedEmails.php

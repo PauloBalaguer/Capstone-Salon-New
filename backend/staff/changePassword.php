@@ -13,6 +13,7 @@
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
+require_once '../../backend/shared/config/security/Csrf.php';
 require_once '../../backend/shared/config/security/RateLimiter.php';
 require_once '../../backend/shared/config/setup/mail.php';
 
@@ -30,6 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
     exit();
 }
+
+Csrf::requireValid();
 
 $ip_address = RateLimiter::getIpAddress();
 $limiter = new RateLimiter($ip_address, 'change_password_fail', 5, 3600);

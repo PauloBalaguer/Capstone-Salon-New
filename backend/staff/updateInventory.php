@@ -10,6 +10,7 @@
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
+require_once '../../backend/shared/config/security/Csrf.php';
 require_once '../../backend/shared/config/helpers/StaffMetrics.php';
 
 sendCorsHeaders();
@@ -26,6 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
     exit();
 }
+
+Csrf::requireValid();
 
 $itemId = (int) ($_POST['id'] ?? 0);
 $quantity = (int) ($_POST['quantity'] ?? 0);

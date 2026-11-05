@@ -13,25 +13,9 @@ AuditLog::captureRequest();
 // from PHP's default session store instead, so it never saw the real
 // session data and this Time Out step silently never ran.
 
-// Attendance time-out is tied to this real, reliable server-side action
-// (every "Sign Out" link hits this script) rather than an unload/beforeunload
-// event, which browsers can skip entirely (tab killed, laptop closed, crash).
-if (($_SESSION['user_role'] ?? null) === 'Staff' && isset($_SESSION['user_id'])) {
-    try {
-        $pdo = Database::getInstance();
-        $stmt = $pdo->prepare('SELECT id FROM employees WHERE user_id = ? LIMIT 1');
-        $stmt->execute([$_SESSION['user_id']]);
-        $employeeId = $stmt->fetchColumn();
-        if ($employeeId) {
-            $pdo->prepare('
-                UPDATE attendance SET clock_out_time = NOW()
-                WHERE employee_id = ? AND DATE(clock_in_time) = CURDATE() AND clock_out_time IS NULL
-            ')->execute([$employeeId]);
-        }
-    } catch (PDOException $e) {
-        error_log('logout attendance time-out error: ' . $e->getMessage());
-    }
-}
+// Signing out ends the session only. A staff member's shift is a separate
+// action (Shift Out in the Staff Portal, backend/staff/shiftAction.php), so an
+// active shift stays open and shows again after the next login.
 
 // Wipe all session arrays
 $_SESSION = array();

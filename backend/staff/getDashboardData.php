@@ -3,12 +3,14 @@
 /**
  * Staff Dashboard Data API Endpoint
  *
- * Returns everything every frontend/staff/*.html page needs in one request:
- * the logged-in staff member's profile, every appointment ever assigned to
- * them, their attendance log, a compact performance summary, their most
- * recent client feedback, and their branch's inventory (for the "prepare
- * supplies" / "log usage" flows). function/staff/shared-data.js calls this
- * once on load and again after every mutation to refresh the Alpine store.
+ * Returns everything the Staff Portal (frontend/staff/dashboard.html) needs in
+ * one request: the logged-in staff member's profile, their current shift
+ * (StaffShift::state), their weekly schedule, every appointment assigned to
+ * them, their attendance history with break and worked hours, their branch's
+ * inventory (for logging supplies used on a service) and their notifications.
+ * It also hands the page this session's CSRF token for its POST requests.
+ * function/staff/shared-data.js calls this once on load and again after every
+ * change to refresh the Alpine store.
  */
 
 require_once '../../backend/shared/config/setup/cors.php';
@@ -16,70 +18,45 @@ require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/booking/Scheduling.php';
 require_once '../../backend/shared/config/booking/ArrivalRequest.php';
-require_once '../../backend/shared/config/helpers/StaffMetrics.php';
+require_once '../../backend/shared/config/helpers/StaffShift.php';
+require_once '../../backend/shared/config/security/Csrf.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
 
-if (!isLoggedIn() || ($_SESSION['user_role'] ?? null) !== 'Staff') {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'message' => 'Please log in as a staff member to view this page.']);
-    exit();
-}
-
 try {
     $pdo = Database::getInstance();
+    // Staff only (401 otherwise), and only this account's own records.
+    $employee = StaffShift::requireEmployee($pdo);
     $userId = $_SESSION['user_id'];
-
-    $stmt = $pdo->prepare('
-        SELECT e.id, e.first_name, e.last_name, e.phone_number, e.profile_picture, e.position, e.hire_date, e.branch_id, br.branch_name
-        FROM employees e
-        LEFT JOIN branches br ON br.id = e.branch_id
-        WHERE e.user_id = ?
-        LIMIT 1
-    ');
-    $stmt->execute([$userId]);
-    $employee = $stmt->fetch();
-
-    if (!$employee) {
-        http_response_code(404);
-        echo json_encode(['success' => false, 'message' => 'No staff profile is linked to this account.']);
-        exit();
-    }
-
-    $employeeId = (int) $employee['id'];
+    $employeeId = $employee['id'];
     $branchId = $employee['branch_id'];
 
     // No cron/background worker exists in this project and browser-close
-    // events are unreliable, so Time Out is settled here (checked on every
-    // dashboard load) instead -- see Scheduling::autoCloseAttendance().
+    // events are unreliable, so a shift left open past closing time is
+    // settled here (checked on every dashboard load) -- see
+    // Scheduling::autoCloseAttendance().
     Scheduling::autoCloseAttendance($pdo, $employeeId, $branchId);
 
     $profile = [
         'employeeId' => $employeeId,
+        'employeeCode' => StaffShift::employeeCode($employeeId),
         'name' => trim($employee['first_name'] . ' ' . $employee['last_name']),
         'firstName' => $employee['first_name'],
         'lastName' => $employee['last_name'],
         'phone' => $employee['phone_number'],
         'profilePicture' => $employee['profile_picture'],
-        'email' => $_SESSION['user_email'],
-        'role' => $employee['position'] ?: 'Staff',
+        'email' => $employee['email'],
+        'position' => $employee['position'] ?: 'Staff',
+        'role' => $_SESSION['user_role'],
+        'accountStatus' => ((int) $employee['is_active'] && (int) $employee['user_active']) ? 'Active' : 'Inactive',
         'branchId' => $branchId,
         'branchName' => $employee['branch_name'] ?? 'Unassigned Branch',
         'hireDate' => $employee['hire_date'],
     ];
 
-    // --- Notification preferences (same users.notify_* columns the admin
-    // side reads/writes -- reused here for the staff profile page). ---
-    $stmt = $pdo->prepare('SELECT notify_booking, notify_inventory, notify_order, notify_marketing FROM users WHERE id = ? LIMIT 1');
-    $stmt->execute([$userId]);
-    $notifyRow = $stmt->fetch();
-    $notificationPrefs = [
-        'bookingAlerts' => (bool) ($notifyRow['notify_booking'] ?? true),
-        'inventoryAlerts' => (bool) ($notifyRow['notify_inventory'] ?? true),
-        'orderAlerts' => (bool) ($notifyRow['notify_order'] ?? true),
-        'marketingAlerts' => (bool) ($notifyRow['notify_marketing'] ?? false),
-    ];
+    $schedule = StaffShift::weeklySchedule($pdo, $employee);
+    $shift = StaffShift::state($pdo, $employee, $schedule);
 
     $stmt = $pdo->prepare("
         SELECT
@@ -93,9 +70,11 @@ try {
             TIMESTAMPDIFF(MINUTE, a.appointment_datetime, NOW()) AS minutesLate,
             COALESCE(SUM(s.duration_minutes), 0) AS durationMinutes,
             a.status AS status,
-            a.total_price AS price
+            a.total_price AS price,
+            br.branch_name AS branchName
         FROM appointments a
         JOIN customers c ON c.id = a.customer_id
+        LEFT JOIN branches br ON br.id = a.branch_id
         LEFT JOIN appointment_services aps ON aps.appointment_id = a.id
         LEFT JOIN services s ON s.id = aps.service_id
         WHERE a.employee_id = ? OR EXISTS (SELECT 1 FROM appointment_services mine WHERE mine.appointment_id = a.id AND mine.employee_id = ?)
@@ -165,123 +144,49 @@ try {
         return $row;
     }, $stmt->fetchAll());
 
+    // Attendance history, newest first. Hours are worked out in SQL from the
+    // full DATETIMEs (so a shift past midnight adds up) minus every break.
     $stmt = $pdo->prepare("
         SELECT
-            id,
-            DATE_FORMAT(clock_in_time, '%Y-%m-%d') AS date,
-            DATE_FORMAT(clock_in_time, '%h:%i %p') AS clockIn,
-            clock_out_time,
-            DATE_FORMAT(clock_out_time, '%h:%i %p') AS clockOut,
-            notes
-        FROM attendance
-        WHERE employee_id = ?
-        ORDER BY clock_in_time DESC
+            a.id,
+            DATE_FORMAT(a.clock_in_time, '%Y-%m-%d') AS date,
+            a.clock_in_time AS clockInAt,
+            a.clock_out_time AS clockOutAt,
+            a.notes,
+            " . StaffShift::breakSecondsSql('a') . " AS breakSeconds,
+            " . StaffShift::workedSecondsSql('a') . " AS workedSeconds,
+            EXISTS (SELECT 1 FROM attendance_breaks ob WHERE ob.attendance_id = a.id AND ob.break_end IS NULL) AS onBreak
+        FROM attendance a
+        WHERE a.employee_id = ?
+        ORDER BY a.clock_in_time DESC
         LIMIT 500
     ");
     $stmt->execute([$employeeId]);
     $attendance = array_map(function ($row) {
-        $row['id'] = (string) $row['id'];
-        $row['isOpen'] = $row['clock_out_time'] === null;
-        unset($row['clock_out_time']);
-        return $row;
-    }, $stmt->fetchAll());
-
-    $worksOn = StaffMetrics::worksOnSql('a', '?');
-    $finished = StaffMetrics::FINISHED_STATUSES_SQL;
-
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM appointments a WHERE {$worksOn} AND a.status IN {$finished}");
-    $stmt->execute([$employeeId, $employeeId]);
-    $completedCount = (int) $stmt->fetchColumn();
-
-    $stmt = $pdo->prepare("
-        SELECT COUNT(*) FROM appointments a
-        WHERE {$worksOn} AND a.status IN {$finished}
-        AND MONTH(a.appointment_datetime) = MONTH(CURDATE()) AND YEAR(a.appointment_datetime) = YEAR(CURDATE())
-    ");
-    $stmt->execute([$employeeId, $employeeId]);
-    $completedThisMonth = (int) $stmt->fetchColumn();
-
-    $stmt = $pdo->prepare("
-        SELECT ROUND(AVG(f.rating), 1) AS avgRating, COUNT(*) AS totalReviews
-        FROM feedback f
-        JOIN appointments a ON a.id = f.appointment_id
-        WHERE {$worksOn}
-    ");
-    $stmt->execute([$employeeId, $employeeId]);
-    $ratingRow = $stmt->fetch();
-
-    // --- Attendance rate (last 30 days), same rule as the admin and cashier
-    // staff lists so the number matches everywhere it's shown. ---
-    $stmt = $pdo->prepare('SELECT ' . StaffMetrics::attendedDaysSql('e') . ' AS attendedDays, '
-        . StaffMetrics::branchOpenDaysSql('e') . ' AS branchOpenDays FROM employees e WHERE e.id = ?');
-    $stmt->execute([$employeeId]);
-    $attendanceRow = $stmt->fetch();
-    $attendanceDays = (int) $attendanceRow['attendedDays'];
-    // Same floor as ranking.php, so the card can never read "2 of 1 days".
-    $branchOpenDays = max($attendanceDays, (int) $attendanceRow['branchOpenDays']);
-
-    $performance = [
-        'completedCount' => $completedCount,
-        'completedThisMonth' => $completedThisMonth,
-        'avgRating' => $ratingRow['avgRating'] !== null ? (float) $ratingRow['avgRating'] : 0,
-        'totalReviews' => (int) $ratingRow['totalReviews'],
-        'attendanceDays' => $attendanceDays,
-        'branchOpenDays' => $branchOpenDays,
-        'attendanceRate' => StaffMetrics::attendanceRate($attendanceDays, $branchOpenDays),
-    ];
-
-    $stmt = $pdo->prepare("
-        SELECT
-            f.id,
-            CONCAT(c.first_name, ' ', c.last_name) AS clientName,
-            f.rating,
-            f.comments AS comment,
-            DATE_FORMAT(f.created_at, '%Y-%m-%d') AS date,
-            GROUP_CONCAT(DISTINCT s.service_name ORDER BY s.id SEPARATOR ', ') AS serviceName
-        FROM feedback f
-        JOIN appointments a ON a.id = f.appointment_id
-        JOIN customers c ON c.id = f.customer_id
-        LEFT JOIN appointment_services aps ON aps.appointment_id = a.id
-        LEFT JOIN services s ON s.id = aps.service_id
-        WHERE {$worksOn}
-        GROUP BY f.id
-        ORDER BY f.created_at DESC
-        LIMIT 5
-    ");
-    $stmt->execute([$employeeId, $employeeId]);
-    $recentFeedback = array_map(function ($row) {
-        $row['id'] = (string) $row['id'];
-        $row['rating'] = (int) $row['rating'];
-        return $row;
-    }, $stmt->fetchAll());
-
-    $stmt = $pdo->prepare("
-        SELECT
-            ia.id,
-            a.reference_code AS bookingReference,
-            CONCAT(c.first_name, ' ', c.last_name) AS clientName,
-            GROUP_CONCAT(DISTINCT s.service_name ORDER BY s.id SEPARATOR ', ') AS serviceName,
-            i.product_name AS itemName,
-            i.quantity_on_hand AS availableQuantity,
-            ia.quantity AS quantityUsed,
-            DATE_FORMAT(ia.created_at, '%Y-%m-%d %h:%i %p') AS loggedAt
-        FROM inventory_adjustments ia
-        JOIN inventory i ON i.id = ia.inventory_id
-        LEFT JOIN appointments a ON a.id = ia.appointment_id
-        LEFT JOIN customers c ON c.id = a.customer_id
-        LEFT JOIN appointment_services aps ON aps.appointment_id = a.id
-        LEFT JOIN services s ON s.id = aps.service_id
-        WHERE ia.adjusted_by = ? AND ia.adjustment_type = 'sub'
-        GROUP BY ia.id
-        ORDER BY ia.created_at DESC
-        LIMIT 30
-    ");
-    $stmt->execute([$userId]);
-    $supplyUsage = array_map(function ($row) {
-        $row['id'] = (string) $row['id'];
-        $row['availableQuantity'] = (int) $row['availableQuantity'];
-        $row['quantityUsed'] = (int) $row['quantityUsed'];
-        return $row;
+        $isOpen = $row['clockOutAt'] === null;
+        $notes = (string) $row['notes'];
+        if ($isOpen) {
+            $status = (int) $row['onBreak'] ? 'On Break' : 'On Shift';
+        } elseif ($notes === Scheduling::NOTE_AUTO_CLOSE) {
+            $status = 'Auto clock-out';
+        } elseif ($notes === Scheduling::NOTE_EOD_CLOSE) {
+            $status = 'Closed at end of day';
+        } elseif ($notes !== '') {
+            $status = 'Clocked out by cashier';
+        } else {
+            $status = 'Completed';
+        }
+        return [
+            'id' => (string) $row['id'],
+            'date' => $row['date'],
+            'clockIn' => StaffShift::iso($row['clockInAt']),
+            'clockOut' => StaffShift::iso($row['clockOutAt']),
+            'breakSeconds' => (int) $row['breakSeconds'],
+            'workedSeconds' => (int) $row['workedSeconds'],
+            'isOpen' => $isOpen,
+            'status' => $status,
+            'needsReview' => !$isOpen && $notes !== '',
+        ];
     }, $stmt->fetchAll());
 
     $stmt = $pdo->prepare("
@@ -326,16 +231,15 @@ try {
 
     echo json_encode([
         'success' => true,
+        'csrfToken' => Csrf::token(),
         'profile' => $profile,
+        'shift' => $shift,
+        'schedule' => $schedule,
         'availability' => $availability,
-        'notificationPrefs' => $notificationPrefs,
         'lateGraceMinutes' => Scheduling::arrivalGraceMinutes(),
         'appointments' => $appointments,
         'attendance' => $attendance,
-        'performance' => $performance,
-        'recentFeedback' => $recentFeedback,
         'inventory' => $inventory,
-        'supplyUsage' => $supplyUsage,
         'notifications' => $notifications,
     ]);
 } catch (PDOException $e) {

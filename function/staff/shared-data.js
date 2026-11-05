@@ -1,71 +1,85 @@
-/* Shared live data + helpers for the Leo Mejillano Salon staff portal.
-   Loaded on every frontend/staff/*.html page before that page's own script.
-   Populates an Alpine.store('staff') from the real backend
-   (backend/staff/getDashboardData.php) and refreshes it after every
-   mutation, so an update made on one page (e.g. starting a service on
-   Assigned Appointments) is visible after navigating to another (e.g. the
-   Dashboard's "today" list). Mirrors the pattern already used by
-   function/admin/shared-data.js. */
+/* Live data + actions for the Leo Mejillano Salon Staff Portal
+   (frontend/staff/dashboard.html). Fills Alpine.store('staff') from
+   backend/staff/getDashboardData.php and refreshes it after every change.
+
+   Attendance times always come from the server: the page only adds the
+   seconds that passed since the last load, so the live clock and the
+   "hours worked" counter keep moving between refreshes. */
 
 const STAFF_API_BASE = '../../';
+const STAFF_LOGIN_URL = '../../frontend/auth/login.html';
+const STAFF_TZ = 'Asia/Manila';
 
 document.addEventListener('alpine:init', () => {
   Alpine.store('staff', {
     loading: true,
-    profile: { employeeId: null, name: '', firstName: '', lastName: '', phone: '', profilePicture: null, email: '', role: '', branchId: null, branchName: '', hireDate: null },
-    notificationPrefs: { bookingAlerts: true, inventoryAlerts: true, orderAlerts: true, marketingAlerts: false },
+    loadError: '',
+    csrfToken: '',
+    profile: { employeeId: null, employeeCode: '', name: '', firstName: '', lastName: '', phone: '', profilePicture: null, email: '', position: '', role: '', accountStatus: '', branchId: null, branchName: '', hireDate: null },
+    shift: { status: 'off', serverNow: null, attendanceId: null, clockIn: null, breakStart: null, breakSeconds: 0, workedSeconds: 0, breakCount: 0, scheduleToday: null, today: { timeIn: null, timeOut: null, workedSeconds: 0, breakSeconds: 0 } },
+    schedule: [],
     appointments: [],
     attendance: [],
-    performance: { completedCount: 0, completedThisMonth: 0, avgRating: 0, totalReviews: 0 },
-    recentFeedback: [],
     inventory: [],
-    supplyUsage: [],
     notifications: [],
-    isNotificationPanelOpen: false,
-    now: new Date(),
-    loadedAt: new Date(),
     lateGraceMinutes: null,
     availability: { busyUntil: null, busyMinutesLeft: 0 },
+    // Server time minus this device's time, so "now" follows the server.
+    clockOffsetMs: 0,
+    now: new Date(),
+    loadedAt: new Date(),
     busy: false,
+    shiftBusy: false,
 
     toast(message, type = 'success') {
-      LMToast.show(message, type, { duration: 3000 });
+      if (window.LMToast) LMToast.show(message, type, { duration: 3500 });
     },
 
     async refresh() {
       try {
-        const response = await fetch(STAFF_API_BASE + 'backend/staff/getDashboardData.php', { credentials: 'same-origin' });
+        const response = await fetch(STAFF_API_BASE + 'backend/staff/getDashboardData.php', { credentials: 'same-origin', cache: 'no-store' });
         if (response.status === 401) {
-          window.location.href = '../../frontend/auth/login.html';
+          window.location.replace(STAFF_LOGIN_URL);
           return;
         }
         const data = await response.json();
         if (!data.success) {
-          console.error('Failed to load staff dashboard data:', data.message);
+          this.loadError = data.message || 'Your dashboard could not be loaded.';
           return;
         }
+        this.loadError = '';
+        this.csrfToken = data.csrfToken;
+        window.LMCsrfToken = data.csrfToken;
         this.profile = data.profile;
-        this.notificationPrefs = data.notificationPrefs;
+        this.schedule = data.schedule;
         this.lateGraceMinutes = data.lateGraceMinutes;
         this.availability = data.availability;
-        this.loadedAt = new Date();
         this.appointments = data.appointments;
         this.attendance = data.attendance;
-        this.performance = data.performance;
-        this.recentFeedback = data.recentFeedback;
         this.inventory = data.inventory;
-        this.supplyUsage = data.supplyUsage;
         this.notifications = data.notifications;
+        this.applyShift(data.shift);
       } catch (e) {
+        this.loadError = 'No connection. Check your internet and try again.';
         console.error('Network error while loading staff dashboard data:', e);
       } finally {
         this.loading = false;
       }
     },
 
-    /* POSTs to any <panel>/backend/*.php mutation endpoint (relative to the project root,
-       e.g. "backend/staff/updateAppointment.php") and returns the parsed JSON response.
-       Callers refresh() afterward on success. */
+    applyShift(shift) {
+      this.shift = shift;
+      this.loadedAt = new Date();
+      if (shift.serverNow) this.clockOffsetMs = new Date(shift.serverNow).getTime() - Date.now();
+      this.now = this.serverNow();
+    },
+
+    serverNow() {
+      return new Date(Date.now() + this.clockOffsetMs);
+    },
+
+    /* POSTs to a backend endpoint (relative to the project root) with this
+       session's CSRF token and returns the parsed JSON response. */
     async post(endpoint, params) {
       const body = new URLSearchParams();
       Object.entries(params || {}).forEach(([key, value]) => {
@@ -74,16 +88,229 @@ document.addEventListener('alpine:init', () => {
       const response = await fetch(STAFF_API_BASE + endpoint, {
         method: 'POST',
         credentials: 'same-origin',
+        headers: { 'X-CSRF-Token': this.csrfToken },
         body
       });
       if (response.status === 401) {
-        window.location.href = '../../frontend/auth/login.html';
+        window.location.replace(STAFF_LOGIN_URL);
         throw new Error('Not authenticated');
       }
-      return response.json();
+      const data = await response.json().catch(() => ({ success: false, message: 'Unexpected server response. Please try again.' }));
+      // A stale token (e.g. the session was renewed in another tab): reload it once.
+      if (data.csrfExpired) await this.refresh();
+      return data;
+    },
+
+    /* ---------- Shift In / breaks / Shift Out ---------- */
+
+    async shiftAction(action) {
+      if (this.shiftBusy) return { success: false };
+      this.shiftBusy = true;
+      try {
+        const res = await this.post('backend/staff/shiftAction.php', { action });
+        this.toast(res.message, res.success ? 'success' : 'error');
+        if (res.success) {
+          this.applyShift(res.shift);
+          await this.refresh();
+        } else {
+          await this.refresh(); // show the real state if another tab changed it
+        }
+        return res;
+      } catch {
+        this.toast('Could not reach the server. Your shift was not changed.', 'error');
+        return { success: false };
+      } finally {
+        this.shiftBusy = false;
+      }
+    },
+
+    elapsedSinceLoad() {
+      return Math.max(0, Math.floor((this.now - this.loadedAt) / 1000));
+    },
+
+    // Live worked seconds of the open shift: breaks don't count.
+    liveWorkedSeconds() {
+      const s = this.shift;
+      if (s.status === 'on') return s.workedSeconds + this.elapsedSinceLoad();
+      return s.workedSeconds;
+    },
+
+    liveBreakSeconds() {
+      const s = this.shift;
+      if (s.status === 'break') return s.breakSeconds + this.elapsedSinceLoad();
+      return s.breakSeconds;
+    },
+
+    // Today's total (all shifts that started today) for the dashboard.
+    liveTodayWorkedSeconds() {
+      const t = this.shift.today || { workedSeconds: 0 };
+      return t.workedSeconds + (this.shift.status === 'on' ? this.elapsedSinceLoad() : 0);
+    },
+
+    currentBreakSeconds() {
+      if (this.shift.status !== 'break' || !this.shift.breakStart) return 0;
+      return Math.max(0, Math.floor((this.now - new Date(this.shift.breakStart)) / 1000));
+    },
+
+    shiftStatusLabel() {
+      return { on: 'On Shift', break: 'On Break', off: 'Off Shift' }[this.shift.status] || 'Off Shift';
+    },
+
+    /* ---------- Formatting (always in Asia/Manila) ---------- */
+
+    timeLabel(iso, withSeconds = false) {
+      if (!iso) return '--';
+      const d = iso instanceof Date ? iso : new Date(iso);
+      return d.toLocaleTimeString('en-US', { timeZone: STAFF_TZ, hour: 'numeric', minute: '2-digit', ...(withSeconds ? { second: '2-digit' } : {}) });
+    },
+
+    clockLabel() {
+      return this.timeLabel(this.now, true);
+    },
+
+    longDateLabel(date = this.now) {
+      return date.toLocaleDateString('en-US', { timeZone: STAFF_TZ, weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    },
+
+    // "2026-10-21" -> "Oct 21, 2026"; parsed at local midnight so it can't shift a day.
+    formatDate(iso, opts = { month: 'short', day: 'numeric', year: 'numeric' }) {
+      return new Date(iso + 'T00:00:00').toLocaleDateString('en-US', opts);
+    },
+
+    // 9000 -> "2h 30m"; under a minute reads "0m".
+    durationLabel(seconds) {
+      const total = Math.max(0, Math.floor((seconds || 0) / 60));
+      const h = Math.floor(total / 60);
+      const m = total % 60;
+      return h ? `${h}h ${String(m).padStart(2, '0')}m` : `${m}m`;
+    },
+
+    hoursLabel(seconds) {
+      return ((seconds || 0) / 3600).toFixed(2) + ' hrs';
+    },
+
+    greeting() {
+      const hour = Number(this.now.toLocaleString('en-US', { timeZone: STAFF_TZ, hour: 'numeric', hour12: false })) % 24;
+      if (hour < 12) return 'Good morning';
+      if (hour < 18) return 'Good afternoon';
+      return 'Good evening';
+    },
+
+    todayISO() {
+      const parts = new Intl.DateTimeFormat('en-CA', { timeZone: STAFF_TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(this.now);
+      return parts; // en-CA formats as YYYY-MM-DD
+    },
+
+    scheduleTodayLabel() {
+      const day = this.shift.scheduleToday;
+      if (!day) return 'No schedule set';
+      if (day.isRestDay) return 'Rest day';
+      if (!day.startLabel) return 'No schedule set';
+      return `${day.startLabel} – ${day.endLabel}`;
+    },
+
+    firstName() {
+      return this.profile.firstName || (this.profile.name || '').split(' ')[0] || 'there';
+    },
+
+    initials() {
+      const parts = (this.profile.name || '').trim().split(/\s+/).filter(Boolean);
+      if (!parts.length) return '';
+      return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
+    },
+
+    /* ---------- Appointments (same rules the server enforces) ---------- */
+
+    // "YYYY-MM-DD HH:MM" in 24-hour time: appt.time is "01:00 PM".
+    appointmentSortKey(appt) {
+      const [time, meridiem] = appt.time.split(' ');
+      const [h, m] = time.split(':').map(Number);
+      const hours = (h % 12) + (meridiem === 'PM' ? 12 : 0);
+      return `${appt.date} ${String(hours).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    },
+
+    isInactiveAppointment(appt) {
+      return ['Cancelled', 'No-Show'].includes(appt.status);
+    },
+
+    isFinished(appt) {
+      return ['Completed', 'Reviewed'].includes(appt.status);
+    },
+
+    getTodayAppointments() {
+      const today = this.todayISO();
+      return this.appointments
+        .filter(a => a.date === today)
+        .sort((a, b) => (this.isInactiveAppointment(a) - this.isInactiveAppointment(b))
+          || this.appointmentSortKey(a).localeCompare(this.appointmentSortKey(b)));
+    },
+
+    // Still to do: today's open bookings first, then later days.
+    getUpcomingAppointments() {
+      const today = this.todayISO();
+      return this.appointments
+        .filter(a => a.date >= today && ['Pending', 'Confirmed', 'In Progress', 'Reschedule Requested'].includes(a.status))
+        .sort((a, b) => this.appointmentSortKey(a).localeCompare(this.appointmentSortKey(b)));
+    },
+
+    todayAssignedCount() {
+      return this.getTodayAppointments().filter(a => !this.isInactiveAppointment(a)).length;
+    },
+
+    todayCompletedCount() {
+      return this.getTodayAppointments().filter(a => this.isFinished(a)).length;
+    },
+
+    // A shared booking is started and completed by its main stylist.
+    canStart(appt) {
+      return appt.isMainStylist !== false && appt.status === 'Confirmed' && appt.date === this.todayISO();
+    },
+
+    canComplete(appt) {
+      return appt.isMainStylist !== false && appt.status === 'In Progress';
+    },
+
+    inProgressAppointments() {
+      return this.appointments.filter(a => a.status === 'In Progress');
+    },
+
+    // appt.minutesLate is from the server's clock when the data loaded.
+    minutesLate(appt) {
+      return appt.minutesLate + Math.floor((this.now - this.loadedAt) / 60000);
+    },
+
+    isLate(appt) {
+      return appt.status === 'Confirmed' && appt.isMainStylist !== false
+        && appt.date <= this.todayISO() && this.minutesLate(appt) > 0;
+    },
+
+    isMissed(appt) {
+      return this.isLate(appt) && appt.date < this.todayISO();
+    },
+
+    isBeyondGrace(appt) {
+      return this.isLate(appt) && this.minutesLate(appt) > (this.lateGraceMinutes ?? 0);
+    },
+
+    lateLabel(appt) {
+      if (appt.date < this.todayISO()) return 'Missed date';
+      const minutes = this.minutesLate(appt);
+      return minutes < 60 ? `Late ${minutes} min` : `Late ${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+    },
+
+    hasArrivalRequest(appt, kind) {
+      return (appt.arrivalRequests || []).includes(kind);
+    },
+
+    statusTone(status) {
+      return {
+        Pending: 'amber', Confirmed: 'blue', 'In Progress': 'green', Completed: 'teal', Reviewed: 'teal',
+        'Reschedule Requested': 'orange', 'Reschedule Required': 'orange', Cancelled: 'red', 'No-Show': 'red'
+      }[status] || 'slate';
     },
 
     async startService(referenceCode) {
+      if (this.busy) return { success: false };
       this.busy = true;
       try {
         const changed = await AppointmentArrival.review(referenceCode, 'backend/staff/updateAppointment.php');
@@ -129,44 +356,6 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
-    // appt.minutesLate is from the server's clock when the data loaded; this
-    // keeps it counting up while the page stays open.
-    minutesLate(appt) {
-      return appt.minutesLate + Math.floor((this.now - this.loadedAt) / 60000);
-    },
-
-    // Awaiting a customer past their reserved time. A shared booking's other
-    // stylists have a later window of their own, so this is the main stylist's.
-    isLate(appt) {
-      return appt.status === 'Confirmed' && appt.isMainStylist !== false
-        && appt.date <= this.todayISO() && this.minutesLate(appt) > 0;
-    },
-
-    // The reserved day has passed; only the front desk can move or close it now.
-    isMissed(appt) {
-      return this.isLate(appt) && appt.date < this.todayISO();
-    },
-
-    isBeyondGrace(appt) {
-      return this.isLate(appt) && this.minutesLate(appt) > (this.lateGraceMinutes ?? 0);
-    },
-
-    lateLabel(appt) {
-      if (appt.date < this.todayISO()) return 'Missed date';
-      const minutes = this.minutesLate(appt);
-      return minutes < 60 ? `Late, ${minutes} min` : `Late, ${Math.floor(minutes / 60)}h ${minutes % 60}m`;
-    },
-
-    lateBadgeClass(appt) {
-      return this.isBeyondGrace(appt)
-        ? 'bg-[#FFE4E6] text-[#9F1239] border border-[#FDA4AF]'
-        : 'bg-[#FEF3C7] text-[#92400E] border border-[#FCD34D]';
-    },
-
-    hasArrivalRequest(appt, kind) {
-      return (appt.arrivalRequests || []).includes(kind);
-    },
-
     async logSupplyUsage(itemId, quantity, referenceCode, note) {
       this.busy = true;
       try {
@@ -179,6 +368,8 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
+    /* ---------- Profile and password ---------- */
+
     async saveProfile(fields) {
       this.busy = true;
       try {
@@ -186,154 +377,45 @@ document.addEventListener('alpine:init', () => {
         this.toast(res.message, res.success ? 'success' : 'error');
         if (res.success) await this.refresh();
         return res;
+      } catch {
+        this.toast('Could not reach the server. Nothing was saved.', 'error');
+        return { success: false };
       } finally {
         this.busy = false;
       }
     },
 
-    // Step 1 of 2: verifies the current password + new-password rules and,
-    // on success, emails a confirmation code -- nothing is applied yet.
+    // Step 1 of 2: checks the current password and the new password's rules,
+    // then emails a confirmation code. Nothing changes yet.
     async changePassword(fields) {
       this.busy = true;
       try {
-        const res = await this.post('backend/staff/changePassword.php', fields);
-        this.toast(res.message, res.success ? 'success' : 'error');
-        return res;
+        return await this.post('backend/staff/changePassword.php', fields);
+      } catch {
+        return { success: false, message: 'Could not reach the server. Your password was not changed.' };
       } finally {
         this.busy = false;
       }
     },
 
-    // Step 2 of 2: submits the emailed code alongside the same new password
-    // to actually apply the change.
+    // Step 2 of 2: the emailed code plus the same new password applies it.
     async confirmPasswordChange(fields) {
       this.busy = true;
       try {
-        const res = await this.post('backend/staff/confirmPasswordChange.php', fields);
-        this.toast(res.message, res.success ? 'success' : 'error');
-        return res;
+        return await this.post('backend/staff/confirmPasswordChange.php', fields);
+      } catch {
+        return { success: false, message: 'Could not reach the server. Your password was not changed.' };
       } finally {
         this.busy = false;
       }
     },
 
-    // "2026-10-21" -> "Oct 21, 2026"; built locally so the date can't shift by timezone.
-    formatDate(iso) {
-      return new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    },
-
-    todayISO() {
-      const d = this.now;
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    },
-
-    // "YYYY-MM-DD HH:MM" in 24-hour time: appt.time is "01:00 PM", which
-    // would otherwise sort before "08:30 AM".
-    appointmentSortKey(appt) {
-      const [time, meridiem] = appt.time.split(' ');
-      const [h, m] = time.split(':').map(Number);
-      const hours = (h % 12) + (meridiem === 'PM' ? 12 : 0);
-      return `${appt.date} ${String(hours).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-    },
-
-    isInactiveAppointment(appt) {
-      return ['Cancelled', 'No-Show'].includes(appt.status);
-    },
-
-    // Earliest first, with bookings that won't happen moved to the bottom.
-    getTodayAppointments() {
-      const today = this.todayISO();
-      return this.appointments
-        .filter(a => a.date === today)
-        .sort((a, b) => (this.isInactiveAppointment(a) - this.isInactiveAppointment(b))
-          || this.appointmentSortKey(a).localeCompare(this.appointmentSortKey(b)));
-    },
-
-    // Same rules the server enforces, so staff only see buttons that will work.
-    // A shared booking is started and completed by its main stylist.
-    canStart(appt) {
-      return appt.isMainStylist !== false && appt.status === 'Confirmed' && appt.date === this.todayISO();
-    },
-
-    canComplete(appt) {
-      return appt.isMainStylist !== false && appt.status === 'In Progress';
-    },
-
-    // Steps for the progress tracker; empty for statuses outside this path.
-    progressSteps(appt) {
-      if (this.isMissed(appt)) return [];
-      const current = { Confirmed: 0, 'In Progress': 1, Completed: 2, Reviewed: 2 }[appt.status];
-      if (current === undefined) return [];
-      return ['Confirmed', 'In Progress', 'Finished'].map((label, i) => ({ label, done: i <= current, active: i === current }));
-    },
-
-    // The service under way, otherwise the earliest booking still to do today.
-    getNextAppointment() {
-      const today = this.getTodayAppointments();
-      return today.find(a => a.status === 'In Progress')
-        || today.find(a => ['Confirmed', 'Pending'].includes(a.status))
-        || null;
-    },
-
-    getNextUpcomingLabel() {
-      const next = this.getUpcomingAppointments().find(a => ['Confirmed', 'Pending'].includes(a.status));
-      if (!next) return '';
-      const date = new Date(next.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      return `${date} at ${next.time}`;
-    },
-
-    getActiveTodayCount() {
-      return this.getTodayAppointments().filter(a => !this.isInactiveAppointment(a)).length;
-    },
-
-    getUpcomingAppointments() {
-      const today = this.todayISO();
-      return this.appointments
-        .filter(a => a.date > today && !['Cancelled', 'Completed'].includes(a.status))
-        .sort((a, b) => this.appointmentSortKey(a).localeCompare(this.appointmentSortKey(b)));
-    },
-
-    getTodayAttendance() {
-      const today = this.todayISO();
-      return this.attendance.find(a => a.date === today) || null;
-    },
-
-    isClockedIn() {
-      const today = this.getTodayAttendance();
-      return !!(today && today.isOpen);
-    },
-
-    // Off Shift, Busy until the current service and buffer end, or Available.
-    availabilityLabel() {
-      if (!this.isClockedIn()) return 'Off Shift';
-      const left = this.availability.busyMinutesLeft - Math.floor((this.now - this.loadedAt) / 60000);
-      return left > 0 && this.availability.busyUntil ? `Busy until ${this.availability.busyUntil}` : 'Available';
-    },
-
-    getShiftDurationLabel() {
-      const today = this.getTodayAttendance();
-      if (!today) return '--:--';
-      const [time, meridiem] = today.clockIn.split(' ');
-      let [h, m] = time.split(':').map(Number);
-      if (meridiem === 'PM' && h !== 12) h += 12;
-      if (meridiem === 'AM' && h === 12) h = 0;
-      const start = new Date(this.now);
-      start.setHours(h, m, 0, 0);
-      let diffMs = this.now - start;
-      if (diffMs < 0) diffMs = 0;
-      const totalMinutes = Math.floor(diffMs / 60000);
-      const hrs = Math.floor(totalMinutes / 60);
-      const mins = totalMinutes % 60;
-      return `${String(hrs).padStart(2, '0')}h ${String(mins).padStart(2, '0')}m`;
-    },
+    /* ---------- Notifications ---------- */
 
     unreadNotificationCount() {
       return this.notifications.filter(n => !n.isRead).length;
     },
 
-    toggleNotificationPanel() {
-      this.isNotificationPanelOpen = !this.isNotificationPanelOpen;
-    },
     async markAllNotificationsAsRead() {
       if (!this.unreadNotificationCount()) return;
       try {
@@ -343,97 +425,14 @@ document.addEventListener('alpine:init', () => {
       } catch { this.toast('Could not mark notifications as read. Please try again.', 'error'); }
     },
 
-    getLowStockItems() {
-      return this.inventory.filter(item => item.stock <= item.minQty);
-    },
-
-    getStatusBadgeClass(status) {
-      switch (status) {
-        // Light chips with dark text -- the staff theme paints cards cream,
-        // so the old *-950 backgrounds rendered as dark blocks with
-        // unreadable text. Arbitrary hex values dodge staff-theme.css's
-        // emerald/slate remaps so each status keeps its own colour.
-        case 'Pending': return 'bg-[#FEF3C7] text-[#92400E] border border-[#FCD34D]';
-        case 'Confirmed': return 'bg-[#E0F2FE] text-[#006D6F] border border-[#7DD3FC]';
-        case 'In Progress': return 'bg-[#CCFBF1] text-[#115E59] border border-[#5EEAD4]';
-        case 'Completed': return 'bg-[#DCFCE7] text-[#166534] border border-[#86EFAC]';
-        case 'Reviewed': return 'bg-[#E5F2F0] text-[#06464A] border border-[#A3C9C6]';
-        case 'Reschedule Requested': return 'bg-[#FFEDD5] text-[#9A3412] border border-[#FDBA74]';
-        case 'Cancelled': case 'No-Show': return 'bg-[#FFE4E6] text-[#9F1239] border border-[#FDA4AF]';
-        default: return 'bg-[#F1F5F9] text-[#334155] border border-[#CBD5E1]';
-      }
-    },
-
-    formatCurrency(n) {
-      return 'PHP ' + Number(n || 0).toLocaleString();
-    },
-
-    firstName() {
-      const name = this.profile.name || '';
-      return name.split(' ')[0] || 'there';
-    },
-
-    initials() {
-      const name = (this.profile.name || '').trim();
-      if (!name) return '..';
-      const parts = name.split(/\s+/).filter(Boolean);
-      return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
-    },
-
     startClock() {
-      setInterval(() => { this.now = new Date(); }, 1000);
+      setInterval(() => { this.now = this.serverNow(); }, 1000);
+      // Pick up changes made elsewhere (cashier clock-out, new bookings).
+      setInterval(() => { if (!document.hidden && !this.busy && !this.shiftBusy) this.refresh(); }, 60000);
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) this.refresh(); });
     }
   });
 
   Alpine.store('staff').refresh();
   Alpine.store('staff').startClock();
 });
-
-/* Highlights the sidebar nav link matching the current page filename. Call
-   from each page's x-init alongside that page's own init logic. */
-function staffHighlightNav() {
-  const current = location.pathname.split('/').pop();
-  document.querySelectorAll('[data-nav-page]').forEach(link => {
-    const isActive = link.getAttribute('data-nav-page') === current;
-    link.classList.toggle('bg-emerald-900/40', isActive);
-    link.classList.toggle('text-white', isActive);
-    link.classList.toggle('font-medium', isActive);
-    link.classList.toggle('border-l-4', isActive);
-    link.classList.toggle('border-emerald-400', isActive);
-    link.classList.toggle('text-slate-400', !isActive);
-  });
-}
-
-/* Slides the mobile-only floating bottom nav's highlight pill behind
-   whichever [data-mobile-nav-page] link matches the current page. */
-function staffPositionMobileNav() {
-  const current = location.pathname.split('/').pop();
-  const slider = document.getElementById('mobile-nav-slider');
-  const links = document.querySelectorAll('[data-mobile-nav-page]');
-  if (!slider || !links.length) return;
-
-  let activeLink = null;
-  links.forEach(link => {
-    const page = link.getAttribute('data-mobile-nav-page');
-    const labels = { 'dashboard.html': 'Dashboard', 'assignedAppointments.html': 'Assigned appointments', 'inventory.html': 'Inventory', 'attendance.html': 'Attendance', 'profile.html': 'Profile' };
-    link.setAttribute('aria-label', labels[page] || 'Staff navigation');
-    if (page === current) link.setAttribute('aria-current', 'page');
-    else link.removeAttribute('aria-current');
-    const isActive = page === current;
-    link.classList.toggle('text-white', isActive);
-    link.classList.toggle('text-slate-400', !isActive);
-    if (isActive) activeLink = link;
-  });
-
-  if (activeLink) {
-    slider.style.left = activeLink.offsetLeft + 'px';
-    slider.style.width = activeLink.offsetWidth + 'px';
-  }
-}
-
-/* Call once from each page's init(): positions the slider after layout
-   settles, and keeps it aligned across resizes/orientation changes. */
-function staffInitMobileNav() {
-  requestAnimationFrame(staffPositionMobileNav);
-  window.addEventListener('resize', staffPositionMobileNav);
-}

@@ -287,7 +287,7 @@ try {
     if ($existingCustomer && $existingCustomer['email'] !== null && !$phoneVerified && strcasecmp($existingCustomer['email'], $email) !== 0) {
         $pdo->rollBack();
         http_response_code(409);
-        echo json_encode(['success' => false, 'message' => 'This mobile number is linked to an account with a different email. Log in to book, use the email on that account, or leave the email blank to verify this number by text.']);
+        echo json_encode(['success' => false, 'useTextCode' => true, 'message' => 'This mobile number already has an account with a different email. Verify with a code sent to this number, or log in.']);
         exit();
     }
 

@@ -41,22 +41,20 @@ final class CancellationPolicy
     public static function summary(): string
     {
         $hours = self::FREE_CANCEL_HOURS;
-        return "Deposit policy: reservation deposits are non-refundable. Need a different time? Reschedule instead from My Appointments "
-            . "at least {$hours} hours before your appointment, or by contacting the branch and your deposit carries over. "
-            . "If you cancel or miss your appointment, the deposit is kept, but the booking can still be rescheduled later using that deposit.";
+        return "Deposit policy: deposits are non-refundable, but they carry over if you reschedule at least {$hours} hours before, or through the branch. "
+            . "If you cancel or miss your appointment, you can still reschedule later using the deposit.";
     }
 
     /** "Booking received" message (in-app + email) with the booking details, payment instructions, and the policy. */
     public static function bookingReceivedMessage(string $reference, array $serviceNames, string $branchName, string $appointmentDateTime,
         float $amountDue, float $balance, bool $payOnline): string
     {
-        $when = date('l, F j, Y \a\t g:i A', strtotime($appointmentDateTime));
-        $message = "Your booking request {$reference} has been received: " . implode(', ', $serviceNames) . " at {$branchName} on {$when}. "
-            . 'Status: Waiting for Confirmation.';
+        // The service, branch and time come from the details CustomerNotifier adds.
+        $message = "Your booking request {$reference} has been received and is waiting for branch confirmation.";
         if ($amountDue > 0) {
             $message .= "\n\nPay now: ₱" . number_format($amountDue, 2)
-                . ($payOnline ? ' online via PayMongo (complete it within ' . PayMongo::HOLD_MINUTES . ' minutes to keep your slot).' : ' in cash at the branch.')
-                . ($balance > 0 ? ' Balance to pay at the salon: ₱' . number_format($balance, 2) . '.' : '');
+                . ($payOnline ? ' online within ' . PayMongo::HOLD_MINUTES . ' minutes to keep your slot.' : ' in cash at the branch.')
+                . ($balance > 0 ? "\nBalance at the salon: ₱" . number_format($balance, 2) . '.' : '');
         }
         return $message . "\n\n" . self::summary();
     }

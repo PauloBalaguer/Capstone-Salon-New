@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
   <title>Leo Mejillano Salon & Beauty, Official Web Portal</title>
   <meta name="description"
     content="Leo Mejillano Salon & Beauty hair, skin, nails, makeup, brows, lashes, and event styling across three Albay branches." />
@@ -47,7 +47,8 @@
     @media (min-width: 640px) { [data-justify] { text-align: justify; } }
   </style>
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
-  <link rel="stylesheet" href="frontend/shared/clean-theme.css?v=20261104-notif4">
+  <link rel="stylesheet" href="frontend/shared/clean-theme.css?v=20261105-booking">
+  <link rel="stylesheet" href="frontend/public/booking-modal.css?v=20261105b">
 </head>
 
 <body class="bg-sand-100 text-ink font-body antialiased">
@@ -208,9 +209,9 @@
   </header>
 
   <div id="bookingModalOverlay"
-    class="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 flex items-center justify-center px-5 py-6">
+    class="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 flex items-start sm:items-center justify-center px-3 sm:px-5 py-4 sm:py-6">
     <div
-      class="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-panel rounded-3xl shadow-2xl transform scale-95 transition-transform duration-300 p-7 sm:p-9 relative"
+      class="w-full max-w-lg max-h-full overflow-y-auto overscroll-contain bg-panel rounded-3xl shadow-2xl transform scale-95 transition-transform duration-300 p-5 sm:p-9 relative"
       id="bookingModalBox">
       <button id="closeBooking" class="absolute top-5 right-5 text-ink/50 hover:text-plum transition-colors p-1 z-10"
         aria-label="Close">
@@ -283,11 +284,9 @@
               class="w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition disabled:opacity-60 disabled:cursor-not-allowed"
               required>
               <option value="">Choose a branch...</option>
-              <option value="1">
-                Daraga Main, Salon &amp; Make-Up Studio
-              </option>
-              <option value="2">Yashano Mall, Skin Brows</option>
-              <option value="3">Cabangan, Lash &amp; Brows</option>
+              <option value="1">Daraga Main – Salon &amp; Make-Up</option>
+              <option value="2">Yashano Mall – Skin &amp; Brows</option>
+              <option value="3">Cabangan – Lash &amp; Brows</option>
             </select>
             <p id="bookBranchLockNote" class="hidden text-xs text-ink/50 mt-1.5"></p>
           </div>
@@ -338,10 +337,8 @@
           </div>
 
           <div id="bookDepositGate" class="hidden rounded-xl border border-plum/30 bg-plum/5 p-4">
-            <p class="text-xs font-bold tracking-widest uppercase text-plum mb-1">GUEST RESERVATION PAYMENT REQUIRED</p>
-            <p class="prose-justify text-base text-ink/60 mb-2">Your selected schedule is available. Complete the required guest reservation payment below to continue.</p>
-            <p class="prose-justify text-base text-ink/60 mb-2">Pay a deposit (50% of the total, minimum ₱100, some services require full payment) or pay the full amount now.</p>
-            <p class="text-base text-ink/60 mb-3">Your booking will remain Waiting for Confirmation until the branch verifies your payment.</p>
+            <p class="text-base font-bold text-plum mb-1">Guest reservation payment required</p>
+            <p class="text-base text-ink/60 mb-3">Your time is available. Choose how much to pay and how. The branch confirms your booking after verifying your payment.</p>
             <p id="bookQuoteError" class="text-base text-copper-dark mb-2" role="status"></p>
             <dl class="space-y-2 text-base border-y border-bronze/30 py-3 mb-3">
               <div><dt class="text-ink/60">Selected Service</dt><dd id="bookPaymentServices"></dd></div>
@@ -365,7 +362,7 @@
               </fieldset>
               <fieldset>
                 <legend class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Payment method</legend>
-                <div id="bookDepositMethod" class="grid grid-cols-2 gap-2">
+                <div id="bookDepositMethod" class="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2">
                   <label class="flex items-center gap-2 rounded-xl border border-bronze/50 bg-sand-100 px-3 py-2.5 cursor-pointer transition has-[:checked]:border-plum has-[:checked]:bg-plum/5">
                     <input type="radio" name="bookDepositMethod" value="PayMongo-GCash" class="accent-plum">
                     <span class="pm-logo pm-logo--gcash" aria-hidden="true"></span><span class="text-sm font-bold">GCash</span>
@@ -396,27 +393,14 @@
                 Cash deposits can't be verified remotely, bring the deposit amount to the branch. Your slot is held as
                 <b>Pending</b> (not locked) until you pay in person and staff confirm it.
               </div>
-              <button type="button" id="bookDepositLockBtn"
-                class="btn-sheen w-full rounded-full bg-plum text-white font-bold text-base py-3 hover:brightness-110 transition disabled:opacity-60 disabled:cursor-not-allowed">
-                Save payment details
-              </button>
             </div>
 
+            <!-- Services with no online reservation payment show this instead of the choices above. -->
             <div id="bookDepositLocked" class="hidden items-center justify-between gap-3 text-xs">
               <span class="text-ink">Reservation payment: <b id="bookDepositLockedSummary"></b></span>
-              <button type="button" id="bookDepositChangeBtn" class="text-plum font-bold hover:underline shrink-0">Change</button>
             </div>
           </div>
 
-          <div class="rounded-xl border border-plum/20 bg-plum/5 p-4 text-sm text-ink/75 leading-relaxed">
-            <p class="font-bold text-plum">Why create an account?</p>
-            <ul class="mt-1.5 space-y-1 list-disc list-inside">
-              <li class="prose-justify"><b>Earn loyalty points</b>: 1 point for every ₱20 of completed services (some services earn more). Guest bookings don't earn points.</li>
-              <li><b>Redeem them</b> on your next booking: each point takes ₱0.10 off.</li>
-              <li>Move up to Silver, Gold and VIP status as you visit, and see all your bookings in one place.</li>
-            </ul>
-            <a href="frontend/auth/register.html" class="inline-block mt-2 font-bold text-plum underline">Create a free account</a>
-          </div>
           <div class="pt-2 border-t border-bronze/25">
             <p class="text-xs font-bold tracking-widest uppercase text-ink/40 pt-4 pb-1">
               Guest details
@@ -466,15 +450,20 @@
               <ul class="list-disc list-inside space-y-1">
                 <li><b>Reservation payment:</b> A reservation payment is required to hold your appointment slot.</li>
                 <li class="prose-justify"><b>50% or full payment:</b> Depending on the service selected, you must pay either a 50% down payment or the full amount upfront, the required amount is shown before you book.</li>
-                <li class="prose-justify"><b>Payment verification:</b> Online payments (GCash, Maya or card) are processed securely by PayMongo; Cash must be settled in person. Your payment stays "Awaiting Verification" until staff confirm it, customers can never verify their own payment.</li>
-                <li class="prose-justify"><b>Confirmation rules:</b> Your requested time is held as <b>Pending</b> until the branch verifies your payment and confirms it, it is not guaranteed until confirmed.</li>
                 <li class="prose-justify"><b>Deposit &amp; rescheduling policy:</b> Reservation deposits are <u>non-refundable</u>. Need a different time? Reschedule instead (online up to 24 hours before, or by contacting the branch) and your deposit carries over. If you cancel or miss your appointment, the deposit is kept, but that booking can still be rescheduled later using the deposit.</li>
-                <li class="prose-justify"><b>Rescheduling:</b> You may request to reschedule; please do so as early as possible, subject to availability.</li>
-                <li><b>No-show:</b> Please arrive on time. Repeated no-shows or late cancellations may affect future bookings.</li>
-                <li data-late-rule class="hidden"><b>Late arrival:</b> <span data-late-rule-text></span></li>
-                <li>Prices and staff availability are confirmed by the branch and may change.</li>
-                <li class="prose-justify">As a guest, you consent to being contacted at the number/email provided for confirmations and reminders.</li>
               </ul>
+              <details class="book-terms-more">
+                <summary><span class="terms-more-label">Read more</span><span class="terms-less-label">Read less</span></summary>
+                <ul class="list-disc list-inside space-y-1">
+                  <li class="prose-justify"><b>Payment verification:</b> Online payments (GCash, Maya or card) are processed securely by PayMongo; Cash must be settled in person. Your payment stays "Awaiting Verification" until staff confirm it, customers can never verify their own payment.</li>
+                  <li class="prose-justify"><b>Confirmation rules:</b> Your requested time is held as <b>Pending</b> until the branch verifies your payment and confirms it, it is not guaranteed until confirmed.</li>
+                  <li class="prose-justify"><b>Rescheduling:</b> You may request to reschedule; please do so as early as possible, subject to availability.</li>
+                  <li><b>No-show:</b> Please arrive on time. Repeated no-shows or late cancellations may affect future bookings.</li>
+                  <li data-late-rule class="hidden"><b>Late arrival:</b> <span data-late-rule-text></span></li>
+                  <li>Prices and staff availability are confirmed by the branch and may change.</li>
+                  <li class="prose-justify">As a guest, you consent to being contacted at the number/email provided for confirmations and reminders.</li>
+                </ul>
+              </details>
             </div>
             <label class="flex items-start gap-2 mt-3 text-xs text-ink/70 cursor-pointer">
               <input type="checkbox" id="bookAgreeTerms" class="mt-0.5 accent-plum" required>
@@ -498,7 +487,7 @@
         <div id="bookingReviewSummary" class="rounded-xl border border-bronze/40 bg-sand-100 p-4 text-base space-y-2"></div>
         <p class="text-xs text-ink/60 mt-5" id="bookReviewNextNote">Your request will remain pending until the branch confirms your appointment and deposit.</p>
         <button type="button" id="bookReviewConfirm" class="w-full rounded-full bg-plum text-white font-bold text-base py-3.5 mt-5">Continue to email verification</button>
-        <button type="button" id="bookReviewEdit" class="w-full text-plum text-base py-3.5">Edit booking details</button>
+        <button type="button" id="bookReviewEdit" class="btn-text w-full mt-2 rounded-full text-plum text-base py-3 hover:bg-plum/5 transition">Edit booking details</button>
       </div>
 
       <div id="bookingOtpPanel" class="hidden">
@@ -512,17 +501,17 @@
         <form id="bookingOtpForm" class="space-y-5" novalidate>
           <div class="flex gap-2 sm:gap-3 justify-between">
             <input aria-label="Digit 1 of 6" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" required autocomplete="one-time-code"
-              class="book-otp-digit w-full aspect-square text-center font-display text-xl bg-sand-100 border border-bronze/50 rounded-lg text-ink focus:outline-none focus:border-plum" />
+              class="book-otp-digit w-full aspect-square text-center font-display text-xl bg-sand-100 border border-bronze/50 rounded-lg text-ink focus:outline-none focus:border-plum focus:ring-2 focus:ring-plum/40" />
             <input aria-label="Digit 2 of 6" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" required
-              class="book-otp-digit w-full aspect-square text-center font-display text-xl bg-sand-100 border border-bronze/50 rounded-lg text-ink focus:outline-none focus:border-plum" />
+              class="book-otp-digit w-full aspect-square text-center font-display text-xl bg-sand-100 border border-bronze/50 rounded-lg text-ink focus:outline-none focus:border-plum focus:ring-2 focus:ring-plum/40" />
             <input aria-label="Digit 3 of 6" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" required
-              class="book-otp-digit w-full aspect-square text-center font-display text-xl bg-sand-100 border border-bronze/50 rounded-lg text-ink focus:outline-none focus:border-plum" />
+              class="book-otp-digit w-full aspect-square text-center font-display text-xl bg-sand-100 border border-bronze/50 rounded-lg text-ink focus:outline-none focus:border-plum focus:ring-2 focus:ring-plum/40" />
             <input aria-label="Digit 4 of 6" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" required
-              class="book-otp-digit w-full aspect-square text-center font-display text-xl bg-sand-100 border border-bronze/50 rounded-lg text-ink focus:outline-none focus:border-plum" />
+              class="book-otp-digit w-full aspect-square text-center font-display text-xl bg-sand-100 border border-bronze/50 rounded-lg text-ink focus:outline-none focus:border-plum focus:ring-2 focus:ring-plum/40" />
             <input aria-label="Digit 5 of 6" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" required
-              class="book-otp-digit w-full aspect-square text-center font-display text-xl bg-sand-100 border border-bronze/50 rounded-lg text-ink focus:outline-none focus:border-plum" />
+              class="book-otp-digit w-full aspect-square text-center font-display text-xl bg-sand-100 border border-bronze/50 rounded-lg text-ink focus:outline-none focus:border-plum focus:ring-2 focus:ring-plum/40" />
             <input aria-label="Digit 6 of 6" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" required
-              class="book-otp-digit w-full aspect-square text-center font-display text-xl bg-sand-100 border border-bronze/50 rounded-lg text-ink focus:outline-none focus:border-plum" />
+              class="book-otp-digit w-full aspect-square text-center font-display text-xl bg-sand-100 border border-bronze/50 rounded-lg text-ink focus:outline-none focus:border-plum focus:ring-2 focus:ring-plum/40" />
           </div>
 
           <button type="submit" id="bookOtpSubmitBtn"
@@ -531,12 +520,17 @@
           </button>
 
           <div class="flex items-center justify-between text-base">
-            <button type="button" id="bookOtpEditBtn" class="text-ink/60 hover:text-plum transition">
+            <button type="button" id="bookOtpEditBtn" class="btn-text text-ink/60 hover:text-plum transition">
               Edit details
             </button>
-            <button type="button" id="bookOtpResendBtn" class="text-plum font-bold hover:underline">
+            <button type="button" id="bookOtpResendBtn" class="btn-text text-plum font-bold hover:underline">
               Resend code
             </button>
+          </div>
+
+          <div id="bookOtpAccountHelp" class="hidden space-y-2">
+            <button type="button" id="bookOtpTextInstead" class="w-full rounded-full bg-plum text-white font-bold text-base py-3 hover:brightness-110 transition disabled:opacity-60">Text a code to my number</button>
+            <a href="frontend/auth/login.html" class="block text-center rounded-full border border-plum text-plum font-bold text-base py-3 hover:bg-plum/5 transition">Log in instead</a>
           </div>
         </form>
       </div>
@@ -1887,11 +1881,6 @@
                     No account? No problem. You can request a home service
                     using your name and contact number.
                   </p>
-                  <p class="prose-justify text-xs text-ink/65 mt-1.5 leading-relaxed">
-                    <b>Why create an account?</b> Members earn loyalty points on completed salon services
-                    (1 point per ₱20) and redeem them on later bookings (₱0.10 per point).
-                    <a href="frontend/auth/register.html" class="font-bold text-plum underline">Create a free account</a>
-                  </p>
                 </div>
 
                 <div class="mt-6 rounded-2xl border border-plum/30 bg-plum/5 p-5">
@@ -2691,7 +2680,7 @@
   <script src="function/shared/toast.js"></script>
   <script src="function/shared/pending-payment.js"></script>
   <script src="function/shared/late-arrival-rule.js"></script>
-  <script src="function/public/main.js?v=svc-cards-20261104"></script>
+  <script src="function/public/main.js?v=booking-20261105b"></script>
 </body>
 
 </html>

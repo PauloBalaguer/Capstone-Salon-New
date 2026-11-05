@@ -10,7 +10,7 @@ const state = {
   data: null,
   branch: null,
   tab: 'all',
-  confirm: { ref: null, method: 'Cash', busy: false }
+  confirm: { ref: null, method: 'Cash', busy: false, verifyOnly: false }
 };
 
 const ONLINE_METHOD_LABELS = {
@@ -24,12 +24,13 @@ async function init() {
   CashierApp.initChrome();
   wireStaticEvents();
   await refreshData();
-  // Other pages link here with ?confirm=<ref> or ?checkout=<ref>.
+  // Other pages link here with ?confirm=<ref>, ?checkout=<ref> or ?verify=<ref>.
   const params = new URLSearchParams(window.location.search);
-  const ref = params.get('confirm') || params.get('checkout');
+  const ref = params.get('confirm') || params.get('checkout') || params.get('verify');
   if (ref && state.data) {
     const booking = findBooking(ref);
-    if (booking && booking.status === 'Pending') openConfirm(ref);
+    if (booking && needsPaymentVerification(booking)) openVerify(ref);
+    else if (booking && booking.status === 'Pending') openConfirm(ref);
     else if (booking && isPayable(booking)) openCheckout(ref);
     history.replaceState(null, '', 'dashboard.html');
   }
@@ -80,7 +81,7 @@ function hasReportedPayment(b) {
    under both "In service" and "Ready to pay"). */
 function inTab(b, tab) {
   switch (tab) {
-    case 'pending': return b.status === 'Pending';
+    case 'pending': return b.status === 'Pending' || needsPaymentVerification(b);
     case 'confirmed': return b.status === 'Confirmed';
     case 'service': return b.status === 'In Progress';
     case 'pay': return isPayable(b);
@@ -94,6 +95,7 @@ function queueBookings() {
   return state.data.bookings.filter(b =>
     ((['Pending', 'Confirmed', 'In Progress'].includes(b.status) || isPayable(b)) && (b.date || '') <= today)
     || (b.status === 'Pending' && (b.date || '') > today)
+    || needsPaymentVerification(b)
   );
 }
 
@@ -102,10 +104,10 @@ function renderStats() {
   const today = todayISO();
   const queue = queueBookings();
   const todays = bookings.filter(b => b.date === today && !['Cancelled', 'No-Show'].includes(b.status));
-  const toVerify = bookings.filter(b => b.status === 'Pending' && hasReportedPayment(b)).length;
+  const toVerify = bookings.filter(b => (b.status === 'Pending' && hasReportedPayment(b)) || needsPaymentVerification(b)).length;
   const payable = queue.filter(isPayable);
 
-  document.getElementById('statPendingConfirmation').textContent = bookings.filter(b => b.status === 'Pending').length;
+  document.getElementById('statPendingConfirmation').textContent = queue.filter(b => inTab(b, 'pending')).length;
   document.getElementById('statPaymentsToVerifyHint').textContent = toVerify
     ? `${toVerify} payment${toVerify === 1 ? '' : 's'} to check`
     : 'No payments to check';
@@ -148,6 +150,9 @@ function paymentBadge(b) {
 /* One clear next step per booking. */
 function primaryAction(b) {
   const ref = escapeHtml(b.id);
+  if (needsPaymentVerification(b)) {
+    return `<button type="button" data-action="verify" data-ref="${ref}" class="btn-row bg-[#006D6F] hover:bg-[#06464A] text-white">Verify payment</button>`;
+  }
   if (b.status === 'Pending') {
     return `<button type="button" data-action="confirm" data-ref="${ref}" class="btn-row bg-[#006D6F] hover:bg-[#06464A] text-white">Confirm booking</button>`;
   }
@@ -213,7 +218,7 @@ function renderQueue() {
     : '';
   const html = todays.map(row).join('')
     + section('Still open from earlier days', 'Finish or close these before the end of the day.', 'bg-amber-50 text-amber-900', earlier)
-    + section('Upcoming bookings to confirm', 'Confirm these ahead of time once the payment is checked.', 'bg-[#E5F2F0] text-[#06464A]', upcoming);
+    + section('Upcoming bookings to check', 'Confirm or verify these ahead of time once the payment is checked.', 'bg-[#E5F2F0] text-[#06464A]', upcoming);
   document.getElementById('queueContainer').innerHTML = html || empty;
 }
 
@@ -221,7 +226,7 @@ function renderQueue() {
 
 function showConfirmStep(step) {
   document.querySelectorAll('#confirmModal [data-step]').forEach(el => el.classList.toggle('hidden', el.dataset.step !== String(step)));
-  document.getElementById('confirmSteps').classList.toggle('hidden', step === 3);
+  document.getElementById('confirmSteps').classList.toggle('hidden', step === 3 || state.confirm.verifyOnly);
   document.querySelectorAll('#confirmSteps [data-step-dot]').forEach(dot => {
     const n = Number(dot.dataset.stepDot);
     dot.classList.toggle('is-active', n === step);
@@ -234,7 +239,10 @@ function showConfirmStep(step) {
 function openConfirm(ref) {
   const b = findBooking(ref);
   if (!b) return;
-  state.confirm = { ref, method: 'Cash', busy: false };
+  state.confirm = { ref, method: 'Cash', busy: false, verifyOnly: false };
+  document.getElementById('confirmTitle').textContent = 'Confirm booking';
+  document.getElementById('cfDoneTitle').textContent = 'Booking confirmed';
+  document.getElementById('btnConfirmBack2').classList.remove('hidden');
   document.getElementById('confirmRef').textContent = b.id;
   document.getElementById('cfClient').textContent = b.clientName;
   document.getElementById('cfPhone').textContent = b.clientPhone || '';
@@ -258,10 +266,29 @@ function openConfirm(ref) {
   CashierApp.showModal('confirmModal');
 }
 
+/* The payment step alone, for a booking already past Pending. Records the
+   payment without changing the booking's status. */
+function openVerify(ref) {
+  const b = findBooking(ref);
+  if (!b) return;
+  state.confirm = { ref, method: 'Cash', busy: false, verifyOnly: true };
+  document.getElementById('confirmTitle').textContent = 'Verify payment';
+  document.getElementById('cfDoneTitle').textContent = 'Payment verified';
+  document.getElementById('btnConfirmBack2').classList.add('hidden');
+  document.getElementById('confirmRef').textContent = b.id;
+  goToPaymentStep();
+  CashierApp.showModal('confirmModal');
+}
+
+function submitLabel(skipPayment) {
+  if (state.confirm.verifyOnly) return 'Verify payment';
+  return skipPayment ? 'Confirm booking' : 'Verify & confirm';
+}
+
 function paymentRules(b) {
   const required = b.requiredAmount !== null && b.requiredAmount !== undefined ? Number(b.requiredAmount) : Number(b.depositAmount || 0);
   const alreadyVerified = ['Down Payment Verified', 'Fully Paid'].includes(b.paymentStatus);
-  const noneNeeded = !alreadyVerified && b.requiredAmount !== null && b.requiredAmount !== undefined && Number(b.requiredAmount) <= 0 && !b.depositAmount;
+  const noneNeeded = !state.confirm.verifyOnly && !alreadyVerified && b.requiredAmount !== null && b.requiredAmount !== undefined && Number(b.requiredAmount) <= 0 && !b.depositAmount;
   return { required, alreadyVerified, noneNeeded };
 }
 
@@ -299,7 +326,7 @@ function goToPaymentStep() {
     ? '<i class="fa-solid fa-circle-check mr-1"></i>The reservation payment is already verified. You only need to confirm.'
     : '<i class="fa-solid fa-circle-info mr-1"></i>This booking does not need a reservation payment. Collect the full amount at checkout.';
   document.getElementById('cfPayFields').classList.toggle('hidden', skipPayment);
-  document.getElementById('btnConfirmSubmit').textContent = skipPayment ? 'Confirm booking' : 'Verify & confirm';
+  document.getElementById('btnConfirmSubmit').textContent = submitLabel(skipPayment);
 
   if (!skipPayment) {
     const method = b.depositMethod || b.paymentMethod || 'Cash';
@@ -339,15 +366,17 @@ async function submitConfirm() {
   const btn = document.getElementById('btnConfirmSubmit');
   state.confirm.busy = true;
   btn.disabled = true;
-  btn.textContent = 'Confirming…';
+  btn.textContent = state.confirm.verifyOnly ? 'Verifying…' : 'Confirming…';
   try {
-    const chosen = document.getElementById('cfStaff').value;
+    const verifyOnly = state.confirm.verifyOnly;
+    // Verifying a payment leaves the booking and its stylist as they are.
+    const chosen = verifyOnly ? b.staffId : document.getElementById('cfStaff').value;
     let stylistName = b.staffName;
     if (chosen && String(chosen) !== String(b.staffId)) {
       const r = await CashierApp.post('assignStaff.php', { id: b.id, staffId: chosen });
       if (!r.success) return confirmError(r.message || 'That stylist cannot take this booking. Pick another one.');
       stylistName = state.data.staffList.find(s => String(s.id) === String(chosen))?.name || stylistName;
-    } else if (!chosen && !b.staffId) {
+    } else if (!verifyOnly && !chosen && !b.staffId) {
       let assigned = null, lastError = 'No stylist on shift can take this booking.';
       for (const s of state.data.staffList.filter(x => x.onShift)) {
         const r = await CashierApp.post('assignStaff.php', { id: b.id, staffId: s.id });
@@ -358,10 +387,10 @@ async function submitConfirm() {
       stylistName = assigned.name;
     }
 
-    const payload = { id: b.id, status: 'Confirmed' };
+    const payload = verifyOnly ? { id: b.id, paymentAction: 'verify' } : { id: b.id, status: 'Confirmed' };
     if (!skipPayment) Object.assign(payload, { depositAmount: amount.toFixed(2), depositMethod: state.confirm.method });
     const result = await CashierApp.post('updateStatus.php', payload);
-    if (!result.success) return confirmError(result.message || 'Could not confirm the booking.');
+    if (!result.success) return confirmError(result.message || (verifyOnly ? 'Could not verify the payment.' : 'Could not confirm the booking.'));
 
     document.getElementById('cfDoneText').textContent = [
       stylistName ? `Stylist: ${titleCase(stylistName)}.` : '',
@@ -375,7 +404,7 @@ async function submitConfirm() {
     state.confirm.busy = false;
     btn.disabled = false;
     if (!document.querySelector('#confirmModal [data-step="2"]').classList.contains('hidden')) {
-      btn.textContent = skipPayment ? 'Confirm booking' : 'Verify & confirm';
+      btn.textContent = submitLabel(skipPayment);
     }
   }
 }
@@ -383,7 +412,7 @@ async function submitConfirm() {
 async function markPaymentNeedsAttention() {
   const b = findBooking(state.confirm.ref);
   if (!b) return;
-  if (!(await LMConfirm({ title: 'Mark this payment for checking?', message: 'Use this when the amount or reference does not match what the salon received. The booking stays Pending.', confirmLabel: 'Mark for checking' }))) return;
+  if (!(await LMConfirm({ title: 'Mark this payment for checking?', message: 'Use this when the amount or reference does not match what the salon received. The booking keeps its current status.', confirmLabel: 'Mark for checking' }))) return;
   const result = await CashierApp.post('updateStatus.php', { id: b.id, paymentAction: 'needs_attention' });
   CashierApp.toast(result.message || (result.success ? 'Payment marked for checking.' : 'Failed to update the payment.'), result.success ? 'success' : 'error');
   if (result.success) {
@@ -465,6 +494,7 @@ function wireStaticEvents() {
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
     if (btn.dataset.action === 'confirm') openConfirm(btn.dataset.ref);
+    else if (btn.dataset.action === 'verify') openVerify(btn.dataset.ref);
     else if (btn.dataset.action === 'start') startService(btn.dataset.ref);
     else if (btn.dataset.action === 'checkout') openCheckout(btn.dataset.ref);
   });

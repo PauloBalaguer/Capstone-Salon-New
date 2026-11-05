@@ -181,6 +181,7 @@ function detailsActionsFor(b) {
   const action = (label, act, tone = '') => `<button type="button" data-detail-action="${act}" class="btn-secondary py-2.5 text-sm ${tone}">${label}</button>`;
   const isDue = (b.date || '') <= localDateYmd(new Date());
   const out = [];
+  if (needsPaymentVerification(b)) out.push(primary('Verify payment on Cashier Panel', `href="dashboard.html?verify=${ref}"`));
   if (hasKeptDeposit(b)) {
     out.push(action('Reschedule', 'reschedule'));
   } else if (b.status === 'Pending') {

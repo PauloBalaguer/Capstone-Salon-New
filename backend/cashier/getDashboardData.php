@@ -125,7 +125,6 @@ try {
         $endTime = new DateTime($row['startDateTime']);
         $endTime->modify('+' . $row['durationMinutes'] . ' minutes');
         $row['endTime'] = $endTime->format('h:i A');
-        unset($row['startDateTime']);
         return $row;
     }, $stmt->fetchAll());
 

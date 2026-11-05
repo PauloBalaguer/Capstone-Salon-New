@@ -3,7 +3,7 @@
 /**
  * Cashier: Process Payment & Issue Receipt
  *
- * The checkout terminal (frontend/cashier/payment.html) posts here with the
+ * The Cashier Panel checkout popup (function/cashier/checkout-modal.js) posts here with the
  * booking reference, chosen payment method, tip, and any retail products
  * added to the cart. Service pricing always comes from the appointment's
  * own total_price + its appointment_services rows (never trusted from the

@@ -77,12 +77,18 @@ try {
     // appointments -- never an arbitrary/unrelated booking.
     $appointmentId = null;
     if ($referenceCode !== '') {
-        $stmt = $pdo->prepare('SELECT a.id FROM appointments a WHERE a.reference_code = ? AND ' . StaffMetrics::worksOnSql('a', '?'));
+        $stmt = $pdo->prepare('SELECT a.id, a.status FROM appointments a WHERE a.reference_code = ? AND ' . StaffMetrics::worksOnSql('a', '?'));
         $stmt->execute([$referenceCode, $employeeId, $employeeId]);
-        $appointmentId = $stmt->fetchColumn();
+        $appointment = $stmt->fetch();
+        $appointmentId = $appointment['id'] ?? null;
         if (!$appointmentId) {
             http_response_code(403);
             echo json_encode(['success' => false, 'message' => 'That booking is not assigned to you.']);
+            exit();
+        }
+        if (!in_array($appointment['status'], ['In Progress', 'Completed', 'Reviewed'], true)) {
+            http_response_code(409);
+            echo json_encode(['success' => false, 'message' => 'Start the service before logging supplies for this booking.']);
             exit();
         }
     }

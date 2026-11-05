@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=20261103b" />
   <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=20261103-signout-cream" />
   <script src="../../function/shared/toast.js"></script>
+  <script src="../../function/shared/confirm-dialog.js"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
   <link rel="stylesheet" href="../../frontend/shared/mobile-nav.css?v=20261103c">
   <script src="../../function/shared/mobile-nav.js?v=20261103" defer></script>
@@ -363,10 +364,10 @@
                 <template x-if="!booking.isHomeService && booking.status === 'Confirmed'">
                   <div class="w-full space-y-2"><button @click="updateBookingStatus(booking.id, 'In Progress')" class="w-full bg-[#006D6F] hover:bg-[#06464A] text-white text-xs font-bold py-2 rounded-lg shadow-sm transition duration-150">Review Arrival / Check In</button><button @click="updateBookingStatus(booking.id, 'No-Show')" class="w-full text-rose-300 border border-rose-900 rounded-lg p-2 text-xs font-semibold">Mark No-Show (confirm absence)</button></div>
                 </template>
-                <template x-if="!booking.isHomeService && booking.status === 'In Progress'">
+                <template x-if="!booking.isHomeService && !booking.checkoutPaid && ['In Progress', 'Completed'].includes(booking.status)">
                   <button @click="openCheckoutModal(booking)" class="w-full bg-[#15803D] hover:bg-[#166534] text-white text-xs font-bold py-2 rounded-lg shadow-sm transition duration-150">Complete & Pay</button>
                 </template>
-                <template x-if="!booking.isHomeService && booking.status === 'Completed'">
+                <template x-if="!booking.isHomeService && booking.checkoutPaid && booking.status === 'Completed'">
                   <div class="w-full text-center text-xs text-[#15803D] font-bold flex items-center justify-center gap-1 bg-[#DCFCE7] py-2 rounded-lg border border-[#86EFAC]">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     <span>Transaction Complete</span>
@@ -488,7 +489,7 @@
           </label>
         </template>
         <template x-if="getAssignableStaff().length === 0">
-          <p class="text-slate-500 text-xs italic text-center py-4">No staff available at this branch.</p>
+          <p class="text-slate-500 text-xs  text-center py-4">No staff available at this branch.</p>
         </template>
       </div>
 
@@ -536,7 +537,7 @@
           <p class="font-bold uppercase tracking-wide text-xs">Self-reported by customer, not yet verified</p>
           <p>Amount: <strong class="text-white" x-text="$store.admin.formatCurrency(depositBooking.depositAmount)"></strong> via <strong class="text-white" x-text="PortalPresentation.methodLabel(depositBooking.paymentMethod)"></strong></p>
           <p x-show="depositBooking.depositReference">Reference: <strong class="text-white" x-text="depositBooking.depositReference"></strong></p>
-          <p x-show="!depositBooking.depositReference" class="italic">No reference given, Cash deposit, verify in person before confirming.</p>
+          <p x-show="!depositBooking.depositReference" class="">No reference given, Cash deposit, verify in person before confirming.</p>
           <p style="color:#7A5200">Check this against your GCash/Maya account (or that Cash was actually received) before confirming.</p>
         </div>
       </template>
@@ -580,7 +581,7 @@
           <div class="flex justify-between"><span class="text-slate-400">Stylist</span><span class="font-semibold text-purple-300" x-text="checkoutBooking.staffName || 'Unassigned'"></span></div>
           <div class="flex justify-between border-t border-slate-800 pt-3">
             <span class="text-slate-300 font-semibold">Total Due</span>
-            <span class="font-bold text-emerald-400 text-base" x-text="$store.admin.formatCurrency(checkoutBooking.price)"></span>
+            <span class="font-bold text-emerald-400 text-base" x-text="$store.admin.formatCurrency(checkoutBooking.remainingBalance)"></span>
           </div>
         </div>
       </template>

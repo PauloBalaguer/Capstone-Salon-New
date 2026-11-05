@@ -511,9 +511,9 @@
                   <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded bg-[#FFE4E6] border-2 border-[#FB7185]"></span>Stylist busy</span>
                   <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded bg-[#E5E7EB] border-2 border-[#9CA3AF]"></span>Unavailable</span>
                 </div>
-                <p x-show="rescheduleLoading" class="text-[#6B7280] italic py-2">Loading open times…</p>
+                <p x-show="rescheduleLoading" class="text-[#6B7280]  py-2">Loading open times…</p>
                 <p x-show="rescheduleError" x-text="rescheduleError" class="text-[#881337] bg-[#FFF1F2] border border-[#FDA4AF] rounded-lg p-2.5 font-semibold"></p>
-                <p x-show="!rescheduleLoading && !rescheduleError && rescheduleSlots.length && !rescheduleOpenCount()" class="text-[#6B7280] italic py-2"
+                <p x-show="!rescheduleLoading && !rescheduleError && rescheduleSlots.length && !rescheduleOpenCount()" class="text-[#6B7280]  py-2"
                    x-text="rescheduleStylistName() ? rescheduleStylistName() + ' has no free time on this date. Try another day or choose another stylist.' : 'No open times on this date. Try another day.'"></p>
                 <div x-show="!rescheduleLoading && !rescheduleError && rescheduleSlots.length" class="grid grid-cols-3 sm:grid-cols-4 gap-1.5 max-h-56 overflow-y-auto pr-1">
                   <template x-for="slot in rescheduleSlots" :key="slot.time">

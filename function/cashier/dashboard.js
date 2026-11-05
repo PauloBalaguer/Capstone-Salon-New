@@ -77,9 +77,9 @@ function renderStats() {
   verifyStat.classList.toggle('text-slate-800', toVerify === 0);
   document.getElementById('statWalkInsToday').textContent = todayBookings.filter(b => b.depositMethod === 'Walk-in').length;
   document.getElementById('statInProgress').textContent = bookings.filter(b => b.status === 'In Progress').length;
-  // Same rule as the "Ready for Checkout" list on payment.html, which this card opens.
+  // Same rule as the "Awaiting Payment" list on payment.html, which this card opens.
   document.getElementById('statReadyForCheckout').textContent = bookings.filter(b => !b.checkoutPaid && (
-    b.status === 'In Progress' || b.status === 'Completed' || (b.status === 'Confirmed' && (b.date || '') <= today))).length;
+    b.status === 'In Progress' || b.status === 'Completed')).length;
 }
 
 /* Only actions valid for the booking's current status -- Confirm Booking and
@@ -114,7 +114,7 @@ function renderQueue() {
   const empty = `
       <div class="text-center py-12">
         <i class="fa-solid fa-mug-hot text-3xl text-gray-200 mb-2"></i>
-        <p class="text-xs text-gray-400 italic">No active tickets in today's queue.</p>
+        <p class="text-xs text-gray-400 ">No active tickets in today's queue.</p>
       </div>
     `;
 
@@ -145,7 +145,7 @@ function renderQueue() {
   `;
 
   container.innerHTML = (queue.length ? queue.map(row).join('') : empty) + (earlier.length
-    ? `<div class="px-4 py-2.5 bg-amber-50 text-xs font-bold uppercase tracking-wide text-amber-800">Still open from earlier days (${earlier.length})</div>` + earlier.map(row).join('')
+    ? `<div class="px-4 py-2.5 bg-amber-50 text-xs font-bold uppercase tracking-wide text-amber-800">Still open from earlier days (${earlier.length})<span class="block mt-0.5 font-medium normal-case tracking-normal">Close these before end of day.</span></div>` + earlier.map(row).join('')
     : '');
 }
 
@@ -164,7 +164,7 @@ function openWalkInModal() {
         <span class="text-gray-400 font-semibold">${CashierApp.formatCurrency(sv.price)}</span>
       </label>
     `).join('')
-    : '<p class="text-gray-400 italic">No services configured for this branch.</p>';
+    : '<p class="text-gray-400 ">No services configured for this branch.</p>';
 
   document.getElementById('selectStylist').innerHTML = staff.length
     ? staff.map(s => `<option value="${s.id}">${escapeHtml(titleCase(s.name))} (${escapeHtml(s.role || 'Staff')})</option>`).join('')

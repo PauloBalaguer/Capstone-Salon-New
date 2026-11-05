@@ -53,10 +53,11 @@
     .slide-in-left { animation: slideInLeft .38s cubic-bezier(.16,1,.3,1) both; }
     .slide-in-fade { animation: slideInFade .3s ease both; }
   </style>
-  <link rel="stylesheet" href="../../frontend/staff/staff-theme.css?v=20261103">
+  <link rel="stylesheet" href="../../frontend/staff/staff-theme.css?v=20261104-modal-backdrop">
   <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=20261103b" />
   <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=20261103-signout-cream" />
   <script src="../../function/shared/toast.js"></script>
+  <script src="../../function/shared/confirm-dialog.js"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
@@ -71,11 +72,11 @@
 
     <aside class="hidden md:flex md:w-64 bg-slate-900 border-r border-emerald-900/40 flex-col justify-between shrink-0 h-full z-20">
       <div class="p-5">
-        <div class="flex items-center space-x-3 mb-8">
-          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center font-serif text-white font-bold text-lg shadow-lg shadow-emerald-500/20">LM</div>
-          <div>
-            <h1 class="text-base font-bold tracking-wider uppercase text-emerald-400 font-serif">Leo Mejillano</h1>
-            <p class="text-xs text-slate-400 uppercase tracking-widest font-sans" x-text="$store.staff.profile.role || 'Staff'"></p>
+        <div class="staff-profile-card flex items-center space-x-3 mb-8">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center font-serif text-white font-bold text-lg shadow-lg shadow-emerald-500/20 overflow-hidden shrink-0"><img x-show="$store.staff.profile.profilePicture" :src="$store.staff.profile.profilePicture" class="w-full h-full object-cover" alt=""><span x-show="!$store.staff.profile.profilePicture" x-text="$store.staff.initials()"></span></div>
+          <div class="min-w-0">
+            <h1 class="text-base font-bold text-emerald-400 font-serif break-words" x-text="$store.staff.profile.name || 'Staff'"></h1>
+            <p class="text-xs text-slate-400 uppercase tracking-widest font-sans" >Staff Portal</p>
           </div>
         </div>
 
@@ -105,7 +106,7 @@
 
       <div>
         <div class="p-4 border-t border-slate-800">
-          <a href="../../backend/auth/logout.php?portal=staff" onclick="handleLogoutConfirmation(event)" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H5v14h4M13 8l4 4-4 4M9 12h12"/></svg><span>Sign Out</span></a>
+          <a href="../../backend/auth/logout.php?portal=staff" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H5v14h4M13 8l4 4-4 4M9 12h12"/></svg><span>Sign Out</span></a>
         </div>
       </div>
     </aside>
@@ -198,7 +199,7 @@
         </template>
 
         <template x-if="!$store.staff.loading && !mobileFeatured()">
-          <div class="rounded-3xl bg-slate-900 border border-slate-800 p-8 text-center text-slate-500 text-xs italic">Nothing matches here right now.</div>
+          <div class="rounded-3xl bg-slate-900 border border-slate-800 p-8 text-center text-slate-500 text-xs ">Nothing matches here right now.</div>
         </template>
 
         <template x-if="$store.staff.loading">
@@ -246,6 +247,33 @@
       </header>
 
       <div class="p-6 pb-28 md:pb-6 space-y-6">
+
+        <template x-if="!$store.staff.loading && $store.staff.getNextAppointment()">
+          <section aria-label="Next client" class="hidden md:flex items-center justify-between flex-wrap gap-4 bg-slate-900 border border-emerald-900/40 rounded-2xl p-5">
+            <div class="min-w-0">
+              <p class="text-xs font-bold uppercase tracking-wide text-emerald-400" x-text="$store.staff.getNextAppointment().status === 'In Progress' ? 'In progress now' : 'Next client'"></p>
+              <p class="text-lg font-bold text-white mt-1" x-text="$store.staff.getNextAppointment().time + ' • ' + $store.staff.getNextAppointment().clientName"></p>
+              <p class="text-xs text-slate-400 mt-0.5" x-text="$store.staff.getNextAppointment().serviceName"></p>
+              <ol x-show="$store.staff.progressSteps($store.staff.getNextAppointment()).length" aria-label="Service progress" class="flex items-center flex-wrap gap-1.5 mt-2.5">
+                <template x-for="(step, i) in $store.staff.progressSteps($store.staff.getNextAppointment())" :key="step.label">
+                  <li class="flex items-center gap-1.5">
+                    <span x-show="i > 0" aria-hidden="true" class="text-[#94A3B8]">&rarr;</span>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold border" :aria-current="step.active ? 'step' : null" :class="step.active ? 'bg-[#006D6F] text-white border-[#006D6F]' : step.done ? 'bg-[#DCFCE7] text-[#166534] border-[#86EFAC]' : 'bg-[#F1F5F9] text-[#475569] border-[#CBD5E1]'" x-text="step.label"></span>
+                  </li>
+                </template>
+              </ol>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span x-show="$store.staff.isLate($store.staff.getNextAppointment())" :class="$store.staff.lateBadgeClass($store.staff.getNextAppointment())" class="px-2 py-0.5 rounded text-xs font-bold" x-text="$store.staff.lateLabel($store.staff.getNextAppointment())"></span>
+              <span x-show="$store.staff.getNextAppointment().status === 'Pending'" class="text-xs text-slate-500 ">Waiting for admin/cashier confirmation.</span>
+              <span x-show="$store.staff.getNextAppointment().isMainStylist === false" class="text-xs text-slate-500 ">Shared booking: the main stylist starts and completes it.</span>
+              <button x-show="$store.staff.canStart($store.staff.getNextAppointment())" @click="$store.staff.startService($store.staff.getNextAppointment().id)" :disabled="$store.staff.busy"
+                class="px-4 py-2 rounded-lg text-xs font-bold uppercase bg-teal-600 hover:bg-teal-700 text-white transition-all active:scale-95 disabled:opacity-50">Start</button>
+              <button x-show="$store.staff.canComplete($store.staff.getNextAppointment())" @click="$store.staff.completeService($store.staff.getNextAppointment().id)" :disabled="$store.staff.busy"
+                class="px-4 py-2 rounded-lg text-xs font-bold uppercase bg-emerald-600 hover:bg-emerald-700 text-white transition-all active:scale-95 disabled:opacity-50">Complete</button>
+            </div>
+          </section>
+        </template>
 
         <div data-stat-grid class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <template x-if="$store.staff.loading">
@@ -320,7 +348,7 @@
               </template>
 
               <template x-if="!$store.staff.loading && $store.staff.getTodayAppointments().length === 0">
-                <div class="text-center py-10 text-slate-500 text-xs italic">No appointments assigned to you today. Enjoy the calm!</div>
+                <div class="text-center py-10 text-slate-500 text-xs " x-text="'No appointments assigned to you today.' + ($store.staff.getNextUpcomingLabel() ? ' Your next one is ' + $store.staff.getNextUpcomingLabel() + '.' : '')"></div>
               </template>
 
               <template x-for="(appt, idx) in $store.staff.getTodayAppointments()" :key="appt.id">
@@ -328,7 +356,7 @@
                   <div class="flex justify-between items-start gap-3 flex-wrap">
                     <div>
                       <div class="flex items-center gap-2">
-                        <span class="text-xs font-bold text-white" x-text="appt.clientName"></span>
+                        <span class="text-base font-bold text-white" x-text="appt.clientName"></span>
                         <span :class="$store.staff.getStatusBadgeClass(appt.status)" class="px-2 py-0.5 rounded text-xs font-bold" x-text="appt.status"></span>
                         <span x-show="$store.staff.isLate(appt)" :class="$store.staff.lateBadgeClass(appt)" class="px-2 py-0.5 rounded text-xs font-bold" x-text="$store.staff.lateLabel(appt)"></span>
                       </div>
@@ -336,7 +364,7 @@
                       <p class="text-xs text-slate-500 mt-1" x-text="appt.time + ' &bull; ' + appt.id"></p>
                     </div>
                     <div class="flex items-center gap-2">
-                      <button x-show="appt.isMainStylist !== false && ['Pending', 'Confirmed'].includes(appt.status)" @click="$store.staff.startService(appt.id)" :disabled="$store.staff.busy"
+                      <button x-show="$store.staff.canStart(appt)" @click="$store.staff.startService(appt.id)" :disabled="$store.staff.busy"
                         class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase bg-teal-600 hover:bg-teal-700 text-white transition-all active:scale-95 disabled:opacity-50">Start</button>
                       <button x-show="appt.isMainStylist !== false && appt.status === 'In Progress'" @click="$store.staff.completeService(appt.id)" :disabled="$store.staff.busy"
                         class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase bg-emerald-600 hover:bg-emerald-700 text-white transition-all active:scale-95 disabled:opacity-50">Complete</button>
@@ -359,11 +387,11 @@
               </template>
               <span class="ml-2 text-base font-bold text-white" x-text="Number($store.staff.performance.avgRating).toFixed(1)"></span>
             </div>
-            <p class="text-xs text-slate-500 italic" x-show="!$store.staff.loading && $store.staff.performance.totalReviews === 0">No rating yet</p>
+            <p class="text-xs text-slate-500 " x-show="!$store.staff.loading && $store.staff.performance.totalReviews === 0">No rating yet</p>
 
             <div class="grid grid-cols-3 gap-3 border-t border-slate-800 pt-3 text-xs">
               <div>
-                <span class="text-xs text-slate-400 block">Completed (All Time)</span>
+                <span class="text-xs text-slate-400 block">Total Completed</span>
                 <span class="text-base font-bold text-white" x-text="$store.staff.performance.completedCount"></span>
               </div>
               <div>
@@ -371,15 +399,16 @@
                 <span class="text-base font-bold text-white" x-text="$store.staff.performance.totalReviews"></span>
               </div>
               <div>
-                <span class="text-xs text-slate-400 block">Attendance (30d)</span>
+                <span class="text-xs text-slate-400 block">Attendance</span>
                 <span class="text-base font-bold text-white" x-text="($store.staff.performance.attendanceRate || 0) + '%'"></span>
+                <span class="text-xs text-slate-500 block" x-text="($store.staff.performance.attendanceDays || 0) + ' of ' + ($store.staff.performance.branchOpenDays || 0) + ($store.staff.performance.branchOpenDays === 1 ? ' day' : ' days') + ', last 30 days'"></span>
               </div>
             </div>
 
             <div class="border-t border-slate-800 pt-3 space-y-2">
               <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wide">Recent Feedback</h4>
               <template x-if="!$store.staff.loading && $store.staff.recentFeedback.length === 0">
-                <p class="text-xs text-slate-500 italic py-2">No client feedback yet.</p>
+                <p class="text-xs text-slate-500  py-2">Client reviews will appear here after a completed service.</p>
               </template>
               <template x-for="fb in $store.staff.recentFeedback.slice(0, 3)" :key="fb.id">
                 <div class="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
@@ -419,8 +448,7 @@
     </div>
   </nav>
 
-  <div x-show="performanceModalOpen" x-cloak class="fixed inset-0 z-[80] flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" @click="performanceModalOpen = false" x-transition.opacity></div>
+  <div x-show="performanceModalOpen" x-cloak @click.self="performanceModalOpen = false" x-transition.opacity class="fixed inset-0 flex items-center justify-center p-4" style="z-index:1000;background:rgb(6 70 74 / .65);backdrop-filter:blur(4px)">
     <div x-show="performanceModalOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
          class="relative bg-slate-900 border border-emerald-900/50 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto p-6 space-y-5">
       <div class="flex items-center justify-between">
@@ -437,31 +465,45 @@
 
       <template x-if="!loadingPerformance">
         <div class="space-y-5">
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="p-3 bg-slate-950 rounded-lg border border-slate-800">
+              <span class="text-xs text-slate-400 block">Total Completed</span>
+              <span class="text-base font-bold text-white" x-text="$store.staff.performance.completedCount"></span>
+            </div>
+            <div class="p-3 bg-slate-950 rounded-lg border border-slate-800">
+              <span class="text-xs text-slate-400 block">Average Rating</span>
+              <span class="text-base font-bold text-white" x-text="$store.staff.performance.totalReviews > 0 ? Number($store.staff.performance.avgRating).toFixed(1) + ' / 5' : 'No rating yet'"></span>
+            </div>
             <div class="p-3 bg-slate-950 rounded-lg border border-slate-800">
               <span class="text-xs text-slate-400 block">Attendance (Last 30 Days)</span>
               <span class="text-base font-bold text-white" x-text="modalAttendanceRate + '%'"></span>
-              <span class="text-xs text-slate-500 ml-1" x-text="'(' + modalAttendanceDays + ' of ' + modalBranchOpenDays + ' branch working days, last 30 days)'"></span>
+              <span class="text-xs text-slate-500 block" x-text="modalAttendanceDays + ' of ' + modalBranchOpenDays + (modalBranchOpenDays === 1 ? ' working day' : ' working days')"></span>
             </div>
           </div>
 
           <div>
-            <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wide mb-2">Last 6 Months <span class="text-slate-500 font-normal normal-case">(completed services, days attended)</span></h4>
-            <div class="flex items-end gap-3 h-28 border-b border-slate-800 pb-1" x-show="monthlyTrend.length">
-              <template x-for="m in monthlyTrend" :key="m.label">
-                <div class="flex-1 flex flex-col items-center justify-end gap-1">
-                  <span class="text-xs text-slate-400" x-text="m.completed"></span>
-                  <div class="w-full bg-gradient-to-t from-emerald-600 to-teal-500 rounded-t-md transition-all duration-700" :style="'height: ' + Math.max(4, (m.completed / Math.max(...monthlyTrend.map(x => x.completed), 1)) * 100) + '%'"></div>
-                  <span class="text-xs text-slate-500" x-text="m.label"></span>
-                  <span class="text-xs text-indigo-400 font-semibold" x-text="m.daysAttended + 'd'"></span>
+            <h4 class="font-bold text-slate-300 mb-2" style="font-size:.875rem !important">Last 6 Months</h4>
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mb-3 text-xs text-slate-500" x-show="monthlyTrend.length">
+              <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-full" style="background:#06464A"></span>Days attended / branch working days</span>
+              <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-full" style="background:#E5F2F0;border:1px solid #006D6F"></span>Completed services</span>
+            </div>
+            <div class="grid grid-cols-3 sm:grid-cols-6 rounded-xl overflow-hidden border border-slate-800" x-show="monthlyTrend.length">
+              <template x-for="(m, i) in monthlyTrend" :key="m.label">
+                <div class="flex flex-col items-center text-center" :style="i === monthlyTrend.length - 1 ? 'background:#F7F0E4' : ''"
+                     :aria-label="m.label + ': ' + m.daysAttended + ' of ' + m.branchDays + ' working days, ' + m.completed + ' completed services'">
+                  <span class="mt-3 px-3 py-0.5 rounded-full text-xs font-bold" style="background:#06464A;color:#FFFFFF" x-text="m.daysAttended + '/' + m.branchDays"></span>
+                  <span class="mt-1.5 min-w-10 px-3 py-0.5 rounded-full text-xs font-bold" style="background:#E5F2F0;color:#06464A;border:1px solid #006D6F" x-text="m.completed"></span>
+                  <span class="mt-1.5 mb-2 text-xs font-bold uppercase" :style="i === monthlyTrend.length - 1 ? 'color:#06464A' : 'color:#475569'" x-text="m.label"></span>
+                  <span class="w-full py-1.5 text-xs font-bold" :style="monthRateStyle(m.attendanceRate)" x-text="m.attendanceRate === null ? '–' : m.attendanceRate + '%'"></span>
                 </div>
               </template>
             </div>
-            <p class="text-xs text-slate-500 italic py-4 text-center" x-show="!monthlyTrend.length">No appointment history in the last 6 months.</p>
+            <p class="mt-3 text-xs text-slate-500" x-show="monthlyTrend.length"><strong class="font-semibold text-slate-400">Percentage:</strong> days you attended ÷ your branch's working days that month.</p>
+            <p class="text-xs text-slate-500  py-4 text-center" x-show="!monthlyTrend.length">No appointment history in the last 6 months.</p>
           </div>
 
           <div>
-            <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wide mb-2">All Client Feedback</h4>
+            <h4 class="font-bold text-slate-300 mb-2" style="font-size:.875rem !important">All Client Feedback</h4>
             <div class="space-y-2 max-h-64 overflow-y-auto">
               <template x-for="fb in allFeedback" :key="fb.id">
                 <div class="p-3 bg-slate-950 rounded-lg border border-slate-800">
@@ -473,7 +515,7 @@
                   <p class="text-xs text-slate-400 mt-1" x-text="fb.comment || 'No comment left.'"></p>
                 </div>
               </template>
-              <p class="text-xs text-slate-500 italic py-4 text-center" x-show="!allFeedback.length">No feedback submitted yet.</p>
+              <p class="text-xs text-slate-500  py-4 text-center" x-show="!allFeedback.length">Client reviews will appear here after a completed service.</p>
             </div>
           </div>
         </div>
@@ -481,14 +523,6 @@
     </div>
   </div>
 
-  <script>
-    function handleLogoutConfirmation(event) {
-      event.preventDefault();
-      if (window.confirm('Are you sure you want to log out?')) {
-        window.location.href = event.target.closest('a').href;
-      }
-    }
-  </script>
   <script src="../../function/shared/appointment-arrival.js"></script>
   <script src="../../function/staff/shared-data.js"></script>
   <script src="../../function/staff/dashboard.js"></script>

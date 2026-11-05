@@ -79,12 +79,33 @@ try {
         $attendanceByMonth[$row['ym']] = (int) $row['daysAttended'];
     }
 
-    $monthlyTrend = array_map(function ($ym) use ($completedByMonth, $attendanceByMonth) {
+    // Same "branch working day" rule as StaffMetrics::branchOpenDaysSql(), per month.
+    $stmt = $pdo->prepare("
+        SELECT DATE_FORMAT(branch_day.clock_in_time, '%Y-%m') AS ym, COUNT(DISTINCT DATE(branch_day.clock_in_time)) AS branchDays
+        FROM attendance branch_day
+        JOIN employees colleague ON colleague.id = branch_day.employee_id
+        JOIN employees e ON e.id = ?
+        WHERE colleague.branch_id <=> e.branch_id
+          AND branch_day.clock_in_time >= (CURDATE() - INTERVAL 6 MONTH)
+          AND (e.hire_date IS NULL OR DATE(branch_day.clock_in_time) >= e.hire_date)
+        GROUP BY ym
+    ");
+    $stmt->execute([$employeeId]);
+    $branchDaysByMonth = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $branchDaysByMonth[$row['ym']] = (int) $row['branchDays'];
+    }
+
+    $monthlyTrend = array_map(function ($ym) use ($completedByMonth, $attendanceByMonth, $branchDaysByMonth) {
+        $daysAttended = $attendanceByMonth[$ym] ?? 0;
+        $branchDays = max($daysAttended, $branchDaysByMonth[$ym] ?? 0);
         return [
             'label' => date('M Y', strtotime($ym . '-01')),
             'completed' => $completedByMonth[$ym]['completed'] ?? 0,
             'avgRating' => $completedByMonth[$ym]['avgRating'] ?? 0,
-            'daysAttended' => $attendanceByMonth[$ym] ?? 0,
+            'daysAttended' => $daysAttended,
+            'branchDays' => $branchDays,
+            'attendanceRate' => $branchDays > 0 ? StaffMetrics::attendanceRate($daysAttended, $branchDays) : null,
         ];
     }, $monthKeys);
 

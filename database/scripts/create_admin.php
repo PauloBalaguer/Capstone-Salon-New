@@ -25,8 +25,9 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     exit(1);
 }
 
-if (strlen($password) < 8) {
-    fwrite(STDERR, "Password must be at least 8 characters.\n");
+require_once __DIR__ . '/../../backend/shared/config/security/PasswordPolicy.php';
+if (!PasswordPolicy::isValid($password)) {
+    fwrite(STDERR, PasswordPolicy::MESSAGE . "\n");
     exit(1);
 }
 

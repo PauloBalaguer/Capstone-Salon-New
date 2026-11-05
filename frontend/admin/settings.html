@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=20261103b" />
   <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=20261103-signout-cream" />
   <script src="../../function/shared/toast.js"></script>
+  <script src="../../function/shared/confirm-dialog.js"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
   <link rel="stylesheet" href="../../frontend/shared/mobile-nav.css?v=20261103c">
   <script src="../../function/shared/mobile-nav.js?v=20261103" defer></script>
@@ -227,6 +228,8 @@
           <p x-show="!$store.admin.eventDurations.length" class="text-xs text-slate-500">No event types found. Run database/migrations/054_event_durations.sql.</p>
         </div>
 
+        <div data-password-card></div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="bg-slate-900 border border-luxury-900 rounded-2xl p-5 space-y-4">
             <div class="border-b border-slate-800 pb-3">
@@ -314,7 +317,7 @@
                   </tr>
                 </template>
                 <template x-if="$store.admin.staffList.length === 0">
-                  <tr><td colspan="3" class="p-6 text-center text-slate-500 italic">No staff accounts yet.</td></tr>
+                  <tr><td colspan="3" class="p-6 text-center text-slate-500 ">No staff accounts yet.</td></tr>
                 </template>
               </tbody>
             </table>
@@ -353,7 +356,7 @@
                   </tr>
                 </template>
                 <template x-if="$store.admin.cashierList.length === 0">
-                  <tr><td colspan="4" class="p-6 text-center text-slate-500 italic">No cashier accounts yet.</td></tr>
+                  <tr><td colspan="4" class="p-6 text-center text-slate-500 ">No cashier accounts yet.</td></tr>
                 </template>
               </tbody>
             </table>
@@ -399,6 +402,7 @@
     </div>
   </div>
 
+  <script src="../../function/shared/password-card.js"></script>
   <script src="../../function/admin/shared-data.js"></script>
   <script src="../../function/admin/settings.js"></script>
 </body>

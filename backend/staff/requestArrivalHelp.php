@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Staff: ask the branch cashier to mark a no-show, or to reassign/reschedule a
+ * Staff: ask the front desk to mark a no-show, or to reassign/reschedule a
  * late customer. Staff can't do either themselves, because a no-show forfeits
  * the customer's deposit. Only the booking's main stylist can ask, and nothing
  * about the booking or its payment changes here.
@@ -68,7 +68,7 @@ try {
         exit();
     }
     if ($appointment['status'] !== 'Confirmed') {
-        throw new RuntimeException("This booking is {$appointment['status']}, so there is nothing for the cashier to review.");
+        throw new RuntimeException("This booking is {$appointment['status']}, so there is nothing for the front desk to review.");
     }
 
     $minutesLate = Scheduling::minutesLate($pdo, $appointment);
@@ -79,13 +79,13 @@ try {
         throw new RuntimeException('The customer is still within the grace period.');
     }
     if (in_array($kind, ArrivalRequest::openToday($pdo)[$referenceCode] ?? [], true)) {
-        throw new RuntimeException('You already sent this request to the cashier today.');
+        throw new RuntimeException('You already sent this request to the front desk today.');
     }
 
     ArrivalRequest::send($pdo, $appointment, $employee['name'], $kind, $minutesLate);
     $pdo->commit();
 
-    echo json_encode(['success' => true, 'message' => 'Request sent to the cashier. Nothing changes until they act on it.']);
+    echo json_encode(['success' => true, 'message' => 'Request sent to the front desk. Nothing changes until they act on it.']);
 } catch (PDOException | RuntimeException $e) {
     if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
     if (!($e instanceof PDOException)) {

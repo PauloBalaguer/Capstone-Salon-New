@@ -96,7 +96,7 @@
         }
       };
       find('start').onclick = () => action(async () => {
-        if (!window.confirm('Start the full service at the current server time with the selected staff? Availability will be checked again and payment will remain unchanged.')) { find('error').textContent = ''; return; }
+        if (!(await LMConfirm({ title: 'Start this service?', message: 'It starts now with the selected staff. Availability will be checked again, and payment stays the same.', confirmLabel: 'Start Service' }))) { find('error').textContent = ''; return; }
         await request(endpoint, { id: reference, status: 'In Progress', arrivalConfirmed: '1', arrivalStaffId: find('staff').value });
         changed = true; dialog.close();
       });
@@ -110,7 +110,7 @@
         find('error').textContent = find('time').value ? 'Choose a time, then confirm rescheduling.' : 'No available times. Choose another date.';
       });
       find('reschedule').onclick = () => action(async () => {
-        if (!window.confirm('Move only this appointment to the selected schedule? Existing verified payments will carry over.')) return;
+        if (!(await LMConfirm({ title: 'Move this appointment?', message: 'Only this appointment moves to the selected schedule. Verified payments carry over.', confirmLabel: 'Move Appointment' }))) return;
         await request('backend/cashier/rescheduleAppointment.php', { id: reference, date: find('date').value, time: find('time').value, reason: 'Staff-reviewed arrival; rescheduled without displacing another booking.' });
         changed = true; dialog.close();
       });

@@ -46,9 +46,17 @@ function passwordChecks(v) {
   return {
     len: v.length >= 8,
     case: /[a-z]/.test(v) && /[A-Z]/.test(v),
-    num: /\d/.test(v),
-    symbol: /[^\w\s]/.test(v)
+    upper: /[A-Z]/.test(v),
+    lower: /[a-z]/.test(v),
+    num: /[0-9]/.test(v),
+    symbol: /[^A-Za-z0-9\s]/.test(v)
   };
+}
+
+/* Same rules as backend/shared/config/security/PasswordPolicy.php. */
+function passwordValid(v) {
+  const c = passwordChecks(v);
+  return c.len && c.upper && c.lower && c.num && c.symbol;
 }
 
 /* ana.cruz@gmail.com -> a•••@gmail.com */

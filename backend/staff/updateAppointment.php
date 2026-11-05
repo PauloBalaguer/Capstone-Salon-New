@@ -105,7 +105,7 @@ try {
     $pdo->prepare('UPDATE appointments SET status = ? WHERE id = ?')->execute([$status, $appointment['id']]);
 
     if ($status === 'Completed') {
-        CustomerNotifier::notify($pdo, (int) $appointment['customer_id'], 'COMPLETED', "Your appointment {$referenceCode} is now Completed. Thank you for choosing us!");
+        CustomerNotifier::notify($pdo, (int) $appointment['customer_id'], 'SERVICE_FINISHED', "Your service for {$referenceCode} is finished. Please proceed to the cashier to complete your visit.");
     }
 
     $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "BOOKING", ?)')

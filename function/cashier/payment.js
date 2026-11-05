@@ -75,19 +75,12 @@ async function init() {
   renderCart();
 }
 
-/* READY FOR CHECKOUT -- visits that still owe money: anything In Progress
-   or Completed-but-unpaid, plus Confirmed bookings dated today or earlier
-   (future Confirmed bookings aren't at the counter yet). */
+/* AWAITING PAYMENT -- visits that still owe money: anything In Progress
+   or Completed-but-unpaid. A Confirmed booking must start its service first. */
 function renderCheckoutList() {
   const tbody = document.getElementById('checkoutTableBody');
-  const now = new Date();
-  const today = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
   const toCheckout = state.data.bookings.filter(b =>
-    !b.checkoutPaid && (
-      b.status === 'In Progress' ||
-      b.status === 'Completed' ||
-      (b.status === 'Confirmed' && (b.date || '') <= today)
-    )
+    !b.checkoutPaid && (b.status === 'In Progress' || b.status === 'Completed')
   );
 
   if (!toCheckout.length) {
@@ -209,7 +202,7 @@ async function confirmVerify() {
 }
 
 async function markNeedsAttention() {
-  if (!window.confirm('Flag this payment as needing attention? The customer will be notified to contact the branch.')) return;
+  if (!(await LMConfirm({ title: 'Flag this payment?', message: 'The customer will be notified to contact the branch.', confirmLabel: 'Flag Payment' }))) return;
   const result = await CashierApp.post('updateStatus.php', { id: state.pendingVerifyRef, paymentAction: 'needs_attention' });
   CashierApp.toast(result.message || (result.success ? 'Payment flagged.' : 'Failed to update payment.'), result.success ? 'success' : 'error');
   if (result.success) {
@@ -243,7 +236,7 @@ function renderTicketSummary(branch) {
   const serviceNames = (t.serviceName || '').split(',').map(s => s.trim()).filter(Boolean);
   servicesEl.innerHTML = serviceNames.length
     ? serviceNames.map(name => `<span class="bg-[#006D6F]/10 text-[#06464A] text-base font-semibold px-3 py-1 rounded-full">${escapeHtml(name)}</span>`).join('')
-    : '<span class="text-base text-gray-400 italic">No services listed</span>';
+    : '<span class="text-base text-gray-400 ">No services listed</span>';
 
   renderStatusUI();
 }
@@ -443,7 +436,10 @@ function updateCashChange(total) {
   if (alreadyPaid) return;
   if (!state.ticket) { btn.disabled = true; hint.textContent = ''; return; }
   if (state.processing) { btn.disabled = true; return; }
-  if (!['Confirmed', 'In Progress', 'Completed'].includes(state.ticket.status)) {
+  if (state.ticket.status === 'Confirmed') {
+    btn.disabled = true; hint.textContent = 'Start the service before checkout.'; return;
+  }
+  if (!['In Progress', 'Completed'].includes(state.ticket.status)) {
     btn.disabled = true; hint.textContent = 'Confirm the booking before checkout.'; return;
   }
   if (state.ticket.depositPaid && !state.ticket.depositVerified && Number(state.ticket.depositAmount) > 0) {
@@ -477,7 +473,7 @@ function renderProductList(query) {
   const container = document.getElementById('productListContainer');
 
   if (!items.length) {
-    container.innerHTML = '<p class="text-gray-400 italic text-center py-6">No products match your search.</p>';
+    container.innerHTML = '<p class="text-gray-400  text-center py-6">No products match your search.</p>';
     return;
   }
 
@@ -623,7 +619,7 @@ async function processPayment() {
 
   const btn = document.getElementById('btnProcessPayment');
   if (btn.disabled) return;
-  if (!window.confirm(`Record ${CashierApp.formatCurrency(state.amountDue || 0)} via ${state.selectedMethod}, complete this visit, and issue a receipt? Confirm only after the payment has been received.`)) return;
+  if (!(await LMConfirm({ title: 'Record this payment?', message: `Record ${CashierApp.formatCurrency(state.amountDue || 0)} via ${state.selectedMethod}, complete this visit, and issue a receipt. Confirm only after the payment has been received.`, confirmLabel: 'Record Payment' }))) return;
   state.processing = true;
   btn.disabled = true;
   document.getElementById('paymentForm').inert = true;

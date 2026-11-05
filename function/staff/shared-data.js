@@ -25,6 +25,7 @@ document.addEventListener('alpine:init', () => {
     now: new Date(),
     loadedAt: new Date(),
     lateGraceMinutes: null,
+    availability: { busyUntil: null, busyMinutesLeft: 0 },
     busy: false,
 
     toast(message, type = 'success') {
@@ -46,6 +47,7 @@ document.addEventListener('alpine:init', () => {
         this.profile = data.profile;
         this.notificationPrefs = data.notificationPrefs;
         this.lateGraceMinutes = data.lateGraceMinutes;
+        this.availability = data.availability;
         this.loadedAt = new Date();
         this.appointments = data.appointments;
         this.attendance = data.attendance;
@@ -93,6 +95,8 @@ document.addEventListener('alpine:init', () => {
     },
 
     async completeService(referenceCode) {
+      const finished = await LMConfirm({ title: 'Mark service as finished?', message: 'This cannot be undone. Log any supplies you used first.', confirmLabel: 'Mark as Finished' });
+      if (!finished) return { success: false };
       this.busy = true;
       try {
         const res = await this.post('backend/staff/updateAppointment.php', { id: referenceCode, status: 'Completed' });
@@ -104,12 +108,13 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
-    // Asks the cashier to act; the booking and payment stay as they are.
+    // Asks the front desk to act; the booking and payment stay as they are.
     async requestArrivalHelp(referenceCode, kind) {
       const question = kind === 'no_show'
-        ? 'Ask the cashier to mark this customer as No-Show? The cashier makes the final decision.'
-        : 'Ask the cashier to reassign or reschedule this booking?';
-      if (!window.confirm(question)) return { success: false };
+        ? 'Ask the front desk to mark this customer as No-Show? The cashier or admin makes the final decision.'
+        : 'Ask the front desk to reassign or reschedule this booking?';
+      const send = await LMConfirm({ title: 'Send to the front desk?', message: question, confirmLabel: 'Send Request' });
+      if (!send) return { success: false };
       this.busy = true;
       try {
         const res = await this.post('backend/staff/requestArrivalHelp.php', { id: referenceCode, kind });
@@ -135,6 +140,11 @@ document.addEventListener('alpine:init', () => {
     isLate(appt) {
       return appt.status === 'Confirmed' && appt.isMainStylist !== false
         && appt.date <= this.todayISO() && this.minutesLate(appt) > 0;
+    },
+
+    // The reserved day has passed; only the front desk can move or close it now.
+    isMissed(appt) {
+      return this.isLate(appt) && appt.date < this.todayISO();
     },
 
     isBeyondGrace(appt) {
@@ -207,6 +217,11 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
+    // "2026-10-21" -> "Oct 21, 2026"; built locally so the date can't shift by timezone.
+    formatDate(iso) {
+      return new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    },
+
     todayISO() {
       const d = this.now;
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -234,6 +249,39 @@ document.addEventListener('alpine:init', () => {
           || this.appointmentSortKey(a).localeCompare(this.appointmentSortKey(b)));
     },
 
+    // Same rules the server enforces, so staff only see buttons that will work.
+    // A shared booking is started and completed by its main stylist.
+    canStart(appt) {
+      return appt.isMainStylist !== false && appt.status === 'Confirmed' && appt.date === this.todayISO();
+    },
+
+    canComplete(appt) {
+      return appt.isMainStylist !== false && appt.status === 'In Progress';
+    },
+
+    // Steps for the progress tracker; empty for statuses outside this path.
+    progressSteps(appt) {
+      if (this.isMissed(appt)) return [];
+      const current = { Confirmed: 0, 'In Progress': 1, Completed: 2, Reviewed: 2 }[appt.status];
+      if (current === undefined) return [];
+      return ['Confirmed', 'In Progress', 'Finished'].map((label, i) => ({ label, done: i <= current, active: i === current }));
+    },
+
+    // The service under way, otherwise the earliest booking still to do today.
+    getNextAppointment() {
+      const today = this.getTodayAppointments();
+      return today.find(a => a.status === 'In Progress')
+        || today.find(a => ['Confirmed', 'Pending'].includes(a.status))
+        || null;
+    },
+
+    getNextUpcomingLabel() {
+      const next = this.getUpcomingAppointments().find(a => ['Confirmed', 'Pending'].includes(a.status));
+      if (!next) return '';
+      const date = new Date(next.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return `${date} at ${next.time}`;
+    },
+
     getActiveTodayCount() {
       return this.getTodayAppointments().filter(a => !this.isInactiveAppointment(a)).length;
     },
@@ -253,6 +301,13 @@ document.addEventListener('alpine:init', () => {
     isClockedIn() {
       const today = this.getTodayAttendance();
       return !!(today && today.isOpen);
+    },
+
+    // Off Shift, Busy until the current service and buffer end, or Available.
+    availabilityLabel() {
+      if (!this.isClockedIn()) return 'Off Shift';
+      const left = this.availability.busyMinutesLeft - Math.floor((this.now - this.loadedAt) / 60000);
+      return left > 0 && this.availability.busyUntil ? `Busy until ${this.availability.busyUntil}` : 'Available';
     },
 
     getShiftDurationLabel() {

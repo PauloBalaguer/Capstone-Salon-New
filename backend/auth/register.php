@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../shared/config/security/PasswordPolicy.php';
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
@@ -50,8 +51,8 @@ if (empty($contact_number)) $errors[] = 'Contact number is required.';
 
 if (empty($password)) {
     $errors[] = 'Password is required.';
-} elseif (strlen($password) < 8) {
-    $errors[] = 'Password must be at least 8 characters long.';
+} elseif (!PasswordPolicy::isValid($password)) {
+    $errors[] = PasswordPolicy::MESSAGE;
 }
 
 if ($password !== $confirm_password) {

@@ -201,6 +201,7 @@ try {
     $stylistName = trim($stylist['first_name'] . ' ' . $stylist['last_name']);
     $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "BOOKING", ?)')
         ->execute(["Walk-in {$referenceCode} ({$clientName}) checked in at {$branch['branch_name']}, assigned to {$stylistName}."]);
+    StaffNotifier::notify($pdo, (int) $stylistId, 'APPOINTMENT_ASSIGNED', "Walk-in {$referenceCode} ({$clientName}) is assigned to you now.");
 
     $pdo->commit();
 

@@ -36,6 +36,7 @@ final class CustomerNotifier
         'CONFIRMED' => 'Your appointment is confirmed',
         'RESCHEDULE' => 'Appointment schedule update',
         'CANCELLED' => 'Your appointment was cancelled',
+        'SERVICE_FINISHED' => 'Your service is finished',
         'COMPLETED' => 'Thank you for visiting us',
         'WAITLIST_OPENING' => 'Your preferred stylist has an opening',
         'QUOTE_READY' => 'Your home service quote is ready',

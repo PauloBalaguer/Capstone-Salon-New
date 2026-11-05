@@ -21,7 +21,7 @@ $pdo->exec("DELETE FROM daily_closures WHERE business_date = CURDATE()");
 
 $staff = $pdo->query("SELECT id, user_id FROM employees WHERE branch_id = 1 AND user_id IS NOT NULL AND is_active = 1 ORDER BY id LIMIT 2")->fetchAll();
 if (count($staff) < 2) exit("The dev database needs two Daraga stylists with logins.\n");
-$session = fn(array $s) => ['user_id' => (int) $s['user_id'], 'user_role' => 'Staff', 'branch_id' => 1, 'user_email' => 'staff@example.test'];
+$session = fn(array $s) => ['user_id' => (int) $s['user_id'], 'user_role' => 'Staff', 'branch_id' => 1, 'user_email' => 'staff@example.test', 'csrf_token' => 'test-token'];
 [$stylist, $other] = [$session($staff[0]), $session($staff[1])];
 
 // Bookings borrowed from the copy, set to a known state.
@@ -44,7 +44,7 @@ $state = function (string $ref) use ($pdo) {
     $stmt->execute([$ref]);
     return $stmt->fetch();
 };
-$ask = fn(array $session, string $ref, string $kind) => run_endpoint(['script' => 'backend/staff/requestArrivalHelp.php', 'session' => $session, 'post' => ['id' => $ref, 'kind' => $kind], 'env' => $grace]);
+$ask = fn(array $session, string $ref, string $kind) => run_endpoint(['script' => 'backend/staff/requestArrivalHelp.php', 'session' => $session, 'post' => ['id' => $ref, 'kind' => $kind, 'csrfToken' => 'test-token'], 'env' => $grace]);
 $cashierMark = fn(array $session, string $ref) => run_endpoint(['script' => 'backend/cashier/updateStatus.php', 'session' => $session, 'post' => ['id' => $ref, 'status' => 'No-Show'], 'env' => $grace]);
 $noticeCount = function (int $userId, string $ref) use ($pdo) {
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND type = 'ARRIVAL_REQUEST' AND message LIKE ?");
@@ -53,6 +53,11 @@ $noticeCount = function (int $userId, string $ref) use ($pdo) {
 };
 
 // ---- 1. Stylist request ------------------------------------------------------
+$r = run_endpoint(['script' => 'backend/staff/requestArrivalHelp.php', 'session' => $stylist, 'post' => ['id' => $beyond, 'kind' => 'no_show'], 'env' => $grace]);
+check('a request without the CSRF token -> refused', ($r['csrfExpired'] ?? false) === true);
+preg_match_all("/requestArrivalHelp\(appt\.id, '(\w+)'\)/", file_get_contents(dirname(__DIR__) . '/frontend/staff/dashboard.html'), $pageKinds);
+check('the Staff Portal only sends request types the server accepts', $pageKinds[1] && !array_diff($pageKinds[1], ['no_show', 'reschedule']));
+
 $r = $ask($stylist, $within, 'no_show');
 check('10 minutes late, 15-minute grace -> no-show request refused', ($r['success'] ?? true) === false);
 $r = $ask($stylist, $future, 'reschedule');
@@ -86,7 +91,7 @@ check('the cashier sees the request', ($queue[$beyond]['arrivalRequests'] ?? [])
 check('Mark No-Show is not offered inside the grace period or before the start', ($queue[$within]['canMarkNoShow'] ?? true) === false && ($queue[$future]['canMarkNoShow'] ?? true) === false);
 
 // ---- 3. Cashier decision -----------------------------------------------------
-$r = run_endpoint(['script' => 'backend/staff/updateAppointment.php', 'session' => $stylist, 'post' => ['id' => $beyond, 'status' => 'No-Show'], 'env' => $grace]);
+$r = run_endpoint(['script' => 'backend/staff/updateAppointment.php', 'session' => $stylist, 'post' => ['id' => $beyond, 'status' => 'No-Show', 'csrfToken' => 'test-token'], 'env' => $grace]);
 check('a stylist still cannot mark a no-show directly', ($r['success'] ?? true) === false && $state($beyond)['status'] === 'Confirmed');
 $r = $cashierMark($p['cashier'], $within);
 check('cashier: inside the grace period -> refused', ($r['success'] ?? true) === false && $state($within)['status'] === 'Confirmed');

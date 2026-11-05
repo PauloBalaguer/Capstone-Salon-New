@@ -365,8 +365,8 @@
                     <div class="sp-btn-row">
                       <button type="button" class="sp-btn sp-btn-secondary sp-btn-sm" @click="$store.staff.requestArrivalHelp(appt.id, 'no_show')" :disabled="$store.staff.busy || $store.staff.hasArrivalRequest(appt, 'no_show')"
                               x-text="$store.staff.hasArrivalRequest(appt, 'no_show') ? 'No-Show requested' : 'Ask to mark No-Show'"></button>
-                      <button type="button" class="sp-btn sp-btn-secondary sp-btn-sm" @click="$store.staff.requestArrivalHelp(appt.id, 'reassign')" :disabled="$store.staff.busy || $store.staff.hasArrivalRequest(appt, 'reassign')"
-                              x-text="$store.staff.hasArrivalRequest(appt, 'reassign') ? 'Reassign requested' : 'Ask to reassign'"></button>
+                      <button type="button" class="sp-btn sp-btn-secondary sp-btn-sm" @click="$store.staff.requestArrivalHelp(appt.id, 'reschedule')" :disabled="$store.staff.busy || $store.staff.hasArrivalRequest(appt, 'reschedule')"
+                              x-text="$store.staff.hasArrivalRequest(appt, 'reschedule') ? 'Reassign requested' : 'Ask to reassign'"></button>
                     </div>
                   </div>
 

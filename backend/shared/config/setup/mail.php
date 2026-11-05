@@ -250,15 +250,31 @@ function sendBookingOtpEmail(string $email, string $code): bool
  */
 function sendNotificationEmail(string $email, string $subject, string $message): bool
 {
-    $paragraphs = array_map(
-        fn($line) => '<p>' . nl2br(htmlspecialchars($line, ENT_QUOTES, 'UTF-8')) . '</p>',
-        array_filter(explode("\n\n", $message), fn($p) => trim($p) !== '')
-    );
-    $html = '<div style="font-family:Arial, Helvetica, sans-serif;font-size:15px;color:#1a1a1a;line-height:1.5;">'
-        . implode('', $paragraphs)
-        . '<p style="color:#777;font-size:12px;">Leo Mejillano Salon &amp; Beauty &middot; This is an automated message.</p>'
-        . '</div>';
-    $text = $message;
+    return sendBrevoEmail($email, $subject, $message, renderNotificationEmailHtml($message));
+}
 
-    return sendBrevoEmail($email, $subject, $text, $html);
+/**
+ * The HTML version of a notification: the main message (the paragraph after
+ * the greeting), "Label:" line starts, booking references and peso amounts are
+ * bold; links are clickable. Everything is escaped first.
+ */
+function renderNotificationEmailHtml(string $message): string
+{
+    $paragraphs = array_values(array_filter(explode("\n\n", $message), fn($p) => trim($p) !== ''));
+    $html = '';
+    foreach ($paragraphs as $i => $paragraph) {
+        $line = preg_replace_callback(
+            '~https?://[^\s<]+|\bLM-(?:[A-Z]+-)+\d{4}-\d+\b|₱[\d,]+(?:\.\d{2})?|^[A-Z][A-Za-z /&;-]{0,29}:(?=\s)~mu',
+            fn($m) => str_starts_with($m[0], 'http')
+                ? '<a href="' . $m[0] . '" style="color:#006D6F;font-weight:bold;">Open link</a>'
+                : '<strong>' . $m[0] . '</strong>',
+            htmlspecialchars($paragraph, ENT_QUOTES, 'UTF-8')
+        );
+        $html .= '<p>' . ($i === 1 ? '<strong>' . nl2br($line) . '</strong>' : nl2br($line)) . '</p>';
+    }
+    return '<div style="font-family:Arial, Helvetica, sans-serif;font-size:15px;color:#1a1a1a;line-height:1.5;">'
+        . '<p style="font-family:Georgia, \'Times New Roman\', serif;font-size:20px;font-weight:bold;color:#006D6F;margin:0 0 16px;">Leo Mejillano Salon &amp; Beauty</p>'
+        . $html
+        . '<p style="color:#777;font-size:12px;">This is an automated message.</p>'
+        . '</div>';
 }

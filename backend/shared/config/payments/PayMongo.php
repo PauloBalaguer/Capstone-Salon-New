@@ -550,7 +550,7 @@ final class PayMongo
         ]);
         CustomerNotifier::notify($pdo, (int) $appointment['customer_id'], 'PAYMENT_SUBMITTED',
             "Your ₱" . number_format($amount, 2) . " reservation payment for {$reference} via " . self::label($method)
-            . " was received (PayMongo payment ID {$paid['id']}) and is now Payment Being Verified.");
+            . " was received. The branch will verify it and confirm your appointment.");
         if (($appointment['status'] ?? '') === 'Cancelled') {
             // Paid after the hold expired -- flagged Refund Due above; staff refund it.
             error_log("PayMongo: payment {$paid['id']} arrived for already-cancelled booking {$reference}.");
@@ -589,7 +589,7 @@ final class PayMongo
             'paid_after_cancellation' => $cancelled,
         ]);
         $peso = '₱' . number_format($amount, 2);
-        $via = ' via ' . self::label($method) . " (PayMongo payment ID {$paid['id']})";
+        $via = ' via ' . self::label($method);
         if ($cancelled) {
             error_log("PayMongo: payment {$paid['id']} arrived for already-cancelled home service {$reference}.");
         } elseif ($canConfirm) {

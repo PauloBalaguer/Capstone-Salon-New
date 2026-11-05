@@ -73,6 +73,8 @@ final class CustomerNotifier
 
         $reference = $reference ?? (preg_match('/\bLM-(?:[A-Z]+-)+\d{4}-\d+\b/', $message, $m) ? $m[0] : null);
         $details = $reference ? self::bookingDetails($pdo, $customerId, $reference) : null;
+        // The email carries only what the customer needs; the portal parses the longer in-app details.
+        $emailMessage = $message . ($details ? "\n\n" . (str_contains($message, $reference) ? '' : "Reference: {$reference}\n") . $details['email'] : '');
         if ($details) $message .= "\n\n" . $details['text'];
         if ($customer['user_id']) {
             $existing = $pdo->prepare('SELECT id FROM notifications WHERE user_id = ? AND type = ? AND message = ? LIMIT 1 FOR UPDATE');
@@ -88,11 +90,11 @@ final class CustomerNotifier
 
         if (isset(self::EMAIL_SUBJECTS[$type]) && $customer['email'] && (int) $customer['notify_email'] === 1) {
             $lateRule = $details && !$details['homeService'] && in_array($type, self::LATE_RULE_TYPES, true) ? Scheduling::lateArrivalRule() : null;
-            $body = 'Hello ' . trim($customer['first_name'].' '.$customer['last_name']) . ",\n\n" . $message . ($lateRule ? "\n\nLate arrival: {$lateRule}" : '') . ($customer['user_id']
-                ? "\n\nYou can view your appointment details anytime in your Leo Mejillano account."
+            $body = 'Hello ' . trim($customer['first_name'].' '.$customer['last_name']) . ",\n\n" . $emailMessage . ($lateRule ? "\n\nLate arrival: {$lateRule}" : '') . ($customer['user_id']
+                ? "\n\nView your appointment anytime in your Leo Mejillano account."
                 : (!empty($details['homeService'])
                     ? "\n\nTrack, pay or reschedule anytime in Track Your Home Service (Home & Events) on our website using reference {$reference} and this email address."
-                    : "\n\nYou can check your booking anytime with Track a Booking on our website" . ($reference ? " using reference {$reference}." : '.')));
+                    : "\n\nCheck your booking anytime with Track a Booking on our website" . ($reference ? " using reference {$reference}." : '.')));
             $subject = $type === 'PAYMENT_VERIFIED' && ($details['paymentStatus'] ?? '') === 'Fully Paid' ? 'Your full payment was received' : self::EMAIL_SUBJECTS[$type];
             EmailOutbox::queue($pdo, $customer['email'], $subject . ($reference ? " ({$reference})" : ''), $body, $reference);
         }
@@ -141,6 +143,7 @@ final class CustomerNotifier
         if (!$row) return null;
         $when = new DateTimeImmutable($row['scheduled'],new DateTimeZone('Asia/Manila'));
         return ['homeService'=>$home,'scheduled'=>$row['scheduled'],'contactEmail'=>$row['contact_email']??null,'paymentStatus'=>$row['payment_status'],
+            'email'=>'Service: '.($row['services'] ?: 'Service details available in your booking')."\nWhen: ".$when->format('l, F j, Y, g:i A')."\nBranch: {$row['branch_name']}",
             'text'=>"Booking reference: {$row['reference_code']}\nService / Event: ".($row['services'] ?: 'Service details available in your booking').
             "\nScheduled time: ".$when->format('Y-m-d H:i')." (Philippine time)\nAppointment: ".$when->format('l, F j, Y, g:i A').
             "\nBranch: {$row['branch_name']}\nBooking status: {$row['status']}\nPayment status: {$row['payment_status']}"];

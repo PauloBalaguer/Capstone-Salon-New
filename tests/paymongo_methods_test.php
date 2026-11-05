@@ -475,6 +475,20 @@ check('unpaid booking -> its reference and payment page', ($held['heldBooking'][
 $pdo->exec("UPDATE appointments SET status = 'Cancelled' WHERE id = {$h}");
 check('released booking -> booking goes ahead', PayMongo::heldBooking($pdo, $heldCustomer, 'guest') === null);
 
+// Customer emails: only what the customer needs, with the important parts bold. The in-app message keeps the fields the portal parses.
+require_once $root . '/backend/shared/config/setup/mail.php';
+$m = newAppointment('PayMongo-GCash');
+CustomerNotifier::notify($pdo, 23, 'PAYMENT_SUBMITTED', "Your ₱250.00 reservation payment for {$ref($m)} was received.");
+$body = $pdo->query("SELECT body FROM email_outbox WHERE reference_code = '{$ref($m)}' ORDER BY id DESC LIMIT 1")->fetchColumn();
+check('email has the branch and time, without internal status lines or duplicate times', str_contains($body, "\nWhen: ") && str_contains($body, "\nBranch: ")
+    && !str_contains($body, 'Booking status') && !str_contains($body, 'Payment status') && !str_contains($body, 'Scheduled time'));
+$emailHtml = renderNotificationEmailHtml("Hello <b>Ana</b>,\n\nYour ₱250.00 payment for LM-DAR-2026-000123 arrived.\n\nBranch: Daraga\nPay online here: https://x.test/pay?ref=LM-DAR-2026-000123&token=abc");
+check('email HTML bolds the message, labels, reference and amount, links the pay page, and escapes text', str_contains($emailHtml, '<strong>₱250.00</strong>') && str_contains($emailHtml, '<strong>LM-DAR-2026-000123</strong>')
+    && str_contains($emailHtml, '<strong>Branch:</strong>') && str_contains($emailHtml, '<strong>Your ') && str_contains($emailHtml, 'href="https://x.test/pay?ref=LM-DAR-2026-000123&amp;token=abc"') && str_contains($emailHtml, '&lt;b&gt;Ana'));
+
+// Every connection runs on Manila time, like PHP: on a UTC cloud database a new booking would be past its deadline.
+check('database session clock is Manila time', $pdo->query('SELECT @@session.time_zone')->fetchColumn() === '+08:00');
+
 // Helpers.
 check('methods, labels and online check (legacy included, manual GCash not)', PayMongo::METHODS === ['PayMongo-GCash', 'PayMongo-Maya', 'PayMongo-Card']
     && PayMongo::isOnline('PayMongo') && PayMongo::isOnline('PayMongo-Card') && !PayMongo::isOnline('GCash')

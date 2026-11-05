@@ -1,0 +1,58 @@
+/* Booking modal fixes, loaded after clean-theme.css. */
+
+/* Selected time slot and stylist: teal fill with white text. The id keeps
+   these above hover utilities, which stay active after a tap on phones. */
+#bookSlotGrid .slot-btn.is-selected,
+#bookStaffList .staff-btn.is-selected {
+  background-color: var(--brand-teal);
+  border-color: var(--brand-teal);
+  color: #fff;
+}
+#bookStaffList .staff-btn.is-selected :is(span, [class*="text-"]) { color: #fff; }
+#bookStaffList .staff-btn.is-selected [class*="bg-[#16A34A]"] { background-color: #BBF7D0; }
+.dark #bookSlotGrid .slot-btn.is-selected,
+.dark #bookStaffList .staff-btn.is-selected { background-color: rgb(var(--c-plum)); border-color: rgb(var(--c-plum)); color: #0D1616; }
+.dark #bookStaffList .staff-btn.is-selected :is(span, [class*="text-"]) { color: #0D1616; }
+/* Hover tints only on devices that can hover, so a tap does not stick. */
+@media (hover: none) {
+  #bookSlotGrid .slot-btn:not(.is-selected):hover,
+  #bookStaffList .staff-btn:not(.is-selected):hover { color: rgb(var(--c-ink)); border-color: rgb(var(--c-bronze) / .4); }
+}
+.dark #bookStaffList .staff-btn:not(.is-selected):not([disabled]) { background-color: rgb(var(--c-panel)); }
+
+/* Text-only buttons keep a clear background while disabled (countdowns,
+   sending states) instead of the beige fill used for form fields. */
+#bookingModalBox button.btn-text:disabled {
+  background-color: transparent;
+  border-color: transparent;
+  color: rgb(var(--c-ink) / .5);
+  text-decoration: none;
+}
+
+/* Payment choices: a long label wraps inside its box instead of being cut off. */
+#bookPaymentPlanWrap label { white-space: nowrap; }
+#bookDepositMethod label { gap: .625rem; }
+#bookDepositMethod label > span:last-child { min-width: 0; line-height: 1.25; }
+
+/* Terms: "Read more" shows the rest of the list. */
+.book-terms-more > summary {
+  display: inline-block;
+  margin-top: .5rem;
+  color: rgb(var(--c-plum));
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+  list-style: none;
+}
+.book-terms-more > summary::-webkit-details-marker { display: none; }
+.book-terms-more > ul { margin-top: .25rem; }
+.book-terms-more[open] > summary { order: 2; }
+.book-terms-more { display: flex; flex-direction: column; align-items: flex-start; }
+.book-terms-more[open] .terms-more-label,
+.book-terms-more:not([open]) .terms-less-label { display: none; }
+
+/* Long email addresses wrap instead of stretching the line. */
+#bookOtpEmailLabel, #bookingReviewSummary { overflow-wrap: anywhere; }
+
+/* Code boxes: one teal ring on focus instead of a ring plus outline. */
+#bookingOtpForm .book-otp-digit:focus-visible { outline: none !important; }

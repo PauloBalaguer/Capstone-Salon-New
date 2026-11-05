@@ -59,6 +59,9 @@ class Database
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES   => false,
+            // Same clock as PHP (Asia/Manila above), whatever timezone the server runs in. On a UTC
+            // cloud database, NOW() ran 8 hours behind and a new booking was already past its deadline.
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET time_zone = '+08:00'",
         ];
         // A database on another network: encrypt the connection and verify the server.
         if (env('DB_SSL_CA') !== '') {

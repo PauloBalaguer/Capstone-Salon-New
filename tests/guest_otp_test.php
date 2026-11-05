@@ -63,7 +63,7 @@ $owner = (int) $pdo->query("SELECT customer_id FROM appointments WHERE reference
 check('registered number + texted code -> booked onto that account', ($r['success'] ?? false) === true && $owner === (int) $account['id']);
 $pdo->exec("INSERT INTO booking_verifications (email, code, expires_at) VALUES ('someone.else@example.com', '444444', NOW() + INTERVAL 10 MINUTE)");
 $r = $book('18:00', '444444', 'someone.else@example.com');
-check('registered number + a different (emailed) address -> refused, told to leave the email blank', ($r['success'] ?? true) === false
-    && str_contains($r['message'], 'leave the email blank'));
+check('registered number + a different (emailed) address -> refused, offered a text code instead', ($r['success'] ?? true) === false && ($r['useTextCode'] ?? false) === true
+    && str_contains($r['message'], 'code sent to this number'));
 
 finish();

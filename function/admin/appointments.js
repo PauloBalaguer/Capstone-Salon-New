@@ -172,7 +172,7 @@ function adminBookingsApp() {
         const question = this.isPaymongoDeposit(booking)
           ? 'Refund ' + amount + ' for ' + booking.id + ' through PayMongo? The money goes back to the customer\'s GCash, Maya or card. This cannot be undone.'
           : 'Mark the ' + amount + ' deposit for ' + booking.id + ' as refunded? Only do this after the cash has been returned to the customer.';
-        if (!confirm(question)) return;
+        if (!(await LMConfirm({ title: 'Refund this deposit?', message: question, confirmLabel: 'Confirm Refund' }))) return;
       }
       const store = Alpine.store('admin');
       const result = await store.post('refundDeposit.php', { reference: booking.id });
@@ -186,8 +186,7 @@ function adminBookingsApp() {
         if (await AppointmentArrival.review(id, 'backend/admin/updateBookingStatus.php')) await store.refresh();
         return;
       }
-      if (['Cancelled', 'No-Show'].includes(newStatus) && !confirm(
-        `Mark this booking ${newStatus}? Confirm the customer is absent before choosing No-Show; an arrived-but-late customer should use Review Arrival instead. The existing non-refundable deposit policy applies only if you confirm this closure.`)) return;
+      if (['Cancelled', 'No-Show'].includes(newStatus) && !(await LMConfirm({ title: `Mark as ${newStatus}?`, message: `Mark this booking ${newStatus}? Confirm the customer is absent before choosing No-Show; an arrived-but-late customer should use Review Arrival instead. The existing non-refundable deposit policy applies only if you confirm this closure.`, confirmLabel: `Mark ${newStatus}` }))) return;
       const result = await store.post('updateBookingStatus.php', { id, status: newStatus });
       if (!result.success) {
         LMToast.show(result.message || 'Failed to update booking status.', 'error');
@@ -301,14 +300,14 @@ function adminBookingsApp() {
     async completeHomeService(booking) {
       if (booking.quotePrice && booking.remainingBalance > 0) {
         const amount = Alpine.store('admin').formatCurrency(booking.remainingBalance);
-        if (!confirm(`${amount} is still unpaid on ${booking.id}.\n\nOK = mark it Completed anyway (you can still collect the balance afterwards)\nCancel = go back and use "Collect Balance" first`)) return;
+        if (!(await LMConfirm({ title: 'Balance still unpaid', message: `${amount} is still unpaid on ${booking.id}. You can still collect it after marking this Completed, or go back and use "Collect Balance" first.`, confirmLabel: 'Mark Completed', cancelLabel: 'Go Back' }))) return;
       }
       await this.updateBookingStatus(booking.id, 'Completed');
     },
 
     async sendBalanceLink(booking) {
       const amount = Alpine.store('admin').formatCurrency(booking.remainingBalance);
-      if (!confirm(`Send ${booking.clientName} a PayMongo link to pay the remaining ${amount} online?`)) return;
+      if (!(await LMConfirm({ title: 'Send payment link?', message: `Send ${booking.clientName} a PayMongo link to pay the remaining ${amount} online?`, confirmLabel: 'Send Link' }))) return;
       const store = Alpine.store('admin');
       const result = await store.post('homeServiceBalance.php', { id: booking.id, action: 'sendLink' });
       LMToast.show(result.message || (result.success ? 'Link sent.' : 'Failed to send the link.'), result.success ? 'success' : 'error');
@@ -316,7 +315,7 @@ function adminBookingsApp() {
     },
     async editHomeServiceQuote(booking) {
       const store = Alpine.store('admin');
-      const value = prompt(`Correct the final quote for ${booking.id} (already paid: ${store.formatCurrency(booking.amountPaid)}):`, booking.quotePrice);
+      const value = await LMPrompt({ title: 'Correct the final quote', message: `${booking.id}, already paid: ${store.formatCurrency(booking.amountPaid)}`, value: booking.quotePrice, label: 'Final quote', confirmLabel: 'Update Quote' });
       if (value === null) return;
       const result = await store.post('homeServiceBalance.php', { id: booking.id, action: 'editQuote', quotePrice: value.trim() });
       LMToast.show(result.message || (result.success ? 'Quote updated.' : 'Failed to update the quote.'), result.success ? 'success' : 'error');
@@ -324,12 +323,12 @@ function adminBookingsApp() {
     },
 
     async rejectHomeService(booking) {
-      if (!confirm(`Reject home service request ${booking.id}? The customer will be notified.`)) return;
+      if (!(await LMConfirm({ title: 'Reject this request?', message: `Reject home service request ${booking.id}? The customer will be notified.`, confirmLabel: 'Reject Request' }))) return;
       await this.updateBookingStatus(booking.id, 'Cancelled');
     },
 
     async requestHomeServiceScheduleChange(booking) {
-      const note = prompt('Note to the customer about the schedule change (optional):', '');
+      const note = await LMPrompt({ title: 'Request a schedule change', message: 'Add a note for the customer (optional).', label: 'Note to the customer', confirmLabel: 'Send Request' });
       if (note === null) return;
       const store = Alpine.store('admin');
       const result = await store.post('setHomeServiceQuote.php', { id: booking.id, action: 'requestScheduleChange', note });

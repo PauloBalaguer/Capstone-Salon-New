@@ -42,6 +42,7 @@
   <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=20261103b" />
   <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=20261103-signout-cream" />
   <script src="../../function/shared/toast.js"></script>
+  <script src="../../function/shared/confirm-dialog.js"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
   <link rel="stylesheet" href="../../frontend/shared/mobile-nav.css?v=20261103c">
   <script src="../../function/shared/mobile-nav.js?v=20261103" defer></script>
@@ -53,8 +54,8 @@
 
     <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between shadow-xl shrink-0">
         <div>
-            <div class="p-4 bg-slate-950 flex items-center space-x-3 border-b border-slate-800">
-                <div class="bg-amber-500 text-slate-950 font-bold rounded-full w-10 h-10 flex items-center justify-center">LM</div>
+            <div class="p-4 bg-slate-950 flex flex-col items-center text-center gap-3 border-b border-slate-800">
+                <img id="sidebarLogo" src="../shared/icon/salon-logo.png" alt="Leo Mejillano Salon &amp; Make Up Studio logo" class="rounded-full w-32 h-32 object-cover shrink-0">
                 <div>
                     <h1 class="font-bold text-base tracking-wide uppercase text-amber-400">Leo Mejillano</h1>
                     <p id="cashierBranchSubtitle" class="text-xs text-slate-400">Loading branch...</p>
@@ -122,7 +123,7 @@
         <section id="verifyListSection" class="flex-1 p-6 overflow-y-auto hidden space-y-6">
             <div id="checkoutList" class="stagger-item max-w-6xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-200">
                 <div class="px-5 py-4 border-b border-gray-200">
-                    <h3 class="font-bold text-slate-800">Ready for Checkout</h3>
+                    <h3 class="font-bold text-slate-800">Awaiting Payment</h3>
                     <p class="prose-justify text-base text-slate-500 mt-0.5">Today's confirmed, in-progress, and completed visits that still have a balance. Open one to take payment.</p>
                 </div>
                 <div class="overflow-x-auto">
@@ -245,7 +246,7 @@
                             </button>
                         </div>
                         <div id="cartItemsContainer" class="divide-y divide-gray-100">
-                            <p class="text-base text-gray-400 text-center py-8 italic">Loading&hellip;</p>
+                            <p class="text-base text-gray-400 text-center py-8 ">Loading&hellip;</p>
                         </div>
                     </section>
                 </div>

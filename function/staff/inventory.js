@@ -17,11 +17,16 @@ function staffInventoryApp() {
 
     // Only appointments assigned to this staff member can be picked, and
     // only ones actually in progress (or done) -- matches what "started" on
-    // My Assignments actually means for logging supplies used.
+    // My Assignments actually means for logging supplies used. Finished work
+    // stays available for 7 days, so stock isn't deducted against old bookings.
     assignableAppointments() {
-      return Alpine.store('staff').appointments
-        .filter(a => ['In Progress', 'Completed'].includes(a.status))
-        .sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
+      const store = Alpine.store('staff');
+      const cutoff = new Date(store.now);
+      cutoff.setDate(cutoff.getDate() - 7);
+      const oldest = `${cutoff.getFullYear()}-${String(cutoff.getMonth() + 1).padStart(2, '0')}-${String(cutoff.getDate()).padStart(2, '0')}`;
+      return store.appointments
+        .filter(a => a.status === 'In Progress' || (a.status === 'Completed' && a.date >= oldest))
+        .sort((a, b) => store.appointmentSortKey(b).localeCompare(store.appointmentSortKey(a)));
     },
 
     filteredItems() {

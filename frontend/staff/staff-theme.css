@@ -223,7 +223,7 @@ main > header { height: auto; min-height: 4rem; flex-wrap: wrap; gap: 0.75rem; p
 .overflow-x-auto { max-width: 100%; }
 /* Dialog content remains reachable with enlarged text or a short screen. */
 body > .fixed.inset-0 { overflow-y: auto; }
-body > .fixed.inset-0 > div { max-height: 90dvh; overflow-y: auto; }
+body > .fixed.inset-0 > div:not(.absolute) { max-height: 90dvh; overflow-y: auto; }
 /* Strengthen neutral secondary text on light content surfaces. */
 main :is(.text-gray-400, .text-gray-500, .text-slate-400, .text-slate-500):not(i):not(svg):not(#mobile-hero-card *) {
   color: #475569 !important;
@@ -251,4 +251,47 @@ body > .fixed.inset-0 h4 {
 @media (max-width: 767px) {
   nav:has(#mobile-nav-slider) { bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); padding-inline: .5rem; }
   main .pb-28 { padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px)) !important; }
+}
+
+/* Staff sidebar identity card, matching the customer portal treatment. */
+@media (min-width: 768px) {
+  html body.salon-portal aside:has(.staff-profile-card) {
+    width: 320px;
+  }
+}
+html body.salon-portal aside .staff-profile-card {
+  padding: 12px 10px;
+  gap: 10px;
+  border-radius: 11px;
+  background: rgb(255 248 238 / 0.07);
+}
+html body.salon-portal aside .staff-profile-card > .rounded-full {
+  width: 50px;
+  height: 50px;
+  box-shadow: none;
+}
+html body.salon-portal aside .staff-profile-card > .min-w-0 {
+  margin-left: 0;
+  min-width: 0;
+  flex: 1;
+}
+html body.salon-portal aside .staff-profile-card h1 {
+  color: #FFF8EE !important;
+  font-size: 14px !important;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: normal;
+}
+html body.salon-portal aside .staff-profile-card p {
+  margin-top: 2px;
+  color: rgb(255 248 238 / 0.65) !important;
+  font-family: Georgia, Cambria, 'Times New Roman', serif !important;
+  font-size: 16px !important;
+  line-height: 1.4;
+  letter-spacing: 0;
+  white-space: nowrap;
 }

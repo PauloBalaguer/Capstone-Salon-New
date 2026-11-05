@@ -37,10 +37,11 @@
 
     .tab-btn { transition: all .2s ease; }
   </style>
-  <link rel="stylesheet" href="../../frontend/staff/staff-theme.css?v=20261103">
+  <link rel="stylesheet" href="../../frontend/staff/staff-theme.css?v=20261104-modal-backdrop">
   <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=20261103b" />
   <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=20261103-signout-cream" />
   <script src="../../function/shared/toast.js"></script>
+  <script src="../../function/shared/confirm-dialog.js"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
@@ -55,11 +56,11 @@
 
     <aside class="hidden md:flex md:w-64 bg-slate-900 border-r border-emerald-900/40 flex-col justify-between shrink-0 h-full z-20">
       <div class="p-5">
-        <div class="flex items-center space-x-3 mb-8">
-          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center font-serif text-white font-bold text-lg shadow-lg shadow-emerald-500/20">LM</div>
-          <div>
-            <h1 class="text-base font-bold tracking-wider uppercase text-emerald-400 font-serif">Leo Mejillano</h1>
-            <p class="text-xs text-slate-400 uppercase tracking-widest font-sans" x-text="$store.staff.profile.role || 'Staff'"></p>
+        <div class="staff-profile-card flex items-center space-x-3 mb-8">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center font-serif text-white font-bold text-lg shadow-lg shadow-emerald-500/20 overflow-hidden shrink-0"><img x-show="$store.staff.profile.profilePicture" :src="$store.staff.profile.profilePicture" class="w-full h-full object-cover" alt=""><span x-show="!$store.staff.profile.profilePicture" x-text="$store.staff.initials()"></span></div>
+          <div class="min-w-0">
+            <h1 class="text-base font-bold text-emerald-400 font-serif break-words" x-text="$store.staff.profile.name || 'Staff'"></h1>
+            <p class="text-xs text-slate-400 uppercase tracking-widest font-sans" >Staff Portal</p>
           </div>
         </div>
 
@@ -89,7 +90,7 @@
 
       <div>
         <div class="p-4 border-t border-slate-800">
-          <a href="../../backend/auth/logout.php?portal=staff" onclick="handleLogoutConfirmation(event)" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H5v14h4M13 8l4 4-4 4M9 12h12"/></svg><span>Sign Out</span></a>
+          <a href="../../backend/auth/logout.php?portal=staff" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H5v14h4M13 8l4 4-4 4M9 12h12"/></svg><span>Sign Out</span></a>
         </div>
       </div>
     </aside>
@@ -149,13 +150,16 @@
         <div class="flex items-center justify-between flex-wrap gap-3">
           <div class="w-full sm:w-auto grid grid-cols-4 sm:flex items-center gap-1 bg-slate-900 border border-slate-800 rounded-xl p-1">
             <template x-for="tab in [['today','Today'],['upcoming','Upcoming'],['completed','Completed'],['all','All']]" :key="tab[0]">
-              <button @click="filterTab = tab[0]" class="tab-btn min-h-10 px-2 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap"
-                :class="filterTab === tab[0] ? 'bg-emerald-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'"
+              <button @click="filterTab = tab[0]; searchQuery = ''" class="tab-btn min-h-10 px-2 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap"
+                :class="filterTab === tab[0] && !searchQuery.trim() ? 'bg-emerald-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'"
                 x-text="tab[1]"></button>
             </template>
           </div>
-          <input type="search" x-model="searchQuery" placeholder="Search client name or ref code..." aria-label="Search assignments"
-                 class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 h-11 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 w-full sm:w-64 transition-all duration-200 focus:-translate-y-0.5">
+          <div class="relative w-full sm:w-80">
+            <svg aria-hidden="true" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"></path></svg>
+            <input type="search" x-model="searchQuery" placeholder="Search client or reference" aria-label="Search all assignments by client or booking reference"
+                   style="padding-left:2.5rem !important" class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 h-11 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 w-full transition-all duration-200 focus:-translate-y-0.5">
+          </div>
         </div>
 
         <div class="space-y-3">
@@ -164,23 +168,30 @@
           </template>
 
           <template x-if="!$store.staff.loading && filteredAppointments().length === 0">
-            <div class="text-center py-16 text-slate-500 text-xs italic bg-slate-900 border border-slate-800 rounded-2xl">Nothing here yet.</div>
+            <div class="text-center py-16 text-slate-500 text-xs  bg-slate-900 border border-slate-800 rounded-2xl" x-text="searchQuery.trim() ? 'No bookings match your search.' : 'Nothing here yet.'"></div>
           </template>
 
-          <template x-for="(appt, idx) in filteredAppointments()" :key="appt.id">
+          <div x-show="!$store.staff.loading && filteredAppointments().length > 0" aria-hidden="true" class="hidden md:grid grid-cols-[7.5rem_6rem_minmax(0,1fr)_minmax(0,1fr)_15rem] gap-x-4 pl-4 pr-11 text-xs font-bold text-slate-500">
+            <span>Date</span><span>Time</span><span>Client</span><span>Service</span><span class="text-right">Status</span>
+          </div>
+
+          <template x-for="(appt, idx) in pagedAppointments()" :key="appt.id">
             <div class="stagger-item bg-slate-900 border border-slate-800 hover:border-emerald-700 rounded-xl transition-colors duration-200 overflow-hidden" :style="'animation-delay: ' + Math.min(idx * 35, 300) + 'ms'">
               <button @click="toggleExpand(appt.id)" class="w-full text-left p-4 flex items-center justify-between gap-3 flex-wrap">
-                <div>
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-xs font-bold text-white" x-text="appt.clientName"></span>
-                    <span :class="$store.staff.getStatusBadgeClass(appt.status)" class="px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap" x-text="appt.status"></span>
+                <div class="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-[7.5rem_6rem_minmax(0,1fr)_minmax(0,1fr)_15rem] md:items-center gap-x-4 gap-y-1">
+                  <p class="text-xs font-semibold text-slate-300"><span class="md:hidden font-normal text-slate-500">Date: </span><span x-text="$store.staff.formatDate(appt.date)"></span></p>
+                  <p class="text-xs font-semibold text-slate-300"><span class="md:hidden font-normal text-slate-500">Time: </span><span x-text="appt.time"></span></p>
+                  <p class="text-base font-bold text-white truncate"><span class="md:hidden text-xs font-normal text-slate-500">Client: </span><span x-text="appt.clientName"></span></p>
+                  <div class="min-w-0">
+                    <p class="text-xs text-slate-400 truncate"><span class="md:hidden text-slate-500">Service: </span><span x-text="appt.serviceName"></span></p>
+                    <p x-show="appt.otherStylists" class="text-xs text-slate-500 truncate" x-text="'Shared with ' + appt.otherStylists"></p>
                   </div>
-                  <p class="text-xs text-slate-400 mt-0.5" x-text="appt.serviceName"></p>
-                  <p x-show="appt.otherStylists" class="text-xs text-slate-500 mt-0.5" x-text="'Shared booking with ' + appt.otherStylists"></p>
-                  <p class="text-xs text-slate-500 mt-1" x-text="appt.date + ' at ' + appt.time + ' &bull; ' + appt.id"></p>
+                  <div class="flex items-center gap-1.5 flex-wrap md:justify-end">
+                    <span :class="$store.staff.getStatusBadgeClass(appt.status)" class="px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap" x-text="appt.status"></span>
+                    <span x-show="$store.staff.isLate(appt)" :class="$store.staff.lateBadgeClass(appt)" class="px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap" x-text="$store.staff.lateLabel(appt)"></span>
+                  </div>
                 </div>
                 <div class="flex items-center gap-3">
-                  <span class="text-xs font-bold text-emerald-400" x-text="$store.staff.formatCurrency(appt.price)"></span>
                   <svg class="w-4 h-4 text-slate-500 transition-transform duration-300" :class="expandedId === appt.id ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </div>
               </button>
@@ -189,42 +200,70 @@
                 <div>
                   <div class="px-4 pb-4 pt-1 border-t border-slate-800 space-y-4">
 
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                      <div><span class="text-slate-500 block">Booking Reference</span><span class="text-slate-200 font-medium" x-text="appt.id"></span></div>
-                      <div><span class="text-slate-500 block">Contact</span><span class="text-slate-200 font-medium" x-text="appt.clientPhone || ''"></span></div>
-                      <div><span class="text-slate-500 block">Services</span><span class="text-slate-200 font-medium" x-text="appt.serviceName"></span></div>
-                      <div><span class="text-slate-500 block">Total</span><span class="text-slate-200 font-medium" x-text="$store.staff.formatCurrency(appt.price)"></span></div>
-                      <div><span class="text-slate-500 block">Start Time</span><span class="text-slate-200 font-medium" x-text="appt.time"></span></div>
-                      <div><span class="text-slate-500 block">End Time</span><span class="text-slate-200 font-medium" x-text="appt.endTime"></span></div>
-                      <div><span class="text-slate-500 block">Duration</span><span class="text-slate-200 font-medium" x-text="appt.durationMinutes + ' min'"></span></div>
-                      <div><span class="text-slate-500 block">Date</span><span class="text-slate-200 font-medium" x-text="appt.date"></span></div>
-                    </div>
+                    <ol x-show="$store.staff.progressSteps(appt).length" aria-label="Service progress" class="flex items-center flex-wrap gap-1.5 pt-2">
+                      <template x-for="(step, i) in $store.staff.progressSteps(appt)" :key="step.label">
+                        <li class="flex items-center gap-1.5">
+                          <span x-show="i > 0" aria-hidden="true" class="text-[#94A3B8]">&rarr;</span>
+                          <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold border" :aria-current="step.active ? 'step' : null" :class="step.active ? 'bg-[#006D6F] text-white border-[#006D6F]' : step.done ? 'bg-[#DCFCE7] text-[#166534] border-[#86EFAC]' : 'bg-[#F1F5F9] text-[#475569] border-[#CBD5E1]'" x-text="step.label"></span>
+                        </li>
+                      </template>
+                    </ol>
+
+                    <p x-show="$store.staff.isMissed(appt)" class="pt-2 text-xs font-semibold" style="color:#B91C1C">The customer missed this appointment. Send a request to the front desk.</p>
 
                     <div class="flex items-center gap-2 flex-wrap">
-                      <button x-show="appt.isMainStylist !== false && appt.status === 'Confirmed' && appt.date <= new Date().toLocaleDateString('en-CA')" @click="$store.staff.startService(appt.id)" :disabled="$store.staff.busy"
-                        class="px-4 py-2 rounded-lg text-xs font-bold uppercase bg-teal-600 hover:bg-teal-700 text-white transition-all active:scale-95 disabled:opacity-50">Start Service</button>
-                      <button x-show="appt.isMainStylist !== false && appt.status === 'In Progress'" @click="$store.staff.completeService(appt.id)" :disabled="$store.staff.busy"
-                        class="px-4 py-2 rounded-lg text-xs font-bold uppercase bg-emerald-600 hover:bg-emerald-700 text-white transition-all active:scale-95 disabled:opacity-50">Complete Service</button>
-                      <span x-show="appt.status === 'Pending'" class="text-xs text-slate-500 italic">Waiting for admin/cashier confirmation.</span>
-                      <span x-show="appt.isMainStylist === false && ['Confirmed', 'In Progress'].includes(appt.status)" class="text-xs text-slate-500 italic">Shared booking -- you do the service(s) above; the main stylist starts and completes it.</span>
-                      <span x-show="appt.status === 'Confirmed' && appt.date > new Date().toLocaleDateString('en-CA')" class="text-xs text-slate-500 italic">Scheduled for a later date -- you can start it on the day itself.</span>
-                      <span x-show="appt.status === 'Reschedule Requested'" class="text-xs text-slate-500 italic">Waiting for a new schedule, the salon or client is moving this booking.</span>
-                      <span x-show="['Completed', 'Cancelled', 'Reviewed', 'No-Show'].includes(appt.status)" class="text-xs text-slate-500 italic">No further action needed.</span>
+                      <button x-show="$store.staff.canStart(appt)" @click="$store.staff.startService(appt.id)" :disabled="$store.staff.busy"
+                        class="px-4 py-2 rounded-lg text-xs font-bold uppercase bg-teal-600 hover:bg-teal-700 text-white transition-all active:scale-95 disabled:opacity-50" style="color:#FFFFFF !important;border-radius:10px !important;min-height:44px">Start Service</button>
+                      <button x-show="$store.staff.canComplete(appt)" @click="$store.staff.completeService(appt.id)" :disabled="$store.staff.busy"
+                        class="px-4 py-2 rounded-lg text-xs font-bold uppercase bg-emerald-600 hover:bg-emerald-700 text-white transition-all active:scale-95 disabled:opacity-50" style="color:#FFFFFF !important;border-radius:10px !important;min-height:44px">Complete Service</button>
+                      <button x-show="$store.staff.isBeyondGrace(appt) && !$store.staff.hasArrivalRequest(appt, 'no_show')" @click="$store.staff.requestArrivalHelp(appt.id, 'no_show')" :disabled="$store.staff.busy"
+                        class="px-4 py-2 rounded-lg text-xs font-bold uppercase bg-[#B91C1C] hover:bg-[#991B1B] text-white transition-all active:scale-95 disabled:opacity-50" style="color:#FFFFFF !important;border-radius:10px !important;min-height:44px">Request No-Show</button>
+                      <button x-show="$store.staff.isLate(appt) && !$store.staff.hasArrivalRequest(appt, 'reschedule')" @click="$store.staff.requestArrivalHelp(appt.id, 'reschedule')" :disabled="$store.staff.busy"
+                        class="px-4 py-2 rounded-lg text-xs font-bold uppercase bg-[#006D6F] hover:bg-[#06464A] text-white transition-all active:scale-95 disabled:opacity-50" style="color:#FFFFFF !important;border-radius:10px !important;min-height:44px">Request Reschedule</button>
+                      <span x-show="appt.status === 'Confirmed' && $store.staff.hasArrivalRequest(appt, 'no_show')" class="text-xs font-semibold text-[#B91C1C]">No-show request sent. Waiting for the front desk.</span>
+                      <span x-show="appt.status === 'Confirmed' && $store.staff.hasArrivalRequest(appt, 'reschedule')" class="text-xs font-semibold text-[#06464A]">Reschedule request sent. Waiting for the front desk.</span>
+                      <span x-show="appt.status === 'Pending'" class="text-xs text-slate-500 ">Waiting for admin/cashier confirmation.</span>
+                      <span x-show="appt.isMainStylist === false && ['Confirmed', 'In Progress'].includes(appt.status)" class="text-xs text-slate-500 ">Shared booking -- you do the service(s) above; the main stylist starts and completes it.</span>
+                      <span x-show="appt.status === 'Confirmed' && appt.date > new Date().toLocaleDateString('en-CA')" class="text-xs text-slate-500 ">Scheduled for a later date -- you can start it on the day itself.</span>
+                      <span x-show="appt.status === 'Reschedule Requested'" class="text-xs text-slate-500 ">Waiting for a new schedule, the salon or client is moving this booking.</span>
+                      <span x-show="['Completed', 'Cancelled', 'Reviewed', 'No-Show'].includes(appt.status)" class="text-xs text-slate-500 ">No further action needed.</span>
                     </div>
 
-                    <div class="bg-[#F7F1E6] border border-[#E4D7C0] rounded-xl p-3.5 space-y-2.5">
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
+                      <div><span class="text-slate-500 block">Contact</span><span class="text-slate-200 font-medium" x-text="appt.clientPhone || ''"></span></div>
+                      <div><span class="text-slate-500 block">End Time</span><span class="text-slate-200 font-medium" x-text="appt.endTime"></span></div>
+                      <div><span class="text-slate-500 block">Duration</span><span class="text-slate-200 font-medium" x-text="appt.durationMinutes + ' min'"></span></div>
+                      <div><span class="text-slate-500 block">Total</span><span class="text-slate-200 font-medium" x-text="$store.staff.formatCurrency(appt.price)"></span></div>
+                      <div><span class="text-slate-500 block">Booking Reference</span><span class="text-slate-200 font-medium break-all" x-text="appt.id"></span></div>
+                    </div>
+
+                    <div x-show="['In Progress', 'Completed', 'Reviewed'].includes(appt.status)" class="bg-[#F7F1E6] border border-[#E4D7C0] rounded-xl p-3.5 space-y-2.5">
                       <h4 class="text-xs font-bold text-[#1F2937] uppercase tracking-wide flex items-center gap-1.5">
                         <svg class="w-3.5 h-3.5 text-[#006D6F]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 11m8 4V4m0 11V18"></path></svg>
                         Log Supplies Used For This Service
                       </h4>
                       <p class="text-xs text-[#6B7280] -mt-1">Pick each product you used and how many, it's deducted from branch stock.</p>
                       <div class="flex items-center gap-2 flex-wrap">
-                        <select x-model="supplyForm.itemId" class="flex-1 min-w-[10rem] bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                          <option value="">Select item...</option>
-                          <template x-for="item in $store.staff.inventory" :key="item.id">
-                            <option :value="item.id" x-text="item.name + ' (' + item.stock + ' in stock)'"></option>
-                          </template>
-                        </select>
+                        <div class="flex-1 min-w-[10rem]" @click.outside="if (expandedId === appt.id) supplyOpen = false" @keydown.escape="supplyOpen = false">
+                          <input type="search" x-model="supplySearch" @focus="supplyOpen = true; $nextTick(() => $el.parentElement.scrollIntoView({ block: 'nearest' }))" @input="supplyForm.itemId = ''; supplyOpen = true" placeholder="Search item..." aria-label="Search supply item"
+                                 class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                          <p x-show="selectedSupply() && !supplyOpen" class="mt-1 text-xs" :class="selectedSupply() && supplyIsLow(selectedSupply()) ? 'font-bold' : 'text-slate-500'" :style="selectedSupply() && supplyIsLow(selectedSupply()) ? 'color:#92400E' : ''" x-text="selectedSupply() ? selectedSupply().name + ', ' + supplyStockLabel(selectedSupply()) : ''"></p>
+                          <div x-show="supplyOpen && expandedId === appt.id" class="mt-1 max-h-48 overflow-y-auto bg-slate-900 border border-slate-700 rounded-lg">
+                            <template x-for="item in supplyOptions()" :key="item.id">
+                              <button type="button" @click="chooseSupply(item)" :disabled="item.stock <= 0"
+                                      :aria-current="supplyForm.itemId === item.id ? 'true' : null"
+                                      :style="supplyForm.itemId === item.id ? 'background:#E5F2F0;min-height:36px !important' : 'min-height:36px !important'"
+                                      class="w-full flex items-center justify-between gap-3 px-2.5 py-1 text-left text-xs text-slate-200 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span class="flex items-center gap-1.5 min-w-0">
+                                  <span x-show="supplyForm.itemId === item.id" aria-hidden="true" class="font-bold" style="color:#006D6F">&#10003;</span>
+                                  <span x-text="item.name"></span>
+                                </span>
+                                <span class="shrink-0" :class="supplyIsLow(item) ? 'font-bold' : 'font-medium text-slate-500'" :style="supplyIsLow(item) ? 'color:#92400E' : ''" x-text="supplyStockLabel(item)"></span>
+                              </button>
+                            </template>
+                            <p x-show="supplyOptions().length === 0" class="px-2.5 py-3 text-center text-xs text-slate-500">No matching item.</p>
+                          </div>
+                        </div>
                         <input type="number" min="1" x-model.number="supplyForm.quantity" placeholder="Qty"
                                class="w-20 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                         <button @click="logSupplyForAppointment(appt.id)" :disabled="$store.staff.busy || !supplyForm.itemId || !supplyForm.quantity"
@@ -237,6 +276,15 @@
               </div>
             </div>
           </template>
+
+          <nav x-show="!$store.staff.loading && totalPages() > 1" aria-label="Assignment pages" class="flex items-center justify-between flex-wrap gap-3 pt-2">
+            <p class="text-xs text-slate-400" x-text="pageLabel()"></p>
+            <div class="flex items-center gap-2">
+              <button type="button" @click="page = currentPage() - 1" :disabled="currentPage() <= 1" class="min-h-10 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed">Previous</button>
+              <span class="text-xs text-slate-400" x-text="'Page ' + currentPage() + ' of ' + totalPages()"></span>
+              <button type="button" @click="page = currentPage() + 1" :disabled="currentPage() >= totalPages()" class="min-h-10 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed">Next</button>
+            </div>
+          </nav>
         </div>
 
       </div>
@@ -264,14 +312,6 @@
     </div>
   </nav>
 
-  <script>
-    function handleLogoutConfirmation(event) {
-      event.preventDefault();
-      if (window.confirm('Are you sure you want to log out?')) {
-        window.location.href = event.target.closest('a').href;
-      }
-    }
-  </script>
   <script src="../../function/shared/appointment-arrival.js"></script>
   <script src="../../function/staff/shared-data.js"></script>
   <script src="../../function/staff/assignedAppointments.js"></script>

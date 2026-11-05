@@ -48,7 +48,7 @@
     .card-lift { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
     .card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(0, 109, 111, 0.35); }
   </style>
-  <link rel="stylesheet" href="../../frontend/customer/customer-theme.css?v=20261104-notif">
+  <link rel="stylesheet" href="../../frontend/customer/customer-theme.css?v=20261104-notif2">
   <link rel="stylesheet" href="../../frontend/shared/payment-methods.css?v=20261104-payment-logos">
   <script src="../../function/customer/theme-config.js"></script>
 <script src="../../function/shared/booking-validation.js"></script>
@@ -166,11 +166,11 @@
             <div x-show="isNotificationPanelOpen" x-transition class="customer-notification-panel absolute top-full right-0 mt-2 w-80 bg-slate-800 border border-luxury-800 rounded-lg shadow-lg z-30 flex flex-col" style="display: none;">
             <div class="p-3 border-b border-slate-700 shrink-0 flex items-center justify-between">
               <h4 class="text-base font-bold text-white">Notifications</h4>
-              <button type="button" x-show="notifications.length > 0" @click="markAllNotificationsAsRead()" :disabled="unreadNotificationCount === 0" class="notification-read-all font-semibold">Mark all as read</button>
+              <button type="button" x-show="notifications.length > 0" @click="markAllNotificationsAsRead()" :disabled="!notifications.some(n => !n.read)" class="notification-read-all font-semibold">Mark all as read</button>
               <button type="button" @click="isNotificationPanelOpen = false" aria-label="Close notifications" class="notification-close">&times;</button>
             </div>
             <div class="notification-list overflow-y-auto flex-1" aria-live="polite">
-              <template x-if="notifications.length === 0"><p class="text-xs text-slate-400 text-center p-8">You're all caught up. Booking updates will appear here.</p></template>
+              <template x-if="displayNotifications.length === 0"><p class="text-xs text-slate-400 text-center p-8">You're all caught up. Booking updates will appear here.</p></template>
               <template x-for="notif in displayNotifications" :key="notif.id || notif.time + notif.message">
                 <article class="notification-card" :class="{ 'notification-unread': !notif.read }">
                   <div class="notification-status" :class="{ 'notification-status-cancelled': notif.type === 'CANCELLED' }" aria-hidden="true">
@@ -181,6 +181,7 @@
                     <p class="notification-summary" x-show="notificationDetails(notif).summary" x-text="notificationDetails(notif).summary"></p>
                     <span class="notification-state-badge" x-show="notificationDetails(notif).status" x-text="notificationDetails(notif).status"></span>
                     <p class="notification-service" x-show="notificationDetails(notif).service || notificationDetails(notif).schedule" x-text="[notificationDetails(notif).service, notificationDetails(notif).branch, notificationDetails(notif).schedule].filter(Boolean).join(' · ')"></p>
+                    <a class="notification-action" x-show="notif.actionUrl" :href="notif.actionUrl" x-text="notif.actionLabel"></a>
                   </div>
                 </article>
               </template>

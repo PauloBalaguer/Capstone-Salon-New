@@ -7,8 +7,9 @@
  * checkout terminal's invoice panel -- this tracks whether the stylist has
  * started/finished the service, which is independent of payment.php
  * actually collecting money (a ticket can be marked Completed here and
- * still be sitting unpaid in the queue). Cancelling/No-Show stays an
- * admin-only action (backend/admin/updateBookingStatus.php).
+ * still be sitting unpaid in the queue). A cashier can mark a Confirmed
+ * booking as No-Show once the customer is past the grace period; this applies
+ * the same deposit policy as backend/admin/updateBookingStatus.php.
  */
 
 require_once '../../backend/shared/config/setup/cors.php';
@@ -44,7 +45,7 @@ BookingValidation::enforce($_POST, [
 
 $referenceCode = trim($_POST['id'] ?? '');
 $status = trim($_POST['status'] ?? '');
-$allowedStatuses = ['Confirmed', 'In Progress', 'Completed', 'Cancelled', 'Reschedule Requested'];
+$allowedStatuses = ['Confirmed', 'In Progress', 'Completed', 'Cancelled', 'No-Show', 'Reschedule Requested'];
 
 // "Payment Needs Attention" (Checkout & Payments) flags a self-reported
 // payment as bad without otherwise touching the booking's workflow status --
@@ -97,8 +98,8 @@ try {
     }
     $pdo->beginTransaction();
     $appointment = Scheduling::lockAppointment($pdo, (int) $appointment['id']);
-    if (in_array($status, ['Confirmed', 'In Progress'], true)) {
-        $settled = $pdo->prepare("SELECT id FROM payments WHERE appointment_id = ? AND status = 'Paid' FOR UPDATE");
+    if (in_array($status, ['Confirmed', 'In Progress', 'No-Show'], true)) {
+        $settled =$pdo->prepare("SELECT id FROM payments WHERE appointment_id = ? AND status = 'Paid' FOR UPDATE");
         $settled->execute([$appointment['id']]);
         if ($settled->fetchColumn()) throw new RuntimeException('This visit has already been checked out. View its receipt instead.');
     }
@@ -126,6 +127,10 @@ try {
             $pdo->commit();
             echo json_encode(['success' => true, 'message' => 'This booking is already ' . $status . '. No additional payment action was taken.']);
             exit();
+        }
+        if ($status === 'No-Show') {
+            if ($appointment['status'] !== 'Confirmed') throw new RuntimeException('Only a confirmed booking can be marked No-Show.');
+            if (!Scheduling::isPastArrivalGrace($pdo, $appointment)) throw new RuntimeException('The customer is still within the grace period.');
         }
         if ($status === 'In Progress') {
             $statusMessage = Scheduling::startAppointment($pdo, $appointment,
@@ -211,14 +216,21 @@ try {
             CustomerNotifier::notify($pdo, $appointmentCustomerId, 'PAYMENT_VERIFIED', "Your payment for {$referenceCode} has been verified. Status: {$paymentVerifiedLabel}.");
         }
         CustomerNotifier::notify($pdo, $appointmentCustomerId, 'CONFIRMED', "Your appointment {$referenceCode} is now Confirmed.");
+        if ($appointment['status'] !== 'Confirmed') Scheduling::notifyStaffOfConfirmation($pdo, $appointment);
     } else {
         $pdo->prepare('UPDATE appointments SET status = ? WHERE id = ?')->execute([$status, $appointment['id']]);
         if ($status === 'Completed') {
-            CustomerNotifier::notify($pdo, $appointmentCustomerId, 'COMPLETED', "Your appointment {$referenceCode} is now Completed. Thank you for choosing us!");
+            CustomerNotifier::notify($pdo, $appointmentCustomerId, 'SERVICE_FINISHED', "Your service for {$referenceCode} is finished. Please proceed to the cashier to complete your visit.");
         } elseif ($status === 'Cancelled') {
             CustomerNotifier::notify($pdo, $appointmentCustomerId, 'CANCELLED', "Your appointment {$referenceCode} has been cancelled by the salon.");
             if ($appointment['status'] !== 'Cancelled') {
                 CancellationPolicy::apply($pdo, $appointment, CancellationPolicy::BY_SALON);
+            }
+        } elseif ($status === 'No-Show') {
+            CustomerNotifier::notify($pdo, $appointmentCustomerId, 'NO_SHOW', "Your appointment {$referenceCode} was marked as missed. Please contact the branch if this is a mistake.");
+            CancellationPolicy::apply($pdo, $appointment, CancellationPolicy::NO_SHOW);
+            if ($appointment['employee_id']) {
+                StaffNotifier::notify($pdo, (int) $appointment['employee_id'], 'SCHEDULE_CHANGED', "{$referenceCode} was marked as No-Show. That time is free again.");
             }
         } elseif ($status === 'Reschedule Requested') {
             CustomerNotifier::notify($pdo, $appointmentCustomerId, 'RESCHEDULE', "Your appointment {$referenceCode} needs a schedule change. Please check the details.");

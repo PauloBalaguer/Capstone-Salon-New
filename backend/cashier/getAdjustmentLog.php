@@ -36,10 +36,13 @@ try {
             ia.quantity,
             ia.reason,
             ia.previous_stock AS previousStock,
-            ia.new_stock AS newStock
+            ia.new_stock AS newStock,
+            COALESCE(NULLIF(TRIM(CONCAT(COALESCE(emp.first_name, ''), ' ', COALESCE(emp.last_name, ''))), ''), NULLIF(u.display_name, ''), 'System') AS adjustedBy
         FROM inventory_adjustments ia
         JOIN inventory i ON i.id = ia.inventory_id
         LEFT JOIN branches br ON br.id = i.branch_id
+        LEFT JOIN users u ON u.id = ia.adjusted_by
+        LEFT JOIN employees emp ON emp.user_id = ia.adjusted_by
     ";
     $params = [];
     if ($isCashier) {

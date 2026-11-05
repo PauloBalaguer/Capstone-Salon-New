@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=20261103b" />
   <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=20261103-signout-cream" />
   <script src="../../function/shared/toast.js"></script>
+  <script src="../../function/shared/confirm-dialog.js"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
   <link rel="stylesheet" href="../../frontend/shared/mobile-nav.css?v=20261103c">
   <script src="../../function/shared/mobile-nav.js?v=20261103" defer></script>
@@ -123,7 +124,7 @@
           <div class="bg-slate-900 border border-luxury-900 rounded-2xl p-5 shadow-xl">
             <span class="text-xs text-slate-400 uppercase">Total Items Monitored</span>
             <h4 class="text-2xl font-serif font-bold text-white mt-1" x-text="$store.admin.inventory.filter(i => i.isActive).length"></h4>
-            <p class="text-xs text-purple-400 italic">Beauty products & professional supplies</p>
+            <p class="text-xs text-purple-400 ">Beauty products & professional supplies</p>
           </div>
           <div class="bg-slate-900 border border-luxury-900 rounded-2xl p-5 shadow-xl">
             <span class="text-xs text-slate-400 uppercase">Low Stock Alerts</span>
@@ -187,9 +188,9 @@
                 </div>
               </div>
               <p x-show="historyKind === 'usage' && historyRows.length" class="text-xs text-slate-400" x-text="historyRows.length + ' supply log' + (historyRows.length === 1 ? '' : 's') + ' · ' + historyTotalUsed() + ' units used'"></p>
-              <p x-show="historyLoading" class="text-xs text-slate-500 italic py-4 text-center">Loading history…</p>
+              <p x-show="historyLoading" class="text-xs text-slate-500  py-4 text-center">Loading history…</p>
               <p x-show="historyError" x-text="historyError" class="text-xs text-rose-400 py-2"></p>
-              <p x-show="!historyLoading && !historyError && !historyRows.length" class="text-xs text-slate-500 italic py-6 text-center">No records for these filters.</p>
+              <p x-show="!historyLoading && !historyError && !historyRows.length" class="text-xs text-slate-500  py-6 text-center">No records for these filters.</p>
               <div x-show="!historyLoading && historyRows.length" class="overflow-x-auto">
                 <table data-wide-table class="w-full text-left text-xs text-slate-300">
                   <thead class="bg-slate-950 text-slate-400 uppercase text-xs">
@@ -266,7 +267,7 @@
                     </tr>
                   </template>
                   <tr x-show="!getFilteredInventory().length">
-                    <td colspan="8" class="p-6 text-center text-xs text-slate-500 italic" x-text="inventoryView === 'archived' ? 'No archived items.' : 'No items for this branch yet.'"></td>
+                    <td colspan="8" class="p-6 text-center text-xs text-slate-500 " x-text="inventoryView === 'archived' ? 'No archived items.' : 'No items for this branch yet.'"></td>
                   </tr>
                 </tbody>
               </table>
@@ -342,8 +343,8 @@
         <button @click="itemHistoryFor = null" class="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
       </div>
       <div class="overflow-y-auto p-5">
-        <p x-show="itemHistoryLoading" class="text-xs text-slate-500 italic text-center py-4">Loading history…</p>
-        <p x-show="!itemHistoryLoading && !itemHistoryRows.length" class="text-xs text-slate-500 italic text-center py-4">No history recorded for this item yet.</p>
+        <p x-show="itemHistoryLoading" class="text-xs text-slate-500  text-center py-4">Loading history…</p>
+        <p x-show="!itemHistoryLoading && !itemHistoryRows.length" class="text-xs text-slate-500  text-center py-4">No history recorded for this item yet.</p>
         <table x-show="!itemHistoryLoading && itemHistoryRows.length" class="w-full text-left text-xs text-slate-300">
           <thead class="bg-slate-950 text-slate-400 uppercase text-xs">
             <tr><th class="p-2.5">When</th><th class="p-2.5">Type</th><th class="p-2.5 text-center">Change</th><th class="p-2.5 text-center">Stock</th><th class="p-2.5">By</th><th class="p-2.5">Booking / Note</th></tr>

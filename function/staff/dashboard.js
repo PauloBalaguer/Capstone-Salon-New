@@ -6,6 +6,7 @@ function staffDashboardApp() {
     allFeedback: [],
     modalAttendanceDays: 0,
     modalAttendanceRate: 0,
+    modalBranchOpenDays: 0,
 
     mobileSearch: '',
     mobileTab: 'today',
@@ -40,6 +41,7 @@ function staffDashboardApp() {
           this.allFeedback = res.allFeedback;
           this.modalAttendanceDays = res.attendanceDays;
           this.modalAttendanceRate = res.attendanceRate;
+          this.modalBranchOpenDays = res.branchOpenDays;
         } else {
           Alpine.store('staff').toast(res.message || 'Failed to load performance data.', 'error');
         }
@@ -48,6 +50,14 @@ function staffDashboardApp() {
       } finally {
         this.loadingPerformance = false;
       }
+    },
+
+    // Attendance strip: green 90%+, amber 70-89%, red below, gray with no working days.
+    monthRateStyle(rate) {
+      if (rate === null) return 'background:#F7F0E4;color:#475569';
+      if (rate >= 90) return 'background:#DCFCE7;color:#166534';
+      if (rate >= 70) return 'background:#FEF3C7;color:#92400E';
+      return 'background:#FFE4E6;color:#9F1239';
     },
 
     mobileCandidates() {
@@ -60,7 +70,7 @@ function staffDashboardApp() {
       } else {
         list = store.appointments
           .filter(a => ['Completed', 'Reviewed'].includes(a.status))
-          .sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time))
+          .sort((a, b) => store.appointmentSortKey(b).localeCompare(store.appointmentSortKey(a)))
           .slice(0, 10);
       }
 
@@ -79,18 +89,20 @@ function staffDashboardApp() {
     mobileHeroActionLabel() {
       const appt = this.mobileFeatured();
       if (!appt) return '';
-      if (['Pending', 'Confirmed'].includes(appt.status)) return 'Start';
-      if (appt.status === 'In Progress') return 'Complete';
+      const store = Alpine.store('staff');
+      if (store.canStart(appt)) return 'Start';
+      if (store.canComplete(appt)) return 'Complete';
       return 'View';
     },
 
     async handleMobileHeroAction() {
       const appt = this.mobileFeatured();
       if (!appt) return;
-      if (['Pending', 'Confirmed'].includes(appt.status)) {
-        await Alpine.store('staff').startService(appt.id);
-      } else if (appt.status === 'In Progress') {
-        await Alpine.store('staff').completeService(appt.id);
+      const store = Alpine.store('staff');
+      if (store.canStart(appt)) {
+        await store.startService(appt.id);
+      } else if (store.canComplete(appt)) {
+        await store.completeService(appt.id);
       } else {
         window.location.href = 'assignedAppointments.html';
       }

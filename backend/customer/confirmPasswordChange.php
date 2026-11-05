@@ -56,9 +56,10 @@ if ($newPassword !== $confirmPassword) {
     exit();
 }
 
-if (strlen($newPassword) < 8) {
+require_once __DIR__ . '/../shared/config/security/PasswordPolicy.php';
+if (!PasswordPolicy::isValid($newPassword)) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'New password must be at least 8 characters long.']);
+    echo json_encode(['success' => false, 'message' => PasswordPolicy::MESSAGE]);
     exit();
 }
 

@@ -42,10 +42,11 @@
     .lm-switch.is-on .lm-switch-knob { transform:translateX(22px); }
     @media (prefers-reduced-motion: reduce) { .lm-switch, .lm-switch-knob { transition:none; } }
   </style>
-  <link rel="stylesheet" href="../../frontend/staff/staff-theme.css?v=20261103">
+  <link rel="stylesheet" href="../../frontend/staff/staff-theme.css?v=20261104-modal-backdrop">
   <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=20261103b" />
   <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=20261103-signout-cream" />
   <script src="../../function/shared/toast.js"></script>
+  <script src="../../function/shared/confirm-dialog.js"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
@@ -60,11 +61,11 @@
 
     <aside class="hidden md:flex md:w-64 bg-slate-900 border-r border-emerald-900/40 flex-col justify-between shrink-0 h-full z-20">
       <div class="p-5">
-        <div class="flex items-center space-x-3 mb-8">
-          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center font-serif text-white font-bold text-lg shadow-lg shadow-emerald-500/20">LM</div>
-          <div>
-            <h1 class="text-base font-bold tracking-wider uppercase text-emerald-400 font-serif">Leo Mejillano</h1>
-            <p class="text-xs text-slate-400 uppercase tracking-widest font-sans" x-text="$store.staff.profile.role || 'Staff'"></p>
+        <div class="staff-profile-card flex items-center space-x-3 mb-8">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center font-serif text-white font-bold text-lg shadow-lg shadow-emerald-500/20 overflow-hidden shrink-0"><img x-show="$store.staff.profile.profilePicture" :src="$store.staff.profile.profilePicture" class="w-full h-full object-cover" alt=""><span x-show="!$store.staff.profile.profilePicture" x-text="$store.staff.initials()"></span></div>
+          <div class="min-w-0">
+            <h1 class="text-base font-bold text-emerald-400 font-serif break-words" x-text="$store.staff.profile.name || 'Staff'"></h1>
+            <p class="text-xs text-slate-400 uppercase tracking-widest font-sans" >Staff Portal</p>
           </div>
         </div>
 
@@ -94,7 +95,7 @@
 
       <div>
         <div class="p-4 border-t border-slate-800">
-          <a href="../../backend/auth/logout.php?portal=staff" onclick="handleLogoutConfirmation(event)" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H5v14h4M13 8l4 4-4 4M9 12h12"/></svg><span>Sign Out</span></a>
+          <a href="../../backend/auth/logout.php?portal=staff" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H5v14h4M13 8l4 4-4 4M9 12h12"/></svg><span>Sign Out</span></a>
         </div>
       </div>
     </aside>
@@ -150,7 +151,7 @@
         </div>
       </header>
 
-      <div class="p-6 pb-28 md:pb-6 space-y-6 max-w-3xl">
+      <div class="p-6 pb-28 md:pb-6 space-y-6 w-full max-w-3xl mx-auto">
         <template x-if="$store.staff.loading">
           <div class="skeleton rounded-2xl h-32 border border-slate-800"></div>
         </template>
@@ -161,9 +162,8 @@
                 <img x-show="form.profilePicture || $store.staff.profile.profilePicture" :src="form.profilePicture || $store.staff.profile.profilePicture" class="w-full h-full object-cover" alt="">
                 <span x-show="!(form.profilePicture || $store.staff.profile.profilePicture)" x-text="$store.staff.initials()"></span>
               </div>
-              <button type="button" @click="$refs.avatarInput.click()" title="Change profile picture"
-                      class="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-slate-800 border-2 border-slate-950 flex items-center justify-center text-emerald-400 hover:bg-slate-700 hover:text-emerald-300 transition-colors duration-150 active:scale-90">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+              <button type="button" @click="$refs.avatarInput.click()" title="Change profile picture" aria-label="Change profile picture" class="absolute flex items-center justify-center rounded-full transition-colors" style="right:-2px;bottom:-2px;width:28px !important;height:28px !important;min-width:28px !important;min-height:28px !important;padding:0 !important;background:#FFFFFF !important;color:#006D6F !important;border:2px solid #006D6F !important">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
               </button>
               <input type="file" x-ref="avatarInput" accept="image/*" class="hidden" @change="handleProfilePictureUpload($event)">
             </div>
@@ -180,7 +180,7 @@
         <form @submit.prevent="submitProfile()" class="stagger-item bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 space-y-5" style="animation-delay: 60ms">
           <div>
             <h3 class="font-serif text-base font-bold text-white">Profile Details</h3>
-            <p class="text-xs text-slate-400">Update your name, contact number, and email.</p>
+            <p class="text-xs text-slate-400">Update your name, phone number, and email.</p>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -199,15 +199,25 @@
               <input type="tel" x-model="form.phone" required
                      class="field-input w-full px-3.5 py-2.5 rounded-lg text-base bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
             </div>
-            <div>
+            <div class="sm:col-span-2">
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Email Address</label>
               <input type="email" x-model="form.email" required
                      class="field-input w-full px-3.5 py-2.5 rounded-lg text-base bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
             </div>
           </div>
 
-          <div class="border-t border-slate-800 pt-4">
-            <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wide mb-1">Notification Preferences</h4>
+<button type="submit" :disabled="$store.staff.busy"
+                  class="w-full sm:w-auto px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wide bg-emerald-600 hover:bg-emerald-700 text-white transition-all duration-200 active:scale-95 disabled:opacity-50">
+            Save Changes
+          </button>
+        </form>
+
+                <section class="stagger-item bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 space-y-3" style="animation-delay: 90ms">
+          <div>
+            <h3 class="font-serif text-base font-bold text-white">Notification Preferences</h3>
+            <p class="text-xs text-slate-400">Choose which updates you receive about your work.</p>
+          </div>
+          <div>
             <template x-for="opt in notificationOptions" :key="opt.key">
               <label class="flex items-center justify-between gap-4 py-2.5 border-b border-slate-800/70 last:border-b-0 cursor-pointer">
                 <div class="min-w-0">
@@ -220,49 +230,65 @@
               </label>
             </template>
           </div>
+          <button type="button" @click="submitProfile()" :disabled="$store.staff.busy" class="w-full sm:w-auto px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wide bg-emerald-600 hover:bg-emerald-700 text-white transition-all duration-200 active:scale-95 disabled:opacity-50">Save Preferences</button>
+        </section>
 
-          <button type="submit" :disabled="$store.staff.busy"
-                  class="w-full sm:w-auto px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wide bg-emerald-600 hover:bg-emerald-700 text-white transition-all duration-200 active:scale-95 disabled:opacity-50">
-            Save Changes
-          </button>
-        </form>
-
-        <form x-show="passwordChangeStep === 'form'" @submit.prevent="submitPassword()" class="stagger-item bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 space-y-4" style="animation-delay: 120ms">
+<form x-show="passwordChangeStep === 'form'" @submit.prevent="submitPassword()" class="stagger-item bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 space-y-4" style="animation-delay: 120ms">
           <div>
-            <h3 class="font-serif text-base font-bold text-white">Change Password</h3>
-            <p class="text-xs text-slate-400">Use a password you don't use anywhere else.</p>
+            <h3 class="font-serif text-base font-bold text-white">Security</h3>
+            <p class="text-xs text-slate-400">Change your password regularly to keep your account secure. We'll email a code to confirm the change.</p>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Current Password</label>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Current Password</label>
               <div x-data="{ show: false }" class="relative">
-                <input type="password" :type="show ? 'text' : 'password'" x-model="passwordForm.currentPassword" required autocomplete="current-password"
+                <input type="password" :type="show ? 'text' : 'password'" x-model="passwordForm.currentPassword" @input="currentPasswordError = ''" required autocomplete="current-password"
                      class="field-input w-full pr-11 px-3.5 py-2.5 rounded-lg text-base bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                 <button type="button" @click="show = !show" :aria-label="show ? 'Hide password' : 'Show password'" :aria-pressed="show.toString()" class="absolute inset-y-0 right-0 flex items-center px-3 text-slate-500 hover:text-slate-300 focus:outline-none focus-visible:text-slate-200"><svg x-show="!show" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true" style="display:block"><path stroke-linecap="round" stroke-linejoin="round" d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7z"/><circle cx="12" cy="12" r="3"/></svg><svg x-show="show" x-cloak width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true" style="display:block"><path stroke-linecap="round" stroke-linejoin="round" d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7z"/><circle cx="12" cy="12" r="3"/><path stroke-linecap="round" d="M4 3l16 18"/></svg></button>
               </div>
+              <p x-show="currentPasswordError" x-text="currentPasswordError" role="alert" class="mt-1 text-xs font-semibold" style="color:#B91C1C"></p>
             </div>
             <div>
-              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">New Password</label>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">New Password</label>
               <div x-data="{ show: false }" class="relative">
                 <input type="password" :type="show ? 'text' : 'password'" x-model="passwordForm.newPassword" required minlength="8" autocomplete="new-password"
                      class="field-input w-full pr-11 px-3.5 py-2.5 rounded-lg text-base bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                 <button type="button" @click="show = !show" :aria-label="show ? 'Hide password' : 'Show password'" :aria-pressed="show.toString()" class="absolute inset-y-0 right-0 flex items-center px-3 text-slate-500 hover:text-slate-300 focus:outline-none focus-visible:text-slate-200"><svg x-show="!show" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true" style="display:block"><path stroke-linecap="round" stroke-linejoin="round" d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7z"/><circle cx="12" cy="12" r="3"/></svg><svg x-show="show" x-cloak width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true" style="display:block"><path stroke-linecap="round" stroke-linejoin="round" d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7z"/><circle cx="12" cy="12" r="3"/><path stroke-linecap="round" d="M4 3l16 18"/></svg></button>
               </div>
+              <p x-show="passwordSameAsCurrent()" role="alert" class="mt-1 text-xs font-semibold" style="color:#B91C1C">New password must be different from your current one.</p>
             </div>
             <div>
-              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Confirm New Password</label>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Confirm New Password</label>
               <div x-data="{ show: false }" class="relative">
                 <input type="password" :type="show ? 'text' : 'password'" x-model="passwordForm.confirmPassword" required minlength="8" autocomplete="new-password"
                      class="field-input w-full pr-11 px-3.5 py-2.5 rounded-lg text-base bg-slate-950 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                 <button type="button" @click="show = !show" :aria-label="show ? 'Hide password' : 'Show password'" :aria-pressed="show.toString()" class="absolute inset-y-0 right-0 flex items-center px-3 text-slate-500 hover:text-slate-300 focus:outline-none focus-visible:text-slate-200"><svg x-show="!show" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true" style="display:block"><path stroke-linecap="round" stroke-linejoin="round" d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7z"/><circle cx="12" cy="12" r="3"/></svg><svg x-show="show" x-cloak width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true" style="display:block"><path stroke-linecap="round" stroke-linejoin="round" d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7z"/><circle cx="12" cy="12" r="3"/><path stroke-linecap="round" d="M4 3l16 18"/></svg></button>
               </div>
+              <p x-show="passwordsMismatch()" role="alert" class="mt-1 text-xs font-semibold" style="color:#B91C1C">Passwords do not match.</p>
             </div>
           </div>
 
-          <button type="submit" :disabled="$store.staff.busy"
-                  class="w-full sm:w-auto px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wide bg-slate-700 hover:bg-slate-600 text-white transition-all duration-200 active:scale-95 disabled:opacity-50">
-            Update Password
+          <div class="rounded-xl p-4 border" style="background:#F7F0E4;border-color:#E8DCC8">
+            <div class="flex items-center justify-between gap-3 mb-3">
+              <p class="text-xs font-bold text-slate-300">Your new password needs</p>
+              <span class="px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap" :style="passwordMeetsRules() ? 'background:#DCFCE7;color:#166534' : 'background:#FFFFFF;color:#475569'" x-text="passwordRules().filter(rule => rule.met).length + ' of 5'"></span>
+            </div>
+            <ul class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2" aria-label="Password requirements">
+                <template x-for="rule in passwordRules()" :key="rule.label">
+                  <li class="flex items-start gap-2 text-xs" :class="rule.met ? 'font-semibold' : 'text-slate-500'" :style="rule.met ? 'color:#166534' : ''">
+                    <span aria-hidden="true" class="shrink-0 mt-0.5 w-4 h-4 rounded-full flex items-center justify-center" :style="rule.met ? 'background:#166534;color:#FFFFFF' : 'background:#FFFFFF;border:1px solid #D9C9B4'">
+                      <svg x-show="rule.met" class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path></svg>
+                    </span>
+                    <span x-text="rule.label"></span>
+                  </li>
+                </template>
+              </ul>
+          </div>
+
+          <button type="submit" :disabled="$store.staff.busy || !canSubmitPassword()"
+                  class="block w-full sm:w-auto sm:ml-auto px-5 py-2.5 rounded-lg text-xs font-bold transition-all duration-200 active:scale-95 disabled:cursor-not-allowed" :style="canSubmitPassword() ? 'background:#006D6F !important;color:#FFFFFF !important;border:1px solid #006D6F !important' : 'background:#F7F0E4 !important;color:#475569 !important;border:1px solid #E8DCC8 !important;opacity:1'">
+            Change Password
           </button>
         </form>
 
@@ -315,14 +341,6 @@
     </div>
   </nav>
 
-  <script>
-    function handleLogoutConfirmation(event) {
-      event.preventDefault();
-      if (window.confirm('Are you sure you want to log out?')) {
-        window.location.href = event.target.closest('a').href;
-      }
-    }
-  </script>
   <script src="../../function/staff/shared-data.js"></script>
   <script src="../../function/staff/profile.js"></script>
 </body>

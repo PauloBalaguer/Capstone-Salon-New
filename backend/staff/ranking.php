@@ -11,6 +11,7 @@
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
+require_once '../../backend/shared/config/helpers/StaffMetrics.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -44,17 +45,20 @@ try {
         $monthKeys[] = date('Y-m', strtotime("-{$i} months"));
     }
 
+    $worksOn = StaffMetrics::worksOnSql('a', '?');
+    $finished = StaffMetrics::FINISHED_STATUSES_SQL;
+
     $stmt = $pdo->prepare("
         SELECT
             DATE_FORMAT(a.appointment_datetime, '%Y-%m') AS ym,
-            SUM(CASE WHEN a.status = 'Completed' THEN 1 ELSE 0 END) AS completed,
+            SUM(CASE WHEN a.status IN {$finished} THEN 1 ELSE 0 END) AS completed,
             ROUND(AVG(f.rating), 1) AS avgRating
         FROM appointments a
         LEFT JOIN feedback f ON f.appointment_id = a.id
-        WHERE a.employee_id = ? AND a.appointment_datetime >= (CURDATE() - INTERVAL 6 MONTH)
+        WHERE {$worksOn} AND a.appointment_datetime >= (CURDATE() - INTERVAL 6 MONTH)
         GROUP BY ym
     ");
-    $stmt->execute([$employeeId]);
+    $stmt->execute([$employeeId, $employeeId]);
     $completedByMonth = [];
     foreach ($stmt->fetchAll() as $row) {
         $completedByMonth[$row['ym']] = [
@@ -75,22 +79,43 @@ try {
         $attendanceByMonth[$row['ym']] = (int) $row['daysAttended'];
     }
 
-    $monthlyTrend = array_map(function ($ym) use ($completedByMonth, $attendanceByMonth) {
+    // Same "branch working day" rule as StaffMetrics::branchOpenDaysSql(), per month.
+    $stmt = $pdo->prepare("
+        SELECT DATE_FORMAT(branch_day.clock_in_time, '%Y-%m') AS ym, COUNT(DISTINCT DATE(branch_day.clock_in_time)) AS branchDays
+        FROM attendance branch_day
+        JOIN employees colleague ON colleague.id = branch_day.employee_id
+        JOIN employees e ON e.id = ?
+        WHERE colleague.branch_id <=> e.branch_id
+          AND branch_day.clock_in_time >= (CURDATE() - INTERVAL 6 MONTH)
+          AND (e.hire_date IS NULL OR DATE(branch_day.clock_in_time) >= e.hire_date)
+        GROUP BY ym
+    ");
+    $stmt->execute([$employeeId]);
+    $branchDaysByMonth = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $branchDaysByMonth[$row['ym']] = (int) $row['branchDays'];
+    }
+
+    $monthlyTrend = array_map(function ($ym) use ($completedByMonth, $attendanceByMonth, $branchDaysByMonth) {
+        $daysAttended = $attendanceByMonth[$ym] ?? 0;
+        $branchDays = max($daysAttended, $branchDaysByMonth[$ym] ?? 0);
         return [
             'label' => date('M Y', strtotime($ym . '-01')),
             'completed' => $completedByMonth[$ym]['completed'] ?? 0,
             'avgRating' => $completedByMonth[$ym]['avgRating'] ?? 0,
-            'daysAttended' => $attendanceByMonth[$ym] ?? 0,
+            'daysAttended' => $daysAttended,
+            'branchDays' => $branchDays,
+            'attendanceRate' => $branchDays > 0 ? StaffMetrics::attendanceRate($daysAttended, $branchDays) : null,
         ];
     }, $monthKeys);
 
-    $stmt = $pdo->prepare("
-        SELECT COUNT(DISTINCT DATE(clock_in_time)) FROM attendance
-        WHERE employee_id = ? AND clock_in_time >= (NOW() - INTERVAL 30 DAY)
-    ");
+    $stmt = $pdo->prepare('SELECT ' . StaffMetrics::attendedDaysSql('e') . ' AS attendedDays, '
+        . StaffMetrics::branchOpenDaysSql('e') . ' AS branchOpenDays FROM employees e WHERE e.id = ?');
     $stmt->execute([$employeeId]);
-    $attendanceDays = (int) $stmt->fetchColumn();
-    $attendanceRate = min(100, (int) round(($attendanceDays / 30) * 100));
+    $attendanceRow = $stmt->fetch();
+    $attendanceDays = (int) $attendanceRow['attendedDays'];
+    $branchOpenDays = max($attendanceDays, (int) $attendanceRow['branchOpenDays']);
+    $attendanceRate = StaffMetrics::attendanceRate($attendanceDays, $branchOpenDays);
 
     $stmt = $pdo->prepare("
         SELECT
@@ -105,11 +130,11 @@ try {
         JOIN customers c ON c.id = f.customer_id
         LEFT JOIN appointment_services aps ON aps.appointment_id = a.id
         LEFT JOIN services s ON s.id = aps.service_id
-        WHERE a.employee_id = ?
+        WHERE {$worksOn}
         GROUP BY f.id
         ORDER BY f.created_at DESC
     ");
-    $stmt->execute([$employeeId]);
+    $stmt->execute([$employeeId, $employeeId]);
     $allFeedback = array_map(function ($row) {
         $row['id'] = (string) $row['id'];
         $row['rating'] = (int) $row['rating'];
@@ -121,6 +146,7 @@ try {
         'monthlyTrend' => $monthlyTrend,
         'allFeedback' => $allFeedback,
         'attendanceDays' => $attendanceDays,
+        'branchOpenDays' => $branchOpenDays,
         'attendanceRate' => $attendanceRate,
     ]);
 } catch (PDOException $e) {

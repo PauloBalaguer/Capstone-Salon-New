@@ -1,8 +1,9 @@
-// "Continue payment" bar for a booking whose online payment was started in
-// this tab -- e.g. the customer pressed Back on the GCash / Maya / card page.
-// Booking pages call PendingPayment.remember() right before redirecting to
-// PayMongo; payment-result.js calls forget() once the booking is paid or
-// released, so the bar never offers a booking that can't be paid.
+// Hands a booking off to PayMongo, and shows a "Payment pending" notice on pages
+// with a #pendingPaymentNotice element (the customer booking page) for a payment
+// started in this tab -- e.g. the customer pressed Back on the GCash / Maya /
+// card page. Other pages show nothing here: logged-in customers get this in the
+// notification panel (dashboard-notifications.js). payment-result.js calls
+// forget() once the booking is paid or released.
 window.PendingPayment = {
   key: 'pendingPayment',
   tabName: 'paymongoTab',
@@ -51,22 +52,8 @@ window.PendingPayment = {
     try { pending = JSON.parse(sessionStorage.getItem(this.key) || 'null'); } catch (e) { /* storage blocked */ }
     document.getElementById('pendingPaymentBar')?.remove();
     if (!pending || !pending.url) return;
-    // Already on the payment page: the bar would only link back to this same page.
-    if (window.location.pathname.endsWith('/payment-result.html')) return;
     const host = document.getElementById('pendingPaymentNotice');
-    if (host) {
-      this.showNotice(host, pending, version);
-      return;
-    }
-    const bar = document.createElement('div');
-    bar.id = 'pendingPaymentBar';
-    bar.setAttribute('role', 'status');
-    bar.style.cssText = 'position:fixed;left:16px;right:16px;bottom:16px;z-index:9999;max-width:34rem;margin:0 auto;display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:14px;background:#1f2937;color:#fff;font:14px/1.4 "Segoe UI",Arial,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.25)';
-    bar.innerHTML = '<span>Booking <b></b> is waiting for payment. No need to book again.</span>'
-      + '<a style="flex:none;background:#fff;color:#111;font-weight:700;border-radius:999px;padding:6px 14px;text-decoration:none">Continue payment</a>';
-    bar.querySelector('b').textContent = pending.reference;
-    bar.querySelector('a').href = pending.url;
-    document.body.appendChild(bar);
+    if (host) this.showNotice(host, pending, version);
   },
   async showNotice(host, pending, version) {
     try {

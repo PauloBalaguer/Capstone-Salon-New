@@ -93,7 +93,7 @@ function renderAppointments() {
     tbody.innerHTML = `
       <tr><td colspan="12" class="py-12 text-center">
         <i class="fa-solid fa-calendar-xmark text-3xl text-gray-200 mb-2 block"></i>
-        <span class="text-xs text-gray-400 italic">No ${state.activeTab === 'All' ? '' : state.activeTab.toLowerCase() + ' '}bookings found for this branch.</span>
+        <span class="text-xs text-gray-400 ">No ${state.activeTab === 'All' ? '' : state.activeTab.toLowerCase() + ' '}bookings found for this branch.</span>
       </td></tr>
     `;
     return;
@@ -146,12 +146,14 @@ function actionsFor(b) {
     `;
   }
   const reschedule = `<button data-action="reschedule" data-ref="${ref}" class="text-amber-700 font-bold hover:underline">Reschedule</button>`;
-  // Same rule as payment.html's "Ready for Checkout" list: a Confirmed
+  // Same rule as payment.html's "Awaiting Payment" list: a Confirmed
   // booking can be checked out from its appointment day onward.
   const checkout = `<a href="payment.html?ref=${encodeURIComponent(b.id)}" class="text-emerald-700 font-bold hover:underline">Checkout</a>`;
   const isDue = (b.date || '') <= localDateYmd(new Date());
   if (b.status === 'Confirmed') {
-    return `${details}<button data-action="arrival" data-ref="${ref}" class="text-teal-700 font-bold hover:underline">Review Arrival</button>${isDue ? checkout : ''}<button data-action="reassign" data-ref="${ref}" class="text-amber-700 font-bold hover:underline">${b.staffName ? 'Reassign' : 'Assign'} Staff</button>${reschedule}`;
+    const noShow = b.canMarkNoShow ? `<button data-action="no-show" data-ref="${ref}" class="text-rose-700 font-bold hover:underline">Mark No-Show</button>` : '';
+    const requests = (b.arrivalRequests || []).map(kind => `<span class="block mt-1 text-xs font-semibold text-rose-700">${kind === 'no_show' ? 'Stylist requests No-Show' : 'Stylist asks to reassign or reschedule'}</span>`).join('');
+    return `${details}<button data-action="arrival" data-ref="${ref}" class="text-teal-700 font-bold hover:underline">Review Arrival</button>${isDue ? checkout : ''}<button data-action="reassign" data-ref="${ref}" class="text-amber-700 font-bold hover:underline">${b.staffName ? 'Reassign' : 'Assign'} Staff</button>${reschedule}${noShow}${requests}`;
   }
   if (b.status === 'Reschedule Requested') {
     return `${details}${reschedule}<button data-action="cancel" data-ref="${ref}" class="text-rose-700 font-bold hover:underline">Cancel</button>`;
@@ -352,10 +354,10 @@ async function loadRescheduleSlots() {
   state.pendingRescheduleTime = '';
   document.getElementById('btnConfirmReschedule').disabled = true;
   if (!date) {
-    box.innerHTML = '<p class="col-span-4 text-gray-400 italic">Pick a date to see open times.</p>';
+    box.innerHTML = '<p class="col-span-4 text-gray-400 ">Pick a date to see open times.</p>';
     return;
   }
-  box.innerHTML = '<p class="col-span-4 text-gray-400 italic">Loading open times…</p>';
+  box.innerHTML = '<p class="col-span-4 text-gray-400 ">Loading open times…</p>';
   const requestId = ++rescheduleSlotsRequest;
   const result = await CashierApp.get('rescheduleAppointment.php', { id: state.pendingRescheduleRef, date });
   if (requestId !== rescheduleSlotsRequest) return; // a newer date pick superseded this one
@@ -369,7 +371,7 @@ async function loadRescheduleSlots() {
     ? `${open.length} open time${open.length === 1 ? '' : 's'} · each start fits the full ${result.durationMinutes}-min service before closing, with a qualified stylist free.`
     : '';
   if (!open.length) {
-    box.innerHTML = '<p class="col-span-4 text-gray-400 italic">No open times on this date. Try another day.</p>';
+    box.innerHTML = '<p class="col-span-4 text-gray-400 ">No open times on this date. Try another day.</p>';
     return;
   }
   box.innerHTML = result.slots.map(s => {
@@ -407,7 +409,7 @@ async function confirmReschedule() {
 }
 
 async function askCustomerToReschedule() {
-  if (!window.confirm('Mark this booking as needing a schedule change? The customer will be notified to arrange a new time.')) return;
+  if (!(await LMConfirm({ title: 'Request a schedule change?', message: 'The customer will be notified to arrange a new time.', confirmLabel: 'Request Change' }))) return;
   const result = await CashierApp.post('updateStatus.php', { id: state.pendingRescheduleRef, status: 'Reschedule Requested' });
   CashierApp.toast(result.message || (result.success ? 'Reschedule requested.' : 'Failed to update booking.'), result.success ? 'success' : 'error');
   if (result.success) {
@@ -427,9 +429,20 @@ async function cancelBooking(ref) {
   const depositNote = b && b.depositAmount && ['Down Payment Verified', 'Fully Paid'].includes(b.paymentStatus)
     ? `\n\nThe ${CashierApp.formatCurrency(b.depositAmount)} deposit is NON-REFUNDABLE. Consider "Reschedule" instead the customer can also reschedule later to use it.`
     : '';
-  if (!window.confirm('Cancel this booking?' + depositNote)) return;
+  if (!(await LMConfirm({ title: 'Cancel this booking?', message: ('This cannot be undone.' + depositNote), confirmLabel: 'Cancel Booking', cancelLabel: 'Keep Booking' }))) return;
   const result = await CashierApp.post('updateStatus.php', { id: ref, status: 'Cancelled' });
   CashierApp.toast(result.message || (result.success ? 'Booking cancelled.' : 'Failed to cancel booking.'), result.success ? 'success' : 'error');
+  if (result.success) await refreshData();
+}
+
+async function markNoShow(ref) {
+  const b = state.data.bookings.find(x => x.id === ref);
+  const depositNote = b && b.depositAmount && ['Down Payment Verified', 'Fully Paid'].includes(b.paymentStatus)
+    ? `\n\nThe ${CashierApp.formatCurrency(b.depositAmount)} deposit is NON-REFUNDABLE and will be kept.`
+    : '';
+  if (!(await LMConfirm({ title: 'Mark as No-Show?', message: ('Check first that the customer has not arrived.' + depositNote), confirmLabel: 'Mark No-Show' }))) return;
+  const result = await CashierApp.post('updateStatus.php', { id: ref, status: 'No-Show' });
+  CashierApp.toast(result.message || (result.success ? 'Marked as No-Show.' : 'Failed to update booking.'), result.success ? 'success' : 'error');
   if (result.success) await refreshData();
 }
 
@@ -452,6 +465,7 @@ function wireStaticEvents() {
       case 'reassign': openReassignModal(ref); break;
       case 'reschedule': openRescheduleModal(ref); break;
       case 'cancel': cancelBooking(ref); break;
+      case 'no-show': markNoShow(ref); break;
     }
   });
 

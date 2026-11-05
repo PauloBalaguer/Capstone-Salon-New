@@ -884,3 +884,36 @@ INSERT IGNORE INTO `event_type_durations` (`event_type`, `travel_minutes`, `setu
 ('Personal Event', 30, 15, 90, 6),
 ('Photoshoot', 30, 20, 120, 7),
 ('Other', 30, 15, 120, 8);
+
+-- Manual Shift In / breaks / Shift Out and optional per-staff schedules (see
+-- database/migrations/058_staff_shift_breaks_schedule.sql for the notes).
+CREATE TABLE IF NOT EXISTS `attendance_breaks` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `attendance_id` INT UNSIGNED NOT NULL,
+  `break_start` DATETIME NOT NULL,
+  `break_end` DATETIME NULL,
+  PRIMARY KEY (`id`),
+  INDEX `idx_attendance_breaks_attendance` (`attendance_id`, `break_end`),
+  CONSTRAINT `fk_attendance_breaks_attendance`
+    FOREIGN KEY (`attendance_id`)
+    REFERENCES `attendance` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `staff_schedules` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `employee_id` INT UNSIGNED NOT NULL,
+  `day_of_week` TINYINT UNSIGNED NOT NULL,
+  `start_time` TIME NULL,
+  `end_time` TIME NULL,
+  `is_rest_day` BOOLEAN NOT NULL DEFAULT FALSE,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `idx_staff_schedule_day` (`employee_id`, `day_of_week`),
+  CONSTRAINT `fk_staff_schedules_employees`
+    FOREIGN KEY (`employee_id`)
+    REFERENCES `employees` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;

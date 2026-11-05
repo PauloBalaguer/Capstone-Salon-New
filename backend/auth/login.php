@@ -126,26 +126,17 @@ try {
     // Regenerate the session ID to prevent session fixation attacks.
     regenerateSession();
 
-    // Attendance is automatic, tied to the authenticated session itself
-    // rather than a manual clock button, which staff could forget to press
-    // or misuse. Time Out isn't tied to logout/browser-close (unreliable) --
-    // Scheduling::autoCloseAttendance() settles any shift that's past the
-    // branch's closing time first (e.g. a forgotten previous-day session),
-    // then a new record is only started if today doesn't already have an
-    // open one, so re-logging in the same day never creates duplicates.
+    // Staff attendance is manual: the Staff Portal's Shift In button starts
+    // a shift (backend/staff/shiftAction.php). Logging in only settles a
+    // shift left open past the branch's closing time (e.g. a forgotten
+    // Shift Out yesterday); a shift that is still valid stays open, so the
+    // portal shows On Shift again after logging back in.
     if ($user['role_name'] === 'Staff') {
         $stmt = $pdo->prepare('SELECT id, branch_id FROM employees WHERE user_id = ? LIMIT 1');
         $stmt->execute([$user['id']]);
         $employeeRow = $stmt->fetch();
         if ($employeeRow) {
-            $employeeId = (int) $employeeRow['id'];
-            Scheduling::autoCloseAttendance($pdo, $employeeId, $employeeRow['branch_id']);
-
-            $stmt = $pdo->prepare('SELECT id FROM attendance WHERE employee_id = ? AND DATE(clock_in_time) = CURDATE() AND clock_out_time IS NULL LIMIT 1');
-            $stmt->execute([$employeeId]);
-            if (!$stmt->fetchColumn() && Scheduling::canStartShift($pdo, $employeeId, $employeeRow['branch_id'])) {
-                $pdo->prepare('INSERT INTO attendance (employee_id, clock_in_time) VALUES (?, NOW())')->execute([$employeeId]);
-            }
+            Scheduling::autoCloseAttendance($pdo, (int) $employeeRow['id'], $employeeRow['branch_id']);
         }
     }
 

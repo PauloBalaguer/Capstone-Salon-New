@@ -71,10 +71,10 @@ try {
         SELECT e.id, CONCAT(e.first_name, ' ', e.last_name) AS name, e.position AS role
         FROM employees e
         WHERE e.branch_id = ? AND e.is_active = 1
-        AND EXISTS (SELECT 1 FROM attendance att WHERE att.employee_id = e.id AND DATE(att.clock_in_time) = CURDATE() AND att.clock_out_time IS NULL)
+        AND (DATE(?) <> CURDATE() OR EXISTS (SELECT 1 FROM attendance att WHERE att.employee_id = e.id AND DATE(att.clock_in_time) = CURDATE() AND att.clock_out_time IS NULL))
         ORDER BY e.first_name, e.last_name
     ");
-    $stmt->execute([$branchId]);
+    $stmt->execute([$branchId, $appointment['appointment_datetime']]);
     $onShiftStaff = $stmt->fetchAll();
 
     if (!empty($requiredServiceIds)) {

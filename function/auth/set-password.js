@@ -33,8 +33,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let ok = true;
 
-    if (password.length < 8) {
-      LM.markWrong('new-password', 'Use at least 8 characters.');
+    if (!passwordValid(password)) {
+      LM.markWrong('new-password', 'Use 8+ characters with an uppercase letter, a lowercase letter, a number, and a special character.');
       ok = false;
     }
 

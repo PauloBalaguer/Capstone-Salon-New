@@ -165,7 +165,7 @@
           <div class="bg-slate-900 border border-luxury-900 rounded-2xl p-5 shadow-xl">
             <span class="text-xs text-slate-400 uppercase">Completed Bookings</span>
             <h4 class="text-2xl font-serif font-bold text-white mt-1" x-text="getBookingStatusCounts().Completed || 0"></h4>
-            <p class="text-xs text-purple-400 mt-1 italic">Paid & fulfilled transactions</p>
+            <p class="text-xs text-purple-400 mt-1 ">Paid & fulfilled transactions</p>
           </div>
           <div class="bg-slate-900 border border-luxury-900 rounded-2xl p-5 shadow-xl">
             <span class="text-xs text-slate-400 uppercase">Unique Guests Served</span>
@@ -208,7 +208,7 @@
                 </div>
               </template>
               <template x-if="getServicePopularity().length === 0">
-                <p class="text-slate-500 text-xs italic text-center py-6">No bookings match the current filters.</p>
+                <p class="text-slate-500 text-xs  text-center py-6">No bookings match the current filters.</p>
               </template>
             </div>
           </div>
@@ -231,7 +231,7 @@
               </div>
             </template>
             <template x-if="getRevenueByBranch().length === 0">
-              <p class="text-slate-500 text-xs italic text-center py-6">No collected payments match the current filters.</p>
+              <p class="text-slate-500 text-xs  text-center py-6">No collected payments match the current filters.</p>
             </template>
           </div>
         </div>
@@ -274,7 +274,7 @@
                   </tr>
                 </template>
                 <template x-if="getReportStaff().length === 0">
-                  <tr><td colspan="5" class="p-6 text-center text-slate-500 italic">No staff match the current filters.</td></tr>
+                  <tr><td colspan="5" class="p-6 text-center text-slate-500 ">No staff match the current filters.</td></tr>
                 </template>
               </tbody>
             </table>
@@ -309,7 +309,7 @@
                   </tr>
                 </template>
                 <template x-if="getReportInventory().length === 0">
-                  <tr><td colspan="5" class="p-6 text-center text-slate-500 italic">No inventory items match the current filters.</td></tr>
+                  <tr><td colspan="5" class="p-6 text-center text-slate-500 ">No inventory items match the current filters.</td></tr>
                 </template>
               </tbody>
             </table>
@@ -331,7 +331,7 @@
               </div>
             </template>
             <template x-if="getReportFeedback().length === 0">
-              <p class="text-slate-500 text-xs italic text-center py-6">No reviews match the current filters.</p>
+              <p class="text-slate-500 text-xs  text-center py-6">No reviews match the current filters.</p>
             </template>
           </div>
         </div>
@@ -368,7 +368,7 @@
                 </template>
               </tbody>
             </table>
-            <p x-show="paymentLogLoaded && getFilteredPaymentLog().length === 0" class="text-slate-500 text-xs italic text-center py-6">No online payment events match these filters (latest 300 matching records).</p>
+            <p x-show="paymentLogLoaded && getFilteredPaymentLog().length === 0" class="text-slate-500 text-xs  text-center py-6">No online payment events match these filters (latest 300 matching records).</p>
           </div>
         </div>
 
@@ -418,7 +418,7 @@
                     </template>
                   </tbody>
                 </table>
-                <p x-show="reconcileRows().length === 0" class="text-slate-500 text-xs italic text-center py-6" x-text="reconcileIssuesOnly ? 'No issues everything matches.' : 'No PayMongo payments in this period.'"></p>
+                <p x-show="reconcileRows().length === 0" class="text-slate-500 text-xs  text-center py-6" x-text="reconcileIssuesOnly ? 'No issues everything matches.' : 'No PayMongo payments in this period.'"></p>
               </div>
             </div>
           </template>
@@ -466,7 +466,7 @@
                 </template>
               </tbody>
             </table>
-            <p x-show="activityLogLoaded && activityLog.length === 0" class="text-slate-500 text-xs italic text-center py-6">No activity matches these filters.</p>
+            <p x-show="activityLogLoaded && activityLog.length === 0" class="text-slate-500 text-xs  text-center py-6">No activity matches these filters.</p>
           </div>
         </div>
 

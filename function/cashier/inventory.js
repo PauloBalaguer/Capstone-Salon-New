@@ -9,7 +9,13 @@ const state = {
   data: null,
   branch: null,
   pendingAdjustment: null,
-  lowStockOnly: false
+  lowStockOnly: false,
+  page: 1,
+  pageSize: 10,
+  productId: '',
+  logRows: [],
+  logPage: 1,
+  logPageSize: 10
 };
 
 async function init() {
@@ -37,60 +43,114 @@ async function refreshData() {
 }
 
 
+/* "Low" is 20% of the item's maximum stock or less. */
 function inventoryStatus(item) {
-  return item.stock <= item.maxStock * 0.2 ? 'Critical' : 'Optimal';
+  if (item.stock <= 0) return 'Out of Stock';
+  return item.stock <= item.maxStock * 0.2 ? 'Low Stock' : 'In Stock';
+}
+
+function needsAttention(item) {
+  return inventoryStatus(item) !== 'In Stock';
+}
+
+function statusBadgeStyle(status) {
+  if (status === 'Out of Stock') return 'background:#FFE4E6;color:#9F1239;border:1px solid #FDA4AF';
+  if (status === 'Low Stock') return 'background:#FEF3C7;color:#92400E;border:1px solid #FCD34D';
+  return 'background:#DCFCE7;color:#166534;border:1px solid #86EFAC';
 }
 
 function renderInventory() {
   if (!state.data) return;
   const items = state.data.inventory;
 
-  const critical = items.filter(i => inventoryStatus(i) === 'Critical');
-  document.getElementById('invTotalSkus').textContent = `${items.length} SKUs`;
-  document.getElementById('invOptimalSkus').textContent = `${items.length - critical.length} Safe`;
-  document.getElementById('invCriticalSkus').textContent = `${critical.length} Warnings`;
+  const critical = items.filter(needsAttention);
+  document.getElementById('invTotalSkus').textContent = items.length;
+  document.getElementById('invOptimalSkus').textContent = items.length - critical.length;
+  document.getElementById('invCriticalSkus').textContent = critical.length;
 
+  // Items needing attention first, then alphabetical.
+  const rank = item => ({ 'Out of Stock': 0, 'Low Stock': 1, 'In Stock': 2 })[inventoryStatus(item)];
   const search = (document.getElementById('inventorySearch').value || '').toLowerCase().trim();
   const visible = items.filter(i =>
-    (!state.lowStockOnly || inventoryStatus(i) === 'Critical') &&
+    (!state.lowStockOnly || needsAttention(i)) &&
     (!search || i.name.toLowerCase().includes(search) || (i.category || '').toLowerCase().includes(search))
-  );
+  ).sort((a, b) => (rank(a) - rank(b)) || a.name.localeCompare(b.name));
+
+  const totalPages = Math.max(1, Math.ceil(visible.length / state.pageSize));
+  state.page = Math.min(state.page, totalPages);
+  const first = (state.page - 1) * state.pageSize;
+  const pageItems = visible.slice(first, first + state.pageSize);
 
   const tbody = document.getElementById('inventoryTableBody');
-  if (!visible.length) {
+  if (!pageItems.length) {
     tbody.innerHTML = `
-      <tr><td colspan="5" class="py-12 text-center">
+      <tr><td colspan="6" class="py-12 text-center">
         <i class="fa-solid fa-box-open text-3xl text-gray-200 mb-2 block"></i>
-        <span class="text-xs text-gray-400 italic">No matching products found.</span>
+        <span class="text-xs text-gray-400 ">No matching products found.</span>
       </td></tr>
     `;
   } else {
-    tbody.innerHTML = visible.map(item => {
+    tbody.innerHTML = pageItems.map(item => {
       const status = inventoryStatus(item);
       const pct = Math.min(100, Math.round((item.stock / (item.maxStock || 1)) * 100));
-      const barColor = status === 'Critical' ? 'bg-rose-500' : 'bg-emerald-500';
-      const badgeClass = status === 'Critical' ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800';
+      const barColor = status === 'In Stock' ? 'bg-emerald-500' : 'bg-rose-500';
       return `
-        <tr class="hover:bg-amber-50/40 transition-colors duration-150">
-          <td class="p-3 font-semibold text-slate-800">${escapeHtml(item.name)}</td>
-          <td class="p-3 text-gray-500">${escapeHtml(item.category)}</td>
-          <td class="p-3 text-center font-bold">${item.stock} <span class="text-gray-400 font-normal">/ ${item.maxStock}</span></td>
-          <td class="p-3">
+        <tr class="hover:bg-amber-50/40 transition-colors duration-150" ${String(item.id) === String(state.productId) ? 'style="background:#E5F2F0"' : ''}>
+          <td class="px-3 py-2 font-semibold text-slate-800">${escapeHtml(item.name)}</td>
+          <td class="px-3 py-2 text-gray-500">${escapeHtml(item.category)}</td>
+          <td class="px-3 py-2 text-center font-bold whitespace-nowrap">${item.stock} <span class="text-gray-400 font-normal">/ ${item.maxStock}</span></td>
+          <td class="px-3 py-2">
             <div class="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
               <div class="${barColor} h-1.5 rounded-full transition-all duration-500 ease-out" style="width:${pct}%"></div>
             </div>
           </td>
-          <td class="p-3 text-center"><span class="text-xs font-bold px-2 py-0.5 rounded ${badgeClass}${status === 'Critical' ? ' badge-live' : ''}">${status}</span></td>
+          <td class="px-3 py-2 text-center"><span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold whitespace-nowrap" style="${statusBadgeStyle(status)}">${status}</span></td>
+          <td class="px-3 py-2 text-right"><button type="button" data-adjust="${escapeHtml(item.id)}" class="px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap" style="min-height:32px !important;background:#FFFFFF !important;color:#006D6F !important;border:1px solid #006D6F !important">Adjust</button></td>
         </tr>
       `;
     }).join('');
   }
 
-  const select = document.getElementById('invFormProductSelect');
-  const previousValue = select.value;
-  select.innerHTML = items.map(i => `<option value="${i.id}">${escapeHtml(i.name)} (${i.stock} in stock)</option>`).join('')
-    || '<option value="">No products available</option>';
-  if (previousValue && items.some(i => i.id === previousValue)) select.value = previousValue;
+  document.getElementById('btnFilterLowStock').textContent = `Low Stock (${critical.length})`;
+  document.getElementById('inventoryPager').classList.toggle('hidden', totalPages <= 1);
+  document.getElementById('inventoryPageLabel').textContent = visible.length ? `Showing ${first + 1}-${Math.min(first + state.pageSize, visible.length)} of ${visible.length}` : '';
+  document.getElementById('inventoryPageNumber').textContent = `Page ${state.page} of ${totalPages}`;
+  document.getElementById('btnInvPrev').disabled = state.page <= 1;
+  document.getElementById('btnInvNext').disabled = state.page >= totalPages;
+
+  renderSelectedProduct();
+}
+
+function selectedProduct() {
+  return (state.data?.inventory || []).find(i => String(i.id) === String(state.productId)) || null;
+}
+
+function renderSelectedProduct() {
+  const label = document.getElementById('invProductSelected');
+  const item = selectedProduct();
+  label.classList.toggle('hidden', !item);
+  label.textContent = item ? `${item.name}: ${item.stock} in stock` : '';
+  renderPreview();
+}
+
+function renderProductList() {
+  const list = document.getElementById('invProductList');
+  const q = document.getElementById('invProductSearch').value.trim().toLowerCase();
+  const items = (state.data?.inventory || []).filter(i => !q || i.name.toLowerCase().includes(q));
+  list.innerHTML = items.length ? items.map(i => `
+    <button type="button" data-product="${escapeHtml(i.id)}" class="w-full flex items-center justify-between gap-3 px-3 py-2 text-left text-xs hover:bg-amber-50">
+      <span class="font-semibold text-slate-800">${escapeHtml(i.name)}</span>
+      <span class="shrink-0 text-gray-500">${i.stock} in stock</span>
+    </button>`).join('') : '<p class="px-3 py-4 text-center text-xs text-gray-400">No matching product.</p>';
+  list.classList.remove('hidden');
+}
+
+function selectProduct(id) {
+  state.productId = id;
+  const item = selectedProduct();
+  document.getElementById('invProductSearch').value = item ? item.name : '';
+  document.getElementById('invProductList').classList.add('hidden');
+  renderInventory();
 }
 
 
@@ -100,39 +160,67 @@ function renderEod() {
   document.getElementById('eodInvoiceCount').textContent = `${eod.invoiceCount} Trans`;
   document.getElementById('eodGrossRevenue').textContent = CashierApp.formatCurrency(eod.grossRevenue);
 
-  const critical = state.data.inventory.filter(i => inventoryStatus(i) === 'Critical');
+  const critical = state.data.inventory.filter(needsAttention);
   const card = document.getElementById('eodStockStatusCard');
   const text = document.getElementById('eodStockSummaryText');
   if (critical.length) {
     card.className = 'p-3 bg-rose-50 rounded-xl border border-rose-200 text-xs text-rose-800';
-    text.textContent = `${critical.length} product(s) below critical threshold.`;
+    text.textContent = `${critical.length} product(s) are low or out of stock.`;
   } else {
     card.className = 'p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-800';
-    text.textContent = 'All item nodes verified clean.';
+    text.textContent = 'All products are in stock.';
   }
 }
 
 
+function stockTabStyle(active) {
+  return active ? 'background:#006D6F !important;color:#FFFFFF !important' : 'background:transparent !important;color:#475569 !important';
+}
+
+function renderPreview() {
+  const preview = document.getElementById('invPreview');
+  const item = selectedProduct();
+  const quantity = parseInt(document.getElementById('invFormQty').value, 10);
+  const adding = document.querySelector('input[name="adjType"]:checked').value === 'add';
+  if (!item || !quantity || quantity < 1) {
+    preview.classList.add('hidden');
+    return;
+  }
+  const result = adding ? item.stock + quantity : item.stock - quantity;
+  preview.classList.remove('hidden');
+  preview.style.color = result < 0 ? '#B91C1C' : '#06464A';
+  preview.textContent = result < 0
+    ? `Only ${item.stock} in stock, so you can't deduct ${quantity}.`
+    : `${item.name}: ${item.stock} → ${result}`;
+}
+
 function setLowStockFilter(lowStockOnly) {
   state.lowStockOnly = lowStockOnly;
+  state.page = 1;
   const allBtn = document.getElementById('btnFilterAllStock');
   const lowBtn = document.getElementById('btnFilterLowStock');
-  allBtn.className = `px-2.5 py-1 rounded text-xs font-bold ${lowStockOnly ? 'text-slate-500' : 'bg-white text-slate-800 shadow-sm'}`;
-  lowBtn.className = `px-2.5 py-1 rounded text-xs font-bold ${lowStockOnly ? 'bg-white text-rose-700 shadow-sm' : 'text-slate-500'}`;
+  allBtn.style.cssText = stockTabStyle(!lowStockOnly);
+  lowBtn.style.cssText = stockTabStyle(lowStockOnly);
   renderInventory();
 }
 
 function openAdjustmentConfirm(e) {
   e.preventDefault();
-  const select = document.getElementById('invFormProductSelect');
-  const productId = select.value;
-  const productName = select.options[select.selectedIndex]?.textContent || '';
+  const item = selectedProduct();
+  const productId = item ? item.id : '';
+  const productName = item ? `${item.name} (${item.stock} in stock)` : '';
   const adjType = document.querySelector('input[name="adjType"]:checked').value;
   const quantity = parseInt(document.getElementById('invFormQty').value, 10);
-  const reason = document.getElementById('invFormReason').value.trim();
+  const reasonType = document.getElementById('invFormReasonType').value;
+  const reason = reasonType === 'other' ? document.getElementById('invFormReason').value.trim() : reasonType;
 
   if (!productId || !quantity || quantity < 1 || !reason) {
     CashierApp.toast('Please complete all adjustment fields.', 'error');
+    return;
+  }
+
+  if (adjType === 'sub' && quantity > item.stock) {
+    CashierApp.toast(`Only ${item.stock} in stock.`, 'error');
     return;
   }
 
@@ -153,6 +241,8 @@ async function confirmAdjustment() {
     CashierApp.toast('Stock adjustment applied.', 'success');
     CashierApp.hideModal('stockAdjustmentConfirmModal');
     document.getElementById('inventoryAdjustmentForm').reset();
+    document.getElementById('invFormReason').classList.add('hidden');
+    selectProduct('');
     state.pendingAdjustment = null;
     await refreshData();
   } else {
@@ -160,25 +250,60 @@ async function confirmAdjustment() {
   }
 }
 
+const LOG_TYPES = { add: 'Restock', sub: 'Deduct', create: 'Opening Stock', edit: 'Edited', deactivate: 'Archived', reactivate: 'Restored' };
+
+function logDate(timestamp) {
+  const [date, time, meridiem] = String(timestamp).split(' ');
+  const day = new Date(date + 'T00:00:00');
+  const label = day.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return `<span class="block font-semibold text-slate-800 whitespace-nowrap">${escapeHtml(label)}</span><span class="block text-gray-500 whitespace-nowrap">${escapeHtml(time)} ${escapeHtml(meridiem)}</span>`;
+}
+
+// The product already has its own column.
+function logReason(row) {
+  return /^Opening stock:/i.test(row.reason || '') ? 'Opening stock' : (row.reason || '');
+}
+
+function renderAdjustmentLog() {
+  const q = document.getElementById('logSearch').value.trim().toLowerCase();
+  const type = document.getElementById('logTypeFilter').value;
+  const rows = state.logRows.filter(row => (!q || row.product.toLowerCase().includes(q)) && (!type || row.action === type));
+  const totalPages = Math.max(1, Math.ceil(rows.length / state.logPageSize));
+  state.logPage = Math.min(state.logPage, totalPages);
+  const first = (state.logPage - 1) * state.logPageSize;
+
+  const tbody = document.getElementById('inventoryLogTableBody');
+  tbody.innerHTML = rows.length ? rows.slice(first, first + state.logPageSize).map(row => {
+    const change = row.newStock - row.previousStock;
+    const color = change > 0 ? '#166534' : change < 0 ? '#B91C1C' : '#475569';
+    const changeLabel = change > 0 ? `+${change}` : change < 0 ? `−${Math.abs(change)}` : '0';
+    return `
+      <tr>
+        <td class="p-2.5">${logDate(row.timestamp)}</td>
+        <td class="p-2.5 font-semibold text-slate-800">${escapeHtml(row.product)}</td>
+        <td class="p-2.5 whitespace-nowrap">${escapeHtml(LOG_TYPES[row.action] || row.action)}</td>
+        <td class="p-2.5 text-center font-bold" style="color:${color}">${changeLabel}</td>
+        <td class="p-2.5 text-center whitespace-nowrap">${row.previousStock} &rarr; ${row.newStock}</td>
+        <td class="p-2.5">${escapeHtml(logReason(row))}</td>
+        <td class="p-2.5">${escapeHtml(row.adjustedBy || 'System')}</td>
+      </tr>`;
+  }).join('') : `<tr><td colspan="7" class="p-6 text-center text-gray-400">${state.logRows.length ? 'No entries match these filters.' : 'No stock changes logged for this branch yet.'}</td></tr>`;
+
+  document.getElementById('logPager').classList.toggle('hidden', totalPages <= 1);
+  document.getElementById('logPageLabel').textContent = rows.length ? `Showing ${first + 1}-${Math.min(first + state.logPageSize, rows.length)} of ${rows.length}` : '';
+  document.getElementById('logPageNumber').textContent = `Page ${state.logPage} of ${totalPages}`;
+  document.getElementById('btnLogPrev').disabled = state.logPage <= 1;
+  document.getElementById('btnLogNext').disabled = state.logPage >= totalPages;
+}
+
 async function openAdjustmentLog() {
   document.getElementById('logBranchName').textContent = state.branch.toUpperCase();
-
   const result = await CashierApp.get('getAdjustmentLog.php', { branchId: state.branch });
-  const tbody = document.getElementById('inventoryLogTableBody');
-  if (result.success && result.log.length) {
-    tbody.innerHTML = result.log.map(row => `
-      <tr>
-        <td class="p-2.5">${escapeHtml(row.timestamp)}</td>
-        <td class="p-2.5 font-semibold">${escapeHtml(row.product)}</td>
-        <td class="p-2.5">${row.action === 'add' ? 'Restock (+)' : 'Deduct (-)'}</td>
-        <td class="p-2.5 text-center">${row.quantity}</td>
-        <td class="p-2.5">${escapeHtml(row.reason)}</td>
-        <td class="p-2.5 text-center">${row.previousStock} &rarr; ${row.newStock}</td>
-      </tr>
-    `).join('');
-  } else {
-    tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-400 italic">No adjustments logged for this branch yet.</td></tr>';
-  }
+  state.logRows = result.success ? result.log : [];
+  state.logPage = 1;
+  document.getElementById('logSearch').value = '';
+  document.getElementById('logTypeFilter').value = '';
+  renderAdjustmentLog();
   CashierApp.showModal('inventoryLogModal');
 }
 
@@ -191,7 +316,11 @@ async function triggerEod() {
     .filter(b => ['Pending', 'Confirmed', 'In Progress'].includes(b.status)).length;
 
   if (unsettledCount > 0) {
-    const proceed = confirm(`${unsettledCount} booking(s) are still active (not yet completed) for this branch. Close the business day anyway? Completed-but-unpaid checkouts will still block closing.`);
+    const proceed = await LMConfirm({
+      title: 'Close the business day?',
+      message: `${unsettledCount} booking(s) are still open. Closing locks today's transactions, and only an administrator can reopen the day. Completed but unpaid checkouts will still block closing.`,
+      confirmLabel: 'Close Anyway'
+    });
     if (!proceed) return;
   }
 
@@ -208,7 +337,39 @@ async function triggerEod() {
 
 
 function wireStaticEvents() {
-  document.getElementById('inventorySearch').addEventListener('input', renderInventory);
+  document.getElementById('inventorySearch').addEventListener('input', () => { state.page = 1; renderInventory(); });
+  document.getElementById('btnCardLowStock').addEventListener('click', () => setLowStockFilter(true));
+  document.getElementById('btnInvPrev').addEventListener('click', () => { state.page -= 1; renderInventory(); });
+  document.getElementById('btnInvNext').addEventListener('click', () => { state.page += 1; renderInventory(); });
+  document.getElementById('inventoryTableBody').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-adjust]');
+    if (!btn) return;
+    selectProduct(btn.dataset.adjust);
+    document.getElementById('invFormQty').focus();
+  });
+
+  document.getElementById('invFormQty').addEventListener('input', renderPreview);
+  document.querySelectorAll('input[name="adjType"]').forEach(input => input.addEventListener('change', renderPreview));
+  document.getElementById('btnFilterAllStock').style.cssText = stockTabStyle(true);
+  document.getElementById('btnFilterLowStock').style.cssText = stockTabStyle(false);
+
+  const productSearch = document.getElementById('invProductSearch');
+  const productList = document.getElementById('invProductList');
+  productSearch.addEventListener('focus', renderProductList);
+  productSearch.addEventListener('input', () => { state.productId = ''; renderSelectedProduct(); renderProductList(); });
+  productSearch.addEventListener('keydown', (e) => { if (e.key === 'Escape') productList.classList.add('hidden'); });
+  productList.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-product]');
+    if (btn) selectProduct(btn.dataset.product);
+  });
+  document.addEventListener('click', (e) => {
+    if (e.target !== productSearch && !productList.contains(e.target)) productList.classList.add('hidden');
+  });
+  document.getElementById('invFormReasonType').addEventListener('change', (e) => {
+    const other = document.getElementById('invFormReason');
+    other.classList.toggle('hidden', e.target.value !== 'other');
+    if (e.target.value === 'other') other.focus();
+  });
   document.getElementById('btnFilterAllStock').addEventListener('click', () => setLowStockFilter(false));
   document.getElementById('btnFilterLowStock').addEventListener('click', () => setLowStockFilter(true));
 
@@ -217,6 +378,10 @@ function wireStaticEvents() {
   document.getElementById('btnCancelStockAdjustment').addEventListener('click', () => CashierApp.hideModal('stockAdjustmentConfirmModal'));
   document.getElementById('btnConfirmStockAdjustment').addEventListener('click', confirmAdjustment);
 
+  document.getElementById('logSearch').addEventListener('input', () => { state.logPage = 1; renderAdjustmentLog(); });
+  document.getElementById('logTypeFilter').addEventListener('change', () => { state.logPage = 1; renderAdjustmentLog(); });
+  document.getElementById('btnLogPrev').addEventListener('click', () => { state.logPage -= 1; renderAdjustmentLog(); });
+  document.getElementById('btnLogNext').addEventListener('click', () => { state.logPage += 1; renderAdjustmentLog(); });
   document.getElementById('btnViewAdjLog').addEventListener('click', openAdjustmentLog);
   document.getElementById('btnCloseInventoryLogModal').addEventListener('click', () => CashierApp.hideModal('inventoryLogModal'));
 

@@ -70,7 +70,7 @@ function customerNotificationsMixin() {
       const message = notif.message || '';
       const field = label => message.match(new RegExp('(?:^|\n)' + label + ': ([^\n]+)'))?.[1] || '';
       const reference = message.match(/\bLM-(?:[A-Z]+-)+\d{4}-\d+\b/)?.[0] || '';
-      const titles = { CANCELLED: 'Booking cancelled', CONFIRMED: 'Booking confirmed', BOOKING_SUBMITTED: 'Booking request received', PAYMENT_RECEIVED: 'Payment received', PAYMENT_VERIFIED: 'Payment verified', PAYMENT_SUBMITTED: 'Payment submitted', PAYMENT_ATTENTION: 'Payment needs attention', PAYMENT_FORFEITED: 'Deposit forfeited', REFUND_DUE: 'Refund pending', PAYMENT_REFUNDED: 'Payment refunded', RESCHEDULE: 'Schedule updated', COMPLETED: 'Appointment completed', REMINDER: 'Appointment reminder', WAITLIST_OPENING: 'Stylist available', QUOTE_READY: 'Your quote is ready', PAYMENT_REMINDER: 'Payment reminder', PAYMENT_PENDING: 'Payment pending' };
+      const titles = { CANCELLED: 'Booking cancelled', CONFIRMED: 'Booking confirmed', BOOKING_SUBMITTED: 'Booking request received', PAYMENT_RECEIVED: 'Payment received', PAYMENT_VERIFIED: 'Payment verified', PAYMENT_SUBMITTED: 'Payment submitted', PAYMENT_ATTENTION: 'Payment needs attention', PAYMENT_FORFEITED: 'Deposit forfeited', REFUND_DUE: 'Refund pending', PAYMENT_REFUNDED: 'Payment refunded', RESCHEDULE: 'Schedule updated', SERVICE_FINISHED: 'Service finished', COMPLETED: 'Appointment completed', REMINDER: 'Appointment reminder', WAITLIST_OPENING: 'Stylist available', QUOTE_READY: 'Your quote is ready', PAYMENT_REMINDER: 'Payment reminder', PAYMENT_PENDING: 'Payment pending' };
       let summary = message.split(/\n\s*\n|\nBooking reference:/)[0].replace(' for ' + reference, ' for this booking').replace(reference, '').replace(/\s+([.,:])/g, '$1').replace(/\s{2,}/g, ' ').trim();
       if (notif.type === 'CANCELLED' && /within 30 minutes/i.test(message)) summary = 'Your payment wasn’t completed within 30 minutes.';
       if (notif.type === 'CANCELLED' && /^You cancelled your appointment\.?$/.test(summary)) summary = '';
@@ -126,7 +126,7 @@ function customerNotificationsMixin() {
       const map = {
         BOOKING_SUBMITTED: 'success', PAYMENT_SUBMITTED: 'system', PAYMENT_RECEIVED: 'success', PAYMENT_VERIFIED: 'success',
         PAYMENT_REMINDER: 'reminder', PAYMENT_ATTENTION: 'error', CONFIRMED: 'success', REMINDER: 'reminder',
-        RESCHEDULE: 'system', CANCELLED: 'error', COMPLETED: 'success',
+        RESCHEDULE: 'system', CANCELLED: 'error', SERVICE_FINISHED: 'success', COMPLETED: 'success',
         PAYMENT_FORFEITED: 'error', REFUND_DUE: 'system', PAYMENT_REFUNDED: 'success', WAITLIST_OPENING: 'reminder'
       };
       return map[type] || 'system';

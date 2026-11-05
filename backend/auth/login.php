@@ -143,7 +143,7 @@ try {
 
             $stmt = $pdo->prepare('SELECT id FROM attendance WHERE employee_id = ? AND DATE(clock_in_time) = CURDATE() AND clock_out_time IS NULL LIMIT 1');
             $stmt->execute([$employeeId]);
-            if (!$stmt->fetchColumn()) {
+            if (!$stmt->fetchColumn() && Scheduling::canStartShift($pdo, $employeeId, $employeeRow['branch_id'])) {
                 $pdo->prepare('INSERT INTO attendance (employee_id, clock_in_time) VALUES (?, NOW())')->execute([$employeeId]);
             }
         }

@@ -3,7 +3,7 @@
 require_once __DIR__ . '/../security/AuditLog.php';
 
 /**
- * A stylist asking the branch cashier to act on a late or absent customer.
+ * A stylist asking the front desk (branch cashier or admin) to act on a late or absent customer.
  * A request changes nothing about the booking or its payment: the cashier
  * decides, and only their action marks a no-show or moves the booking.
  *
@@ -33,7 +33,7 @@ final class ArrivalRequest
         return $open;
     }
 
-    /** Logs the request and tells the booking's branch cashiers; the admin feed is the fallback. */
+    /** Logs the request and tells the booking's branch cashiers and the admins. */
     public static function send(PDO $pdo, array $appointment, string $staffName, string $kind, int $minutesLate): string
     {
         $reference = $appointment['reference_code'];
@@ -43,12 +43,12 @@ final class ArrivalRequest
             : "{$staffName} asks you to reassign or reschedule {$reference}: the service cannot go ahead as booked, {$late}. Please review it in Appointments.";
 
         $stmt = $pdo->prepare("SELECT u.id FROM users u JOIN roles r ON r.id = u.role_id
-            WHERE r.role_name = 'Cashier' AND u.branch_id = ? AND u.is_active = 1");
+            WHERE u.is_active = 1 AND ((r.role_name = 'Cashier' AND u.branch_id = ?) OR r.role_name = 'Admin')");
         $stmt->execute([$appointment['branch_id']]);
         $notify = $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (?, "ARRIVAL_REQUEST", ?)');
-        $cashiers = $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [null];
-        foreach ($cashiers as $cashierUserId) {
-            $notify->execute([$cashierUserId, $message]);
+        $recipients = $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [null];
+        foreach ($recipients as $recipientUserId) {
+            $notify->execute([$recipientUserId, $message]);
         }
 
         AuditLog::record($pdo, self::AUDIT_ACTION, 'Asked the cashier to review an arrival', $reference, $message, ['kind' => $kind]);

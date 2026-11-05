@@ -176,7 +176,7 @@ try {
         FROM attendance
         WHERE employee_id = ?
         ORDER BY clock_in_time DESC
-        LIMIT 30
+        LIMIT 500
     ");
     $stmt->execute([$employeeId]);
     $attendance = array_map(function ($row) {
@@ -217,6 +217,8 @@ try {
     $stmt->execute([$employeeId]);
     $attendanceRow = $stmt->fetch();
     $attendanceDays = (int) $attendanceRow['attendedDays'];
+    // Same floor as ranking.php, so the card can never read "2 of 1 days".
+    $branchOpenDays = max($attendanceDays, (int) $attendanceRow['branchOpenDays']);
 
     $performance = [
         'completedCount' => $completedCount,
@@ -224,7 +226,8 @@ try {
         'avgRating' => $ratingRow['avgRating'] !== null ? (float) $ratingRow['avgRating'] : 0,
         'totalReviews' => (int) $ratingRow['totalReviews'],
         'attendanceDays' => $attendanceDays,
-        'attendanceRate' => StaffMetrics::attendanceRate($attendanceDays, (int) $attendanceRow['branchOpenDays']),
+        'branchOpenDays' => $branchOpenDays,
+        'attendanceRate' => StaffMetrics::attendanceRate($attendanceDays, $branchOpenDays),
     ];
 
     $stmt = $pdo->prepare("
@@ -312,9 +315,19 @@ try {
         }, $stmt->fetchAll());
     }
 
+    // Live availability, from the same busy windows that block new bookings.
+    $busyUntil = Scheduling::staffBusyUntilNow($pdo, $employeeId);
+    $availability = [
+        'busyUntil' => $busyUntil ? $busyUntil->format('g:i A') : null,
+        'busyMinutesLeft' => $busyUntil
+            ? (int) ceil(($busyUntil->getTimestamp() - (new DateTime($pdo->query('SELECT NOW()')->fetchColumn()))->getTimestamp()) / 60)
+            : 0,
+    ];
+
     echo json_encode([
         'success' => true,
         'profile' => $profile,
+        'availability' => $availability,
         'notificationPrefs' => $notificationPrefs,
         'lateGraceMinutes' => Scheduling::arrivalGraceMinutes(),
         'appointments' => $appointments,

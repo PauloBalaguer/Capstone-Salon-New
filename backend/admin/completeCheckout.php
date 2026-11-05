@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $referenceCode = trim($_POST['id'] ?? '');
 $paymentMethod = trim($_POST['paymentMethod'] ?? 'Cash');
-$allowedMethods = ['Cash', 'Card', 'Online', 'Gift Card'];
+$allowedMethods = ['Cash', 'GCash', 'Maya']; // Same as cashier checkout.
 if (!in_array($paymentMethod, $allowedMethods, true)) {
     $paymentMethod = 'Cash';
 }
@@ -60,7 +60,8 @@ try {
     }
 
     // The locked appointment and unique checkout row prevent repeat rewards.
-    if (!in_array($appointment['status'], ['Confirmed','In Progress','Completed'], true)) throw new RuntimeException('This booking is not ready for checkout.');
+    if ($appointment['status'] === 'Confirmed') throw new RuntimeException('Start the service before checkout.');
+    if (!in_array($appointment['status'], ['In Progress','Completed'], true)) throw new RuntimeException('This booking is not ready for checkout.');
     if ($appointment['deposit_paid'] && (float)$appointment['deposit_amount']>0 && $appointment['deposit_recorded_by']===null) throw new RuntimeException('Verify the reservation payment before checkout.');
     if (($appointment['paymongo_checkout_id'] || $appointment['paymongo_payment_intent_id']) && !$appointment['deposit_paid']) throw new RuntimeException('The online reservation payment is still pending.');
 
@@ -69,8 +70,8 @@ try {
     if ($stmt->fetchColumn()) throw new RuntimeException('This booking has already been paid.');
     $verifiedDeposit = $appointment['deposit_paid'] && $appointment['deposit_recorded_by'] !== null ? (float)$appointment['deposit_amount'] : 0;
     $balance = max(0,(float)$appointment['total_price']-$verifiedDeposit);
-    $pdo->prepare('INSERT INTO payments (appointment_id, amount, payment_method, status) VALUES (?, ?, ?, "Paid")')
-        ->execute([$appointment['id'], $balance, $paymentMethod]);
+    $pdo->prepare('INSERT INTO payments (appointment_id, amount, payment_method, status, processed_by) VALUES (?, ?, ?, "Paid", ?)')
+        ->execute([$appointment['id'], $balance, $paymentMethod, $_SESSION['user_id']]);
 
     $pdo->prepare("UPDATE appointments SET status = 'Completed', payment_status = 'Fully Paid' WHERE id = ?")->execute([$appointment['id']]);
 
@@ -78,7 +79,7 @@ try {
     LoyaltyCard::earn($pdo, $appointment, (float) $appointment['total_price']);
 
     $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "PAYMENT", ?)')
-        ->execute(["Booking {$referenceCode} paid in full (PHP " . number_format((float) $appointment['total_price'], 2) . ")."]);
+        ->execute(["Booking {$referenceCode} paid in full (PHP " . number_format($balance, 2) . " collected)."]);
 
     CustomerNotifier::notify($pdo, (int) $appointment['customer_id'], 'PAYMENT_VERIFIED', "Your payment for {$referenceCode} has been verified. Status: Paid in Full.");
     CustomerNotifier::notify($pdo, (int) $appointment['customer_id'], 'COMPLETED', "Your appointment {$referenceCode} is now Completed. Thank you for choosing us!");

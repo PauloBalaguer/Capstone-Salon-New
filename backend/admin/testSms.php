@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
   <h1>Send a test SMS</h1>
-  <p>Message: <em><?= htmlspecialchars(renderSms('TEST'), ENT_QUOTES, 'UTF-8') ?></em></p>
+  <p>Message: <span><?= htmlspecialchars(renderSms('TEST'), ENT_QUOTES, 'UTF-8') ?></span></p>
   <form method="post">
     <label for="phone">Mobile number</label>
     <input id="phone" name="phone" type="tel" placeholder="0917 123 4567" value="<?= htmlspecialchars($phone, ENT_QUOTES, 'UTF-8') ?>" required>

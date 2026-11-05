@@ -8,6 +8,7 @@ function staffProfileApp() {
     passwordForm: { currentPassword: '', newPassword: '', confirmPassword: '' },
     passwordChangeStep: 'form',
     passwordChangeCode: '',
+    currentPasswordError: '',
     notificationOptions: [
       { key: 'bookingAlerts', label: 'New Assigned Appointments', desc: 'Get notified when a booking is assigned to you.' },
       { key: 'inventoryAlerts', label: 'Low Stock Alerts', desc: "Get notified when your branch's supplies run low." },
@@ -76,12 +77,44 @@ function staffProfileApp() {
       if (res.success) this.loadFormFromStore();
     },
 
+    // Same rules as backend/shared/config/security/PasswordPolicy.php.
+    passwordRules() {
+      const value = this.passwordForm.newPassword;
+      return [
+        { label: 'At least 8 characters', met: value.length >= 8 },
+        { label: 'At least one uppercase letter (A–Z)', met: /[A-Z]/.test(value) },
+        { label: 'At least one lowercase letter (a–z)', met: /[a-z]/.test(value) },
+        { label: 'At least one number (0–9)', met: /[0-9]/.test(value) },
+        { label: 'At least one special character (e.g., @, #, $, or -)', met: /[^A-Za-z0-9\s]/.test(value) }
+      ];
+    },
+
+    passwordMeetsRules() {
+      return this.passwordRules().every(rule => rule.met);
+    },
+
+    passwordSameAsCurrent() {
+      const { currentPassword, newPassword } = this.passwordForm;
+      return newPassword !== '' && newPassword === currentPassword;
+    },
+
+    passwordsMismatch() {
+      const { newPassword, confirmPassword } = this.passwordForm;
+      return confirmPassword !== '' && newPassword !== confirmPassword;
+    },
+
+    canSubmitPassword() {
+      const { currentPassword, newPassword, confirmPassword } = this.passwordForm;
+      return !!currentPassword && this.passwordMeetsRules() &&!this.passwordSameAsCurrent() && newPassword === confirmPassword;
+    },
+
     async submitPassword() {
       if (this.passwordForm.newPassword !== this.passwordForm.confirmPassword) {
         Alpine.store('staff').toast('New password and confirmation do not match.', 'error');
         return;
       }
       const res = await Alpine.store('staff').changePassword(this.passwordForm);
+      this.currentPasswordError = !res.success && /current password/i.test(res.message) && !/different/i.test(res.message) ? res.message : '';
       if (res.success && res.requiresVerification) {
         this.passwordChangeCode = '';
         this.passwordChangeStep = 'verify';

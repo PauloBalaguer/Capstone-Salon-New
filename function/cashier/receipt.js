@@ -46,7 +46,7 @@ function renderReceipt(receipt) {
       </div>
       <span class="font-semibold text-slate-800">${CashierApp.formatCurrency(item.lineTotal)}</span>
     </div>
-  `).join('') || '<p class="text-gray-400 italic py-3 text-center">No itemized lines.</p>';
+  `).join('') || '<p class="text-gray-400  py-3 text-center">No itemized lines.</p>';
 
   document.getElementById('receiptSubtotal').textContent = CashierApp.formatCurrency(receipt.subtotal);
   const rewardNote = document.getElementById('receiptLoyaltyReward');

@@ -132,7 +132,7 @@ function adminPromotionsApp() {
     },
 
     async removeService(service) {
-      if (!confirm(`Delete "${service.name}"? This can't be undone.`)) return;
+      if (!(await LMConfirm({ title: `Delete "${service.name}"?`, message: "This can't be undone.", confirmLabel: 'Delete' }))) return;
       const store = Alpine.store('admin');
       const result = await store.post('deleteService.php', { id: service.id });
       if (!result.success) {

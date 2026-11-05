@@ -173,6 +173,19 @@ class Scheduling
             'paymentStatus' => $appointment['payment_status'], 'staff' => $staff, 'reason' => $reason];
     }
 
+    /** Tells each stylist on a booking (main and per-service) that it is confirmed. */
+    public static function notifyStaffOfConfirmation(PDO $pdo, array $appointment): void
+    {
+        $stmt = $pdo->prepare('SELECT employee_id FROM appointment_services WHERE appointment_id = ? AND employee_id IS NOT NULL');
+        $stmt->execute([$appointment['id']]);
+        $ids = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+        if ($appointment['employee_id']) $ids[] = (int) $appointment['employee_id'];
+        $when = date('M j, Y g:i A', strtotime($appointment['appointment_datetime']));
+        foreach (array_unique($ids) as $id) {
+            StaffNotifier::notify($pdo, $id, 'APPOINTMENT_ASSIGNED', "Booking {$appointment['reference_code']} is confirmed and assigned to you for {$when}.");
+        }
+    }
+
     /** Called under the same branch/appointment transaction as status changes. */
     public static function startAppointment(PDO $pdo, array $appointment, ?int $staffId, bool $arrivalConfirmed): string
     {
@@ -602,9 +615,61 @@ class Scheduling
         return $windows;
     }
 
+    /**
+     * When this staff member's current busy period ends, cleaning buffer
+     * included, or null when free now. Same windows that block new bookings;
+     * back-to-back windows count as one busy period.
+     */
+    public static function staffBusyUntilNow(PDO $pdo, int $employeeId): ?DateTime
+    {
+        $now = new DateTime($pdo->query('SELECT NOW()')->fetchColumn());
+        $windows = self::staffBusyWindows($pdo, $employeeId, $now->format('Y-m-d'));
+        $until = null;
+        do {
+            $extended = false;
+            foreach ($windows as $window) {
+                $reach = $until ?? $now;
+                if ($window['start'] <= $reach && $window['end'] > $reach) {
+                    $until = $window['end'];
+                    $extended = true;
+                }
+            }
+        } while ($extended);
+        return $until;
+    }
+
     /** attendance.notes markers -- shown to staff/cashier/admin so auto-closed hours can be reviewed. */
     const NOTE_AUTO_CLOSE = 'Auto clock-out at closing time staff did not sign out';
     const NOTE_EOD_CLOSE = 'Clocked out at end-of-day close staff did not sign out';
+
+    /**
+     * A login after the branch's closing time doesn't start a shift, so it
+     * can't add hours or show the stylist as available. A stylist still on an
+     * In Progress service today may continue, whatever the time.
+     */
+    public static function canStartShift(PDO $pdo, int $employeeId, ?int $branchId): bool
+    {
+        if (!$branchId) {
+            return true;
+        }
+        $stmt = $pdo->prepare('SELECT branch_key FROM branches WHERE id = ? LIMIT 1');
+        $stmt->execute([$branchId]);
+        $branchKey = $stmt->fetchColumn();
+        if (!$branchKey) {
+            return true;
+        }
+        $today = $pdo->query('SELECT CURDATE()')->fetchColumn();
+        [, $closingTime] = self::operatingHours($branchKey, $today);
+        $stmt = $pdo->prepare('SELECT NOW() < ?');
+        $stmt->execute([$today . ' ' . $closingTime]);
+        if ($stmt->fetchColumn()) {
+            return true;
+        }
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM appointments a WHERE a.status = 'In Progress' AND DATE(a.appointment_datetime) = CURDATE()
+            AND (a.employee_id = ? OR EXISTS (SELECT 1 FROM appointment_services aps WHERE aps.appointment_id = a.id AND aps.employee_id = ?))");
+        $stmt->execute([$employeeId, $employeeId]);
+        return (int) $stmt->fetchColumn() > 0;
+    }
 
     /**
      * Automatic attendance Time Out. There's no cron/background worker in

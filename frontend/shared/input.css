@@ -189,7 +189,7 @@
     .check input { @apply h-[18px] w-[18px] accent-teal-500; }
     .terms { @apply m-0 flex cursor-pointer items-start gap-2 text-sm font-normal leading-relaxed text-muted-auth; }
     .terms input { @apply mt-0.5 h-[18px] w-[18px] flex-none accent-teal-500; }
-    .terms a, .foot a, .resend button, .link { @apply font-semibold text-teal-500 underline; }
+    .terms a, .foot a, .resend button, .link { @apply font-semibold text-teal-500 no-underline; }
     .link { @apply inline-flex min-h-11 items-center; }
 
     .otp { @apply flex justify-center gap-1.5 sm:gap-2; }

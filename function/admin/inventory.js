@@ -151,7 +151,7 @@ function adminInventoryApp() {
     // alerts) while keeping all its history; Restore brings it back.
     async toggleItemActive(item) {
       const goingActive = !item.isActive;
-      if (!goingActive && !confirm(`Archive "${item.name}"? It will be hidden from staff, checkout and stock alerts, but its history is kept. You can restore it from the Archived tab.`)) return;
+      if (!goingActive && !(await LMConfirm({ title: `Archive "${item.name}"?`, message: 'It will be hidden from staff, checkout and stock alerts, but its history is kept. You can restore it from the Archived tab.', confirmLabel: 'Archive' }))) return;
       const store = Alpine.store('admin');
       const result = await store.post('toggleInventoryItemActive.php', { id: item.id, active: goingActive ? 1 : 0 });
       if (!result.success) {

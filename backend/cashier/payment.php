@@ -154,7 +154,10 @@ try {
         echo json_encode(['success' => false, 'message' => 'This booking has already been paid.']);
         exit();
     }
-    if (!in_array($appointment['status'], ['Confirmed', 'In Progress', 'Completed'], true)) {
+    if ($appointment['status'] === 'Confirmed') {
+        throw new RuntimeException('Start the service before cashier checkout.');
+    }
+    if (!in_array($appointment['status'], ['In Progress', 'Completed'], true)) {
         throw new RuntimeException('Confirm this booking before cashier checkout.');
     }
     if ($appointment['deposit_paid'] && (float) $appointment['deposit_amount'] > 0 && $appointment['deposit_recorded_by'] === null) {

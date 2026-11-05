@@ -53,7 +53,7 @@ function adminSettingsApp() {
     },
 
     async removeCashierMember(cashierId) {
-      if (!confirm('Remove this cashier account? They will no longer be able to log in.')) return;
+      if (!(await LMConfirm({ title: 'Remove this cashier?', message: 'They will no longer be able to log in.', confirmLabel: 'Remove Cashier' }))) return;
       const store = Alpine.store('admin');
       const result = await store.post('removeCashier.php', { id: cashierId });
       if (!result.success) {

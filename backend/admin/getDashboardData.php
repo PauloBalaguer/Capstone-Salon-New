@@ -18,6 +18,7 @@ require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/helpers/LoyaltyTier.php';
+require_once '../../backend/shared/config/helpers/StaffMetrics.php';
 require_once '../../backend/shared/config/payments/RevenueReport.php';
 require_once '../../backend/shared/config/booking/Scheduling.php';
 
@@ -238,18 +239,18 @@ try {
             CONCAT(e.first_name, ' ', e.last_name) AS name,
             br.branch_key AS branchId,
             e.position AS role,
-            (SELECT COUNT(*) FROM appointments ap WHERE ap.employee_id = e.id AND ap.status = 'Completed') AS completedCount,
+            (SELECT COUNT(*) FROM appointments ap WHERE " . StaffMetrics::worksOnSql('ap', 'e.id') . " AND ap.status IN " . StaffMetrics::FINISHED_STATUSES_SQL . ") AS completedCount,
             (SELECT ROUND(AVG(f.rating), 1) FROM feedback f
                 JOIN appointments ap2 ON ap2.id = f.appointment_id
-                WHERE ap2.employee_id = e.id) AS avgRating,
+                WHERE " . StaffMetrics::worksOnSql('ap2', 'e.id') . ") AS avgRating,
             (SELECT COUNT(*) FROM appointments ap3
                 WHERE ap3.employee_id = e.id AND ap3.status = 'In Progress'
                 AND DATE(ap3.appointment_datetime) = CURDATE()) AS inProgressToday,
             (SELECT COUNT(*) FROM attendance at
                 WHERE at.employee_id = e.id AND DATE(at.clock_in_time) = CURDATE()
                 AND at.clock_out_time IS NULL) AS openAttendanceToday,
-            (SELECT COUNT(DISTINCT DATE(at2.clock_in_time)) FROM attendance at2
-                WHERE at2.employee_id = e.id AND at2.clock_in_time >= (NOW() - INTERVAL 30 DAY)) AS attendanceDays,
+            " . StaffMetrics::attendedDaysSql('e') . " AS attendanceDays,
+            " . StaffMetrics::branchOpenDaysSql('e') . " AS branchOpenDays,
             (SELECT COUNT(*) FROM attendance at3 WHERE at3.employee_id = e.id AND at3.notes IS NOT NULL
                 AND at3.clock_in_time >= (NOW() - INTERVAL 30 DAY)) AS missedSignOuts,
             (SELECT GROUP_CONCAT(ss.service_id) FROM staff_services ss WHERE ss.employee_id = e.id) AS serviceIdsRaw,
@@ -275,7 +276,7 @@ try {
             'completedCount' => (int) $row['completedCount'],
             'rating' => $row['avgRating'] !== null ? (float) $row['avgRating'] : 0,
             'status' => $status,
-            'attendance' => min(100, (int) round(((int) $row['attendanceDays'] / 30) * 100)),
+            'attendance' => StaffMetrics::attendanceRate((int) $row['attendanceDays'], (int) $row['branchOpenDays']),
             'missedSignOuts' => (int) $row['missedSignOuts'],
             'serviceIds' => $row['serviceIdsRaw'] ? explode(',', $row['serviceIdsRaw']) : [],
             'specialties' => $row['specialties'] ?: 'No specialties set',

@@ -10,6 +10,7 @@
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
+require_once '../../backend/shared/config/helpers/StaffMetrics.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -76,12 +77,18 @@ try {
     // appointments -- never an arbitrary/unrelated booking.
     $appointmentId = null;
     if ($referenceCode !== '') {
-        $stmt = $pdo->prepare('SELECT id FROM appointments WHERE reference_code = ? AND employee_id = ?');
-        $stmt->execute([$referenceCode, $employeeId]);
-        $appointmentId = $stmt->fetchColumn();
+        $stmt = $pdo->prepare('SELECT a.id, a.status FROM appointments a WHERE a.reference_code = ? AND ' . StaffMetrics::worksOnSql('a', '?'));
+        $stmt->execute([$referenceCode, $employeeId, $employeeId]);
+        $appointment = $stmt->fetch();
+        $appointmentId = $appointment['id'] ?? null;
         if (!$appointmentId) {
             http_response_code(403);
             echo json_encode(['success' => false, 'message' => 'That booking is not assigned to you.']);
+            exit();
+        }
+        if (!in_array($appointment['status'], ['In Progress', 'Completed', 'Reviewed'], true)) {
+            http_response_code(409);
+            echo json_encode(['success' => false, 'message' => 'Start the service before logging supplies for this booking.']);
             exit();
         }
     }

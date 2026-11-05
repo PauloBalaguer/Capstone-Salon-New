@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=20261103b" />
   <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=20261103-signout-cream" />
   <script src="../../function/shared/toast.js"></script>
+  <script src="../../function/shared/confirm-dialog.js"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
   <link rel="stylesheet" href="../../frontend/shared/mobile-nav.css?v=20261103c">
   <script src="../../function/shared/mobile-nav.js?v=20261103" defer></script>
@@ -176,7 +177,7 @@
                   </tr>
                 </template>
                 <template x-if="getFilteredServices().length === 0">
-                  <tr><td colspan="9" class="p-6 text-center text-slate-500 italic">No services match the current filter. Click "Add New Service" to create one.</td></tr>
+                  <tr><td colspan="9" class="p-6 text-center text-slate-500 ">No services match the current filter. Click "Add New Service" to create one.</td></tr>
                 </template>
               </tbody>
             </table>

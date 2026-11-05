@@ -15,6 +15,8 @@ require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/booking/Scheduling.php';
+require_once '../../backend/shared/config/booking/ArrivalRequest.php';
+require_once '../../backend/shared/config/helpers/StaffMetrics.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -88,6 +90,7 @@ try {
             DATE_FORMAT(a.appointment_datetime, '%Y-%m-%d') AS date,
             DATE_FORMAT(a.appointment_datetime, '%h:%i %p') AS time,
             a.appointment_datetime AS startDateTime,
+            TIMESTAMPDIFF(MINUTE, a.appointment_datetime, NOW()) AS minutesLate,
             COALESCE(SUM(s.duration_minutes), 0) AS durationMinutes,
             a.status AS status,
             a.total_price AS price
@@ -114,7 +117,10 @@ try {
         WHERE a.reference_code = ?
         ORDER BY aps.id
     ");
-    $appointments = array_map(function ($row) use ($serviceRowsStmt, $employeeId) {
+    $arrivalRequests = ArrivalRequest::openToday($pdo);
+    $appointments = array_map(function ($row) use ($serviceRowsStmt, $employeeId, $arrivalRequests) {
+        $row['arrivalRequests'] = $arrivalRequests[$row['id']] ?? [];
+        $row['minutesLate'] = (int) $row['minutesLate'];
         $row['price'] = (float) $row['price'];
         $row['durationMinutes'] = (int) $row['durationMinutes'];
         $start = new DateTime($row['startDateTime']);
@@ -170,7 +176,7 @@ try {
         FROM attendance
         WHERE employee_id = ?
         ORDER BY clock_in_time DESC
-        LIMIT 30
+        LIMIT 500
     ");
     $stmt->execute([$employeeId]);
     $attendance = array_map(function ($row) {
@@ -180,36 +186,39 @@ try {
         return $row;
     }, $stmt->fetchAll());
 
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM appointments WHERE employee_id = ? AND status = 'Completed'");
-    $stmt->execute([$employeeId]);
+    $worksOn = StaffMetrics::worksOnSql('a', '?');
+    $finished = StaffMetrics::FINISHED_STATUSES_SQL;
+
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM appointments a WHERE {$worksOn} AND a.status IN {$finished}");
+    $stmt->execute([$employeeId, $employeeId]);
     $completedCount = (int) $stmt->fetchColumn();
 
     $stmt = $pdo->prepare("
-        SELECT COUNT(*) FROM appointments
-        WHERE employee_id = ? AND status = 'Completed'
-        AND MONTH(appointment_datetime) = MONTH(CURDATE()) AND YEAR(appointment_datetime) = YEAR(CURDATE())
+        SELECT COUNT(*) FROM appointments a
+        WHERE {$worksOn} AND a.status IN {$finished}
+        AND MONTH(a.appointment_datetime) = MONTH(CURDATE()) AND YEAR(a.appointment_datetime) = YEAR(CURDATE())
     ");
-    $stmt->execute([$employeeId]);
+    $stmt->execute([$employeeId, $employeeId]);
     $completedThisMonth = (int) $stmt->fetchColumn();
 
     $stmt = $pdo->prepare("
         SELECT ROUND(AVG(f.rating), 1) AS avgRating, COUNT(*) AS totalReviews
         FROM feedback f
         JOIN appointments a ON a.id = f.appointment_id
-        WHERE a.employee_id = ?
+        WHERE {$worksOn}
     ");
-    $stmt->execute([$employeeId]);
+    $stmt->execute([$employeeId, $employeeId]);
     $ratingRow = $stmt->fetch();
 
-    // --- Attendance rate (last 30 days), same calc as the admin staff list
-    // (backend/admin/getDashboardData.php) so the number matches everywhere
-    // it's shown. ---
-    $stmt = $pdo->prepare("
-        SELECT COUNT(DISTINCT DATE(clock_in_time)) FROM attendance
-        WHERE employee_id = ? AND clock_in_time >= (NOW() - INTERVAL 30 DAY)
-    ");
+    // --- Attendance rate (last 30 days), same rule as the admin and cashier
+    // staff lists so the number matches everywhere it's shown. ---
+    $stmt = $pdo->prepare('SELECT ' . StaffMetrics::attendedDaysSql('e') . ' AS attendedDays, '
+        . StaffMetrics::branchOpenDaysSql('e') . ' AS branchOpenDays FROM employees e WHERE e.id = ?');
     $stmt->execute([$employeeId]);
-    $attendanceDays = (int) $stmt->fetchColumn();
+    $attendanceRow = $stmt->fetch();
+    $attendanceDays = (int) $attendanceRow['attendedDays'];
+    // Same floor as ranking.php, so the card can never read "2 of 1 days".
+    $branchOpenDays = max($attendanceDays, (int) $attendanceRow['branchOpenDays']);
 
     $performance = [
         'completedCount' => $completedCount,
@@ -217,7 +226,8 @@ try {
         'avgRating' => $ratingRow['avgRating'] !== null ? (float) $ratingRow['avgRating'] : 0,
         'totalReviews' => (int) $ratingRow['totalReviews'],
         'attendanceDays' => $attendanceDays,
-        'attendanceRate' => min(100, (int) round(($attendanceDays / 30) * 100)),
+        'branchOpenDays' => $branchOpenDays,
+        'attendanceRate' => StaffMetrics::attendanceRate($attendanceDays, $branchOpenDays),
     ];
 
     $stmt = $pdo->prepare("
@@ -233,12 +243,12 @@ try {
         JOIN customers c ON c.id = f.customer_id
         LEFT JOIN appointment_services aps ON aps.appointment_id = a.id
         LEFT JOIN services s ON s.id = aps.service_id
-        WHERE a.employee_id = ?
+        WHERE {$worksOn}
         GROUP BY f.id
         ORDER BY f.created_at DESC
         LIMIT 5
     ");
-    $stmt->execute([$employeeId]);
+    $stmt->execute([$employeeId, $employeeId]);
     $recentFeedback = array_map(function ($row) {
         $row['id'] = (string) $row['id'];
         $row['rating'] = (int) $row['rating'];
@@ -305,10 +315,21 @@ try {
         }, $stmt->fetchAll());
     }
 
+    // Live availability, from the same busy windows that block new bookings.
+    $busyUntil = Scheduling::staffBusyUntilNow($pdo, $employeeId);
+    $availability = [
+        'busyUntil' => $busyUntil ? $busyUntil->format('g:i A') : null,
+        'busyMinutesLeft' => $busyUntil
+            ? (int) ceil(($busyUntil->getTimestamp() - (new DateTime($pdo->query('SELECT NOW()')->fetchColumn()))->getTimestamp()) / 60)
+            : 0,
+    ];
+
     echo json_encode([
         'success' => true,
         'profile' => $profile,
+        'availability' => $availability,
         'notificationPrefs' => $notificationPrefs,
+        'lateGraceMinutes' => Scheduling::arrivalGraceMinutes(),
         'appointments' => $appointments,
         'attendance' => $attendance,
         'performance' => $performance,

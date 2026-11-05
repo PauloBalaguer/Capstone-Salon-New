@@ -137,6 +137,15 @@ const CashierApp = {
      data fetch resolves -- there's no selector to change it from anymore. */
   applyBranchChrome(branchKey) {
     const info = CASHIER_BRANCH_LABELS[branchKey] || CASHIER_BRANCH_LABELS.daraga;
+    const logoEl = document.getElementById('sidebarLogo');
+    const branchLogos = {
+      yashano: { src: '../shared/icon/skin-brows-logo.png', alt: 'Skin Brows by Leo Mejillano logo' },
+      cabangan: { src: '../shared/icon/lash-brows-logo.png', alt: 'Lash and Brows by Leo Mejillano Salon logo' },
+    };
+    if (logoEl && branchLogos[branchKey]) {
+      logoEl.src = branchLogos[branchKey].src;
+      logoEl.alt = branchLogos[branchKey].alt;
+    }
     const titleEl = document.getElementById('sidebarBranchTitle');
     const branchSubtitle = document.getElementById('cashierBranchSubtitle');
     if (branchSubtitle) {

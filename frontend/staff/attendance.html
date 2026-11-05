@@ -34,10 +34,11 @@
     @keyframes clockRing { 0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4);} 50% { box-shadow: 0 0 0 14px rgba(16,185,129,0);} }
     .clock-ring { animation: clockRing 2.6s ease-in-out infinite; }
   </style>
-  <link rel="stylesheet" href="../../frontend/staff/staff-theme.css?v=20261103">
+  <link rel="stylesheet" href="../../frontend/staff/staff-theme.css?v=20261104-modal-backdrop">
   <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=20261103b" />
   <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=20261103-signout-cream" />
   <script src="../../function/shared/toast.js"></script>
+  <script src="../../function/shared/confirm-dialog.js"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
@@ -52,11 +53,11 @@
 
     <aside class="hidden md:flex md:w-64 bg-slate-900 border-r border-emerald-900/40 flex-col justify-between shrink-0 h-full z-20">
       <div class="p-5">
-        <div class="flex items-center space-x-3 mb-8">
-          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center font-serif text-white font-bold text-lg shadow-lg shadow-emerald-500/20">LM</div>
-          <div>
-            <h1 class="text-base font-bold tracking-wider uppercase text-emerald-400 font-serif">Leo Mejillano</h1>
-            <p class="text-xs text-slate-400 uppercase tracking-widest font-sans" x-text="$store.staff.profile.role || 'Staff'"></p>
+        <div class="staff-profile-card flex items-center space-x-3 mb-8">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center font-serif text-white font-bold text-lg shadow-lg shadow-emerald-500/20 overflow-hidden shrink-0"><img x-show="$store.staff.profile.profilePicture" :src="$store.staff.profile.profilePicture" class="w-full h-full object-cover" alt=""><span x-show="!$store.staff.profile.profilePicture" x-text="$store.staff.initials()"></span></div>
+          <div class="min-w-0">
+            <h1 class="text-base font-bold text-emerald-400 font-serif break-words" x-text="$store.staff.profile.name || 'Staff'"></h1>
+            <p class="text-xs text-slate-400 uppercase tracking-widest font-sans" >Staff Portal</p>
           </div>
         </div>
 
@@ -86,7 +87,7 @@
 
       <div>
         <div class="p-4 border-t border-slate-800">
-          <a href="../../backend/auth/logout.php?portal=staff" onclick="handleLogoutConfirmation(event)" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H5v14h4M13 8l4 4-4 4M9 12h12"/></svg><span>Sign Out</span></a>
+          <a href="../../backend/auth/logout.php?portal=staff" class="w-full text-left flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs transition duration-150 text-rose-400 hover:bg-rose-900/50 hover:text-rose-300"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H5v14h4M13 8l4 4-4 4M9 12h12"/></svg><span>Sign Out</span></a>
         </div>
       </div>
     </aside>
@@ -142,25 +143,26 @@
 
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full" :class="$store.staff.isClockedIn() ? 'bg-emerald-400 pulse-dot' : 'bg-slate-600'"></span>
-            <span class="text-xs font-semibold" :class="$store.staff.isClockedIn() ? 'text-emerald-400' : 'text-slate-500'" x-text="$store.staff.isClockedIn() ? 'On Shift • ' + $store.staff.getShiftDurationLabel() : 'Off Shift'"></span>
+            <span class="text-xs font-semibold" :class="$store.staff.isClockedIn() ? 'text-emerald-400' : 'text-slate-500'" x-text="$store.staff.isClockedIn() ? 'Current session: ' + $store.staff.getShiftDurationLabel() : 'Off Shift'"></span>
           </div>
-          <p class="prose-justify text-xs text-slate-500 max-w-xs">Attendance is recorded automatically when you sign in and out -- no manual clock buttons needed. <strong class="text-amber-400">Always tap Sign Out when you leave</strong>; otherwise you are clocked out at closing time (or by the cashier) and your hours are flagged for review.</p>
+          <a x-show="$store.staff.getNextAppointment()" href="assignedAppointments.html" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300" x-text="$store.staff.getNextAppointment() ? 'Next client: ' + $store.staff.getNextAppointment().time + ', ' + $store.staff.getNextAppointment().clientName : ''"></a>
+          <p class="text-xs text-slate-500 max-w-md">Attendance starts when you sign in and ends when you sign out. If you forget, you're clocked out at closing and your hours are flagged for review.</p>
         </div>
 
         <div class="space-y-3">
           <h3 class="font-serif text-base font-bold text-white">Today</h3>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div class="stagger-item bg-slate-900 border border-slate-800 rounded-2xl p-5">
-              <p class="text-xs text-slate-400 uppercase tracking-wide">Current Status</p>
-              <p class="text-lg font-bold mt-1" :class="$store.staff.isClockedIn() ? 'text-emerald-400' : 'text-slate-500'" x-text="$store.staff.isClockedIn() ? 'On Shift' : 'Off Shift'"></p>
+              <p class="text-xs text-slate-400 uppercase tracking-wide">Availability</p>
+              <p class="text-lg font-bold mt-1" :class="$store.staff.availabilityLabel() === 'Available' ? 'text-emerald-400' : ($store.staff.isClockedIn() ? 'text-amber-400' : 'text-slate-500')" x-text="$store.staff.availabilityLabel()"></p>
             </div>
             <div class="stagger-item bg-slate-900 border border-slate-800 rounded-2xl p-5" style="animation-delay: 40ms">
               <p class="text-xs text-slate-400 uppercase tracking-wide">Time In</p>
-              <p class="text-lg font-bold text-white mt-1" x-text="todayAttendance() ? todayAttendance().clockIn : ''"></p>
+              <p class="text-lg font-bold text-white mt-1" x-text="today() ? today().firstIn : ''"></p>
             </div>
             <div class="stagger-item bg-slate-900 border border-slate-800 rounded-2xl p-5" style="animation-delay: 80ms">
               <p class="text-xs text-slate-400 uppercase tracking-wide">Time Out</p>
-              <p class="text-lg font-bold text-white mt-1" x-text="todayAttendance() && todayAttendance().clockOut ? todayAttendance().clockOut : ''"></p>
+              <p class="text-lg font-bold text-white mt-1" x-text="today() ? (today().isOpen ? 'Still on shift' : today().lastOut) : ''"></p>
             </div>
             <div class="stagger-item bg-slate-900 border border-slate-800 rounded-2xl p-5" style="animation-delay: 120ms">
               <p class="text-xs text-slate-400 uppercase tracking-wide">Hours Worked Today</p>
@@ -184,40 +186,70 @@
         </div>
 
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-          <h3 class="font-serif text-base font-bold text-white mb-4">History</h3>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs text-slate-300">
-              <thead class="bg-slate-950 text-slate-400 uppercase text-xs">
-                <tr>
-                  <th class="p-3">Date</th>
-                  <th class="p-3">Time In</th>
-                  <th class="p-3">Time Out</th>
-                  <th class="p-3">Hours</th>
-                  <th class="p-3">Status</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-800/85">
-                <template x-if="$store.staff.loading">
-                  <tr><td colspan="5" class="p-6 text-center text-slate-500 italic">Loading attendance...</td></tr>
-                </template>
-                <template x-if="!$store.staff.loading && $store.staff.attendance.length === 0">
-                  <tr><td colspan="5" class="p-6 text-center text-slate-500 italic">No attendance recorded yet.</td></tr>
-                </template>
-                <template x-for="row in $store.staff.attendance" :key="row.id">
-                  <tr class="hover:bg-slate-800/30 transition">
-                    <td class="p-3 font-medium text-white" x-text="row.date"></td>
-                    <td class="p-3" x-text="row.clockIn"></td>
-                    <td class="p-3" x-text="row.clockOut || ''"></td>
-                    <td class="p-3" x-text="row.isOpen ? '' : hoursBetween(row.date, row.clockIn, row.clockOut) + ' hrs'"></td>
-                    <td class="p-3">
-                      <span class="px-2 py-0.5 rounded text-xs font-bold" :class="row.isOpen ? 'bg-emerald-950 text-emerald-300 border border-emerald-900/50' : (row.notes ? 'bg-amber-950 text-amber-300 border border-amber-800' : 'bg-slate-800 text-slate-300 border border-slate-700')" x-text="row.isOpen ? 'Open' : (row.notes ? 'Auto / cashier clock-out' : 'Closed')"></span>
-                      <span x-show="row.notes" class="block mt-1 text-xs text-slate-500" x-text="row.notes + '. Tell your admin if these hours are wrong.'"></span>
-                    </td>
-                  </tr>
-                </template>
-              </tbody>
-            </table>
+          <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+            <h3 class="font-serif text-base font-bold text-white">History</h3>
+            <div class="flex items-center gap-1 flex-wrap bg-slate-950 border border-slate-800 rounded-xl p-1">
+              <template x-for="tab in [['all','All'],['week','This Week'],['month','This Month']]" :key="tab[0]">
+                <button type="button" @click="historyRange = tab[0]" class="min-h-10 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap" :class="historyRange === tab[0] ? 'bg-emerald-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'" x-text="tab[1]"></button>
+              </template>
+            </div>
           </div>
+          <p x-show="$store.staff.loading" class="p-6 text-center text-xs text-slate-500">Loading attendance...</p>
+          <p x-show="!$store.staff.loading && filteredDays().length === 0" class="p-6 text-center text-xs text-slate-500" x-text="$store.staff.attendance.length ? 'No attendance for these dates. Try another filter.' : 'No attendance recorded yet.'"></p>
+
+          <ul class="space-y-2.5">
+            <template x-for="day in pagedDays()" :key="day.date">
+              <li class="rounded-xl border border-slate-800 overflow-hidden">
+                <div class="flex items-center gap-4 flex-wrap p-3.5">
+                  <div class="shrink-0 w-14 h-14 rounded-xl flex flex-col items-center justify-center" style="background:#E5F2F0;color:#06464A">
+                    <span class="text-xs font-bold uppercase leading-none" x-text="dayMonth(day.date)"></span>
+                    <span class="text-xl font-bold leading-tight" x-text="dayNumber(day.date)"></span>
+                  </div>
+
+                  <div class="flex-1 min-w-[11rem]">
+                    <p class="text-sm font-bold text-white" x-text="day.firstIn + ' – ' + (day.isOpen ? 'Now' : day.lastOut)"></p>
+                    <p class="text-xs text-slate-500 mt-0.5" x-text="dayWeekday(day.date) + (day.sessions.length > 1 ? ' • ' + day.sessions.length + ' sign-ins' : '')"></p>
+                  </div>
+
+                  <div class="text-left sm:text-right shrink-0">
+                    <p class="text-sm font-bold text-white" x-text="durationLabel(day.minutes)"></p>
+                    <p class="text-xs text-slate-500 mt-0.5">Total worked</p>
+                  </div>
+
+                  <div class="shrink-0 sm:w-36 sm:text-right">
+                    <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold whitespace-nowrap" :class="dayStatusClass(day)" x-text="day.isOpen ? 'On Shift' : (day.isFlagged ? 'Needs review' : 'Signed Out')"></span>
+                  </div>
+
+                  <div class="shrink-0 w-8 flex justify-end">
+                    <button type="button" x-show="day.sessions.length > 1" @click="toggleDay(day.date)" :aria-expanded="(expandedDate === day.date).toString()" :aria-label="(expandedDate === day.date ? 'Hide' : 'Show') + ' sign-ins for ' + $store.staff.formatDate(day.date)" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-white">
+                      <svg class="w-4 h-4 transition-transform duration-200" :class="expandedDate === day.date ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                  </div>
+                </div>
+
+                <p x-show="!day.isOpen && day.isFlagged && expandedDate !== day.date" class="px-3.5 pb-3 text-xs" style="color:#92400E" x-text="reviewReason(day)"></p>
+
+                <ul x-show="expandedDate === day.date" class="px-3.5 py-2 divide-y divide-slate-800" style="background:#F7F0E4">
+                  <template x-for="row in day.sessions" :key="row.id">
+                    <li class="flex items-center justify-between gap-3 flex-wrap py-2 text-xs">
+                      <span class="font-semibold text-slate-300" x-text="row.clockIn + ' – ' + (row.isOpen ? 'Now' : row.clockOut)"></span>
+                      <span :class="row.notes ? 'font-semibold' : 'text-slate-500'" :style="row.notes ? 'color:#92400E' : ''" x-text="sessionNote(row)"></span>
+                      <span class="font-semibold text-slate-300 sm:ml-auto" x-text="durationLabel(sessionMinutes(row))"></span>
+                    </li>
+                  </template>
+                </ul>
+              </li>
+            </template>
+          </ul>
+          <p class="mt-3 text-xs text-slate-500">Needs review means you didn't sign out. Tell your admin if the time is wrong.</p>
+          <nav x-show="!$store.staff.loading && totalPages() > 1" aria-label="Attendance pages" class="flex items-center justify-between flex-wrap gap-3 mt-4">
+            <p class="text-xs text-slate-400" x-text="pageLabel()"></p>
+            <div class="flex items-center gap-2">
+              <button type="button" @click="page = currentPage() - 1" :disabled="currentPage() <= 1" class="min-h-10 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed">Previous</button>
+              <span class="text-xs text-slate-400" x-text="'Page ' + currentPage() + ' of ' + totalPages()"></span>
+              <button type="button" @click="page = currentPage() + 1" :disabled="currentPage() >= totalPages()" class="min-h-10 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed">Next</button>
+            </div>
+          </nav>
         </div>
 
       </div>
@@ -245,14 +277,6 @@
     </div>
   </nav>
 
-  <script>
-    function handleLogoutConfirmation(event) {
-      event.preventDefault();
-      if (window.confirm('Are you sure you want to log out?')) {
-        window.location.href = event.target.closest('a').href;
-      }
-    }
-  </script>
   <script src="../../function/staff/shared-data.js"></script>
   <script src="../../function/staff/attendance.js"></script>
 </body>

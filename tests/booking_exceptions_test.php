@@ -97,8 +97,12 @@ $r = run_endpoint(['script' => 'backend/cashier/updateStatus.php', 'session' => 
     'post' => ['id' => $ref, 'status' => 'Confirmed', 'depositAmount' => (string) $paid['deposit_amount'], 'depositMethod' => 'PayMongo-GCash']]);
 check('cashier verifies the deposit and confirms', ($r['success'] ?? false) === true && row($pdo, 'appointments', $id)['payment_status'] === 'Down Payment Verified');
 $balance = round((float) $paid['total_price'] - (float) $paid['deposit_amount'], 2);
-$r = run_endpoint(['script' => 'backend/cashier/payment.php', 'session' => $p['cashier'],
+$checkout = fn() => run_endpoint(['script' => 'backend/cashier/payment.php', 'session' => $p['cashier'],
     'post' => ['reference' => $ref, 'paymentMethod' => 'Cash', 'cashReceived' => (string) $balance, 'tip' => '0', 'products' => '[]']]);
+$r = $checkout();
+check('checkout refused until the service has started', ($r['success'] ?? true) === false && row($pdo, 'appointments', $id)['status'] === 'Confirmed');
+$pdo->exec("UPDATE appointments SET status = 'In Progress' WHERE id = {$id}");
+$r = $checkout();
 $done = row($pdo, 'appointments', $id);
 check('cashier collects the balance -> Completed, Fully Paid', ($r['success'] ?? false) === true && $done['status'] === 'Completed' && $done['payment_status'] === 'Fully Paid');
 

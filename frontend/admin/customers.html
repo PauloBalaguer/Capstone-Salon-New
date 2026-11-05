@@ -123,7 +123,7 @@
           <div class="bg-slate-900 border border-luxury-900 rounded-2xl p-5 shadow-xl">
             <span class="text-xs text-slate-400 uppercase">Total Customers</span>
             <h4 class="text-2xl font-serif font-bold text-white mt-1" x-text="$store.admin.customerDirectory.length"></h4>
-            <p class="text-xs text-purple-400 italic">Unique clients across Albay branches</p>
+            <p class="text-xs text-purple-400 ">Unique clients across Albay branches</p>
           </div>
           <div class="bg-slate-900 border border-luxury-900 rounded-2xl p-5 shadow-xl">
             <span class="text-xs text-slate-400 uppercase">Registered</span>
@@ -211,7 +211,7 @@
                   </tr>
                 </template>
                 <template x-if="getFilteredCustomers().length === 0">
-                  <tr><td colspan="9" class="p-6 text-center text-slate-500 italic">No customers match your search.</td></tr>
+                  <tr><td colspan="9" class="p-6 text-center text-slate-500 ">No customers match your search.</td></tr>
                 </template>
               </tbody>
             </table>
@@ -246,7 +246,7 @@
           </div>
         </template>
         <template x-if="getCustomerBookings().length === 0">
-          <p class="text-slate-500 text-xs italic text-center py-4">No booking history found.</p>
+          <p class="text-slate-500 text-xs  text-center py-4">No booking history found.</p>
         </template>
       </div>
     </div>

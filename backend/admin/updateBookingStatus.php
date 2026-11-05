@@ -233,6 +233,7 @@ try {
             CustomerNotifier::notify($pdo, $appointmentCustomerId, 'PAYMENT_VERIFIED', "Your payment for {$referenceCode} has been verified. Status: {$paymentVerifiedLabel}.");
         }
         CustomerNotifier::notify($pdo, $appointmentCustomerId, 'CONFIRMED', "Your appointment {$referenceCode} is now Confirmed.");
+        if ($appointment['status'] !== 'Confirmed') Scheduling::notifyStaffOfConfirmation($pdo, $appointment);
     } elseif ($staffPaymentStatus !== '') {
         $pdo->prepare('UPDATE appointments SET status = ?, payment_status = ? WHERE id = ?')
             ->execute([$status, $staffPaymentStatus, $appointment['id']]);
@@ -270,7 +271,7 @@ try {
                 CancellationPolicy::apply($pdo, $appointment, CancellationPolicy::NO_SHOW);
             }
         } elseif ($status === 'Completed') {
-            CustomerNotifier::notify($pdo, $appointmentCustomerId, 'COMPLETED', "Your appointment {$referenceCode} is now Completed. Thank you for choosing us!");
+            CustomerNotifier::notify($pdo, $appointmentCustomerId, 'SERVICE_FINISHED', "Your service for {$referenceCode} is finished. Please proceed to the cashier to complete your visit.");
         } elseif (in_array($status, ['Reschedule Requested', 'Reschedule Required'], true)) {
             CustomerNotifier::notify($pdo, $appointmentCustomerId, 'RESCHEDULE', "Your appointment {$referenceCode} needs a schedule change. Please check the details.");
             if ($appointment['employee_id'] !== null) {

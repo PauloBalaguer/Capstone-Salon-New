@@ -56,9 +56,10 @@ if ($newPassword !== $confirmPassword) {
     exit();
 }
 
-if (strlen($newPassword) < 8) {
+require_once '../../backend/shared/config/security/PasswordPolicy.php';
+if (!PasswordPolicy::isValid($newPassword)) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'New password must be at least 8 characters long.']);
+    echo json_encode(['success' => false, 'message' => PasswordPolicy::MESSAGE]);
     exit();
 }
 
@@ -78,6 +79,12 @@ try {
     }
 
     $limiter->clear();
+
+    if (password_verify($newPassword, $user['password'])) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'New password must be different from your current one.']);
+        exit();
+    }
 
     $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     $expires_at = (new DateTime('now + 10 minutes'))->format('Y-m-d H:i:s');

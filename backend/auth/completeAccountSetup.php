@@ -45,9 +45,10 @@ if ($token === '' || $password === '' || $confirmPassword === '') {
     exit();
 }
 
-if (strlen($password) < 8) {
+require_once __DIR__ . '/../shared/config/security/PasswordPolicy.php';
+if (!PasswordPolicy::isValid($password)) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Password must be at least 8 characters long.']);
+    echo json_encode(['success' => false, 'message' => PasswordPolicy::MESSAGE]);
     exit();
 }
 

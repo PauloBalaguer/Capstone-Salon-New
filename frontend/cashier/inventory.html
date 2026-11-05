@@ -47,14 +47,18 @@
   <script src="../../function/shared/mobile-nav.js?v=20261103" defer></script>
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
+  <style>
+    #inventoryAdjustmentForm label:has(input[name="adjType"]:checked) { background:#E5F2F0; border-color:#006D6F; }
+    #inventoryAdjustmentForm label:has(input[name="adjType"]:checked) span { color:#06464A; }
+  </style>
 </head>
 <body class="salon-portal bg-gray-100 font-sans antialiased flex h-screen overflow-hidden">
 
 
     <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between shadow-xl shrink-0">
         <div>
-            <div class="p-4 bg-slate-950 flex items-center space-x-3 border-b border-slate-800">
-                <div class="bg-amber-500 text-slate-950 font-bold rounded-full w-10 h-10 flex items-center justify-center">LM</div>
+            <div class="p-4 bg-slate-950 flex flex-col items-center text-center gap-3 border-b border-slate-800">
+                <img id="sidebarLogo" src="../shared/icon/salon-logo.png" alt="Leo Mejillano Salon &amp; Make Up Studio logo" class="rounded-full w-32 h-32 object-cover shrink-0">
                 <div>
                     <h1 class="font-bold text-base tracking-wide uppercase text-amber-400">Leo Mejillano</h1>
                     <p id="cashierBranchSubtitle" class="text-xs text-slate-400">Loading branch...</p>
@@ -90,6 +94,10 @@
                     <i class="fa-solid fa-users-gear w-5 text-center text-slate-400"></i>
                     <span class="text-base">Staff Assignments</span>
                 </a>
+                <a href="profile.html" data-nav-page="profile.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
+                    <i class="fa-solid fa-user-shield w-5 text-center text-slate-400"></i>
+                    <span class="text-base">Profile &amp; Security</span>
+                </a>
             </nav>
         </div>
 
@@ -115,39 +123,41 @@
         <section class="flex-1 p-6 overflow-y-auto bg-gray-50 space-y-6">
             <div class="stagger-item bg-white p-4 rounded-xl shadow-sm border border-gray-200">
                 <div class="flex justify-between items-center mb-3">
-                    <h3 class="font-bold text-gray-800 text-base"><i class="fa-solid fa-boxes-stacked text-amber-500 mr-2"></i>Product Stock Analytics</h3>
+                    <h3 class="font-bold text-gray-800 text-base"><i class="fa-solid fa-boxes-stacked text-amber-500 mr-2"></i>Stock Summary</h3>
                     <div class="flex items-center space-x-2">
                         <button id="btnViewAdjLog" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs px-4 py-2 rounded-lg flex items-center space-x-2">
                             <i class="fa-solid fa-clipboard-list text-xs"></i>
-                            <span>View Adjustment Log</span>
+                            <span>View Stock History</span>
                         </button>
                     </div>
                 </div>
                 <div data-stat-grid class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="card-lift p-4 bg-slate-50 border border-gray-100 rounded-xl">
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wide">Total Catalog SKUs</p>
-                        <h4 class="font-black text-xl text-slate-800 mt-1" id="invTotalSkus">0 SKUs</h4>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wide">Total Products</p>
+                        <h4 class="font-black text-xl text-slate-800 mt-1" id="invTotalSkus">0</h4>
                     </div>
                     <div class="card-lift p-4 bg-emerald-50 border border-emerald-100 rounded-xl">
-                        <p class="text-xs font-bold text-emerald-800 uppercase tracking-wide">Optimal Stock Level</p>
-                        <h4 class="font-black text-xl text-emerald-900 mt-1" id="invOptimalSkus">0 Safe</h4>
+                        <p class="text-xs font-bold text-emerald-800 uppercase tracking-wide">In Stock</p>
+                        <h4 class="font-black text-xl text-emerald-900 mt-1" id="invOptimalSkus">0</h4>
                     </div>
-                    <div class="card-lift p-4 bg-amber-50 border border-amber-100 rounded-xl">
-                        <p class="text-xs font-bold text-amber-800 uppercase tracking-wide">Critical Alerts Flagged</p>
-                        <h4 class="font-black text-xl text-amber-900 mt-1" id="invCriticalSkus">0 Warnings</h4>
-                    </div>
+                    <button type="button" id="btnCardLowStock" class="card-lift w-full text-left p-4 bg-amber-50 border border-amber-100 rounded-xl">
+                        <p class="text-xs font-bold text-amber-800 uppercase tracking-wide">Needs Restock</p>
+                        <h4 class="font-black text-xl text-amber-900 mt-1" id="invCriticalSkus">0</h4>
+                    </button>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 text-xs">
-                <div class="stagger-item bg-white p-5 rounded-xl shadow-sm border border-gray-200 h-fit space-y-4 order-2 lg:order-none">
+                <div class="stagger-item bg-white p-5 rounded-xl shadow-sm border border-gray-200 h-fit space-y-4 order-2 lg:order-none lg:sticky lg:top-0">
                     <div class="border-b border-gray-100 pb-2">
                         <h3 class="font-bold text-gray-800 text-base flex items-center"><i class="fa-solid fa-circle-plus text-amber-500 mr-2"></i>Stock Adjustment</h3>
                     </div>
                     <form id="inventoryAdjustmentForm" class="space-y-3">
                         <div>
-                            <label class="block text-xs font-bold uppercase text-gray-500 tracking-wider mb-1">Select Catalog Product</label>
-                            <select id="invFormProductSelect" class="w-full bg-gray-50 border border-gray-300 rounded-xl p-2.5 focus:outline-none text-xs"></select>
+                            <label for="invProductSearch" class="block text-xs font-bold uppercase text-gray-500 tracking-wider mb-1">Product</label>
+                            <input type="search" id="invProductSearch" autocomplete="off" placeholder="Search product" class="w-full bg-gray-50 border border-gray-300 rounded-xl p-2.5 text-xs">
+                            <p id="invProductSelected" class="hidden mt-1 text-xs font-semibold" style="color:#06464A"></p>
+                            <div id="invProductList" class="hidden mt-1 overflow-y-auto border border-gray-200 rounded-xl bg-white" style="max-height:13rem"></div>
                         </div>
                         <div>
                             <label class="block text-xs font-bold uppercase text-gray-500 tracking-wider mb-1">Adjustment Type</label>
@@ -167,16 +177,20 @@
                             <input type="number" id="invFormQty" required min="1" placeholder="e.g. 10" class="w-full bg-gray-50 border border-gray-300 rounded-xl p-2.5 text-xs">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold uppercase text-gray-500 tracking-wider mb-1">Reason for Adjustment</label>
-                            <input type="text" id="invFormReason" list="adjustment-reasons" required placeholder="e.g. Monthly stock count" class="w-full bg-gray-50 border border-gray-300 rounded-xl p-2.5 text-xs">
-                            <datalist id="adjustment-reasons">
-                                <option value="Stock Count Correction"></option>
-                                <option value="Damaged Goods"></option>
-                                <option value="Product Return"></option>
-                                <option value="Expired Product"></option>
-                            </datalist>
+                            <label for="invFormReasonType" class="block text-xs font-bold uppercase text-gray-500 tracking-wider mb-1">Reason</label>
+                            <select id="invFormReasonType" required class="w-full bg-gray-50 border border-gray-300 rounded-xl p-2.5 text-xs">
+                                <option value="">Select a reason...</option>
+                                <option>Restock Delivery</option>
+                                <option>Damaged Goods</option>
+                                <option>Expired Product</option>
+                                <option>Stock Count Correction</option>
+                                <option>Product Return</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <input type="text" id="invFormReason" aria-label="Other reason" placeholder="Type the reason" class="hidden mt-2 w-full bg-gray-50 border border-gray-300 rounded-xl p-2.5 text-xs">
                         </div>
-                        <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl shadow-md">Apply Stock Modification</button>
+                        <p id="invPreview" role="status" class="hidden rounded-xl p-3 text-xs font-bold" style="background:#F7F0E4;color:#06464A"></p>
+                        <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl shadow-md">Save Adjustment</button>
                     </form>
                 </div>
 
@@ -201,17 +215,26 @@
                                     <th class="p-3">Product Name</th>
                                     <th class="p-3">Category</th>
                                     <th class="p-3 text-center">In Stock</th>
-                                <th class="p-3 text-center">Metric Bar</th>
-                                <th class="p-3 text-center">Status Block</th>
+                                <th class="p-3 text-center">Stock Level</th>
+                                <th class="p-3 text-center">Status</th>
+                                <th class="p-3 text-right">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="inventoryTableBody" class="divide-y divide-gray-100">
-                                <tr><td class="p-3" colspan="5"><div class="skeleton skeleton-line w-full"></div></td></tr>
-                                <tr><td class="p-3" colspan="5"><div class="skeleton skeleton-line w-full"></div></td></tr>
-                                <tr><td class="p-3" colspan="5"><div class="skeleton skeleton-line w-full"></div></td></tr>
+                                <tr><td class="p-3" colspan="6"><div class="skeleton skeleton-line w-full"></div></td></tr>
+                                <tr><td class="p-3" colspan="6"><div class="skeleton skeleton-line w-full"></div></td></tr>
+                                <tr><td class="p-3" colspan="6"><div class="skeleton skeleton-line w-full"></div></td></tr>
                             </tbody>
                         </table>
                     </div>
+                    <nav id="inventoryPager" aria-label="Inventory pages" class="hidden flex items-center justify-between flex-wrap gap-3 mt-4">
+                        <p id="inventoryPageLabel" class="text-xs text-gray-500"></p>
+                        <div class="flex items-center gap-2">
+                            <button type="button" id="btnInvPrev" class="px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed">Previous</button>
+                            <span id="inventoryPageNumber" class="text-xs text-gray-500"></span>
+                            <button type="button" id="btnInvNext" class="px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed">Next</button>
+                        </div>
+                    </nav>
                 </div>
             </div>
 
@@ -238,7 +261,7 @@
                     </div>
                     <div id="eodStockStatusCard" class="card-lift p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-800">
                         <span class="block font-bold">Branch Inventory Status</span>
-                        <span id="eodStockSummaryText" class="text-base font-semibold block mt-1">All item nodes verified clean.</span>
+                        <span id="eodStockSummaryText" class="text-base font-semibold block mt-1">All products are in stock.</span>
                     </div>
                 </div>
             </div>
@@ -272,31 +295,54 @@
     </div>
 
     <div id="inventoryLogModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-center justify-center hidden opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl border border-gray-100 transform scale-95 transition-transform duration-300">
+        <div class="bg-white rounded-2xl w-full max-w-5xl overflow-hidden shadow-2xl border border-gray-100 transform scale-95 transition-transform duration-300">
             <div class="bg-slate-950 p-4 text-white flex justify-between items-center">
-                <h4 class="font-bold text-base tracking-wide"><i class="fa-solid fa-clipboard-list text-amber-400 mr-2"></i>Inventory Adjustment Log (<span id="logBranchName"></span>)</h4>
+                <h4 class="font-bold text-base tracking-wide"><i class="fa-solid fa-clipboard-list text-amber-400 mr-2"></i>Stock History (<span id="logBranchName"></span>)</h4>
                 <button id="btnCloseInventoryLogModal" class="text-gray-400 hover:text-white transition-all text-lg">&times;</button>
             </div>
-            <div class="p-5 text-xs max-h-[70vh] overflow-y-auto">
-                <div class="border border-gray-200 rounded-xl overflow-hidden">
-                    <table class="w-full text-left">
-                        <thead class="bg-slate-50 text-slate-700 uppercase font-bold border-b border-gray-200">
+            <div class="p-5 text-xs max-h-[75vh] overflow-y-auto space-y-3">
+                <p class="text-xs text-gray-500">Every stock change at this branch, newest first.</p>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <input id="logSearch" type="search" placeholder="Search product" aria-label="Search product" class="flex-1 min-w-[10rem] bg-gray-50 border border-gray-300 rounded-xl p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <select id="logTypeFilter" aria-label="Filter by type" class="bg-gray-50 border border-gray-300 rounded-xl p-2.5 text-xs">
+                        <option value="">All types</option>
+                        <option value="add">Restock</option>
+                        <option value="sub">Deduct</option>
+                        <option value="create">Opening Stock</option>
+                        <option value="edit">Edited</option>
+                        <option value="deactivate">Archived</option>
+                        <option value="reactivate">Restored</option>
+                    </select>
+                </div>
+                <div class="border border-gray-200 rounded-xl overflow-x-auto">
+                    <table class="w-full text-left" style="min-width:720px">
+                        <thead class="bg-slate-50 text-slate-700 font-bold border-b border-gray-200">
                             <tr>
-                                <th class="p-2.5">Timestamp</th>
-                                <th class="p-2.5">Product</th>
-                                <th class="p-2.5">Action</th>
-                                <th class="p-2.5 text-center">Qty</th>
-                                <th class="p-2.5">Reason</th>
-                                <th class="p-2.5 text-center">Stock Change</th>
+                                <th scope="col" class="p-2.5">Date</th>
+                                <th scope="col" class="p-2.5">Product</th>
+                                <th scope="col" class="p-2.5">Type</th>
+                                <th scope="col" class="p-2.5 text-center">Change</th>
+                                <th scope="col" class="p-2.5 text-center">Stock</th>
+                                <th scope="col" class="p-2.5">Reason</th>
+                                <th scope="col" class="p-2.5">By</th>
                             </tr>
                         </thead>
                         <tbody id="inventoryLogTableBody" class="divide-y divide-gray-100"></tbody>
                     </table>
                 </div>
+                <nav id="logPager" aria-label="Log pages" class="hidden flex items-center justify-between flex-wrap gap-3">
+                    <p id="logPageLabel" class="text-xs text-gray-500"></p>
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="btnLogPrev" class="px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed">Previous</button>
+                        <span id="logPageNumber" class="text-xs text-gray-500"></span>
+                        <button type="button" id="btnLogNext" class="px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed">Next</button>
+                    </div>
+                </nav>
             </div>
         </div>
     </div>
 
+    <script src="../../function/shared/confirm-dialog.js"></script>
     <script src="../../function/cashier/cashier-common.js"></script>
     <script src="../../function/cashier/inventory.js"></script>
 </body>

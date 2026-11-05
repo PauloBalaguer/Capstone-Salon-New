@@ -23,6 +23,9 @@ document.addEventListener('alpine:init', () => {
     notifications: [],
     isNotificationPanelOpen: false,
     now: new Date(),
+    loadedAt: new Date(),
+    lateGraceMinutes: null,
+    availability: { busyUntil: null, busyMinutesLeft: 0 },
     busy: false,
 
     toast(message, type = 'success') {
@@ -43,6 +46,9 @@ document.addEventListener('alpine:init', () => {
         }
         this.profile = data.profile;
         this.notificationPrefs = data.notificationPrefs;
+        this.lateGraceMinutes = data.lateGraceMinutes;
+        this.availability = data.availability;
+        this.loadedAt = new Date();
         this.appointments = data.appointments;
         this.attendance = data.attendance;
         this.performance = data.performance;
@@ -89,6 +95,8 @@ document.addEventListener('alpine:init', () => {
     },
 
     async completeService(referenceCode) {
+      const finished = await LMConfirm({ title: 'Mark service as finished?', message: 'This cannot be undone. Log any supplies you used first.', confirmLabel: 'Mark as Finished' });
+      if (!finished) return { success: false };
       this.busy = true;
       try {
         const res = await this.post('backend/staff/updateAppointment.php', { id: referenceCode, status: 'Completed' });
@@ -98,6 +106,65 @@ document.addEventListener('alpine:init', () => {
       } finally {
         this.busy = false;
       }
+    },
+
+    // Asks the front desk to act; the booking and payment stay as they are.
+    async requestArrivalHelp(referenceCode, kind) {
+      const question = kind === 'no_show'
+        ? 'Ask the front desk to mark this customer as No-Show? The cashier or admin makes the final decision.'
+        : 'Ask the front desk to reassign or reschedule this booking?';
+      const send = await LMConfirm({ title: 'Send to the front desk?', message: question, confirmLabel: 'Send Request' });
+      if (!send) return { success: false };
+      this.busy = true;
+      try {
+        const res = await this.post('backend/staff/requestArrivalHelp.php', { id: referenceCode, kind });
+        this.toast(res.message, res.success ? 'success' : 'error');
+        if (res.success) await this.refresh();
+        return res;
+      } catch {
+        this.toast('Could not send the request. Please try again.', 'error');
+        return { success: false };
+      } finally {
+        this.busy = false;
+      }
+    },
+
+    // appt.minutesLate is from the server's clock when the data loaded; this
+    // keeps it counting up while the page stays open.
+    minutesLate(appt) {
+      return appt.minutesLate + Math.floor((this.now - this.loadedAt) / 60000);
+    },
+
+    // Awaiting a customer past their reserved time. A shared booking's other
+    // stylists have a later window of their own, so this is the main stylist's.
+    isLate(appt) {
+      return appt.status === 'Confirmed' && appt.isMainStylist !== false
+        && appt.date <= this.todayISO() && this.minutesLate(appt) > 0;
+    },
+
+    // The reserved day has passed; only the front desk can move or close it now.
+    isMissed(appt) {
+      return this.isLate(appt) && appt.date < this.todayISO();
+    },
+
+    isBeyondGrace(appt) {
+      return this.isLate(appt) && this.minutesLate(appt) > (this.lateGraceMinutes ?? 0);
+    },
+
+    lateLabel(appt) {
+      if (appt.date < this.todayISO()) return 'Missed date';
+      const minutes = this.minutesLate(appt);
+      return minutes < 60 ? `Late, ${minutes} min` : `Late, ${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+    },
+
+    lateBadgeClass(appt) {
+      return this.isBeyondGrace(appt)
+        ? 'bg-[#FFE4E6] text-[#9F1239] border border-[#FDA4AF]'
+        : 'bg-[#FEF3C7] text-[#92400E] border border-[#FCD34D]';
+    },
+
+    hasArrivalRequest(appt, kind) {
+      return (appt.arrivalRequests || []).includes(kind);
     },
 
     async logSupplyUsage(itemId, quantity, referenceCode, note) {
@@ -150,23 +217,80 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
+    // "2026-10-21" -> "Oct 21, 2026"; built locally so the date can't shift by timezone.
+    formatDate(iso) {
+      return new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    },
+
     todayISO() {
       const d = this.now;
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     },
 
+    // "YYYY-MM-DD HH:MM" in 24-hour time: appt.time is "01:00 PM", which
+    // would otherwise sort before "08:30 AM".
+    appointmentSortKey(appt) {
+      const [time, meridiem] = appt.time.split(' ');
+      const [h, m] = time.split(':').map(Number);
+      const hours = (h % 12) + (meridiem === 'PM' ? 12 : 0);
+      return `${appt.date} ${String(hours).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    },
+
+    isInactiveAppointment(appt) {
+      return ['Cancelled', 'No-Show'].includes(appt.status);
+    },
+
+    // Earliest first, with bookings that won't happen moved to the bottom.
     getTodayAppointments() {
       const today = this.todayISO();
       return this.appointments
         .filter(a => a.date === today)
-        .sort((a, b) => a.time.localeCompare(b.time));
+        .sort((a, b) => (this.isInactiveAppointment(a) - this.isInactiveAppointment(b))
+          || this.appointmentSortKey(a).localeCompare(this.appointmentSortKey(b)));
+    },
+
+    // Same rules the server enforces, so staff only see buttons that will work.
+    // A shared booking is started and completed by its main stylist.
+    canStart(appt) {
+      return appt.isMainStylist !== false && appt.status === 'Confirmed' && appt.date === this.todayISO();
+    },
+
+    canComplete(appt) {
+      return appt.isMainStylist !== false && appt.status === 'In Progress';
+    },
+
+    // Steps for the progress tracker; empty for statuses outside this path.
+    progressSteps(appt) {
+      if (this.isMissed(appt)) return [];
+      const current = { Confirmed: 0, 'In Progress': 1, Completed: 2, Reviewed: 2 }[appt.status];
+      if (current === undefined) return [];
+      return ['Confirmed', 'In Progress', 'Finished'].map((label, i) => ({ label, done: i <= current, active: i === current }));
+    },
+
+    // The service under way, otherwise the earliest booking still to do today.
+    getNextAppointment() {
+      const today = this.getTodayAppointments();
+      return today.find(a => a.status === 'In Progress')
+        || today.find(a => ['Confirmed', 'Pending'].includes(a.status))
+        || null;
+    },
+
+    getNextUpcomingLabel() {
+      const next = this.getUpcomingAppointments().find(a => ['Confirmed', 'Pending'].includes(a.status));
+      if (!next) return '';
+      const date = new Date(next.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return `${date} at ${next.time}`;
+    },
+
+    getActiveTodayCount() {
+      return this.getTodayAppointments().filter(a => !this.isInactiveAppointment(a)).length;
     },
 
     getUpcomingAppointments() {
       const today = this.todayISO();
       return this.appointments
         .filter(a => a.date > today && !['Cancelled', 'Completed'].includes(a.status))
-        .sort((a, b) => a.date.localeCompare(b.date));
+        .sort((a, b) => this.appointmentSortKey(a).localeCompare(this.appointmentSortKey(b)));
     },
 
     getTodayAttendance() {
@@ -177,6 +301,13 @@ document.addEventListener('alpine:init', () => {
     isClockedIn() {
       const today = this.getTodayAttendance();
       return !!(today && today.isOpen);
+    },
+
+    // Off Shift, Busy until the current service and buffer end, or Available.
+    availabilityLabel() {
+      if (!this.isClockedIn()) return 'Off Shift';
+      const left = this.availability.busyMinutesLeft - Math.floor((this.now - this.loadedAt) / 60000);
+      return left > 0 && this.availability.busyUntil ? `Busy until ${this.availability.busyUntil}` : 'Available';
     },
 
     getShiftDurationLabel() {

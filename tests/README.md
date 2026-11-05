@@ -33,6 +33,7 @@ C:\xampp\php\php.exe tests\booking_concurrency_test.php
 C:\xampp\php\php.exe tests\event_team_test.php
 C:\xampp\php\php.exe tests\booking_exceptions_test.php
 C:\xampp\php\php.exe tests\guest_otp_test.php
+C:\xampp\php\php.exe tests\arrival_request_test.php
 C:\xampp\php\php.exe tests\paymongo_methods_test.php
 C:\xampp\php\php.exe tests\env_test.php
 ```
@@ -55,6 +56,7 @@ Each test takes about 5–15 seconds, mostly to copy the database. Lines like
 | `booking_exceptions_test.php` | **A failed PayMongo (GCash) payment, then a retry** through the real result-page and "Try again" endpoints. The test then follows the booking through staff verification and cashier checkout, and checks that **the revenue report matches the payment log** and the cashier payment exactly. **No-show**: the deposit is kept (Forfeited), logged once, and nothing happens automatically. **Late arrival within and beyond the grace period** (`SALON_LATE_GRACE_MINUTES`): the arrival review says which, and changes nothing. **Cancellation with a deposit**: the non-refundable policy is applied once, only to money actually held. |
 | `guest_otp_test.php` | Guest booking verification. With no email, the booking needs the code **texted to the mobile number**: refused with no code, with a wrong code or with a reused code, and a clear error when the text can't be sent. With an email, the emailed code is used. |
 | `paymongo_methods_test.php` | The separate GCash / Maya / Card methods in detail, including more failure cases. **GCash (a PayMongo Source)**: charged exactly once when it becomes chargeable, however often the result page and webhook sync; Fail / Expire on the GCash page; a payment declined after authorization; never charged once the booking was released; older GCash bookings with a Payment Intent still sync. **The webhook** through the real endpoint: `source.chargeable` creates the payment once, a bad signature is refused, and a replaced attempt is not charged. Also a Maya payment cancelled and retried, a card declined, an abandoned payment, and a late Maya payment after the hold expired (Refund Due). |
+| `arrival_request_test.php` | **Late or absent customers: the stylist asks, the cashier decides.** A no-show request is only accepted past the grace period and changes nothing by itself, and it reaches only that branch's cashiers. The cashier's No-Show is refused inside the grace period, for future bookings, for visits already checked out and for other branches, and keeps the deposit once. |
 | `env_test.php` | The private `.env` loading. |
 
 ## How it works

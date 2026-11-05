@@ -46,6 +46,27 @@ function customerProfileMixin() {
     // Step 1: verifies the current password + new-password rules and, on
     // success, emails a confirmation code -- see backend/customer/changePassword.php.
     // Nothing is applied to the account yet.
+    // Same rules as backend/shared/config/security/PasswordPolicy.php.
+    passwordRules() {
+      const value = this.passwordForm.new;
+      return [
+        { label: 'At least 8 characters', met: value.length >= 8 },
+        { label: 'At least one uppercase letter (A–Z)', met: /[A-Z]/.test(value) },
+        { label: 'At least one lowercase letter (a–z)', met: /[a-z]/.test(value) },
+        { label: 'At least one number (0–9)', met: /[0-9]/.test(value) },
+        { label: 'At least one special character (e.g., @, #, $, or -)', met: /[^A-Za-z0-9\s]/.test(value) }
+      ];
+    },
+
+    passwordMeetsRules() {
+      return this.passwordRules().every(rule => rule.met);
+    },
+
+    canSubmitPassword() {
+      const { current, new: next, confirm } = this.passwordForm;
+      return !!current && this.passwordMeetsRules() && next !== current && next === confirm;
+    },
+
     changePassword() {
       this.passwordChangeStatus = { success: '', error: '' };
       if (!this.passwordForm.current || !this.passwordForm.new || !this.passwordForm.confirm) {
@@ -56,8 +77,8 @@ function customerProfileMixin() {
         this.passwordChangeStatus.error = 'New password and confirmation do not match.';
         return;
       }
-      if (this.passwordForm.new.length < 8) {
-        this.passwordChangeStatus.error = 'New password must be at least 8 characters long.';
+      if (!this.passwordMeetsRules()) {
+        this.passwordChangeStatus.error = 'Your new password does not meet all the requirements.';
         return;
       }
 

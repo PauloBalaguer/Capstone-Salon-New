@@ -204,4 +204,16 @@ $online = $booking('NOW() + INTERVAL 5 DAY', ['deposit_recorded_by' => null, 'pa
 $cancel($online);
 check('cancel after a PayMongo deposit (money held, not yet verified) -> Forfeited', row($pdo, 'appointments', (int) $online['id'])['payment_status'] === 'Forfeited');
 
+// ---- 5. A payment waiting on a booking past Pending ---------------------------
+// The cashier verifies it and the booking keeps its status.
+$waiting = $booking('NOW() + INTERVAL 6 DAY', ['status' => 'Reschedule Requested', 'deposit_recorded_by' => null, 'deposit_recorded_at' => null, 'payment_status' => 'Awaiting Verification']);
+$r = run_endpoint(['script' => 'backend/cashier/updateStatus.php', 'session' => $p['cashier'],
+    'post' => ['id' => $waiting['reference_code'], 'paymentAction' => 'verify', 'depositAmount' => '250.00', 'depositMethod' => 'Cash']]);
+$now = row($pdo, 'appointments', (int) $waiting['id']);
+check('Reschedule Requested + verify -> payment verified, status unchanged', ($r['success'] ?? false) === true && $now['status'] === 'Reschedule Requested'
+    && $now['payment_status'] === 'Down Payment Verified' && $now['deposit_recorded_by'] !== null);
+$d = run_endpoint(['script' => 'backend/cashier/getDashboardData.php', 'method' => 'GET', 'session' => $p['cashier']]);
+$starts = array_column($d['bookings'] ?? [], 'startDateTime');
+check('dashboard bookings carry startDateTime, so history and staff lists sort by time', $starts && count($starts) === count($d['bookings']));
+
 finish();

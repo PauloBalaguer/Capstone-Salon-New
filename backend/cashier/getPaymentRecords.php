@@ -59,6 +59,7 @@ try {
             p.amount AS amount,
             p.tip_amount AS tip,
             p.status AS status,
+            p.processed_by AS recordedBy,
             COALESCE(NULLIF(TRIM(CONCAT(COALESCE(ce.first_name, ''), ' ', COALESCE(ce.last_name, ''))), ''), u.display_name) AS cashierName
         FROM payments p
         JOIN appointments a ON a.id = p.appointment_id
@@ -82,6 +83,7 @@ try {
             a.deposit_amount AS amount,
             0 AS tip,
             a.payment_status AS status,
+            a.deposit_recorded_by AS recordedBy,
             COALESCE(NULLIF(TRIM(CONCAT(COALESCE(ce.first_name, ''), ' ', COALESCE(ce.last_name, ''))), ''), u.display_name) AS cashierName
         FROM appointments a
         JOIN customers c ON c.id = a.customer_id
@@ -95,7 +97,8 @@ try {
     $stmt = $pdo->prepare("({$checkoutSql}) UNION ALL ({$reservationSql}) ORDER BY paidAt DESC LIMIT 1000");
     $stmt->execute(array_merge([$from, $to], $branchParams, [$from, $to], $branchParams));
 
-    $records = array_map(function ($row) {
+    $me = (int) ($_SESSION['user_id'] ?? 0);
+    $records = array_map(function ($row) use ($me) {
         return [
             'type' => $row['type'],
             'paymentId' => $row['paymentId'] !== null ? (string) $row['paymentId'] : null,
@@ -110,6 +113,8 @@ try {
             'tip' => (float) $row['tip'],
             'status' => $row['status'],
             'cashierName' => $row['cashierName'] ?: null,
+            // True when the logged-in cashier recorded it (Profile page "today at your desk").
+            'mine' => $me > 0 && (int) $row['recordedBy'] === $me,
         ];
     }, $stmt->fetchAll());
 

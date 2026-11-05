@@ -37,6 +37,48 @@
         button[id^="btnClose"]:hover { @apply bg-white/10; }
 
         .badge-live { @apply animate-pulse; }
+        /* Cashier Panel building blocks (one place, reused by the popups).
+           In the components layer so a utility class (pl-8, w-full...) still wins. */
+        @layer components {
+        .stat-card { @apply flex flex-col gap-0.5 rounded-2xl border border-[#E8DCC8] bg-[#FFFDF9] p-4 shadow-sm hover:border-[#006D6F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006D6F] transition-colors; }
+        .stat-card.is-active { @apply border-[#006D6F] ring-1 ring-[#006D6F]; }
+        .stat-card-gold { @apply border-[#E0B84C] bg-[#FFF6DF]; }
+        .stat-label { @apply text-sm font-semibold text-slate-600; }
+        .stat-value { @apply text-3xl font-black text-slate-900 leading-tight; }
+        .stat-hint { @apply text-xs text-slate-500; }
+        .queue-tab { @apply shrink-0 whitespace-nowrap rounded-full border border-[#E8DCC8] bg-white px-3.5 py-1.5 text-sm font-semibold text-slate-600 hover:border-[#006D6F]; }
+        .queue-tab span { @apply ml-1 rounded-full bg-[#F7F0E4] px-2 text-xs font-bold text-slate-700; }
+        .queue-tab.is-active { @apply border-[#006D6F] bg-[#E5F2F0] text-[#06464A]; }
+        .queue-tab.is-active span { @apply bg-white; }
+        .modal-panel { @apply bg-white w-full max-h-[92dvh] sm:max-h-[90vh] flex flex-col overflow-hidden rounded-t-2xl sm:rounded-2xl shadow-2xl border border-gray-100; }
+        .modal-panel > .overflow-y-auto { @apply min-h-0 flex-1; }
+        .modal-head { @apply bg-[#06464A] px-5 py-4 text-white flex justify-between items-center gap-3 shrink-0; }
+        .modal-close { @apply w-9 h-9 shrink-0 inline-flex items-center justify-center rounded-full text-2xl leading-none text-white/80 hover:bg-white/10 hover:text-white; }
+        .field-label { @apply block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5; }
+        .field-input { @apply w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-[#006D6F]; }
+        .btn-primary { @apply inline-flex items-center justify-center gap-1 rounded-xl bg-[#006D6F] hover:bg-[#06464A] px-4 py-3 font-bold text-white shadow-sm disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed; }
+        .btn-secondary { @apply inline-flex items-center justify-center gap-1 rounded-xl border border-[#D9C9B4] bg-white hover:bg-[#F7F0E4] px-4 py-3 font-bold text-slate-700; }
+        .btn-row { @apply inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2 text-sm font-bold whitespace-nowrap; }
+        .step-dot { @apply flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2 text-slate-400; }
+        .step-dot span { @apply w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-xs; }
+        .step-dot.is-active { @apply border-[#006D6F] bg-[#E5F2F0] text-[#06464A]; }
+        .step-dot.is-active span { @apply border-[#006D6F] bg-[#006D6F] text-white; }
+        .step-dot.is-done { @apply text-emerald-700; }
+        .step-dot.is-done span { @apply border-emerald-600 bg-emerald-600 text-white; }
+        .pay-method-card { @apply flex items-center justify-center gap-2 rounded-xl border border-[#D9C9B4] bg-white py-2.5 text-base font-semibold text-slate-600 cursor-pointer select-none hover:border-[#006D6F]; }
+        .pay-method-card.is-active { @apply border-[#006D6F] bg-[#006D6F]/10 text-[#06464A] ring-1 ring-[#006D6F]; }
+        .chip-btn { @apply rounded-lg border border-[#D9C9B4] bg-white py-2 text-sm font-semibold text-slate-700 hover:border-[#006D6F]; }
+        .chip-btn.is-active { @apply border-[#006D6F] bg-[#006D6F]/10 text-[#06464A] ring-1 ring-[#006D6F]; }
+        }
+
+        @layer components {
+        .card { @apply rounded-2xl border border-[#E8DCC8] bg-white shadow-sm; }
+        .card-head { @apply flex flex-wrap items-start justify-between gap-2 border-b border-gray-100 px-4 sm:px-5 py-4; }
+        .card-title { @apply text-lg font-bold text-slate-900; }
+        .card-sub { @apply text-sm text-slate-500; }
+        .step-num { @apply w-6 h-6 shrink-0 rounded-full bg-[#006D6F] text-white flex items-center justify-center text-xs font-bold; }
+        .avatar { @apply w-11 h-11 shrink-0 rounded-full flex items-center justify-center text-sm font-bold; }
+        }
     </style>
     <link rel="stylesheet" href="../../frontend/cashier/cashier-theme.css?v=20261103">
   <link rel="stylesheet" href="../../frontend/shared/responsive-base.css?v=20261103b" />
@@ -105,77 +147,114 @@
     </aside>
 
     <main class="flex-1 flex flex-col overflow-hidden">
-        <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 z-10 shrink-0">
-            <div class="flex items-center space-x-4">
-                <h2 class="font-bold text-xl text-gray-800">Staff Assignments</h2>
-                <span id="branchLabel" class="bg-amber-50 border border-amber-300 font-bold text-slate-900 text-xs rounded-xl px-3 py-1.5 shadow-sm">Loading branch…</span>
+        <header class="bg-white border-b border-gray-200 min-h-16 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-3 z-10 shrink-0">
+            <div class="flex items-center gap-3 min-w-0">
+                <h2 class="font-bold text-xl text-gray-800 truncate">Staff Assignments</h2>
+                <span id="branchLabel" class="hidden md:inline-block bg-amber-50 border border-amber-300 font-bold text-slate-900 text-xs rounded-xl px-3 py-1.5 shadow-sm truncate">Loading branch…</span>
             </div>
-            <div class="text-right">
-                <p class="text-xs text-gray-500 font-medium">System Date & Time</p>
-                <p class="text-xs font-semibold text-gray-700" id="liveClock">--</p>
-            </div>
+            <p class="hidden lg:block text-sm font-semibold text-gray-600" id="liveClock">--</p>
         </header>
 
-        <section class="flex-1 p-6 overflow-y-auto bg-gray-50 space-y-6">
-            <div class="grid grid-cols-1 gap-6 text-xs">
-                <div class="stagger-item bg-white p-5 rounded-xl shadow-sm border border-gray-200 h-fit space-y-4">
-                    <div class="border-b border-gray-100 pb-2">
-                        <h3 class="font-bold text-gray-800 text-base flex items-center"><i class="fa-solid fa-user-gear text-amber-500 mr-2"></i>Assign Staff to a Booking</h3>
-                        <p class="text-xs text-gray-400 mt-0.5">Only qualified staff who are free at the booking time are listed.</p>
-                    </div>
+        <section class="flex-1 p-4 sm:p-6 overflow-y-auto space-y-5">
+            <!-- Who is free right now. Each card filters the staff list. -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <button type="button" data-status="available" class="stat-card text-left">
+                    <span class="stat-label">Available now</span>
+                    <span class="stat-value text-emerald-700" id="statAvailable">0</span>
+                    <span class="stat-hint">Free to take a client</span>
+                </button>
+                <button type="button" data-status="busy" class="stat-card text-left">
+                    <span class="stat-label">Busy</span>
+                    <span class="stat-value text-amber-700" id="statBusy">0</span>
+                    <span class="stat-hint">With a client right now</span>
+                </button>
+                <button type="button" data-status="off" class="stat-card text-left">
+                    <span class="stat-label">Off shift</span>
+                    <span class="stat-value text-slate-500" id="statOff">0</span>
+                    <span class="stat-hint">Not clocked in today</span>
+                </button>
+                <a href="#assignCard" class="stat-card stat-card-gold text-left">
+                    <span class="stat-label">Bookings to assign</span>
+                    <span class="stat-value" id="statToAssign">0</span>
+                    <span class="stat-hint" id="statToAssignHint">Confirmed, from today on</span>
+                </a>
+            </div>
 
-                    <div class="space-y-4">
+            <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_26rem] gap-5 items-start">
+                <!-- Staff list -->
+                <div class="card">
+                    <div class="card-head">
                         <div>
-                            <p class="flex items-center gap-2 text-xs font-bold text-slate-800 mb-2"><span aria-hidden="true" class="w-5 h-5 rounded-full flex items-center justify-center text-xs" style="background:#006D6F;color:#FFFFFF">1</span>Choose a booking</p>
-                            <input id="assignTicketSearch" type="search" placeholder="Search client or reference" aria-label="Search bookings" class="w-full bg-gray-50 border border-gray-300 rounded-xl p-2.5 text-xs mb-2 focus:outline-none focus:ring-2 focus:ring-amber-500">
-                            <div id="assignTicketList" role="radiogroup" aria-label="Bookings" class="space-y-2 overflow-y-auto" style="max-height:18rem"></div>
+                            <h3 class="card-title">Staff on this branch</h3>
+                            <p class="card-sub">Availability updates from clock-ins and today's bookings.</p>
                         </div>
-                        <div id="assignStaffStep" class="hidden">
-                            <p class="flex items-center gap-2 text-xs font-bold text-slate-800 mb-2"><span aria-hidden="true" class="w-5 h-5 rounded-full flex items-center justify-center text-xs" style="background:#006D6F;color:#FFFFFF">2</span>Choose a staff member</p>
-                            <div id="assignStaffList" role="radiogroup" aria-label="Qualified staff" class="space-y-2 overflow-y-auto" style="max-height:16rem"></div>
+                        <p id="staffCounts" class="text-sm font-semibold text-slate-600" aria-live="polite"></p>
+                    </div>
+                    <div class="px-4 sm:px-5 py-3 space-y-3 border-b border-gray-100">
+                        <div id="staffStatusFilters" class="flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Filter by availability"></div>
+                        <div class="grid grid-cols-1 sm:grid-cols-[1fr_12rem] gap-2">
+                            <div class="relative">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                                <input id="staffSearch" type="search" placeholder="Search staff by name" aria-label="Search staff" class="field-input pl-9">
+                            </div>
+                            <select id="staffRoleFilter" aria-label="Filter by role" class="field-input"></select>
                         </div>
-                        <button id="btnAssignStaffToTicket" type="button" disabled class="w-full font-bold py-2.5 rounded-xl">Assign Staff</button>
+                    </div>
+                    <div class="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-2 gap-3" id="staffContainerGrid">
+                        <div class="skeleton-row border border-gray-100 rounded-xl"><div class="skeleton skeleton-avatar"></div><div class="flex-1 space-y-2"><div class="skeleton skeleton-line w-1/3"></div><div class="skeleton skeleton-line w-1/2"></div></div></div>
+                        <div class="skeleton-row border border-gray-100 rounded-xl"><div class="skeleton skeleton-avatar"></div><div class="flex-1 space-y-2"><div class="skeleton skeleton-line w-2/5"></div><div class="skeleton skeleton-line w-1/3"></div></div></div>
                     </div>
                 </div>
 
-                <div class="stagger-item bg-white p-5 rounded-xl shadow-sm border border-gray-200">
-                    <div class="border-b border-gray-100 pb-3 mb-4">
-                        <h3 class="font-bold text-gray-800 text-base"><i class="fa-solid fa-users text-emerald-500 mr-2"></i>Staff Availability</h3>
-                        <p class="prose-justify text-xs text-gray-400 mt-0.5">Availability, qualification, and current workload only -- detailed performance analytics is an Admin/Owner report.</p>
+                <!-- Assign a stylist -->
+                <div id="assignCard" class="card order-first xl:order-none xl:sticky xl:top-0 scroll-mt-4">
+                    <div class="card-head">
+                        <div>
+                            <h3 class="card-title">Assign a stylist</h3>
+                            <p class="card-sub">Only qualified staff who are free at the booking time are listed.</p>
+                        </div>
                     </div>
-                    <p id="staffCounts" class="text-xs font-semibold text-slate-700 mb-3" aria-live="polite"></p>
-                    <div class="flex items-center gap-2 flex-wrap mb-4">
-                        <div id="staffStatusFilters" class="flex items-center gap-1 flex-wrap bg-gray-50 border border-gray-200 rounded-xl p-1" role="group" aria-label="Filter by availability"></div>
-                        <select id="staffRoleFilter" aria-label="Filter by role" class="bg-gray-50 border border-gray-300 rounded-xl p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"></select>
-                        <input id="staffSearch" type="search" placeholder="Search staff" aria-label="Search staff" class="flex-1 min-w-[10rem] bg-gray-50 border border-gray-300 rounded-xl p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3" id="staffContainerGrid">
-                        <div class="skeleton-row border border-gray-100 rounded-xl"><div class="flex-1 space-y-2"><div class="skeleton skeleton-line w-1/3"></div><div class="skeleton skeleton-line w-1/2"></div></div></div>
-                        <div class="skeleton-row border border-gray-100 rounded-xl"><div class="flex-1 space-y-2"><div class="skeleton skeleton-line w-2/5"></div><div class="skeleton skeleton-line w-1/3"></div></div></div>
+                    <div class="p-4 sm:p-5 space-y-5">
+                        <div>
+                            <p class="flex items-center gap-2 text-sm font-bold text-slate-800 mb-2"><span class="step-num" aria-hidden="true">1</span>Choose a booking</p>
+                            <div class="relative mb-2">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                                <input id="assignTicketSearch" type="search" placeholder="Search customer or reference" aria-label="Search bookings" class="field-input pl-9">
+                            </div>
+                            <div id="assignTicketList" role="radiogroup" aria-label="Bookings" class="space-y-2 overflow-y-auto max-h-72 pr-1"></div>
+                        </div>
+                        <div id="assignStaffStep" class="hidden">
+                            <p class="flex items-center gap-2 text-sm font-bold text-slate-800 mb-2"><span class="step-num" aria-hidden="true">2</span>Choose a stylist</p>
+                            <div id="assignStaffList" role="radiogroup" aria-label="Qualified staff" class="space-y-2 overflow-y-auto max-h-64 pr-1"></div>
+                        </div>
+                        <button id="btnAssignStaffToTicket" type="button" disabled class="btn-primary w-full"><i class="fa-solid fa-user-check"></i>Assign stylist</button>
                     </div>
                 </div>
             </div>
         </section>
     </main>
 
-    <div id="clockOutModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-center justify-center hidden opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-gray-100 transform scale-95 transition-transform duration-300">
-            <div class="bg-slate-950 p-4 text-white flex justify-between items-center">
-                <h4 class="font-bold text-base tracking-wide"><i class="fa-solid fa-user-clock text-amber-400 mr-2"></i>Clock Out Staff</h4>
-                <button id="btnCloseClockOutModal" class="text-gray-400 hover:text-white transition-all text-lg" aria-label="Close">&times;</button>
+    <div id="clockOutModal" role="dialog" aria-modal="true" aria-labelledby="clockOutTitle" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-end sm:items-center justify-center hidden opacity-0 transition-opacity duration-300 sm:p-4">
+        <div class="modal-panel max-w-sm transform scale-95 transition-transform duration-300">
+            <div class="modal-head">
+                <h4 id="clockOutTitle" class="font-bold text-lg">Clock out staff</h4>
+                <button id="btnCloseClockOutModal" type="button" class="modal-close" aria-label="Close">&times;</button>
             </div>
-            <div class="p-5 space-y-3.5 text-xs">
-                <div class="rounded-xl bg-gray-50 border border-gray-200 p-3">
-                    <p class="font-bold text-slate-800 capitalize" id="clockOutName"></p>
-                    <p class="text-gray-500" id="clockOutSince"></p>
+            <div class="p-5 space-y-4 overflow-y-auto">
+                <div class="rounded-xl bg-[#FFFDF9] border border-[#E8DCC8] p-3">
+                    <p class="font-bold text-slate-900 capitalize" id="clockOutName"></p>
+                    <p class="text-sm text-slate-500" id="clockOutSince"></p>
                 </div>
                 <div>
-                    <label for="clockOutTime" class="block text-xs text-gray-500 font-bold uppercase mb-1">Time they actually left</label>
-                    <input id="clockOutTime" type="time" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">
-                    <p class="text-xs text-gray-400 mt-1">Leave as-is to clock them out now. Must be after they clocked in.</p>
+                    <label for="clockOutTime" class="field-label">Time they actually left</label>
+                    <input id="clockOutTime" type="time" class="field-input">
+                    <p class="text-xs text-slate-500 mt-1">Leave as is to clock them out now. It must be after they clocked in.</p>
                 </div>
-                <p class="prose-justify rounded-xl bg-amber-50 border border-amber-200 text-amber-800 p-2.5">Use this when someone left without signing out. It's recorded with your name so the hours can be reviewed.</p>
-                <button id="btnConfirmClockOut" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs py-2.5 rounded-xl transition duration-150">Clock Out</button>
+                <p class="rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-sm p-3">Use this when someone left without signing out. It is saved with your name so the hours can be reviewed.</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <button type="button" onclick="CashierApp.hideModal('clockOutModal')" class="btn-secondary">Cancel</button>
+                    <button id="btnConfirmClockOut" type="button" class="btn-primary bg-rose-600 hover:bg-rose-700">Clock out</button>
+                </div>
             </div>
         </div>
     </div>

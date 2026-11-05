@@ -300,7 +300,7 @@ try {
     echo json_encode([
         'success' => true,
         'branches' => $branches,
-        'myBranch' => ['key' => $myBranchKey, 'name' => $myBranch['name']],
+        'myBranch' => ['key' => $myBranchKey, 'name' => $myBranch['name'], 'location' => $myBranch['location'] ?? null],
         'bookings' => $bookings,
         'staffList' => $staffList,
         'inventory' => $inventory,

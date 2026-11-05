@@ -62,13 +62,18 @@ function availabilityBadgeStyle(s) {
 
 function renderStaffControls(staff) {
   const count = group => staff.filter(s => staffGroup(s) === group).length;
-  document.getElementById('staffCounts').textContent =
-    `${count('available')} Available • ${count('busy')} Busy • ${count('off')} Off Shift`;
+  document.getElementById('staffCounts').textContent = `${staff.length} staff in total`;
+  document.getElementById('statAvailable').textContent = count('available');
+  document.getElementById('statBusy').textContent = count('busy');
+  document.getElementById('statOff').textContent = count('off');
+  document.querySelectorAll('.stat-card[data-status]').forEach(card => {
+    card.classList.toggle('is-active', card.dataset.status === state.statusFilter);
+  });
 
-  const tabs = [['all', 'All'], ['available', 'Available'], ['busy', 'Busy'], ['off', 'Off Shift']];
-  document.getElementById('staffStatusFilters').innerHTML = tabs.map(([key, label]) => {
+  const tabs = [['all', 'All', staff.length], ['available', 'Available', count('available')], ['busy', 'Busy', count('busy')], ['off', 'Off shift', count('off')]];
+  document.getElementById('staffStatusFilters').innerHTML = tabs.map(([key, label, n]) => {
     const active = state.statusFilter === key;
-    return `<button type="button" data-status="${key}" aria-pressed="${active}" class="px-3 py-1.5 rounded-lg text-xs font-semibold" style="${active ? 'background:#006D6F !important;color:#FFFFFF !important' : 'background:transparent !important;color:#475569 !important'}">${label}</button>`;
+    return `<button type="button" data-status="${key}" aria-pressed="${active}" class="queue-tab${active ? ' is-active' : ''}">${label}<span>${n}</span></button>`;
   }).join('');
 
   const roles = [...new Set(staff.map(s => s.role || 'Staff'))].sort();
@@ -76,6 +81,27 @@ function renderStaffControls(staff) {
   document.getElementById('staffRoleFilter').innerHTML = '<option value="">All roles</option>'
     + roles.map(role => `<option value="${escapeHtml(role)}"${role === state.roleFilter ? ' selected' : ''}>${escapeHtml(role)}</option>`).join('');
 }
+
+function initials(name) {
+  return String(name || '').split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase() || '?';
+}
+
+/* "2026-11-05 07:00 PM" -> "Today, 07:00 PM" / "Tomorrow, ..." / "Nov 8, ...". */
+function friendlyNext(label) {
+  const m = String(label || '').match(/^(\d{4}-\d{2}-\d{2})\s+(.*)$/);
+  if (!m) return label || '';
+  const ymd = d => [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
+  const now = new Date();
+  if (m[1] === ymd(now)) return 'Today, ' + m[2];
+  if (m[1] === ymd(new Date(now.getTime() + 86400000))) return 'Tomorrow, ' + m[2];
+  return new Date(m[1] + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' + m[2];
+}
+
+const AVATAR_STYLE = {
+  available: 'bg-emerald-100 text-emerald-800',
+  busy: 'bg-amber-100 text-amber-900',
+  off: 'bg-slate-100 text-slate-500'
+};
 
 // Available first, since that's who a cashier is usually looking for.
 function visibleStaff(staff) {
@@ -97,29 +123,37 @@ function renderStaff() {
   const emptyMessage = state.data.staffList.length ? 'No staff match these filters.' : 'No staff assigned to this branch yet.';
 
   const grid = document.getElementById('staffContainerGrid');
-  grid.innerHTML = staff.length ? staff.map(s => `
-      <div id="staff-card-${s.id}" class="card-lift border border-gray-200 rounded-xl p-3 space-y-1.5 transition-colors duration-300">
-        <div class="flex justify-between items-start">
-          <div>
-            <p class="font-bold text-slate-800 text-xs capitalize">${escapeHtml(s.name)}</p>
-            <p class="text-xs text-gray-400">${escapeHtml(s.role || 'Staff')}</p>
+  grid.innerHTML = staff.length ? staff.map(s => {
+    const group = staffGroup(s);
+    return `
+      <div id="staff-card-${s.id}" class="rounded-xl border border-gray-200 bg-white p-4 flex flex-col gap-3 transition-colors duration-300${group === 'off' ? ' opacity-80' : ''}">
+        <div class="flex items-start gap-3">
+          <span aria-hidden="true" class="avatar ${AVATAR_STYLE[group]}">${escapeHtml(initials(s.name))}</span>
+          <div class="flex-1 min-w-0">
+            <p class="font-bold text-slate-900 capitalize truncate">${escapeHtml(s.name)}</p>
+            <p class="text-sm text-slate-500 truncate">${escapeHtml(s.role || 'Staff')}</p>
           </div>
           <span class="shrink-0 px-2.5 py-0.5 rounded-full text-xs font-bold whitespace-nowrap${s.availability.startsWith('Busy') ? ' badge-live' : ''}" style="${availabilityBadgeStyle(s)}">${escapeHtml(s.availability)}</span>
         </div>
-        <div class="grid grid-cols-2 gap-x-2 text-xs text-gray-500 pt-1 border-t border-gray-100">
-          <span>Today: ${s.todaysWorkload} booking${s.todaysWorkload === 1 ? '' : 's'}</span>
-          <span class="text-right truncate" title="${escapeHtml(s.nextAppointment || '')}">${s.nextAppointment ? 'Next: ' + escapeHtml(s.nextAppointment) : 'No upcoming'}</span>
+        <dl class="grid grid-cols-2 gap-2 text-sm">
+          <div class="rounded-lg bg-[#FFFDF9] border border-[#F0E6D6] px-3 py-2">
+            <dt class="text-xs text-slate-500">Today</dt>
+            <dd class="font-semibold text-slate-800">${s.todaysWorkload} booking${s.todaysWorkload === 1 ? '' : 's'}</dd>
+          </div>
+          <div class="rounded-lg bg-[#FFFDF9] border border-[#F0E6D6] px-3 py-2 min-w-0">
+            <dt class="text-xs text-slate-500">Next</dt>
+            <dd class="font-semibold text-slate-800 leading-snug" title="${escapeHtml(s.nextAppointment || '')}">${s.nextAppointment ? escapeHtml(friendlyNext(s.nextAppointment)) : 'Nothing booked'}</dd>
+          </div>
+        </dl>
+        <div class="flex items-center justify-between gap-2 text-sm">
+          <span class="text-slate-500"><i class="fa-regular fa-clock mr-1"></i>${s.onShift ? (s.clockInTime ? 'Clocked in ' + escapeHtml(s.clockInTime) : 'On shift') : 'Not clocked in'}</span>
+          ${s.onShift ? `<button type="button" data-clockout="${escapeHtml(s.id)}" class="btn-row border border-rose-200 text-rose-700 hover:bg-rose-50 py-1.5 px-3"><i class="fa-solid fa-right-from-bracket"></i>Clock out</button>` : ''}
         </div>
-        ${s.onShift ? `
-        <div class="flex items-center justify-between pt-1.5 border-t border-gray-100 text-xs">
-          <span class="text-gray-500">${s.clockInTime ? 'Clocked in ' + escapeHtml(s.clockInTime) : 'On shift'}</span>
-          <button data-clockout="${escapeHtml(s.id)}" class="text-rose-700 font-bold hover:underline"><i class="fa-solid fa-right-from-bracket mr-1"></i>Clock Out</button>
-        </div>` : ''}
-      </div>
-    `).join('') : `
-    <div class="col-span-full text-center py-10">
-      <i class="fa-solid fa-user-slash text-3xl text-gray-200 mb-2 block"></i>
-      <span class="text-xs text-gray-400 ">${emptyMessage}</span>
+      </div>`;
+  }).join('') : `
+    <div class="col-span-full text-center py-12">
+      <i class="fa-solid fa-user-slash text-3xl text-gray-300 mb-2 block"></i>
+      <span class="text-sm text-slate-500">${emptyMessage}</span>
     </div>
   `;
 }
@@ -145,8 +179,8 @@ function formatDuration(minutes) {
   return [hours ? `${hours} ${hours === 1 ? 'hr' : 'hrs'}` : '', mins ? `${mins} mins` : ''].filter(Boolean).join(' ');
 }
 
-function selectableStyle(selected) {
-  return selected ? 'border:2px solid #006D6F;background:#E5F2F0' : 'border:1px solid #E8DCC8;background:#FFFDF9';
+function selectableClass(selected) {
+  return selected ? 'border-[#006D6F] bg-[#E5F2F0] ring-1 ring-[#006D6F]' : 'border-[#E8DCC8] bg-[#FFFDF9] hover:border-[#006D6F]';
 }
 
 const SELECTED_CHECK = '<span aria-hidden="true" class="shrink-0 w-5 h-5 rounded-full flex items-center justify-center" style="background:#006D6F;color:#FFFFFF"><svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path></svg></span>';
@@ -154,35 +188,39 @@ const SELECTED_CHECK = '<span aria-hidden="true" class="shrink-0 w-5 h-5 rounded
 function renderTicketOptions() {
   const list = document.getElementById('assignTicketList');
   const tickets = assignableTickets();
+  if (!state.ticketSearch.trim()) {
+    const unassigned = tickets.filter(t => !t.staffName).length;
+    document.getElementById('statToAssign').textContent = tickets.length;
+    document.getElementById('statToAssignHint').textContent = unassigned ? `${unassigned} still without a stylist` : 'All have a stylist';
+  }
   list.innerHTML = tickets.length ? tickets.map(t => {
     const selected = t.id === state.selectedTicket;
     const day = new Date(t.date + 'T00:00:00');
     const details = [formatDuration(t.durationMinutes), t.staffName ? 'Current: ' + titleCase(t.staffName) : 'Unassigned'].filter(Boolean).join(' · ');
-    return `<button type="button" role="radio" aria-checked="${selected}" data-ticket="${escapeHtml(t.id)}" class="w-full flex items-center gap-3 rounded-xl p-2.5 text-left" style="${selectableStyle(selected)}">
-      <span class="shrink-0 w-16 rounded-lg py-1.5 text-center" style="background:#E5F2F0;color:#06464A">
+    return `<button type="button" role="radio" aria-checked="${selected}" data-ticket="${escapeHtml(t.id)}" class="w-full flex items-center gap-3 rounded-xl border p-3 text-left ${selectableClass(selected)}">
+      <span class="shrink-0 w-[4.75rem] rounded-lg py-1.5 text-center bg-white border border-[#E8DCC8] text-[#06464A]">
         <span class="block text-xs font-bold uppercase">${escapeHtml(day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }))}</span>
-        <span class="block text-xs">${escapeHtml(t.time)}</span>
+        <span class="block text-xs whitespace-nowrap">${escapeHtml(t.time)}</span>
       </span>
       <span class="flex-1 min-w-0">
-        <span class="block text-xs font-bold text-slate-800 truncate">${escapeHtml(titleCase(t.clientName))}</span>
-        <span class="block text-xs text-gray-500 truncate">${escapeHtml(t.serviceName || 'No service')}</span>
-        <span class="block text-xs text-gray-400 truncate">${escapeHtml(details)}</span>
+        <span class="block font-bold text-slate-900 truncate">${escapeHtml(titleCase(t.clientName))}</span>
+        <span class="block text-sm text-slate-600 truncate">${escapeHtml(t.serviceName || 'No service')}</span>
+        <span class="block text-xs ${t.staffName ? 'text-slate-500' : 'text-amber-700 font-semibold'} truncate">${escapeHtml(details)}</span>
       </span>
       ${selected ? SELECTED_CHECK : ''}
     </button>`;
-  }).join('') : `<p class="py-6 text-center text-xs text-gray-400">${state.ticketSearch.trim() ? 'No bookings match your search.' : 'No upcoming Confirmed bookings.'}</p>`;
+  }).join('') : `<p class="py-6 text-center text-sm text-slate-500">${state.ticketSearch.trim() ? 'No bookings match your search.' : 'No upcoming Confirmed bookings.'}</p>`;
 }
 
 function renderStaffOptions(message) {
   const list = document.getElementById('assignStaffList');
-  list.innerHTML = message ? `<p class="py-4 text-center text-xs font-semibold" style="color:#92400E">${escapeHtml(message)}</p>` : state.qualifiedStaff.map(s => {
+  list.innerHTML = message ? `<p class="py-4 px-3 text-center text-sm font-semibold rounded-xl bg-amber-50 text-amber-900">${escapeHtml(message)}</p>` : state.qualifiedStaff.map(s => {
     const selected = String(s.id) === String(state.selectedStaff);
-    const initials = String(s.name).split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase();
-    return `<button type="button" role="radio" aria-checked="${selected}" data-staff="${escapeHtml(s.id)}" class="w-full flex items-center gap-3 rounded-xl p-2.5 text-left" style="${selectableStyle(selected)}">
-      <span aria-hidden="true" class="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold" style="background:#E5F2F0;color:#06464A">${escapeHtml(initials)}</span>
+    return `<button type="button" role="radio" aria-checked="${selected}" data-staff="${escapeHtml(s.id)}" class="w-full flex items-center gap-3 rounded-xl border p-3 text-left ${selectableClass(selected)}">
+      <span aria-hidden="true" class="avatar w-10 h-10 bg-white border border-[#E8DCC8] text-[#06464A]">${escapeHtml(initials(s.name))}</span>
       <span class="flex-1 min-w-0">
-        <span class="block text-xs font-bold text-slate-800 truncate">${escapeHtml(titleCase(s.name))}</span>
-        <span class="block text-xs text-gray-500 truncate">${escapeHtml(s.role)}</span>
+        <span class="block font-bold text-slate-900 truncate">${escapeHtml(titleCase(s.name))}</span>
+        <span class="block text-sm text-slate-500 truncate">${escapeHtml(s.role)}</span>
       </span>
       ${selected ? SELECTED_CHECK : ''}
     </button>`;
@@ -194,9 +232,6 @@ function updateAssignButton() {
   const btn = document.getElementById('btnAssignStaffToTicket');
   const ready = !!(state.selectedTicket && state.selectedStaff);
   btn.disabled = !ready;
-  btn.style.cssText = ready
-    ? 'background:#006D6F !important;color:#FFFFFF !important;border:1px solid #006D6F !important;cursor:pointer'
-    : 'background:#F7F0E4 !important;color:#475569 !important;border:1px solid #E8DCC8 !important;cursor:not-allowed';
 }
 
 /* Step 2: staff at this branch who cover every service on the booking and have
@@ -227,8 +262,9 @@ async function loadQualifiedStaff(ref) {
 function flashStaffCard(staffId) {
   const card = document.getElementById(`staff-card-${staffId}`);
   if (!card) return;
-  card.classList.add('bg-amber-100', 'border-amber-300', 'shadow-lg');
-  setTimeout(() => card.classList.remove('bg-amber-100', 'border-amber-300', 'shadow-lg'), 600);
+  card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  card.classList.add('bg-amber-50', 'border-amber-300', 'shadow-lg');
+  setTimeout(() => card.classList.remove('bg-amber-50', 'border-amber-300', 'shadow-lg'), 900);
 }
 
 async function assignStaffToTicket() {
@@ -286,6 +322,10 @@ function wireStaticEvents() {
     state.statusFilter = btn.dataset.status;
     renderStaff();
   });
+  document.querySelectorAll('.stat-card[data-status]').forEach(card => card.addEventListener('click', () => {
+    state.statusFilter = state.statusFilter === card.dataset.status ? 'all' : card.dataset.status;
+    renderStaff();
+  }));
   document.getElementById('staffRoleFilter').addEventListener('change', (e) => {
     state.roleFilter = e.target.value;
     renderStaff();

@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,500&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="../../frontend/shared/output.css">
+  <link rel="stylesheet" href="../../frontend/shared/output.css?v=20261106">
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
 </head>
@@ -74,6 +74,7 @@
             <button type="button" class="eye" data-toggle-password="login-password" aria-label="Show password"><span class="eye-show"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true" style="display:block"><path stroke-linecap="round" stroke-linejoin="round" d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7z"/><circle cx="12" cy="12" r="3"/></svg></span><span data-eye-slash style="display: none"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true" style="display:block"><path stroke-linecap="round" stroke-linejoin="round" d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7z"/><circle cx="12" cy="12" r="3"/><path stroke-linecap="round" d="M4 3l16 18"/></svg></span></button>
           </div>
           <p class="field-error" id="login-password-error"></p>
+          <p class="resend hidden mt-2" id="device-note">Remembered on this device. <button type="button" id="device-forget">Not you? Use password</button></p>
         </div>
 
         <div class="-my-2 flex flex-wrap items-center justify-between gap-x-4 text-sm">
@@ -93,6 +94,6 @@
   <script src="../../function/shared/toast.js"></script>
   <script src="../../function/auth/common.js?v=2"></script>
   <script src="../../function/auth/auth-ui.js"></script>
-  <script src="../../function/auth/login.js?v=tw-20261024"></script>
+  <script src="../../function/auth/login.js?v=20261106d"></script>
 </body>
 </html>

@@ -12,11 +12,11 @@
   <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.14.1/dist/cdn.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.14.1/dist/cdn.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
-  <link rel="stylesheet" href="../../frontend/staff/staff-portal.css?v=20261105">
+  <link rel="stylesheet" href="../../frontend/staff/staff-portal.css?v=20261106">
   <script src="../../function/shared/toast.js"></script>
   <script src="../../function/shared/confirm-dialog.js"></script>
 </head>
-<body class="sp-body" x-data="staffPortal()" x-init="init()">
+<body class="sp-body" x-data="staffPortal()">
 
   <a href="#sp-main" class="sp-skip">Skip to content</a>
 
@@ -43,12 +43,18 @@
         </template>
       </nav>
 
-      <div class="sp-side-status" x-show="!$store.staff.loading" x-cloak>
-        <span class="sp-dot" :class="'is-' + $store.staff.shift.status"></span>
-        <div class="sp-side-status-text">
-          <p x-text="$store.staff.shiftStatusLabel()"></p>
-          <p class="sp-muted-light" x-text="$store.staff.shift.status === 'off' ? $store.staff.scheduleTodayLabel() : ('Since ' + $store.staff.timeLabel($store.staff.shift.clockIn))"></p>
+      <div class="sp-side-foot">
+        <div class="sp-side-status" x-show="!$store.staff.loading" x-cloak>
+          <span class="sp-dot" :class="'is-' + $store.staff.shift.status"></span>
+          <div class="sp-side-status-text">
+            <p x-text="$store.staff.shiftStatusLabel()"></p>
+            <p class="sp-muted-light" x-text="$store.staff.shift.status === 'off' ? $store.staff.scheduleTodayLabel() : ('Since ' + $store.staff.timeLabel($store.staff.shift.clockIn))"></p>
+          </div>
         </div>
+        <button type="button" class="sp-nav-link sp-side-signout" @click="openSignOut()">
+          <span x-html="$icon('logout')"></span>
+          <span>Sign Out</span>
+        </button>
       </div>
     </aside>
 
@@ -115,10 +121,15 @@
             <span class="sp-mobile-branch"><span x-html="$icon('pin')"></span><span x-text="$store.staff.profile.branchName || 'Staff Portal'"></span></span>
           </span>
         </button>
-        <button type="button" class="sp-icon-btn sp-icon-btn-dark" @click="toggleNotifications()" aria-label="Notifications">
-          <span x-html="$icon('bell')"></span>
-          <span class="sp-badge-count" x-show="$store.staff.unreadNotificationCount()" x-text="$store.staff.unreadNotificationCount()" x-cloak></span>
-        </button>
+        <div class="sp-mobile-actions">
+          <button type="button" class="sp-icon-btn sp-icon-btn-dark" @click="toggleNotifications()" aria-label="Notifications">
+            <span x-html="$icon('bell')"></span>
+            <span class="sp-badge-count" x-show="$store.staff.unreadNotificationCount()" x-text="$store.staff.unreadNotificationCount()" x-cloak></span>
+          </button>
+          <button type="button" class="sp-icon-btn sp-icon-btn-dark" @click="openSignOut()" aria-label="Sign out">
+            <span x-html="$icon('logout')"></span>
+          </button>
+        </div>
       </header>
 
       <main id="sp-main" class="sp-main" tabindex="-1">
@@ -714,19 +725,6 @@
               </div>
             </form>
           </article>
-
-          <!-- Account & Security -->
-          <article class="sp-card" aria-labelledby="as-title">
-            <div class="sp-card-head sp-card-head-wrap">
-              <div>
-                <h3 id="as-title" class="sp-card-title">Account &amp; Security</h3>
-                <p class="sp-muted sp-small">Signing out does not end your shift. Use Shift Out on the Dashboard when you leave work.</p>
-              </div>
-              <button type="button" class="sp-btn sp-btn-danger-outline" @click="openSignOut()">
-                <span x-html="$icon('logout')"></span><span>Sign Out</span>
-              </button>
-            </div>
-          </article>
         </section>
       </main>
     </div>
@@ -761,7 +759,7 @@
       </div>
       <div class="sp-alert sp-alert-error" x-show="$store.staff.inProgressAppointments().length" x-cloak>
         <span x-html="$icon('alert')"></span>
-        <p>You still have a service in progress (<span x-text="$store.staff.inProgressAppointments().map(a => a.clientName).join(', ')"></span>). Mark it as finished before you Shift Out.</p>
+        <p>You still have a service in progress (<span x-text="$store.staff.inProgressAppointments().map(a => a.clientName).join(', ')"></span>). It must be marked as finished before you Shift Out. On a shared booking, the main stylist does this.</p>
       </div>
       <div class="sp-alert sp-alert-info" x-show="!$store.staff.inProgressAppointments().length && remainingTodayAppointments().length" x-cloak>
         <span x-html="$icon('info')"></span>
@@ -796,7 +794,7 @@
   </div>
 
   <script src="../../function/shared/appointment-arrival.js"></script>
-  <script src="../../function/staff/shared-data.js?v=20261105"></script>
-  <script src="../../function/staff/portal.js?v=20261105"></script>
+  <script src="../../function/staff/shared-data.js?v=20261106"></script>
+  <script src="../../function/staff/portal.js?v=20261106"></script>
 </body>
 </html>

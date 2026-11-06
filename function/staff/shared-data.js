@@ -32,7 +32,7 @@ document.addEventListener('alpine:init', () => {
     shiftBusy: false,
 
     toast(message, type = 'success') {
-      if (window.LMToast) LMToast.show(message, type, { duration: 3500 });
+      LMToast.show(message, type, { duration: 3500 });
     },
 
     async refresh() {
@@ -69,9 +69,10 @@ document.addEventListener('alpine:init', () => {
 
     applyShift(shift) {
       this.shift = shift;
-      this.loadedAt = new Date();
       if (shift.serverNow) this.clockOffsetMs = new Date(shift.serverNow).getTime() - Date.now();
       this.now = this.serverNow();
+      // Same clock as `now`, or a wrong device clock would count as elapsed time.
+      this.loadedAt = this.now;
     },
 
     serverNow() {
@@ -330,6 +331,9 @@ document.addEventListener('alpine:init', () => {
         this.toast(res.message, res.success ? 'success' : 'error');
         if (res.success) await this.refresh();
         return res;
+      } catch {
+        this.toast('Could not reach the server. The service was not marked as finished.', 'error');
+        return { success: false };
       } finally {
         this.busy = false;
       }
@@ -363,6 +367,9 @@ document.addEventListener('alpine:init', () => {
         this.toast(res.message, res.success ? 'success' : 'error');
         if (res.success) await this.refresh();
         return res;
+      } catch {
+        this.toast('Could not reach the server. The supply was not logged.', 'error');
+        return { success: false };
       } finally {
         this.busy = false;
       }

@@ -32,6 +32,7 @@ const SMS_TEMPLATES = [
     'QUOTE_READY' => 'Your home service quote for {ref} is ready. Please check your email for details.',
     'REMINDER' => 'Reminder: your appointment {ref} is on {when}. See you!',
     'BOOKING_OTP' => 'Your booking verification code is {code}. It expires in 10 minutes. Do not share this code.',
+    'ACCOUNT_OTP' => 'Your account verification code is {code}. It expires in 10 minutes. Do not share this code.',
     'TEST' => 'This is a test message. SMS notifications are working.',
 ];
 

@@ -99,7 +99,12 @@ try {
     ');
     $stmt->execute([$userId, $code, $expires_at]);
 
-    sendPasswordChangeOtpEmail($user['email'], $code);
+    if (!sendPasswordChangeOtpEmail($user['email'], $code)) {
+        $pdo->prepare('DELETE FROM password_change_verifications WHERE user_id = ?')->execute([$userId]);
+        http_response_code(502);
+        echo json_encode(['success' => false, 'message' => 'We could not send the confirmation code. Your password was not changed. Please try again.']);
+        exit();
+    }
 
     echo json_encode([
         'success' => true,

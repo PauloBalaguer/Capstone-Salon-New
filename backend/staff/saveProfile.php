@@ -53,10 +53,11 @@ if (!preg_match('/^09[0-9]{9}$/D', $phone)) {
 if (strlen($email) > 255 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     profileFail(400, 'Enter a valid email address.', 'email');
 }
-// Only a small PNG/JPEG/WebP photo, as a data URI from the photo picker.
-if ($profilePicture !== '' && (strlen($profilePicture) > 2_900_000
+// Only a small PNG/JPEG/WebP photo, as a data URI from the photo picker, which
+// shrinks it first. Stays under MySQL's default 1MB max_allowed_packet (XAMPP).
+if ($profilePicture !== '' && (strlen($profilePicture) > 900_000
     || !preg_match('#^data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$#D', $profilePicture))) {
-    profileFail(400, 'Please choose a PNG, JPG or WebP photo under 2MB.', 'profilePicture');
+    profileFail(400, 'Please choose a smaller PNG, JPG or WebP photo.', 'profilePicture');
 }
 
 try {

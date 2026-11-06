@@ -96,6 +96,9 @@ if (session_status() === PHP_SESSION_NONE) {
     // Use strict mode. The server will only accept session IDs that it generated.
     // This helps prevent session fixation attacks.
     ini_set('session.use_strict_mode', '1');
+    // As long as the "remember me" cookie below. PHP's default deletes a session
+    // after 24 idle minutes, which would log a remembered user out anyway.
+    ini_set('session.gc_maxlifetime', (string) (60 * 60 * 24 * 30));
 
     // "Remember me" on the login form (frontend/auth/login.html) extends the
     // session cookie to 30 days instead of expiring it when the browser
@@ -146,6 +149,27 @@ function switchSessionPortal(string $portal): void
 function regenerateSession(): void
 {
     session_regenerate_id(true);
+}
+
+/**
+ * Signs this user in to their role's own portal session. $user needs id, email,
+ * role_name, first_name, last_name, display_name and branch_id.
+ */
+function signInUser(array $user): void
+{
+    // Move from the temporary login session into this role's own session
+    // cookie, so other accounts logged in other tabs stay logged in.
+    switchSessionPortal(getRolePortal($user['role_name']));
+
+    // Regenerate the session ID to prevent session fixation attacks.
+    regenerateSession();
+
+    $_SESSION['user_id'] = $user['id'];
+    $_SESSION['user_email'] = $user['email'];
+    $_SESSION['user_role'] = $user['role_name'];
+    $fullName = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''));
+    $_SESSION['user_name'] = $fullName !== '' ? $fullName : ($user['display_name'] ?? '');
+    $_SESSION['branch_id'] = $user['branch_id'] !== null ? (int) $user['branch_id'] : null;
 }
 
 /**

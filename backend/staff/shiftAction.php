@@ -112,11 +112,15 @@ try {
             break;
     }
 
+    // Read before commit, while this employee's lock is held: after it, the
+    // state's write could deadlock with another tab's request and report an
+    // error for an action that was saved.
+    $state = StaffShift::state($pdo, $employee);
     $pdo->commit();
     echo json_encode([
         'success' => true,
         'message' => $message,
-        'shift' => StaffShift::state($pdo, $employee),
+        'shift' => $state,
     ]);
 } catch (PDOException | RuntimeException $e) {
     if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();

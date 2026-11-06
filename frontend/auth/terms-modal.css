@@ -1,0 +1,51 @@
+/* Terms & Conditions pop-up on frontend/auth/register.html. Colours come from
+   the auth pages' theme in output.css. */
+.terms-modal {
+  width: min(calc(100% - 32px), 620px);
+  max-width: none;
+  max-height: min(85vh, 720px);
+  max-height: min(85dvh, 720px);
+  margin: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--color-panel);
+  color: var(--color-ink-auth);
+  box-shadow: 0 40px 80px -30px rgba(0, 0, 0, .6);
+}
+.terms-modal[open] { display: flex; flex-direction: column; }
+.terms-modal::backdrop { background: rgba(6, 26, 28, .65); }
+body:has(.terms-modal[open]) { overflow: hidden; }
+
+.terms-modal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 16px 14px 24px; border-bottom: 1px solid rgba(91, 100, 114, .22); }
+.terms-modal-head h2 { margin: 0; font-family: var(--font-auth-display); font-size: 22px; font-weight: 600; line-height: 1.2; }
+.terms-modal-close { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: none; border: 0; color: inherit; cursor: pointer; }
+.terms-modal-close:hover { background: rgba(91, 100, 114, .14); }
+
+.terms-modal-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 18px 24px 22px; font-size: 14px; line-height: 1.6; color: var(--color-muted-auth); }
+.terms-modal-body h3 { margin: 0 0 10px; font-size: 15px; font-weight: 700; color: var(--color-ink-auth); scroll-margin-top: 16px; }
+.terms-modal-body ul { margin: 0; padding-left: 20px; list-style: disc; }
+.terms-modal-body li { margin-bottom: 10px; }
+.terms-modal-body li b { color: var(--color-ink-auth); }
+.terms-modal-body ul + h3 { margin-top: 22px; }
+
+.terms-modal-foot { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; padding: 14px 24px calc(14px + env(safe-area-inset-bottom)); border-top: 1px solid rgba(91, 100, 114, .22); }
+.terms-modal-foot button { flex: 1 1 130px; min-height: 48px; padding: 8px 18px; border-radius: 14px; font-size: 15px; font-weight: 600; cursor: pointer; }
+.terms-modal-later { background: none; border: 1px solid rgba(91, 100, 114, .45); color: inherit; }
+.terms-modal-agree { background: var(--color-teal-500); border: 1px solid var(--color-teal-500); color: var(--color-panel); }
+.terms-modal :focus-visible { outline: 2px solid var(--color-gold-auth, #C9A34E); outline-offset: 2px; }
+
+@media (min-width: 520px) {
+  .terms-modal-foot button { flex: 0 0 auto; min-width: 130px; }
+}
+
+@media (prefers-color-scheme: dark) {
+  .terms-modal { background: var(--color-sheet-auth); color: var(--color-sheet-ink-auth); color-scheme: dark; }
+  .terms-modal-body { color: var(--color-sheet-mute-auth); }
+  .terms-modal-body h3, .terms-modal-body li b { color: var(--color-sheet-ink-auth); }
+  .terms-modal-head, .terms-modal-foot { border-color: rgba(255, 255, 255, .12); }
+  .terms-modal-close:hover { background: rgba(255, 255, 255, .1); }
+  .terms-modal-later { border-color: rgba(255, 255, 255, .28); }
+  .terms-modal-agree { background: var(--color-sheet-link-auth); border-color: var(--color-sheet-link-auth); color: var(--color-sheet-auth); }
+}

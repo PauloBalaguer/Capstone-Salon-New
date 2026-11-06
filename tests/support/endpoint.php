@@ -10,6 +10,7 @@
  *   method    'POST' (default) or 'GET'
  *   post/get  request fields
  *   session   $_SESSION contents (user_id, user_role, branch_id) -- stands in for a login
+ *   cookies   $_COOKIE contents
  *   env       extra settings, e.g. {"SALON_LATE_GRACE_MINUTES": "15"}
  *   paymongo  mock PayMongo API base URL; omitted = PayMongo not configured
  *   startAt   unix time (float) to wait for after connecting, so parallel runs start together
@@ -31,6 +32,7 @@ $_SERVER['HTTP_HOST'] = 'localhost';
 $_POST = $spec['post'] ?? [];
 $_GET = $spec['get'] ?? [];
 $_REQUEST = $_GET + $_POST;
+$_COOKIE = $spec['cookies'] ?? [];
 
 // The "logged-in" session. Started here (no cookie, temp folder) so session.php leaves it alone.
 ini_set('session.use_cookies', '0');

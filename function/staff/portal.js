@@ -414,7 +414,7 @@ function staffPortal() {
       }
     },
 
-    pickPhoto(event) {
+    async pickPhoto(event) {
       const file = event.target.files[0];
       event.target.value = '';
       if (!file) return;
@@ -426,12 +426,29 @@ function staffPortal() {
         this.store.toast('That photo is over 2MB. Please choose a smaller one.', 'error');
         return;
       }
-      const reader = new FileReader();
-      reader.onload = e => {
-        this.photoPreview = e.target.result;
-        if (!this.editing) this.startEditKeepPhoto();
-      };
-      reader.readAsDataURL(file);
+      try {
+        this.photoPreview = await this.shrinkPhoto(file);
+      } catch {
+        this.store.toast('That photo could not be read. Please choose another one.', 'error');
+        return;
+      }
+      if (!this.editing) this.startEditKeepPhoto();
+    },
+
+    // The photo is stored in the database and sent with every dashboard load,
+    // and MySQL can refuse a large one, so keep only what an avatar needs.
+    async shrinkPhoto(file) {
+      const image = await createImageBitmap(file);
+      const scale = Math.min(1, 512 / Math.max(image.width, image.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(image.width * scale));
+      canvas.height = Math.max(1, Math.round(image.height * scale));
+      const context = canvas.getContext('2d');
+      context.fillStyle = '#FFFFFF'; // JPEG has no transparency
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      image.close();
+      return canvas.toDataURL('image/jpeg', 0.85);
     },
 
     startEditKeepPhoto() {

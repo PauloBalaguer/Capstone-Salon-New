@@ -13,6 +13,7 @@
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
+require_once '../../backend/shared/config/security/Csrf.php';
 require_once '../../backend/shared/config/security/RateLimiter.php';
 require_once '../../backend/shared/config/setup/mail.php';
 
@@ -30,6 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
     exit();
 }
+
+Csrf::requireValid();
 
 $ip_address = RateLimiter::getIpAddress();
 $limiter = new RateLimiter($ip_address, 'change_password_fail', 5, 3600);
@@ -96,7 +99,12 @@ try {
     ');
     $stmt->execute([$userId, $code, $expires_at]);
 
-    sendPasswordChangeOtpEmail($user['email'], $code);
+    if (!sendPasswordChangeOtpEmail($user['email'], $code)) {
+        $pdo->prepare('DELETE FROM password_change_verifications WHERE user_id = ?')->execute([$userId]);
+        http_response_code(502);
+        echo json_encode(['success' => false, 'message' => 'We could not send the confirmation code. Your password was not changed. Please try again.']);
+        exit();
+    }
 
     echo json_encode([
         'success' => true,

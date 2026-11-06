@@ -1,26 +1,39 @@
-/* frontend/cashier/appointments.html Branch Appointment Pipeline.
+/* frontend/cashier/appointments.html Appointment History.
+   Every booking this branch has had, newest first, with search and filters.
+   Tapping one opens its details; the few actions a past or upcoming booking
+   still allows (reschedule, cancel, assign stylist, receipt) live in that
+   popup. Confirming and checking out happen on the Cashier Panel
+   (dashboard.html), which this page links to.
    Branch is fixed by the logged-in Cashier's account (server-side); see
-   database/migrations/007_cashier_branch_lock.sql. bookings is already
-   scoped to that one branch by getDashboardData.php. */
+   database/migrations/007_cashier_branch_lock.sql. */
+
+const PAGE_SIZE = 30;
 
 const state = {
   data: null,
   branch: null,
-  pendingAdmitRef: null,
+  shown: PAGE_SIZE,
+  detailsRef: null,
   pendingReassignRef: null,
   pendingRescheduleRef: null,
-  pendingRescheduleTime: '',
-  activeTab: 'Pending'
+  pendingRescheduleTime: ''
 };
 
 async function init() {
   CashierApp.initChrome();
   wireStaticEvents();
-  // The dashboard cards link here with ?tab=...
-  const requestedTab = new URLSearchParams(window.location.search).get('tab');
-  const validTab = [...document.querySelectorAll('#statusTabs .tab-btn')].some(btn => btn.dataset.tab === requestedTab);
-  setActiveTab(validTab ? requestedTab : 'Pending');
+  const params = new URLSearchParams(window.location.search);
+  // Older dashboard links used ?tab=<status>.
+  const tab = params.get('tab');
+  if (tab && [...document.getElementById('apptStatus').options].some(o => o.value === tab)) {
+    document.getElementById('apptStatus').value = tab;
+  }
   await refreshData();
+  const ref = params.get('ref');
+  if (ref && state.data) {
+    showDetails(ref);
+    history.replaceState(null, '', 'appointments.html');
+  }
 }
 
 async function refreshData() {
@@ -35,26 +48,16 @@ async function refreshData() {
     CashierApp.applyBranchChrome(state.branch);
     renderAppointments();
     CashierApp.updateQueueBadge(result.bookings);
+    if (state.detailsRef && !document.getElementById('detailsModal').classList.contains('hidden')) showDetails(state.detailsRef);
   } catch (e) {
     console.error(e);
   }
 }
 
-function setActiveTab(tab) {
-  state.activeTab = tab;
-  document.querySelectorAll('#statusTabs .tab-btn').forEach(btn => {
-    const active = btn.dataset.tab === tab;
-    btn.classList.toggle('bg-amber-500', active);
-    btn.classList.toggle('text-slate-950', active);
-    btn.classList.toggle('text-gray-500', !active);
-    btn.classList.toggle('hover:text-gray-800', !active);
-  });
-  renderAppointments();
+function localDateYmd(d) {
+  return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
 }
 
-/* Real duration/price/service values sometimes come back empty (a booking
-   with no linked appointment_services row, for example) -- show "" rather
-   than a blank cell. */
 function cellOrDash(value) {
   return value === null || value === undefined || value === '' ? '' : escapeHtml(String(value));
 }
@@ -62,217 +65,185 @@ function cellOrDash(value) {
 function paymentStatusBadgeClass(status) {
   switch (status) {
     case 'Fully Paid':
-    case 'Down Payment Verified': return 'bg-emerald-100 text-emerald-700';
+    case 'Down Payment Verified': return 'bg-emerald-100 text-emerald-800';
     case 'Awaiting Verification':
     case 'Refund Due':
-    case 'Refund Processing': return 'bg-amber-100 text-amber-800';
+    case 'Refund Processing': return 'bg-amber-100 text-amber-900';
     case 'Rejected':
     case 'Refunded':
-    case 'Forfeited': return 'bg-rose-100 text-rose-700';
-    default: return 'bg-gray-100 text-gray-500';
+    case 'Forfeited': return 'bg-rose-100 text-rose-800';
+    default: return 'bg-gray-100 text-gray-600';
   }
+}
+
+function friendlyDate(ymd) {
+  if (!ymd) return 'No date';
+  const today = localDateYmd(new Date());
+  const yesterday = localDateYmd(new Date(Date.now() - 86400000));
+  const tomorrow = localDateYmd(new Date(Date.now() + 86400000));
+  const label = new Date(ymd + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  if (ymd === today) return 'Today · ' + label;
+  if (ymd === yesterday) return 'Yesterday · ' + label;
+  if (ymd === tomorrow) return 'Tomorrow · ' + label;
+  return label;
+}
+
+function inPeriod(b, period) {
+  const today = localDateYmd(new Date());
+  const date = b.date || '';
+  if (period === 'today') return date === today;
+  if (period === 'upcoming') return date >= today && ['Pending', 'Confirmed', 'Reschedule Requested'].includes(b.status);
+  if (period === 'month') return date.slice(0, 7) === today.slice(0, 7);
+  if (period === '7' || period === '30') {
+    return date <= today && date >= localDateYmd(new Date(Date.now() - (Number(period) - 1) * 86400000));
+  }
+  return true;
+}
+
+function filteredBookings() {
+  const search = (document.getElementById('apptSearch').value || '').toLowerCase().trim();
+  const status = document.getElementById('apptStatus').value;
+  const period = document.getElementById('apptPeriod').value;
+  return state.data.bookings
+    .filter(b => (status === 'All' || b.status === status)
+      && inPeriod(b, period)
+      && (!search
+        || b.clientName.toLowerCase().includes(search)
+        || (b.clientPhone || '').includes(search)
+        || b.id.toLowerCase().includes(search)))
+    // Newest first; upcoming bookings sit at the top.
+    .sort((a, b) => String(b.startDateTime || b.date || '').localeCompare(String(a.startDateTime || a.date || '')));
 }
 
 function renderAppointments() {
   if (!state.data) return;
-  const bookings = state.data.bookings;
-  const tbody = document.getElementById('appointmentsTableBody');
+  const list = filteredBookings();
+  const today = localDateYmd(new Date());
 
-  const search = (document.getElementById('apptSearch').value || '').toLowerCase().trim();
-  const filtered = bookings.filter(b => {
-    const matchesTab = state.activeTab === 'All'
-      || b.status === state.activeTab;
-    const matchesSearch = !search
-      || b.clientName.toLowerCase().includes(search)
-      || (b.clientPhone || '').includes(search)
-      || b.id.toLowerCase().includes(search);
-    return matchesTab && matchesSearch;
-  });
+  document.getElementById('sumTotal').textContent = list.length;
+  const completed = list.filter(b => b.status === 'Completed');
+  document.getElementById('sumCompleted').textContent = completed.length;
+  document.getElementById('sumCompletedValue').textContent = CashierApp.formatCurrency(completed.reduce((s, b) => s + Number(b.price || 0), 0)) + ' in services';
+  document.getElementById('sumUpcoming').textContent = list.filter(b => (b.date || '') >= today && ['Pending', 'Confirmed', 'Reschedule Requested'].includes(b.status)).length;
+  document.getElementById('sumCancelled').textContent = list.filter(b => ['Cancelled', 'No-Show'].includes(b.status)).length;
 
-  if (!filtered.length) {
-    tbody.innerHTML = `
-      <tr><td colspan="12" class="py-12 text-center">
-        <i class="fa-solid fa-calendar-xmark text-3xl text-gray-200 mb-2 block"></i>
-        <span class="text-xs text-gray-400 ">No ${state.activeTab === 'All' ? '' : state.activeTab.toLowerCase() + ' '}bookings found for this branch.</span>
-      </td></tr>
-    `;
+  const container = document.getElementById('appointmentsList');
+  if (!list.length) {
+    container.innerHTML = `
+      <div class="py-14 text-center px-4">
+        <i class="fa-solid fa-calendar-xmark text-3xl text-gray-300 mb-2 block"></i>
+        <p class="text-sm text-gray-500">No appointments match these filters.</p>
+      </div>`;
+    document.getElementById('apptCountLabel').textContent = '';
+    document.getElementById('btnShowMore').classList.add('hidden');
     return;
   }
 
-  tbody.innerHTML = filtered.map(b => `
-    <tr class="hover:bg-amber-50/40 transition-colors duration-150">
-      <td class="p-2.5 font-mono text-xs">${escapeHtml(b.id)}</td>
-      <td class="p-2.5">${cellOrDash(b.date)}</td>
-      <td class="p-2.5">${cellOrDash(b.time)}</td>
-      <td class="p-2.5">${cellOrDash(b.endTime)}</td>
-      <td class="p-2.5 font-semibold text-slate-800 capitalize">${escapeHtml(b.clientName)}</td>
-      <td class="p-2.5">${cellOrDash(b.clientPhone)}</td>
-      <td class="p-2.5">${cellOrDash(b.serviceName)}</td>
-      <td class="p-2.5">${b.durationMinutes ? b.durationMinutes + ' min' : ''}</td>
-      <td class="p-2.5 capitalize">${cellOrDash(b.staffName)}</td>
-      <td class="p-2.5">
-        <span class="text-xs font-bold px-2 py-0.5 rounded ${statusBadgeClass(b.status)}${b.status === 'In Progress' ? ' badge-live' : ''}">${escapeHtml(b.status)}</span>
-        ${b.status === 'Pending' && b.hasConflict ? '<span class="ml-1 text-xs font-bold text-rose-600">⚠ Conflict</span>' : ''}
-      </td>
-      <td class="p-2.5"><span class="text-xs font-bold px-2 py-0.5 rounded ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(PortalPresentation.paymentStatus(b.paymentStatus))}</span></td>
-      <td class="p-2.5 space-x-1.5 whitespace-nowrap">${actionsFor(b)}</td>
-    </tr>
-  `).join('');
+  const visible = list.slice(0, state.shown);
+  let lastDate = null;
+  container.innerHTML = visible.map(b => {
+    const heading = b.date !== lastDate
+      ? `<div class="px-4 sm:px-5 py-2 bg-[#FFFDF9] border-t border-gray-200 text-sm font-bold text-[#06464A]">${escapeHtml(friendlyDate(b.date))}</div>`
+      : '';
+    lastDate = b.date;
+    return heading + `
+      <button type="button" data-ref="${escapeHtml(b.id)}" class="appt-row w-full text-left border-t border-gray-100 px-4 sm:px-5 py-3 hover:bg-[#FFFDF9] focus-visible:outline-none focus-visible:bg-[#E5F2F0] grid grid-cols-[1fr_auto] lg:grid-cols-[8rem_1.2fr_1.4fr_1fr_8.5rem_7rem_2.5rem] gap-x-4 gap-y-1 items-center">
+        <span class="order-2 lg:order-none text-right lg:text-left text-sm font-semibold text-slate-700 whitespace-nowrap">${cellOrDash(b.time)}${b.endTime ? `<span class="hidden lg:block text-xs font-normal text-slate-500">to ${cellOrDash(b.endTime)}</span>` : ''}</span>
+        <span class="order-1 lg:order-none min-w-0">
+          <span class="block font-bold text-slate-900 capitalize truncate">${escapeHtml(b.clientName)}</span>
+          <span class="block text-xs text-slate-500 font-mono truncate">${escapeHtml(b.id)}</span>
+        </span>
+        <span class="order-3 lg:order-none col-span-2 lg:col-span-1 text-sm text-slate-700 truncate">${cellOrDash(b.serviceName) || 'No service listed'}<span class="lg:hidden text-slate-500"> · <span class="capitalize">${cellOrDash(b.staffName) || 'No stylist'}</span></span></span>
+        <span class="hidden lg:block text-sm text-slate-700 capitalize truncate">${cellOrDash(b.staffName) || '<span class="text-slate-400">No stylist</span>'}</span>
+        <span class="order-4 lg:order-none flex flex-wrap gap-1">
+          <span class="text-xs font-bold px-2.5 py-0.5 rounded-full ${statusBadgeClass(b.status)}">${escapeHtml(b.status)}</span>
+          ${b.status === 'Pending' && b.hasConflict ? '<span class="text-xs font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800">Time clash</span>' : ''}
+        </span>
+        <span class="order-5 lg:order-none text-right font-bold text-slate-900">${CashierApp.formatCurrency(b.price)}</span>
+        <span class="hidden lg:flex justify-end text-slate-400"><i class="fa-solid fa-chevron-right"></i></span>
+      </button>`;
+  }).join('');
+
+  document.getElementById('apptCountLabel').textContent = `Showing ${visible.length} of ${list.length}`;
+  document.getElementById('btnShowMore').classList.toggle('hidden', visible.length >= list.length);
 }
 
-/* Only actions valid for the booking's current status. */
-function actionsFor(b) {
-  const ref = escapeHtml(b.id);
-  const details = `<button data-action="details" data-ref="${ref}" class="text-slate-500 hover:text-slate-800 hover:underline">View</button>`;
+/* Cancelled, but the salon kept the (non-refundable) deposit -- the booking
+   can be rescheduled to use it. Mirrors Reschedule::isReinstatable(). */
+function hasKeptDeposit(b) {
+  return b.status === 'Cancelled' && ['Forfeited', 'Refund Due'].includes(b.paymentStatus) && Number(b.depositAmount) > 0;
+}
 
-  // Deposits are non-refundable (backend/shared/config/booking/CancellationPolicy.php). A
-  // cancelled booking whose deposit was kept can be rescheduled instead,
-  // which reinstates it with that deposit (backend/shared/config/booking/Reschedule.php).
-  if (hasKeptDeposit(b)) {
-    return `${details}<button data-action="reschedule" data-ref="${ref}" class="text-amber-700 font-bold hover:underline">Reschedule</button>
-      <span class="block mt-1 text-xs leading-snug text-rose-700 font-semibold whitespace-normal max-w-[14rem]">No refund ${CashierApp.formatCurrency(b.depositAmount || 0)} deposit is non-refundable. The customer can reschedule to use it.</span>`;
-  }
-
-  if (b.status === 'Pending') {
-    const verify = (b.depositAmount || b.depositReference)
-      ? `<button data-action="verify" data-ref="${ref}" class="text-sky-700 font-bold hover:underline">View Payment Details</button>`
-      : '';
-    return `
-      ${details}
-      ${verify}
-      <button data-action="confirm" data-ref="${ref}" class="text-emerald-700 font-bold hover:underline">Confirm</button>
-      <button data-action="reschedule" data-ref="${ref}" class="text-amber-700 font-bold hover:underline">Reschedule</button>
-      <button data-action="cancel" data-ref="${ref}" class="text-rose-700 font-bold hover:underline">Cancel</button>
-    `;
-  }
-  const reschedule = `<button data-action="reschedule" data-ref="${ref}" class="text-amber-700 font-bold hover:underline">Reschedule</button>`;
-  // Same rule as payment.html's "Awaiting Payment" list: a Confirmed
-  // booking can be checked out from its appointment day onward.
-  const checkout = `<a href="payment.html?ref=${encodeURIComponent(b.id)}" class="text-emerald-700 font-bold hover:underline">Checkout</a>`;
+/* The actions a booking still allows, in the details popup footer. */
+function detailsActionsFor(b) {
+  const ref = encodeURIComponent(b.id);
+  const primary = (label, attrs) => `<a ${attrs} class="btn-primary col-span-2 text-center">${label}</a>`;
+  const action = (label, act, tone = '') => `<button type="button" data-detail-action="${act}" class="btn-secondary py-2.5 text-sm ${tone}">${label}</button>`;
   const isDue = (b.date || '') <= localDateYmd(new Date());
-  if (b.status === 'Confirmed') {
-    const noShow = b.canMarkNoShow ? `<button data-action="no-show" data-ref="${ref}" class="text-rose-700 font-bold hover:underline">Mark No-Show</button>` : '';
-    const requests = (b.arrivalRequests || []).map(kind => `<span class="block mt-1 text-xs font-semibold text-rose-700">${kind === 'no_show' ? 'Stylist requests No-Show' : 'Stylist asks to reassign or reschedule'}</span>`).join('');
-    return `${details}<button data-action="arrival" data-ref="${ref}" class="text-teal-700 font-bold hover:underline">Review Arrival</button>${isDue ? checkout : ''}<button data-action="reassign" data-ref="${ref}" class="text-amber-700 font-bold hover:underline">${b.staffName ? 'Reassign' : 'Assign'} Staff</button>${reschedule}${noShow}${requests}`;
+  const out = [];
+  if (needsPaymentVerification(b)) out.push(primary('Verify payment on Cashier Panel', `href="dashboard.html?verify=${ref}"`));
+  if (hasKeptDeposit(b)) {
+    out.push(action('Reschedule', 'reschedule'));
+  } else if (b.status === 'Pending') {
+    out.push(primary('Confirm on Cashier Panel', `href="dashboard.html?confirm=${ref}"`));
+    out.push(action('Reschedule', 'reschedule'), action('Cancel booking', 'cancel', 'text-rose-700'));
+  } else if (b.status === 'Confirmed') {
+    if (isDue) out.push(`<button type="button" data-detail-action="arrival" class="btn-primary col-span-2">Review arrival &amp; start service</button>`);
+    out.push(action(b.staffName ? 'Change stylist' : 'Assign stylist', 'reassign'), action('Reschedule', 'reschedule'));
+    if (b.canMarkNoShow) out.push(action('Mark no-show', 'no-show', 'text-rose-700 col-span-2'));
+  } else if (b.status === 'Reschedule Requested') {
+    out.push(action('Reschedule', 'reschedule'), action('Cancel booking', 'cancel', 'text-rose-700'));
+  } else if (b.status === 'In Progress' || (b.status === 'Completed' && !b.checkoutPaid)) {
+    out.push(primary('Checkout on Cashier Panel', `href="dashboard.html?checkout=${ref}"`));
   }
-  if (b.status === 'Reschedule Requested') {
-    return `${details}${reschedule}<button data-action="cancel" data-ref="${ref}" class="text-rose-700 font-bold hover:underline">Cancel</button>`;
+  if (b.checkoutPaid || (b.status === 'Completed' && ['Fully Paid', 'Down Payment Verified'].includes(b.paymentStatus))) {
+    out.push(`<a href="receipt.html?ref=${ref}" class="btn-secondary col-span-2 text-center"><i class="fa-solid fa-receipt mr-1"></i>View receipt</a>`);
   }
-  if (b.status === 'In Progress') {
-    return details + checkout;
-  }
-  if (b.status === 'Completed') {
-    // Unpaid completed visits are checked out from the "Ready for Checkout"
-    // list on payment.html, so only the receipt link belongs here.
-    return `
-      ${details}
-      ${b.paymentStatus === 'Fully Paid' || b.paymentStatus === 'Down Payment Verified'
-        ? `<a href="receipt.html?ref=${encodeURIComponent(b.id)}" class="text-emerald-700 font-bold hover:underline">Receipt</a>` : ''}
-    `;
-  }
-  return details;
+  return out.join('');
 }
 
 function showDetails(ref) {
   const b = state.data.bookings.find(x => x.id === ref);
   if (!b) return;
+  state.detailsRef = ref;
+  const item = (label, value, wide = false) => `<div class="${wide ? 'col-span-2' : ''}"><dt class="field-label mb-0.5">${label}</dt><dd class="text-slate-800 font-semibold">${value || '<span class="text-slate-400 font-normal">None</span>'}</dd></div>`;
+  const requests = (b.arrivalRequests || []).map(kind => `<p class="rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm p-3">${kind === 'no_show' ? 'The stylist asks to mark this booking as a no-show.' : 'The stylist asks to reassign or reschedule this booking.'}</p>`).join('');
+  document.getElementById('detailsRef').textContent = b.id;
   document.getElementById('detailsModalBody').innerHTML = `
-    <div class="grid grid-cols-2 gap-y-2 gap-x-3">
-      <div><span class="text-gray-400 block text-xs uppercase font-bold">Reference</span>${cellOrDash(b.id)}</div>
-      <div><span class="text-gray-400 block text-xs uppercase font-bold">Status</span>${cellOrDash(b.status)}</div>
-      <div><span class="text-gray-400 block text-xs uppercase font-bold">Client</span>${cellOrDash(b.clientName)}</div>
-      <div><span class="text-gray-400 block text-xs uppercase font-bold">Contact</span>${cellOrDash(b.clientPhone)}</div>
-      <div><span class="text-gray-400 block text-xs uppercase font-bold">Date</span>${cellOrDash(b.date)}</div>
-      <div><span class="text-gray-400 block text-xs uppercase font-bold">Time</span>${cellOrDash(b.time)} &ndash; ${cellOrDash(b.endTime)}</div>
-      <div class="col-span-2"><span class="text-gray-400 block text-xs uppercase font-bold">Service(s)</span>${cellOrDash(b.serviceName)}</div>
-      <div><span class="text-gray-400 block text-xs uppercase font-bold">Duration</span>${b.durationMinutes ? b.durationMinutes + ' min' : ''}</div>
-      <div><span class="text-gray-400 block text-xs uppercase font-bold">Staff</span>${cellOrDash(b.staffName)}</div>
-      <div><span class="text-gray-400 block text-xs uppercase font-bold">Payment Status</span>${cellOrDash(PortalPresentation.paymentStatus(b.paymentStatus))}</div>
-      <div><span class="text-gray-400 block text-xs uppercase font-bold">Total</span>${CashierApp.formatCurrency(b.price)}</div>
+    <div class="space-y-4">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="font-bold text-xl text-slate-900 capitalize">${escapeHtml(b.clientName)}</p>
+          <p class="text-sm text-slate-500">${cellOrDash(b.clientPhone)}</p>
+        </div>
+        <div class="flex flex-col items-end gap-1">
+          <span class="text-xs font-bold px-2.5 py-1 rounded-full ${statusBadgeClass(b.status)}">${escapeHtml(b.status)}</span>
+          <span class="text-xs font-bold px-2.5 py-1 rounded-full ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(PortalPresentation.paymentStatus(b.paymentStatus))}</span>
+        </div>
+      </div>
+      ${requests}
+      <dl class="grid grid-cols-2 gap-3 text-sm rounded-xl border border-gray-200 bg-[#FFFDF9] p-4">
+        ${item('Date', cellOrDash(b.date))}
+        ${item('Time', cellOrDash(b.time) + (b.endTime ? ' – ' + cellOrDash(b.endTime) : ''))}
+        ${item('Services', cellOrDash(b.serviceName), true)}
+        ${item('Stylist', `<span class="capitalize">${cellOrDash(b.staffName)}</span>`)}
+        ${item('Duration', b.durationMinutes ? b.durationMinutes + ' min' : '')}
+        ${item('Total', CashierApp.formatCurrency(b.price))}
+        ${item('Booked on', cellOrDash(b.submittedAt))}
+      </dl>
       ${b.depositAmount || b.depositReference ? `
-      <div class="col-span-2 border-t border-gray-100 pt-2 mt-1">
-        <span class="text-gray-400 block text-xs uppercase font-bold mb-1">${b.depositVerified ? 'Verified Payment' : 'Self-Reported Payment (unverified)'}</span>
-        <p>Amount: <strong>${b.depositAmount ? CashierApp.formatCurrency(b.depositAmount) : ''}</strong> via <strong>${cellOrDash(PortalPresentation.methodLabel(b.paymentMethod))}</strong></p>
-        <p>Reference: <strong>${cellOrDash(b.depositReference)}</strong></p>
+      <div class="rounded-xl border p-4 text-sm ${b.depositVerified ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : 'border-amber-200 bg-amber-50 text-amber-900'}">
+        <p class="font-bold mb-1">${b.depositVerified ? 'Reservation payment (verified)' : 'Reservation payment (not checked yet)'}</p>
+        <p>${b.depositAmount ? CashierApp.formatCurrency(b.depositAmount) : ''} by ${cellOrDash(PortalPresentation.methodLabel(b.depositMethod || b.paymentMethod)) || 'unknown method'}</p>
+        ${b.depositReference ? `<p>Reference no. <span class="font-mono font-bold">${cellOrDash(b.depositReference)}</span></p>` : ''}
       </div>` : ''}
-    </div>
-  `;
+      ${hasKeptDeposit(b) ? `<p class="rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm p-3">The ${CashierApp.formatCurrency(b.depositAmount || 0)} deposit is non-refundable. The customer can reschedule to use it.</p>` : ''}
+    </div>`;
+  const actions = detailsActionsFor(b);
+  const actionsEl = document.getElementById('detailsActions');
+  actionsEl.innerHTML = actions;
+  actionsEl.classList.toggle('hidden', !actions);
   CashierApp.showModal('detailsModal');
-}
-
-/* Pending bookings haven't been staffed yet. "Confirm" auto-assigns the
-   first on-duty stylist at this branch, then -- after a deposit is
-   recorded in the modal -- advances the booking to Confirmed. The deposit
-   is what actually "locks" the reservation. */
-async function admitAppointmentToQueue(ref, depositAmount, depositMethod) {
-  const onDutyStaff = state.data.staffList.filter(s => s.onShift);
-  if (!onDutyStaff.length) {
-    CashierApp.toast('No on-duty stylist available to admit this client.', 'error');
-    return;
-  }
-
-  let assignedStylist = null;
-  let lastError = null;
-  for (const stylist of onDutyStaff) {
-    const assignResult = await CashierApp.post('assignStaff.php', { id: ref, staffId: stylist.id });
-    if (assignResult.success) {
-      assignedStylist = stylist;
-      break;
-    }
-    lastError = assignResult.message;
-  }
-
-  if (!assignedStylist) {
-    CashierApp.toast(lastError || 'No on-duty stylist is qualified for this booking.', 'error');
-    return;
-  }
-
-  const statusResult = await CashierApp.post('updateStatus.php', { id: ref, status: 'Confirmed', depositAmount, depositMethod });
-  if (!statusResult.success) {
-    CashierApp.toast(statusResult.message || 'Failed to confirm the booking.', 'error');
-    return;
-  }
-
-  CashierApp.toast(`Booking confirmed, assigned to ${assignedStylist.name}.`, 'success');
-  await refreshData();
-}
-
-function openDepositModal(ref) {
-  state.pendingAdmitRef = ref;
-  const booking = state.data.bookings.find(b => b.id === ref);
-  const allowedDepositMethods = ['Cash', 'GCash', 'Maya', 'PayMongo', 'PayMongo-GCash', 'PayMongo-Maya', 'PayMongo-Card'];
-
-  document.getElementById('depositAmountInput').value = booking ? (booking.depositAmount || booking.price) : '';
-  const method = booking && (booking.depositMethod || booking.paymentMethod); // The recorded online method wins over the booked one.
-  document.getElementById('depositMethodInput').value = allowedDepositMethods.includes(method) ? method : '';
-
-  const banner = document.getElementById('depositVerifyBanner');
-  if (booking && booking.depositAmount && !booking.depositVerified) {
-    banner.classList.remove('hidden');
-    document.getElementById('depositVerifyAmount').textContent = CashierApp.formatCurrency(booking.depositAmount);
-    document.getElementById('depositVerifyMethod').textContent = PortalPresentation.methodLabel(booking.paymentMethod) || '';
-    document.getElementById('depositVerifyRefRow').classList.toggle('hidden', !booking.depositReference);
-    document.getElementById('depositVerifyRefValue').textContent = booking.depositReference || '';
-    document.getElementById('depositVerifyNoRef').classList.toggle('hidden', !!booking.depositReference);
-  } else {
-    banner.classList.add('hidden');
-  }
-  // "Verify Payment" is the only wording for an action that marks a payment verified.
-  document.getElementById('btnConfirmDeposit').textContent = booking && booking.depositVerified ? 'Confirm & Admit' : 'Verify Payment';
-
-  CashierApp.showModal('depositModal');
-}
-
-async function confirmDepositAndAdmit() {
-  const amount = document.getElementById('depositAmountInput').value;
-  const method = document.getElementById('depositMethodInput').value;
-  if (!amount || Number(amount) <= 0 || !method) {
-    CashierApp.toast('A deposit amount and payment method are required.', 'error');
-    return;
-  }
-  await admitAppointmentToQueue(state.pendingAdmitRef, amount, method);
-  CashierApp.hideModal('depositModal');
-  state.pendingAdmitRef = null;
 }
 
 function openReassignModal(ref) {
@@ -306,9 +277,6 @@ async function confirmReassign() {
 /* RESCHEDULE -- pick a new date + an open slot and move the booking
    (backend/cashier/rescheduleAppointment.php), or fall back to flagging it
    "Reschedule Requested" so the customer is asked to sort out a new time. */
-function localDateYmd(d) {
-  return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
-}
 
 function openRescheduleModal(ref) {
   const b = state.data.bookings.find(x => x.id === ref);
@@ -418,12 +386,6 @@ async function askCustomerToReschedule() {
   }
 }
 
-/* Cancelled, but the salon kept the (non-refundable) deposit -- the booking
-   can be rescheduled to use it. Mirrors Reschedule::isReinstatable(). */
-function hasKeptDeposit(b) {
-  return b.status === 'Cancelled' && ['Forfeited', 'Refund Due'].includes(b.paymentStatus) && Number(b.depositAmount) > 0;
-}
-
 async function cancelBooking(ref) {
   const b = state.data.bookings.find(x => x.id === ref);
   const depositNote = b && b.depositAmount && ['Down Payment Verified', 'Fully Paid'].includes(b.paymentStatus)
@@ -447,21 +409,21 @@ async function markNoShow(ref) {
 }
 
 function wireStaticEvents() {
-  document.getElementById('statusTabs').addEventListener('click', (e) => {
-    const btn = e.target.closest('.tab-btn');
-    if (btn) setActiveTab(btn.dataset.tab);
+  document.getElementById('apptSearch').addEventListener('input', () => { state.shown = PAGE_SIZE; renderAppointments(); });
+  document.getElementById('apptStatus').addEventListener('change', () => { state.shown = PAGE_SIZE; renderAppointments(); });
+  document.getElementById('apptPeriod').addEventListener('change', () => { state.shown = PAGE_SIZE; renderAppointments(); });
+  document.getElementById('btnShowMore').addEventListener('click', () => { state.shown += PAGE_SIZE; renderAppointments(); });
+  document.getElementById('appointmentsList').addEventListener('click', (e) => {
+    const row = e.target.closest('.appt-row');
+    if (row) showDetails(row.dataset.ref);
   });
-  document.getElementById('apptSearch').addEventListener('input', renderAppointments);
 
-  document.getElementById('appointmentsTableBody').addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-action]');
+  document.getElementById('detailsActions').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-detail-action]');
     if (!btn) return;
-    const ref = btn.dataset.ref;
-    switch (btn.dataset.action) {
-      case 'details': showDetails(ref); break;
+    const ref = state.detailsRef;
+    switch (btn.dataset.detailAction) {
       case 'arrival': AppointmentArrival.review(ref, 'backend/cashier/updateStatus.php').then(changed => { if (changed) refreshData(); }); break;
-      case 'verify': showDetails(ref); break;
-      case 'confirm': openDepositModal(ref); break;
       case 'reassign': openReassignModal(ref); break;
       case 'reschedule': openRescheduleModal(ref); break;
       case 'cancel': cancelBooking(ref); break;
@@ -469,9 +431,7 @@ function wireStaticEvents() {
     }
   });
 
-  document.getElementById('btnCloseDepositModal').addEventListener('click', () => CashierApp.hideModal('depositModal'));
-  document.getElementById('btnConfirmDeposit').addEventListener('click', confirmDepositAndAdmit);
-  document.getElementById('btnCloseDetailsModal').addEventListener('click', () => CashierApp.hideModal('detailsModal'));
+  document.getElementById('btnCloseDetailsModal').addEventListener('click', () => { state.detailsRef = null; CashierApp.hideModal('detailsModal'); });
   document.getElementById('btnCloseReassignModal').addEventListener('click', () => CashierApp.hideModal('reassignModal'));
   document.getElementById('btnConfirmReassign').addEventListener('click', confirmReassign);
 

@@ -201,7 +201,6 @@
     branchSelect.value = '';
     branchSelect.disabled = false;
     document.getElementById('bookBranchLockNote')?.classList.add('hidden');
-    bookDepositLocked = false;
     bookDepositInfo = { amount: 0, method: '', reference: '' };
     document.getElementById('bookDepositForm').classList.remove('hidden');
     document.getElementById('bookDepositLocked').classList.add('hidden');
@@ -1036,7 +1035,7 @@
       hours: '8:00 AM – 8:00 PM', hoursNote: 'Open Daily',
       phone: '0918 536 8016', tel: '+639185368016', email: 'leomejillano88@yahoo.com',
       phone2: '0907 869 6035', tel2: '+639078696035', phone2Label: 'Aesthetics line Nurse Jemar',
-      img: 'frontend/shared/image/Daraga.png'
+      img: 'frontend/shared/image/Daraga.webp'
     },
     yashano: {
       tag: 'Mall Studio',
@@ -1970,7 +1969,6 @@
   // One stylist per service: { [serviceId]: { id, name } } (see loadStaffList).
   let selectedServiceStaff = {};
   let pendingBooking = null;
-  let bookDepositLocked = false;
   let bookDepositInfo = { amount: 0, method: '', reference: '' };
 
   let bookReservationQuote = null;
@@ -2307,8 +2305,9 @@
         box.querySelectorAll('.book-staff-service').forEach(group => {
           group.querySelectorAll('.staff-btn:not([disabled])').forEach(btn => {
             btn.addEventListener('click', () => {
-              group.querySelectorAll('.staff-btn').forEach(b => b.classList.remove('bg-plum', 'text-white', 'border-plum', '!text-white'));
-              btn.classList.add('bg-plum', 'text-white', 'border-plum');
+              group.querySelectorAll('.staff-btn').forEach(b => { b.classList.remove('is-selected'); b.setAttribute('aria-pressed', 'false'); });
+              btn.classList.add('is-selected');
+              btn.setAttribute('aria-pressed', 'true');
               selectedServiceStaff[group.dataset.service] = { id: btn.dataset.staff, name: btn.dataset.name };
               const picks = services.map(svc => selectedServiceStaff[svc.id]);
               const complete = picks.every(Boolean);
@@ -2382,8 +2381,9 @@
         '</div>';
         box.querySelectorAll('.slot-btn:not([disabled])').forEach(btn => {
           btn.addEventListener('click', () => {
-            box.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('bg-plum', 'text-white', 'border-plum'));
-            btn.classList.add('bg-plum', 'text-white', 'border-plum');
+            box.querySelectorAll('.slot-btn').forEach(b => { b.classList.remove('is-selected'); b.setAttribute('aria-pressed', 'false'); });
+            btn.classList.add('is-selected');
+            btn.setAttribute('aria-pressed', 'true');
             selectedSlotLabel = btn.dataset.slot;
             updateServiceSummary();
             refreshStaffListIfReady();
@@ -2402,7 +2402,6 @@
 
   document.getElementById('bookBranchSelect')?.addEventListener('change', e => {
     const branchId = e.target.value;
-    unlockDepositGate();
     resetServiceList();
     updateDepositRequiredDisplay();
     if (branchId) loadBranchServices(branchId); else resetServiceList();
@@ -2418,13 +2417,6 @@
       updateServiceSummary();
       refreshSlotGridIfReady();
       updateDepositRequiredDisplay();
-      // Services changed after the deposit was already locked in -- the
-      // required amount may no longer match what was submitted, so make
-      // them resubmit rather than silently keep a stale deposit.
-      if (bookDepositLocked) {
-        showToast('Services changed please update your deposit details.');
-        unlockDepositGate();
-      }
     }
   });
 
@@ -2434,16 +2426,11 @@
     return document.querySelector('input[name="bookPaymentPlan"]:checked')?.value || 'deposit';
   }
 
-  document.querySelectorAll('input[name="bookPaymentPlan"]').forEach(radio => radio.addEventListener('change', () => {
-    if (bookDepositLocked) unlockDepositGate();
-    updateDepositRequiredDisplay();
-  }));
+  document.querySelectorAll('input[name="bookPaymentPlan"]').forEach(radio => radio.addEventListener('change', updateDepositRequiredDisplay));
 
   async function updateDepositRequiredDisplay() {
     const request = ++bookQuoteRequest;
     bookReservationQuote = null;
-    const button = document.getElementById('bookDepositLockBtn');
-    button.disabled = true;
     ['bookPaymentServices', 'bookPaymentTotal', 'bookPaymentRequirement', 'bookDepositRequired', 'bookPaymentBalance'].forEach(id => document.getElementById(id).textContent = '');
     const params = new URLSearchParams({ branch: document.getElementById('bookBranchSelect').value });
     const selected = document.querySelectorAll('.book-service-check:checked');
@@ -2472,8 +2459,6 @@
       // ₱0 amount. The backend still records method 'Cash' (already
       // validated, requires no reference) since amountDue is 0.
       if (body.quote.reservationRequirement === 'No Online Reservation') {
-        bookDepositInfo = { amount: 0, method: 'Cash', reference: '' };
-        bookDepositLocked = true;
         document.getElementById('bookDepositForm').classList.add('hidden');
         const locked = document.getElementById('bookDepositLocked');
         locked.classList.remove('hidden');
@@ -2482,25 +2467,13 @@
       } else {
         document.getElementById('bookDepositForm').classList.remove('hidden');
         document.getElementById('bookDepositLocked').classList.add('hidden');
-        bookDepositLocked = false;
+        document.getElementById('bookDepositLocked').classList.remove('flex');
       }
       return body.quote.amountDue;
     } catch (error) {
       if (request === bookQuoteRequest) document.getElementById('bookQuoteError').textContent = error.message || 'Unable to calculate Pay Now. Please select your services again.';
       return null;
-    } finally {
-      if (request === bookQuoteRequest) button.disabled = false;
     }
-  }
-
-  function unlockDepositGate() {
-    bookDepositLocked = false;
-    bookDepositInfo = { amount: 0, method: '', reference: '' };
-    document.getElementById('bookDepositForm').classList.remove('hidden');
-    const locked = document.getElementById('bookDepositLocked');
-    locked.classList.add('hidden');
-    locked.classList.remove('flex');
-    document.getElementById('bookScheduleSection').classList.remove('hidden');
   }
 
   document.getElementById('bookDepositMethod')?.addEventListener('change', e => {
@@ -2511,33 +2484,6 @@
     document.getElementById('bookDepositEwalletNote').classList.toggle('hidden', !ewallet);
     if (ewallet) document.querySelector('#bookDepositEwalletNote [data-wallet-name]').textContent = PAY_METHOD_NAMES[method];
   });
-
-  document.getElementById('bookDepositLockBtn')?.addEventListener('click', async () => {
-    if (!document.querySelectorAll('.book-service-check:checked').length) { fieldError('bookServiceList', 'Please choose at least one service first.'); return; }
-    if (!selectedSlotLabel) { fieldError('bookSlotGrid', 'Please choose an available time first.'); return; }
-    if (!selectedStaffId) { fieldError('bookStaffList', 'Please select a staff member first.'); return; }
-    const method = document.querySelector('input[name="bookDepositMethod"]:checked')?.value || '';
-    if (!method) { fieldError('bookDepositMethod', 'Please choose a payment method for your deposit.'); return; }
-
-    const amount = await updateDepositRequiredDisplay();
-    if (amount === null) return;
-    bookDepositInfo = { amount, method, reference: '' };
-    bookDepositLocked = true;
-
-    document.getElementById('bookDepositForm').classList.add('hidden');
-    const locked = document.getElementById('bookDepositLocked');
-    locked.classList.remove('hidden');
-    locked.classList.add('flex');
-    document.getElementById('bookDepositLockedSummary').textContent =
-      method !== 'Cash'
-        ? formatReservationMoney(amount) + ' pay with ' + PAY_METHOD_NAMES[method] + ' after you confirm'
-        : formatReservationMoney(amount) + ' via ' + method + (bookDepositInfo.reference ? ' (Ref: ' + bookDepositInfo.reference + ')' : ' pay in person');
-
-    document.getElementById('bookScheduleSection').classList.remove('hidden');
-    document.getElementById('bookName').focus();
-  });
-
-  document.getElementById('bookDepositChangeBtn')?.addEventListener('click', unlockDepositGate);
 
   document.querySelectorAll('#bookNotify .notify-opt').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -2565,7 +2511,12 @@
     if (!date) { fieldError('bookDate', 'Please select a date.'); return; }
     if (!selectedSlotLabel) { fieldError('bookSlotGrid', 'Please choose an available time.'); return; }
     if (!selectedStaffId) { fieldError('bookStaffList', 'Please select an available staff member for each service.'); return; }
-    if (!bookDepositLocked) { fieldError('bookDepositLockBtn', 'Please save your payment details before reviewing your booking.'); return; }
+    // Reads the latest quote and the chosen method here, so a change above can't leave a stale amount.
+    const quote = bookReservationQuote;
+    if (!quote) { fieldError('bookDepositGate', document.getElementById('bookQuoteError').textContent || 'Please wait while we calculate your payment.'); return; }
+    const payMethod = quote.reservationRequirement === 'No Online Reservation' ? 'Cash' : document.querySelector('input[name="bookDepositMethod"]:checked')?.value;
+    if (!payMethod) { fieldError('bookDepositMethod', 'Please choose a payment method.'); return; }
+    bookDepositInfo = { amount: quote.amountDue, method: payMethod, reference: '' };
     if (!name) { fieldError('bookName', 'Please enter your full name.'); return; }
     if (!/^09\d{9}$/.test(phone)) { fieldError('bookPhone', 'Please enter a valid 11-digit mobile number (09XXXXXXXXX).'); return; }
     if (email && !/^\S+@\S+\.\S+$/.test(email)) { fieldError('bookEmail', 'Please enter a valid email address, or leave it blank.'); return; }
@@ -2602,12 +2553,11 @@
     bookingModalBox.scrollTop = 0;
     document.getElementById('bookingReviewHeading').focus();
 
-    // No email means nothing to OTP-verify -- the confirm button submits
-    // straight to the backend instead of first requesting an email code.
-    document.getElementById('bookReviewConfirm').textContent = email ? 'Continue to email verification' : 'Confirm booking';
-    document.getElementById('bookReviewNextNote').textContent = email
-      ? 'Next, verify your email. Your request will remain pending until the branch confirms your appointment and deposit.'
-      : 'Your request will remain pending until the branch confirms your appointment and deposit.';
+    // Every guest booking is verified with a code: emailed when an email was
+    // given, otherwise texted to the mobile number (backend/public/sendBookingOtp.php).
+    document.getElementById('bookReviewConfirm').textContent = bookVerifyLabel(email);
+    document.getElementById('bookReviewNextNote').textContent = 'Next, verify your ' + (email ? 'email' : 'mobile number')
+      + '. Your request will remain pending until the branch confirms your appointment and deposit.';
   });
 
   document.getElementById('bookReviewEdit').addEventListener('click', () => {
@@ -2617,6 +2567,10 @@
     bookingModalBox.scrollTop = 0;
   });
 
+  function bookVerifyLabel(email) {
+    return email ? 'Continue to email verification' : 'Text me a verification code';
+  }
+
   document.getElementById('bookReviewConfirm').addEventListener('click', () => {
     if (!pendingBooking) return;
     const email = pendingBooking.email;
@@ -2624,18 +2578,6 @@
 
     const submitBtn = document.getElementById('bookReviewConfirm');
     if (submitBtn.disabled) return;
-
-    // No email was given, so there's nothing to OTP-verify -- submit the
-    // booking directly with the same backend endpoint and payment rules
-    // used for the email-verified path.
-    if (!email) {
-      submitBtn.disabled = true;
-      document.getElementById('bookReviewEdit').disabled = true;
-      submitBtn.textContent = 'Booking…';
-      finalizeGuestBooking(pendingBooking, '', submitBtn, 'Confirm booking')
-        .finally(() => { document.getElementById('bookReviewEdit').disabled = false; });
-      return;
-    }
 
     submitBtn.disabled = true;
     document.getElementById('bookReviewEdit').disabled = true;
@@ -2650,15 +2592,17 @@
       .then(res => {
         submitBtn.disabled = false;
         document.getElementById('bookReviewEdit').disabled = false;
-        submitBtn.textContent = 'Continue to email verification';
+        submitBtn.textContent = bookVerifyLabel(email);
         if (pendingBooking !== reviewedBooking) return;
         if (!res.success) {
           showToast(res.message);
-          if (res.retryAfter) startBookOtpCooldown(res.retryAfter, submitBtn, 'Continue to email verification');
+          if (res.retryAfter) startBookOtpCooldown(res.retryAfter, submitBtn, bookVerifyLabel(email));
           return;
         }
 
-        document.getElementById('bookOtpEmailLabel').textContent = email;
+        document.getElementById('bookOtpHeading').textContent = email ? 'Verify your email' : 'Verify your mobile number';
+        document.getElementById('bookOtpEmailLabel').textContent = email || reviewedBooking.phone;
+        document.getElementById('bookOtpAccountHelp').classList.add('hidden');
         document.getElementById('bookingFormPanel').classList.add('hidden');
         document.getElementById('bookingReviewPanel').classList.add('hidden');
         document.getElementById('bookingOtpPanel').classList.remove('hidden');
@@ -2670,7 +2614,7 @@
       .catch(() => {
         submitBtn.disabled = false;
         document.getElementById('bookReviewEdit').disabled = false;
-        submitBtn.textContent = 'Continue to email verification';
+        submitBtn.textContent = bookVerifyLabel(email);
         showToast('A network error occurred. Please try again.');
       });
   });
@@ -2697,6 +2641,11 @@
   function resetBookOtpInputs() {
     bookOtpDigits.forEach(d => d.value = '');
   }
+
+  // Keep the code boxes visible above the phone keyboard.
+  document.querySelectorAll('.book-otp-digit').forEach(input => {
+    input.addEventListener('focus', () => setTimeout(() => input.scrollIntoView({ block: 'center', behavior: 'smooth' }), 250));
+  });
 
   function startBookOtpCooldown(seconds, btn = document.getElementById('bookOtpResendBtn'), baseLabel = 'Resend code') {
     let cooldown = seconds;
@@ -2745,10 +2694,32 @@
     document.getElementById('bookingModalBox').scrollTop = 0;
   });
 
-  // Shared by both guest-booking completion paths: with an email (after the
-  // OTP form) and without one (straight from the review step, since there's
-  // nothing to verify). Same backend endpoint, same booking system, same
-  // payment rules either way -- only whether otpCode is populated differs.
+  // The number belongs to an account with another email: a code texted to that number proves it's theirs.
+  document.getElementById('bookOtpTextInstead')?.addEventListener('click', e => {
+    if (!pendingBooking) return;
+    const btn = e.currentTarget;
+    btn.disabled = true;
+    const formData = new FormData();
+    formData.append('email', '');
+    formData.append('phone', pendingBooking.phone);
+    fetch('backend/public/sendBookingOtp.php', { method: 'POST', body: formData })
+      .then(r => r.json())
+      .then(res => {
+        btn.disabled = false;
+        if (!res.success) { showToast(res.message); return; }
+        pendingBooking.email = '';
+        document.getElementById('bookEmail').value = '';
+        document.getElementById('bookOtpHeading').textContent = 'Verify your mobile number';
+        document.getElementById('bookOtpEmailLabel').textContent = pendingBooking.phone;
+        document.getElementById('bookOtpAccountHelp').classList.add('hidden');
+        BookingFormValidation.message(document.getElementById('bookOtpSubmitBtn'), '');
+        resetBookOtpInputs();
+        startBookOtpCooldown(res.retryAfter || 60);
+        document.querySelector('.book-otp-digit')?.focus();
+      })
+      .catch(() => { btn.disabled = false; showToast('A network error occurred. Please try again.'); });
+  });
+
   let guestBookingSubmitting = false;
   function finalizeGuestBooking(booking, otpCode, submitBtn, idleLabel) {
     if (guestBookingSubmitting) return Promise.resolve(false);
@@ -2778,8 +2749,12 @@
         if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = idleLabel; }
 
         if (!res.success) {
-          showToast(res.message);
           BookingFormValidation.message(submitBtn, res.message || 'Could not send your booking. Please try again.');
+          if (res.useTextCode) {
+            document.getElementById('bookOtpAccountHelp').classList.remove('hidden');
+            return false;
+          }
+          showToast(res.message);
           if (res.errors || res.conflict) {
             document.getElementById('bookingOtpPanel').classList.add('hidden');
             document.getElementById('bookingReviewPanel').classList.add('hidden');
@@ -2789,7 +2764,6 @@
             if (res.conflict) BookingFormValidation.message(document.getElementById('bookDate'), res.message);
           }
           if (res.quoteChanged) {
-            unlockDepositGate();
             updateDepositRequiredDisplay();
             document.getElementById('bookingOtpPanel').classList.add('hidden');
             document.getElementById('bookingReviewPanel').classList.add('hidden');
@@ -2978,20 +2952,20 @@
     }
     const ml = document.getElementById('themeLabelMobile');
     if (ml) ml.textContent = dark ? 'Light mode' : 'Dark mode';
-    try { localStorage.setItem('lm-theme', mode); } catch (e) { /* storage unavailable */ }
   }
 
   function toggleTheme() {
-    applyTheme(document.documentElement.classList.contains('dark') ? 'light' : 'dark');
+    const mode = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+    applyTheme(mode);
+    try { localStorage.setItem('lm-theme-choice', mode); } catch (e) { /* storage unavailable */ }
   }
 
+  // Light unless the visitor chose dark with the toggle. The older 'lm-theme' key also
+  // saved the device setting automatically, so it isn't read: it may not be a real choice.
   function initTheme() {
     let saved = null;
-    try { saved = localStorage.getItem('lm-theme'); } catch (e) { /* storage unavailable */ }
-    if (!saved) {
-      saved = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    applyTheme(saved);
+    try { saved = localStorage.getItem('lm-theme-choice'); } catch (e) { /* storage unavailable */ }
+    applyTheme(saved === 'dark' ? 'dark' : 'light');
   }
 
   /* ---- Portal login ----------------------------------------------------

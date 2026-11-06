@@ -3,6 +3,7 @@ require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/security/RateLimiter.php';
+require_once '../../backend/shared/config/security/GuestAccountClaim.php';
 
 sendCorsHeaders();
 AuditLog::captureRequest();
@@ -67,6 +68,16 @@ try {
     }
 
     $otp_limiter->clear();
+
+    // This number has guest bookings: its texted code comes next, and the
+    // account stays inactive until then.
+    $claim = GuestAccountClaim::forUser($pdo, (int) $user['id']);
+    if ($claim) {
+        $pdo->prepare("UPDATE users SET otp_code = NULL, otp_expiry = NULL WHERE id = ?")->execute([$user['id']]);
+        http_response_code(200);
+        echo json_encode(['success' => true, 'message' => 'Email verified. One more step: confirm your mobile number.'] + GuestAccountClaim::startPhoneStep($pdo, $claim));
+        exit();
+    }
 
     $stmt = $pdo->prepare("UPDATE users SET is_active = 1, otp_code = NULL, otp_expiry = NULL WHERE id = ?");
     $stmt->execute([$user['id']]);

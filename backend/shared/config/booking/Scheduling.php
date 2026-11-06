@@ -684,8 +684,9 @@ class Scheduling
      *
      * The clock-out is recorded at the branch's closing time (not "now") and
      * tagged NOTE_AUTO_CLOSE so an admin can correct the hours. A stylist
-     * still mid-service today is left open; a shift from a previous day is
-     * always closed, even if a booking was left In Progress.
+     * still mid-service is left open, also past midnight for a shift that
+     * started yesterday; older shifts are always closed, even if a booking
+     * was left In Progress.
      */
     public static function autoCloseAttendance(PDO $pdo, int $employeeId, ?int $branchId): void
     {
@@ -694,7 +695,8 @@ class Scheduling
         }
 
         $stmt = $pdo->prepare("
-            SELECT id, clock_in_time, DATE(clock_in_time) AS work_date, DATE(clock_in_time) = CURDATE() AS is_today
+            SELECT id, clock_in_time, DATE(clock_in_time) AS work_date, DATE(clock_in_time) = CURDATE() AS is_today,
+                   DATE(clock_in_time) >= CURDATE() - INTERVAL 1 DAY AS is_recent
             FROM attendance
             WHERE employee_id = ? AND clock_out_time IS NULL
         ");
@@ -737,14 +739,19 @@ class Scheduling
                 continue; // Branch hours haven't ended yet for this work day -- stays On Shift.
             }
 
-            if ((int) $row['is_today']) {
-                $stmt = $pdo->prepare("SELECT COUNT(*) FROM appointments WHERE employee_id = ? AND status = 'In Progress' AND DATE(appointment_datetime) = CURDATE()");
-                $stmt->execute([$employeeId]);
+            // A service still running keeps its shift open, also past
+            // midnight (a shift from yesterday whose service is still on).
+            if ((int) $row['is_recent']) {
+                $stmt = $pdo->prepare("SELECT COUNT(*) FROM appointments WHERE employee_id = ? AND status = 'In Progress' AND DATE(appointment_datetime) = ?");
+                $stmt->execute([$employeeId, $row['work_date']]);
                 $hasActiveAppointment = (int) $stmt->fetchColumn() > 0;
 
-                $stmt = $pdo->prepare("SELECT COUNT(*) FROM home_service_requests WHERE employee_id = ? AND status = 'Confirmed'");
-                $stmt->execute([$employeeId]);
-                $hasActiveHomeService = (int) $stmt->fetchColumn() > 0;
+                $hasActiveHomeService = false;
+                if ((int) $row['is_today']) {
+                    $stmt = $pdo->prepare("SELECT COUNT(*) FROM home_service_requests WHERE employee_id = ? AND status = 'Confirmed'");
+                    $stmt->execute([$employeeId]);
+                    $hasActiveHomeService = (int) $stmt->fetchColumn() > 0;
+                }
 
                 if ($hasActiveAppointment || $hasActiveHomeService) {
                     continue; // Real work still open tonight -- don't force Off Shift yet.

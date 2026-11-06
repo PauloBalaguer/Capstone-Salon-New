@@ -43,18 +43,10 @@ function mock_edit(callable $change): void
     $change($state);
     file_put_contents($stateFile, json_encode($state));
 }
-// What PayMongo records when the customer cancels on / authorizes on the GCash page.
-function mock_payment(string $intentId, bool $paid, string $message = ''): void
+// What PayMongo does to the GCash Source when the customer authorizes on / cancels on the GCash page.
+function mock_payment(string $sourceId, bool $paid): void
 {
-    mock_edit(function (&$s) use ($intentId, $paid, $message) {
-        $payId = 'pay_' . (count($s['payments']) + 1);
-        $intent = &$s['intents'][$intentId];
-        $s['payments'][$payId] = ['amount' => $intent['amount'], 'currency' => 'PHP', 'status' => $paid ? 'paid' : 'failed', 'fee' => 250,
-            'payment_intent_id' => $intentId, 'source' => ['id' => 'src_x', 'type' => 'gcash'], 'description' => $intent['description'] ?? '']
-            + ($paid ? [] : ['failed_code' => 'CLOSED', 'failed_message' => $message]);
-        $intent['status'] = $paid ? 'succeeded' : 'awaiting_payment_method';
-        $intent['payment_ids'][] = $payId;
-    });
+    mock_edit(function (&$s) use ($sourceId, $paid) { $s['sources'][$sourceId]['status'] = $paid ? 'chargeable' : 'cancelled'; });
 }
 function log_count(PDO $pdo, string $event, string $reference): int
 {
@@ -78,11 +70,11 @@ $id = (int) $appt['id'];
 $status = fn() => run_endpoint(['script' => 'backend/public/paymongoStatus.php', 'method' => 'GET', 'paymongo' => MOCK_API,
     'get' => ['ref' => $ref, 'token' => $appt['online_payment_token']]]);
 
-mock_payment($appt['paymongo_payment_intent_id'], false, 'The payment was cancelled by the customer.');
+mock_payment($appt['paymongo_source_id'], false);
 $r = $status();
 $now = row($pdo, 'appointments', $id);
 check('payment cancelled on the GCash page -> result page shows "failed" with the reason', ($r['state'] ?? '') === 'failed'
-    && $r['reason'] === 'The payment was cancelled by the customer.');
+    && $r['reason'] === 'GCash payment was cancelled or did not go through.');
 check('failed payment -> booking still Pending and unpaid, nothing collected', $now['status'] === 'Pending' && (int) $now['deposit_paid'] === 0
     && $now['payment_status'] === 'Payment Required' && !array_filter(RevenueReport::rows($pdo, []), fn($row) => $row['reference'] === $ref));
 check('failure logged once', log_count($pdo, 'payment_failed', $ref) === 1);
@@ -91,9 +83,9 @@ $r = run_endpoint(['script' => 'backend/public/paymongoPay.php', 'paymongo' => M
     'post' => ['ref' => $ref, 'token' => $appt['online_payment_token'], 'method' => 'PayMongo-GCash']]);
 $retry = row($pdo, 'appointments', $id);
 check('"Try again" -> a new GCash attempt for the same booking', ($r['success'] ?? false) === true
-    && $retry['paymongo_payment_intent_id'] !== $appt['paymongo_payment_intent_id']
+    && $retry['paymongo_source_id'] !== $appt['paymongo_source_id']
     && (int) $pdo->query("SELECT COUNT(*) FROM appointments WHERE reference_code = " . $pdo->quote($ref))->fetchColumn() === 1);
-mock_payment($retry['paymongo_payment_intent_id'], true);
+mock_payment($retry['paymongo_source_id'], true);
 $r = $status();
 $status();
 $paid = row($pdo, 'appointments', $id);
@@ -211,5 +203,17 @@ check('cancel with an unverified cash deposit (never collected) -> payment statu
 $online = $booking('NOW() + INTERVAL 5 DAY', ['deposit_recorded_by' => null, 'payment_status' => 'Awaiting Verification', 'deposit_method' => 'PayMongo-GCash']);
 $cancel($online);
 check('cancel after a PayMongo deposit (money held, not yet verified) -> Forfeited', row($pdo, 'appointments', (int) $online['id'])['payment_status'] === 'Forfeited');
+
+// ---- 5. A payment waiting on a booking past Pending ---------------------------
+// The cashier verifies it and the booking keeps its status.
+$waiting = $booking('NOW() + INTERVAL 6 DAY', ['status' => 'Reschedule Requested', 'deposit_recorded_by' => null, 'deposit_recorded_at' => null, 'payment_status' => 'Awaiting Verification']);
+$r = run_endpoint(['script' => 'backend/cashier/updateStatus.php', 'session' => $p['cashier'],
+    'post' => ['id' => $waiting['reference_code'], 'paymentAction' => 'verify', 'depositAmount' => '250.00', 'depositMethod' => 'Cash']]);
+$now = row($pdo, 'appointments', (int) $waiting['id']);
+check('Reschedule Requested + verify -> payment verified, status unchanged', ($r['success'] ?? false) === true && $now['status'] === 'Reschedule Requested'
+    && $now['payment_status'] === 'Down Payment Verified' && $now['deposit_recorded_by'] !== null);
+$d = run_endpoint(['script' => 'backend/cashier/getDashboardData.php', 'method' => 'GET', 'session' => $p['cashier']]);
+$starts = array_column($d['bookings'] ?? [], 'startDateTime');
+check('dashboard bookings carry startDateTime, so history and staff lists sort by time', $starts && count($starts) === count($d['bookings']));
 
 finish();

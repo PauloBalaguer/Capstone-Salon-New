@@ -1,0 +1,14 @@
+node_modules
+tests
+database
+vendor
+.git
+*.log
+
+# Private files Git ignores: the CLI uploads from this folder, not from Git.
+backend/shared/storage
+backend/shared/config/credentials
+
+# Developer tools, not part of the site.
+.agents
+.claude

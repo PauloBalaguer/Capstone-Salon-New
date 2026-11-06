@@ -12,7 +12,8 @@
  *
  * The same code is also texted to the guest's mobile number (best-effort,
  * any hour). The email stays the verified channel, so an SMS failure never
- * fails the request.
+ * fails the request. A guest who gives no email gets the code by text only;
+ * then the text must go through.
  */
 
 require_once '../../backend/shared/config/setup/cors.php';
@@ -45,10 +46,20 @@ if ($otp_limiter->isExceeded()) {
 
 $email = is_string($_POST['email'] ?? null) ? trim($_POST['email']) : '';
 $phone = is_string($_POST['phone'] ?? null) ? normalizePhPhone($_POST['phone']) : null;
+// Without an email the code is texted to the mobile number instead, and that
+// text is the verified channel. booking_verifications keys it 'sms:+639...'
+// (can't clash with an email: no '@'); submitGuestBooking.php checks the same key.
+$byEmail = $email !== '';
 
-if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+if ($byEmail ? !filter_var($email, FILTER_VALIDATE_EMAIL) : $phone === null) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Please enter a valid email address.']);
+    echo json_encode(['success' => false, 'message' => $byEmail ? 'Please enter a valid email address.' : 'Please enter a valid mobile number (09XXXXXXXXX).']);
+    exit();
+}
+$sms_limiter = $phone !== null ? new RateLimiter($phone, 'booking_otp_sms', 3, 3600) : null;
+if (!$byEmail && $sms_limiter->isExceeded()) {
+    http_response_code(429);
+    echo json_encode(['success' => false, 'message' => 'Too many codes were sent to this number. Please try again in an hour, or add your email address to get the code by email.']);
     exit();
 }
 
@@ -67,9 +78,18 @@ try {
         VALUES (?, ?, ?)
         ON DUPLICATE KEY UPDATE code = ?, expires_at = ?
     ');
-    $stmt->execute([$email, $code, $expires_at, $code, $expires_at]);
+    $key = $byEmail ? $email : 'sms:' . $phone;
+    $stmt->execute([$key, $code, $expires_at, $code, $expires_at]);
 
-    if (!sendBookingOtpEmail($email, $code)) {
+    if (!$byEmail) {
+        $sms_limiter->record();
+        if (!SmsOutbox::sendNow($pdo, $phone, 'BOOKING_OTP', renderSms('BOOKING_OTP', ['{code}' => $code]), renderSms('BOOKING_OTP', ['{code}' => '******']))) {
+            $pdo->rollBack(); // keep any code already delivered
+            http_response_code(503);
+            echo json_encode(['success' => false, 'retryAfter' => 60, 'message' => 'We could not text a code to this number. Please try again later, or add your email address to get the code by email. Your booking details have been kept.']);
+            exit();
+        }
+    } elseif (!sendBookingOtpEmail($email, $code)) {
         // A failed resend must not invalidate a code that was already delivered.
         $pdo->rollBack();
         http_response_code(503);
@@ -80,9 +100,8 @@ try {
 
     // Besides the per-IP limit above, cap texts per number so nobody can burn
     // the daily SMS quota (or spam a stranger) with one phone number.
-    if ($phone !== null) {
+    if ($byEmail && $phone !== null) {
         try {
-            $sms_limiter = new RateLimiter($phone, 'booking_otp_sms', 3, 3600);
             if (!$sms_limiter->isExceeded()) {
                 $sms_limiter->record();
                 SmsOutbox::sendNow($pdo, $phone, 'BOOKING_OTP', renderSms('BOOKING_OTP', ['{code}' => $code]), renderSms('BOOKING_OTP', ['{code}' => '******']));

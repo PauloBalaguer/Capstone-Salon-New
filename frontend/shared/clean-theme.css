@@ -33,9 +33,12 @@ html body ::selection { background: var(--cl-gold); color: var(--cl-ink); }
 
 /* Longer descriptions and instructions share consistent paragraph alignment. */
 html body .prose-justify {
-  text-align: justify;
-  text-align-last: start;
+  text-align: left;
   overflow-wrap: break-word;
+}
+/* Justify only where lines are long enough to avoid wide word gaps. */
+@media (min-width: 768px) {
+  html body .prose-justify { text-align: justify; text-align-last: start; }
 }
 
 /* ==========================================================================

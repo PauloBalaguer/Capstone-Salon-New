@@ -22,6 +22,11 @@ require_once __DIR__ . '/../booking/Scheduling.php';
  * also queue a short text to customers.phone_number unless the customer
  * turned SMS off (notify_sms). Best-effort: an SMS problem is logged and
  * never undoes the booking change or the email.
+ *
+ * $payUrl (a booking waiting for online payment): the link goes in the
+ * message and email, so the customer can pay from any device even after
+ * closing the browser; the SMS becomes PAYMENT_LINK, which points to Track
+ * a Booking instead (texts carry no links -- see setup/sms.php).
  */
 final class CustomerNotifier
 {
@@ -47,8 +52,9 @@ final class CustomerNotifier
     // In-salon appointment emails that repeat the late-arrival rule (when one is configured).
     private const LATE_RULE_TYPES = ['BOOKING_SUBMITTED', 'CONFIRMED', 'RESCHEDULE', 'REMINDER'];
 
-    public static function notify(PDO $pdo, int $customerId, string $type, string $message, ?string $reference = null): bool
+    public static function notify(PDO $pdo, int $customerId, string $type, string $message, ?string $reference = null, ?string $payUrl = null): bool
     {
+        if ($payUrl) $message .= "\n\nPay online here: {$payUrl}";
         $ownsTransaction = !$pdo->inTransaction();
         if ($ownsTransaction) $pdo->beginTransaction();
         else $pdo->exec('SAVEPOINT customer_notification');
@@ -68,6 +74,8 @@ final class CustomerNotifier
 
         $reference = $reference ?? (preg_match('/\bLM-(?:[A-Z]+-)+\d{4}-\d+\b/', $message, $m) ? $m[0] : null);
         $details = $reference ? self::bookingDetails($pdo, $customerId, $reference) : null;
+        // The email carries only what the customer needs; the portal parses the longer in-app details.
+        $emailMessage = $message . ($details ? "\n\n" . (str_contains($message, $reference) ? '' : "Reference: {$reference}\n") . $details['email'] : '');
         if ($details) $message .= "\n\n" . $details['text'];
         if ($customer['user_id']) {
             $existing = $pdo->prepare('SELECT id FROM notifications WHERE user_id = ? AND type = ? AND message = ? LIMIT 1 FOR UPDATE');
@@ -83,23 +91,24 @@ final class CustomerNotifier
 
         if (isset(self::EMAIL_SUBJECTS[$type]) && $customer['email'] && (int) $customer['notify_email'] === 1) {
             $lateRule = $details && !$details['homeService'] && in_array($type, self::LATE_RULE_TYPES, true) ? Scheduling::lateArrivalRule() : null;
-            $body = 'Hello ' . trim($customer['first_name'].' '.$customer['last_name']) . ",\n\n" . $message . ($lateRule ? "\n\nLate arrival: {$lateRule}" : '') . ($customer['user_id']
-                ? "\n\nYou can view your appointment details anytime in your Leo Mejillano account."
+            $body = 'Hello ' . trim($customer['first_name'].' '.$customer['last_name']) . ",\n\n" . $emailMessage . ($lateRule ? "\n\nLate arrival: {$lateRule}" : '') . ($customer['user_id']
+                ? "\n\nView your appointment anytime in your Leo Mejillano account."
                 : (!empty($details['homeService'])
                     ? "\n\nTrack, pay or reschedule anytime in Track Your Home Service (Home & Events) on our website using reference {$reference} and this email address."
-                    : "\n\nYou can check your booking anytime with Track a Booking on our website" . ($reference ? " using reference {$reference}." : '.')));
+                    : "\n\nCheck your booking anytime with Track a Booking on our website" . ($reference ? " using reference {$reference}." : '.')));
             $subject = $type === 'PAYMENT_VERIFIED' && ($details['paymentStatus'] ?? '') === 'Fully Paid' ? 'Your full payment was received' : self::EMAIL_SUBJECTS[$type];
             EmailOutbox::queue($pdo, $customer['email'], $subject . ($reference ? " ({$reference})" : ''), $body, $reference);
         }
-        if (isset(SMS_TEMPLATES[$type]) && (int) $customer['notify_sms'] === 1) {
+        $smsType = $payUrl ? 'PAYMENT_LINK' : $type;
+        if (isset(SMS_TEMPLATES[$smsType]) && (int) $customer['notify_sms'] === 1) {
             $pdo->exec('SAVEPOINT customer_sms');
             try {
                 $vars = [];
                 if ($reference) $vars['{ref}'] = $reference;
                 if ($details) $vars['{when}'] = formatSmsWhen($details['scheduled']);
-                $sms = renderSms($type, $vars);
-                if ($sms) SmsOutbox::queue($pdo, $customer['phone_number'], $type, $sms, $reference);
-                else error_log("SMS not queued ({$type}): no booking details for the message.");
+                $sms = renderSms($smsType, $vars);
+                if ($sms) SmsOutbox::queue($pdo, $customer['phone_number'], $smsType, $sms, $reference);
+                else error_log("SMS not queued ({$smsType}): no booking details for the message.");
                 $pdo->exec('RELEASE SAVEPOINT customer_sms');
             } catch (Throwable $e) {
                 try { $pdo->exec('ROLLBACK TO SAVEPOINT customer_sms'); } catch (Throwable $ignored) {}
@@ -135,6 +144,7 @@ final class CustomerNotifier
         if (!$row) return null;
         $when = new DateTimeImmutable($row['scheduled'],new DateTimeZone('Asia/Manila'));
         return ['homeService'=>$home,'scheduled'=>$row['scheduled'],'contactEmail'=>$row['contact_email']??null,'paymentStatus'=>$row['payment_status'],
+            'email'=>'Service: '.($row['services'] ?: 'Service details available in your booking')."\nWhen: ".$when->format('l, F j, Y, g:i A')."\nBranch: {$row['branch_name']}",
             'text'=>"Booking reference: {$row['reference_code']}\nService / Event: ".($row['services'] ?: 'Service details available in your booking').
             "\nScheduled time: ".$when->format('Y-m-d H:i')." (Philippine time)\nAppointment: ".$when->format('l, F j, Y, g:i A').
             "\nBranch: {$row['branch_name']}\nBooking status: {$row['status']}\nPayment status: {$row['payment_status']}"];

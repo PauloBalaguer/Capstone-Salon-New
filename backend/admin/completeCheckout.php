@@ -63,7 +63,7 @@ try {
     if ($appointment['status'] === 'Confirmed') throw new RuntimeException('Start the service before checkout.');
     if (!in_array($appointment['status'], ['In Progress','Completed'], true)) throw new RuntimeException('This booking is not ready for checkout.');
     if ($appointment['deposit_paid'] && (float)$appointment['deposit_amount']>0 && $appointment['deposit_recorded_by']===null) throw new RuntimeException('Verify the reservation payment before checkout.');
-    if (($appointment['paymongo_checkout_id'] || $appointment['paymongo_payment_intent_id']) && !$appointment['deposit_paid']) throw new RuntimeException('The online reservation payment is still pending.');
+    if (($appointment['paymongo_checkout_id'] || $appointment['paymongo_payment_intent_id'] || $appointment['paymongo_source_id']) && !$appointment['deposit_paid']) throw new RuntimeException('The online reservation payment is still pending.');
 
     $stmt = $pdo->prepare('SELECT id FROM payments WHERE appointment_id = ?');
     $stmt->execute([$appointment['id']]);

@@ -46,6 +46,14 @@ function statusBadgeClass(status) {
   }
 }
 
+/* A payment still waiting for a cashier on a booking past Pending, e.g.
+   Reschedule Requested. Pending bookings verify through Confirm booking;
+   updateStatus.php refuses Cancelled and Completed ones. */
+function needsPaymentVerification(b) {
+  return b.paymentStatus === 'Awaiting Verification' && !b.depositVerified
+    && !['Pending', 'Cancelled', 'Completed'].includes(b.status);
+}
+
 const CashierApp = {
   async get(endpoint, params) {
     const query = new URLSearchParams();

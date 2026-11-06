@@ -48,7 +48,7 @@ backend/                  🖥️ what the server does
     storage/sessions/       PHP session files (git-ignored)
 database/                 🗄️ database
   schema/                 capstone.sql (full schema)
-  migrations/             002_… → 051_… numbered changes
+  migrations/             002_… → 057_… numbered changes
   seeders/                demo / landing data
   scripts/                CLI helpers (create_admin, create_cashier, sync_*, refresh_*)
   data/                   import reference data
@@ -120,14 +120,16 @@ C:\xampp\php\php.exe C:\xampp\htdocs\Capstone-Salon\backend\shared\cron\sendAppo
    `DB_SSL_CA=/etc/ssl/certs/ca-certificates.crt`, `APP_URL`, `CRON_SECRET`, plus
    the PayMongo, Brevo and textbee keys from `.env.example`.
 3. **PayMongo:** register `https://your-domain.com/backend/public/paymongoWebhook.php`
-   and put the returned secret in `PAYMONGO_WEBHOOK_SECRET`.
+   with the events `source.chargeable`, `payment.paid`, `payment.failed` and
+   `checkout_session.payment.paid`, and put the returned secret in
+   `PAYMONGO_WEBHOOK_SECRET`.
 4. **Cron:** `vercel.json` runs each job once a day, the most the Hobby plan
    allows. On Pro, change them to `*/5 * * * *`: payment reminders have a short
    window and daily runs will miss most of them.
 5. **Check after deploying:** log in on two tabs and refresh repeatedly, try a
-   test payment, and open `frontend/shared/image/Daraga.png` and
-   `frontend/shared/video/gallery-07.mp4`. Both are over Vercel's documented
-   4.5 MB limit, so compress them or move them to Vercel Blob if they fail.
+   test payment, and open `frontend/shared/image/Daraga.webp` and
+   `frontend/shared/video/gallery-07.mp4`. Vercel's documented limit is 4.5 MB
+   per file, so keep every image and video under it.
 
 ## Deploying to a live server
 
@@ -179,9 +181,10 @@ in**. When `APP_URL` starts with `https://`, login only works over HTTPS.
 ### 6. Connect the outside services
 
 - **PayMongo:** register the webhook
-  `https://your-domain.com/backend/public/paymongoWebhook.php`, then put the
-  returned `whsk_...` secret in `PAYMONGO_WEBHOOK_SECRET`. Keep test keys until
-  you've tried a full payment.
+  `https://your-domain.com/backend/public/paymongoWebhook.php` with the events
+  `source.chargeable`, `payment.paid`, `payment.failed` and
+  `checkout_session.payment.paid`, then put the returned `whsk_...` secret in
+  `PAYMONGO_WEBHOOK_SECRET`. Keep test keys until you've tried a full payment.
 - **Cron:** run each of these every few minutes, using the PHP path the host shows:
   ```
   php /path/to/public_html/backend/shared/cron/sendQueuedEmails.php

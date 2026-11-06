@@ -3,7 +3,7 @@
 /**
  * Cashier: Process Payment & Issue Receipt
  *
- * The checkout terminal (frontend/cashier/payment.html) posts here with the
+ * The Cashier Panel checkout popup (function/cashier/checkout-modal.js) posts here with the
  * booking reference, chosen payment method, tip, and any retail products
  * added to the cart. Service pricing always comes from the appointment's
  * own total_price + its appointment_services rows (never trusted from the
@@ -163,7 +163,7 @@ try {
     if ($appointment['deposit_paid'] && (float) $appointment['deposit_amount'] > 0 && $appointment['deposit_recorded_by'] === null) {
         throw new RuntimeException('Verify the reservation payment before collecting the remaining balance.');
     }
-    if (($appointment['paymongo_checkout_id'] || $appointment['paymongo_payment_intent_id']) && !$appointment['deposit_paid']) {
+    if (($appointment['paymongo_checkout_id'] || $appointment['paymongo_payment_intent_id'] || $appointment['paymongo_source_id']) && !$appointment['deposit_paid']) {
         throw new RuntimeException('The online reservation payment is still pending. Check its status before checkout.');
     }
 

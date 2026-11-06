@@ -7,7 +7,9 @@
     const params = new URLSearchParams(data);
     const url = new URL(path, backend);
     if (method === 'GET') url.search = params;
-    const response = await fetch(url, { method, credentials: 'same-origin', ...(method === 'POST' ? { body: params } : {}) });
+    // Portals that use CSRF tokens (the Staff Portal) set window.LMCsrfToken.
+    const headers = window.LMCsrfToken ? { 'X-CSRF-Token': window.LMCsrfToken } : {};
+    const response = await fetch(url, { method, credentials: 'same-origin', headers, ...(method === 'POST' ? { body: params } : {}) });
     const result = await response.json();
     if (!result.success) throw new Error(result.message || 'The booking changed. Review availability again.');
     return result;
@@ -63,7 +65,7 @@
       find('grace').querySelector('b').textContent = verdictTitle;
       find('grace').querySelector('span').textContent = verdictText;
       // Staff can't mark a no-show or reschedule; they ask the cashier from the booking card.
-      if (review.canReschedule === false) find('grace').querySelector('span.block').textContent = 'Nothing is cancelled or marked as a no-show automatically. If the customer does not arrive, or the service cannot fit, send a request to the cashier from My Assignments.';
+      if (review.canReschedule === false) find('grace').querySelector('span.block').textContent = 'Nothing is cancelled or marked as a no-show automatically. If the customer does not arrive, or the service cannot fit, send a request to the cashier from My Appointments (open the booking and tap More).';
       find('summary').textContent = `${reference}\nReserved: ${scheduled}\nActual service start: ${review.actualStart} (${review.durationMinutes} minutes)\nArrival: ${late}\nPayment: ${review.paymentStatus} (unchanged by this review)\n${review.reason || 'Review qualified staff below.'}`;
       for (const staff of review.staff) {
         const option = document.createElement('option');

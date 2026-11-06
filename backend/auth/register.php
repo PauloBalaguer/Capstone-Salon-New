@@ -76,11 +76,14 @@ try {
         exit();
     }
 
-    $stmt = $pdo->prepare("SELECT id FROM customers WHERE phone_number = ?");
+    // A number with only guest bookings can still sign up: once the email is
+    // verified, a texted code links those bookings (GuestAccountClaim).
+    $stmt = $pdo->prepare("SELECT user_id FROM customers WHERE phone_number = ?");
     $stmt->execute([$contact_number]);
-    if ($stmt->fetch()) {
+    $number_owner = $stmt->fetch();
+    if ($number_owner && $number_owner['user_id'] !== null) {
         http_response_code(409); // Conflict
-        echo json_encode(['success' => false, 'message' => 'An account with this contact number already exists.']);
+        echo json_encode(['success' => false, 'message' => 'An account with this contact number already exists. Please sign in, or reset your password if you forgot it.']);
         exit();
     }
 
@@ -110,7 +113,9 @@ try {
 
     $new_user_id = $pdo->lastInsertId();
 
-    $sql_customer = "INSERT INTO customers (user_id, first_name, last_name, phone_number, notify_sms) VALUES (?, ?, ?, ?, ?)";
+    $sql_customer = $number_owner
+        ? "INSERT INTO guest_account_claims (user_id, first_name, last_name, phone_number, notify_sms) VALUES (?, ?, ?, ?, ?)"
+        : "INSERT INTO customers (user_id, first_name, last_name, phone_number, notify_sms) VALUES (?, ?, ?, ?, ?)";
     $stmt_customer = $pdo->prepare($sql_customer);
     $stmt_customer->execute([$new_user_id, $first_name, $last_name, $contact_number, $notify_sms]);
 

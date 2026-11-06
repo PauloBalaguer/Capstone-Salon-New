@@ -71,6 +71,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (res.body.success) {
           sessionStorage.removeItem('localRegistrationOtp');
+          if (res.body.needsPhoneCode) {
+            sessionStorage.setItem('lmPhoneClaim', JSON.stringify({ token: res.body.claimToken, hint: res.body.phoneHint, codeSent: res.body.codeSent }));
+            window.location.assign('verify-phone.html?email=' + encodeURIComponent(email));
+            return;
+          }
           LM.toast(res.body.message || 'Your email is verified. Taking you to sign in.', 'good');
           setTimeout(function () { window.location.href = 'login.html'; }, 1600);
           return;

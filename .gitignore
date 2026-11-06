@@ -449,3 +449,4 @@ backend/shared/storage/sessions/*
 # Local AI agent skills (per-developer tooling, not part of the app).
 .agents/
 .claude/
+.vercel

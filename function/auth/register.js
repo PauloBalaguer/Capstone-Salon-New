@@ -10,6 +10,33 @@ document.addEventListener('DOMContentLoaded', function () {
   const form = document.getElementById('register-form');
   if (!form) return;
 
+  // Terms & Conditions pop-up. Each link opens it at its own section; the links
+  // sit inside the checkbox's label, and reading them doesn't tick the box.
+  const termsModal = document.getElementById('terms-modal');
+  const termsBody = document.getElementById('terms-modal-body');
+  const termsBox = document.getElementById('reg-terms');
+  form.querySelectorAll('[data-terms-open]').forEach(function (link) {
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      termsModal.showModal();
+      window.LateArrivalRule.show(termsModal.querySelectorAll('[data-late-rule]'));
+      termsBody.scrollTop = document.querySelector(link.getAttribute('href')).offsetTop - termsBody.offsetTop - parseFloat(getComputedStyle(termsBody).paddingTop);
+      termsBody.focus({ preventScroll: true });
+    });
+  });
+  termsModal.querySelectorAll('[data-terms-close]').forEach(function (button) {
+    button.addEventListener('click', function () { termsModal.close(); });
+  });
+  termsModal.addEventListener('click', function (e) {
+    if (e.target === termsModal) termsModal.close(); // the dimmed area around it
+  });
+  document.getElementById('terms-modal-agree').addEventListener('click', function () {
+    termsBox.checked = true;
+    termsBox.dispatchEvent(new Event('input', { bubbles: true }));
+    document.getElementById('reg-terms-error').classList.remove('show');
+    termsModal.close();
+  });
+
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     LM.clearWrong();

@@ -22,6 +22,7 @@ const SMS_PREFIX = 'Leo Mejillano Salon: ';
  */
 const SMS_TEMPLATES = [
     'BOOKING_SUBMITTED' => 'We received your booking {ref} for {when}. We will text you once it is confirmed.',
+    'PAYMENT_LINK' => 'Booking {ref} for {when} is on hold until paid. To pay, open Track a Booking on our website.',
     'CONFIRMED' => 'Your booking {ref} on {when} is confirmed. See you!',
     'CANCELLED' => 'Your booking {ref} on {when} was cancelled. Please contact the branch if this is unexpected.',
     'RESCHEDULE' => 'There is a schedule update for your booking {ref}. Please check your email for details.',
@@ -31,6 +32,7 @@ const SMS_TEMPLATES = [
     'QUOTE_READY' => 'Your home service quote for {ref} is ready. Please check your email for details.',
     'REMINDER' => 'Reminder: your appointment {ref} is on {when}. See you!',
     'BOOKING_OTP' => 'Your booking verification code is {code}. It expires in 10 minutes. Do not share this code.',
+    'ACCOUNT_OTP' => 'Your account verification code is {code}. It expires in 10 minutes. Do not share this code.',
     'TEST' => 'This is a test message. SMS notifications are working.',
 ];
 

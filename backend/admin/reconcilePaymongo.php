@@ -84,7 +84,7 @@ try {
         FROM appointments
         WHERE preferred_payment_method IN ('PayMongo', 'PayMongo-GCash', 'PayMongo-Maya', 'PayMongo-Card')
            OR deposit_method IN ('PayMongo', 'PayMongo-GCash', 'PayMongo-Maya', 'PayMongo-Card')
-           OR paymongo_checkout_id IS NOT NULL OR paymongo_payment_intent_id IS NOT NULL
+           OR paymongo_checkout_id IS NOT NULL OR paymongo_payment_intent_id IS NOT NULL OR paymongo_source_id IS NOT NULL
     ")->fetchAll();
     $byPaymentId = [];
     $byReference = [];

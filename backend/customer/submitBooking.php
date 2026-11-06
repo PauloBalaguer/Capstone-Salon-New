@@ -154,6 +154,12 @@ try {
 
     PayMongo::releaseExpiredHolds($pdo);
 
+    if ($held = PayMongo::heldBooking($pdo, $customerId, 'customer')) {
+        http_response_code(409);
+        echo json_encode($held);
+        exit();
+    }
+
     $pdo->beginTransaction();
 
     // Locking read: serializes concurrent bookings for this branch+day so two
@@ -288,7 +294,7 @@ try {
     }
 
     CustomerNotifier::notify($pdo, $customerId, 'BOOKING_SUBMITTED', CancellationPolicy::bookingReceivedMessage(
-        $referenceCode, array_column($services, 'service_name'), $branch['branch_name'], $appointmentDateTime, $depositAmount, $quote['remainingBalance'], $payOnline));
+        $referenceCode, array_column($services, 'service_name'), $branch['branch_name'], $appointmentDateTime, $depositAmount, $quote['remainingBalance'], $payOnline), null, $resultUrl);
     if (!$payOnline) {
         CustomerNotifier::notify($pdo, $customerId, 'PAYMENT_SUBMITTED', "Your reservation payment for {$referenceCode} has been submitted and is now Payment Being Verified.");
     }

@@ -45,6 +45,9 @@
       .then(r => r.json())
       .then(data => {
         if (data.checkoutUrl) {
+          // This page may BE the old PayMongo tab (PayMongo sent the customer back here): drop its
+          // name, or the open below replaces this page and nothing is left to close the new tab.
+          if (window.name === PendingPayment.tabName) window.name = '';
           // Pay in a new tab while this one waits for the result.
           const tab = window.open(data.checkoutUrl, PendingPayment.tabName);
           // Blocked: same tab. replace(): Back from PayMongo shouldn't land here and start yet another payment.
@@ -64,7 +67,7 @@
   function offerMethods(data) {
     const box = el('resultMethods');
     if (!data.methods || !data.methods.length) return;
-    const retry = outcome !== 'choose' && data.methods.some(m => m.value === data.method) ? data.method : null;
+    const retry = (outcome !== 'choose' || data.state === 'failed') && data.methods.some(m => m.value === data.method) ? data.method : null;
     const ordered = retry ? [...data.methods.filter(m => m.value === retry), ...data.methods.filter(m => m.value !== retry)] : data.methods;
     box.innerHTML = '';
     if (retry) {

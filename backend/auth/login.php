@@ -18,6 +18,8 @@ require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/security/RateLimiter.php';
+require_once '../../backend/shared/config/security/GuestAccountClaim.php';
+require_once '../../backend/shared/config/security/TrustedDevice.php';
 require_once '../../backend/shared/config/booking/Scheduling.php';
 
 sendCorsHeaders();
@@ -106,6 +108,15 @@ try {
     // inserted with is_active = 1 by default, so this only affects
     // self-registered customers who haven't verified yet.
     if (!$user['is_active']) {
+        // Email done, but they left before the texted code: back to that step.
+        $claim = GuestAccountClaim::forUser($pdo, (int) $user['id']);
+        if ($claim && (int) $claim['email_verified']) {
+            http_response_code(403); // Forbidden
+            echo json_encode(['success' => false, 'message' => 'Please confirm your mobile number to finish signing up.', 'email' => $user['email']]
+                + GuestAccountClaim::startPhoneStep($pdo, $claim));
+            exit();
+        }
+
         http_response_code(403); // Forbidden
         echo json_encode([
             'success' => false,
@@ -119,42 +130,30 @@ try {
     // On successful login, clear any previous failed attempts from this IP.
     $login_limiter->clear();
 
-    // Move from the temporary login session into this role's own session
-    // cookie, so other accounts logged in other tabs stay logged in.
-    switchSessionPortal(getRolePortal($user['role_name']));
+    signInUser($user);
 
-    // Regenerate the session ID to prevent session fixation attacks.
-    regenerateSession();
+    // "Remember me" recognises a customer's browser after they sign out.
+    if ($user['role_name'] === 'Customer') {
+        if (!empty($_POST['remember'])) {
+            TrustedDevice::remember($pdo, $user);
+        } else {
+            TrustedDevice::forget($pdo);
+        }
+    }
 
-    // Attendance is automatic, tied to the authenticated session itself
-    // rather than a manual clock button, which staff could forget to press
-    // or misuse. Time Out isn't tied to logout/browser-close (unreliable) --
-    // Scheduling::autoCloseAttendance() settles any shift that's past the
-    // branch's closing time first (e.g. a forgotten previous-day session),
-    // then a new record is only started if today doesn't already have an
-    // open one, so re-logging in the same day never creates duplicates.
+    // Staff attendance is manual: the Staff Portal's Shift In button starts
+    // a shift (backend/staff/shiftAction.php). Logging in only settles a
+    // shift left open past the branch's closing time (e.g. a forgotten
+    // Shift Out yesterday); a shift that is still valid stays open, so the
+    // portal shows On Shift again after logging back in.
     if ($user['role_name'] === 'Staff') {
         $stmt = $pdo->prepare('SELECT id, branch_id FROM employees WHERE user_id = ? LIMIT 1');
         $stmt->execute([$user['id']]);
         $employeeRow = $stmt->fetch();
         if ($employeeRow) {
-            $employeeId = (int) $employeeRow['id'];
-            Scheduling::autoCloseAttendance($pdo, $employeeId, $employeeRow['branch_id']);
-
-            $stmt = $pdo->prepare('SELECT id FROM attendance WHERE employee_id = ? AND DATE(clock_in_time) = CURDATE() AND clock_out_time IS NULL LIMIT 1');
-            $stmt->execute([$employeeId]);
-            if (!$stmt->fetchColumn() && Scheduling::canStartShift($pdo, $employeeId, $employeeRow['branch_id'])) {
-                $pdo->prepare('INSERT INTO attendance (employee_id, clock_in_time) VALUES (?, NOW())')->execute([$employeeId]);
-            }
+            Scheduling::autoCloseAttendance($pdo, (int) $employeeRow['id'], $employeeRow['branch_id']);
         }
     }
-
-    $_SESSION['user_id'] = $user['id'];
-    $_SESSION['user_email'] = $user['email'];
-    $_SESSION['user_role'] = $user['role_name'];
-    $fullName = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''));
-    $_SESSION['user_name'] = $fullName !== '' ? $fullName : ($user['display_name'] ?? '');
-    $_SESSION['branch_id'] = $user['branch_id'] !== null ? (int) $user['branch_id'] : null;
 
     // The frontend expects a redirect URL, relative to frontend/auth/login.html
     // (that's the page the browser is on when it follows this redirect).
@@ -165,7 +164,8 @@ try {
     echo json_encode([
         'success' => true,
         'message' => 'Login successful! Redirecting...',
-        'redirect' => $redirect_url
+        'redirect' => $redirect_url,
+        'portal' => getRolePortal($user['role_name'])
     ]);
 
 } catch (PDOException $e) {

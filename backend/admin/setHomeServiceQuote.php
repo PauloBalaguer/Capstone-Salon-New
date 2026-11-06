@@ -113,7 +113,7 @@ try {
         $pdo->prepare('
             UPDATE home_service_requests
             SET quote_price = ?, deposit_amount = ?, deposit_paid = 0, deposit_recorded_by = NULL, deposit_recorded_at = NULL, status = ?, payment_status = ?,
-                paymongo_checkout_id = NULL, paymongo_checkout_url = NULL, paymongo_payment_intent_id = NULL, paymongo_payment_id = NULL, online_payment_token = ?
+                paymongo_checkout_id = NULL, paymongo_checkout_url = NULL, paymongo_payment_intent_id = NULL, paymongo_source_id = NULL, paymongo_payment_id = NULL, online_payment_token = ?
             WHERE id = ?
         ')->execute([
             $quotePrice,

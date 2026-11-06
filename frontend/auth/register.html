@@ -7,7 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,500&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="../../frontend/shared/output.css">
+  <link rel="stylesheet" href="../../frontend/shared/output.css?v=20261106">
+  <link rel="stylesheet" href="../../frontend/auth/terms-modal.css?v=20261106">
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
 </head>
@@ -41,7 +42,7 @@
     <div class="card">
       <div class="logo" aria-label="Leo Mejillano"><span class="mark">LM</span><strong>Leo Mejillano</strong></div>
       <h1 class="title">Create an account</h1>
-      <p class="sub">Already booked as a guest? Use the same email to keep your history.</p>
+      <p class="sub">Already booked as a guest? Use the same mobile number, and we’ll text you a code to link your bookings.</p>
 
       <form id="register-form" novalidate>
         <div class="two">
@@ -110,7 +111,7 @@
         </div>
 
         <div>
-          <label class="terms" for="reg-terms"><input type="checkbox" id="reg-terms" data-field="agreement to the terms"><span>I agree to the <a href="../../index.html" target="_blank" rel="noopener">Terms</a> and the <a href="../../index.html" target="_blank" rel="noopener">reservation and deposit policy</a>.</span></label>
+          <label class="terms" for="reg-terms"><input type="checkbox" id="reg-terms" data-field="agreement to the terms"><span>I agree to the <a href="#terms-top" data-terms-open aria-haspopup="dialog">Terms</a> and the <a href="#terms-deposit" data-terms-open aria-haspopup="dialog">reservation and deposit policy</a>.</span></label>
           <p class="field-error" id="reg-terms-error"></p>
         </div>
 
@@ -125,11 +126,43 @@
     </div>
   </main>
 
+  <!-- Same wording as the customer booking terms (frontend/customer/services-promos.html): keep them in step. -->
+  <dialog class="terms-modal" id="terms-modal" aria-labelledby="terms-modal-title">
+    <div class="terms-modal-head">
+      <h2 id="terms-modal-title">Terms &amp; Conditions</h2>
+      <button type="button" class="terms-modal-close" data-terms-close aria-label="Close">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="terms-modal-body" id="terms-modal-body" tabindex="0">
+      <h3 id="terms-top">Bookings</h3>
+      <ul>
+        <li><b>Confirmation rules:</b> Your requested time is held as Waiting for Confirmation until the branch verifies your payment and confirms it, it is not guaranteed until confirmed.</li>
+        <li><b>Payment verification:</b> Online payments (GCash, Maya or card) are processed securely by PayMongo; Cash must be settled in person. Your payment stays "Payment Being Verified" until staff confirm it, you can never verify your own payment.</li>
+        <li><b>Rescheduling:</b> You may request to reschedule; please do so as early as possible, subject to availability.</li>
+        <li><b>No-show:</b> Please arrive on time. Repeated no-shows or late cancellations may affect future bookings.</li>
+        <li data-late-rule class="hidden"><b>Late arrival:</b> <span data-late-rule-text></span></li>
+        <li>Prices and staff availability are confirmed by the branch and may change.</li>
+      </ul>
+      <h3 id="terms-deposit">Reservation and deposit policy</h3>
+      <ul>
+        <li><b>Reservation payment:</b> A reservation payment is required to hold your appointment slot.</li>
+        <li><b>50% or full payment:</b> Depending on the service selected, you must pay either a 50% down payment or the full amount upfront, the required amount is shown before you book.</li>
+        <li><b>Deposit &amp; rescheduling policy:</b> Reservation deposits are <u>non-refundable</u>. Need a different time? Reschedule instead (online up to 24 hours before, or by contacting the branch) and your deposit carries over. If you cancel or miss your appointment, the deposit is kept, but that booking can still be rescheduled later using the deposit.</li>
+      </ul>
+    </div>
+    <div class="terms-modal-foot">
+      <button type="button" class="terms-modal-later" data-terms-close>Close</button>
+      <button type="button" class="terms-modal-agree" id="terms-modal-agree">I Agree</button>
+    </div>
+  </dialog>
+
   <div class="loading" id="loading" aria-hidden="true"><div class="spinner"></div></div>
 
   <script src="../../function/shared/toast.js"></script>
   <script src="../../function/auth/common.js?v=2"></script>
   <script src="../../function/auth/auth-ui.js"></script>
-  <script src="../../function/auth/register.js"></script>
+  <script src="../../function/shared/late-arrival-rule.js"></script>
+  <script src="../../function/auth/register.js?v=20261106"></script>
 </body>
 </html>

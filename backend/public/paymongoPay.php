@@ -37,14 +37,6 @@ if (!PayMongo::isConfigured()) {
     exit();
 }
 
-$limiter = new RateLimiter(RateLimiter::getIpAddress(), 'paymongo_pay', 20, 3600);
-if ($limiter->isExceeded()) {
-    http_response_code(429);
-    echo json_encode(['success' => false, 'message' => 'Too many payment attempts. Please try again later.']);
-    exit();
-}
-$limiter->record();
-
 try {
     $pdo = Database::getInstance();
 
@@ -63,6 +55,15 @@ try {
         echo json_encode(['success' => false, 'message' => 'Booking not found.']);
         exit();
     }
+
+    // Per booking, not per IP: a shared salon / mobile-carrier IP must not block everyone else's payments.
+    $limiter = new RateLimiter('booking:' . $row['reference_code'], 'paymongo_pay', 20, 3600);
+    if ($limiter->isExceeded()) {
+        http_response_code(429);
+        echo json_encode(['success' => false, 'message' => 'Too many payment attempts for this booking. Please try again later.']);
+        exit();
+    }
+    $limiter->record();
 
     // A late success on the current attempt wins over starting another one.
     if (PayMongo::sync($pdo, $row, $homeService)['state'] === 'paid') {

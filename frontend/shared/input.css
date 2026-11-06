@@ -226,6 +226,7 @@
       .card { @apply bg-sheet-auth text-sheet-ink-auth [color-scheme:dark]; }
       .meter i, .steps i { @apply bg-white/10; }
       .sub, .check, .terms, .foot, .resend, .resend button:disabled { @apply text-sheet-mute-auth; }
+      .check input, .terms input { @apply accent-sheet-link-auth; }
       .sub b { @apply text-sheet-ink-auth; }
       & label { @apply text-sheet-label-auth; }
       .back, .eye, .terms a, .foot a, .resend button:not(:disabled), .link { @apply text-sheet-link-auth; }

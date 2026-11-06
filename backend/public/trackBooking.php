@@ -38,6 +38,7 @@ try {
     $stmt = $pdo->prepare("
         SELECT
             a.id, a.reference_code AS reference, a.status, a.appointment_datetime, a.total_price,
+            a.deposit_paid, a.reservation_amount_due, a.online_payment_token, a.preferred_payment_method,
             br.branch_name AS branch, c.phone_number AS phone,
             GROUP_CONCAT(DISTINCT s.service_name ORDER BY s.id SEPARATOR ', ') AS services,
             EXISTS(SELECT 1 FROM feedback f WHERE f.appointment_id = a.id) AS has_feedback
@@ -70,6 +71,10 @@ try {
             'date' => date('Y-m-d', strtotime($appt['appointment_datetime'])),
             'time' => date('h:i A', strtotime($appt['appointment_datetime'])),
             'canReview' => $appt['status'] === 'Completed' && !$appt['has_feedback'],
+            // GCash / Maya / Card links while an online reservation payment is unpaid (e.g. it failed or expired on PayMongo).
+            'payUrls' => $appt['status'] === 'Pending' && !(int) $appt['deposit_paid'] && PayMongo::isOnline($appt['preferred_payment_method'])
+                ? PayMongo::payUrls($appt['online_payment_token'], $appt['reference'], (float) $appt['reservation_amount_due'], 'guest') : null,
+            'amountDue' => (float) $appt['reservation_amount_due'],
         ]);
         exit();
     }

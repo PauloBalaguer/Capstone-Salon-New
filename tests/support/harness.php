@@ -11,9 +11,7 @@
  */
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit(); }
 
-const TEST_MYSQL = 'C:\\xampp\\mysql\\bin\\mysql.exe -uroot -P3306 -h127.0.0.1';
-const TEST_DUMP = 'C:\\xampp\\mysql\\bin\\mysqldump.exe -uroot -P3306 -h127.0.0.1 --routines --triggers';
-const DEV_DATABASE = 'new_capstone_salon';
+require_once __DIR__ . '/dev_db.php'; // DEV_DATABASE, TEST_MYSQL, TEST_DUMP from the .env's DB_NAME / DB_PORT
 
 $failures = 0;
 $testDb = '';
@@ -40,8 +38,9 @@ function clone_database(string $name): PDO
     passthru(TEST_MYSQL . " -e \"DROP DATABASE IF EXISTS {$name}; CREATE DATABASE {$name}\"");
     passthru(TEST_DUMP . ' "' . DEV_DATABASE . '" | ' . TEST_MYSQL . " {$name}", $code);
     if ($code !== 0) exit("Could not clone the database.\n");
-    // Newer migrations may not be applied to the dev database yet; both are safe to run twice.
-    foreach (['053_paymongo_separate_methods.sql', '054_event_durations.sql'] as $migration) {
+    // Newer migrations may not be applied to the dev database yet; all are safe to run twice.
+    // 057 first: on a dev database that ran 056, 053 can't place its columns until 057 puts paymongo_checkout_url back.
+    foreach (['057_restore_paymongo.sql', '053_paymongo_separate_methods.sql', '054_event_durations.sql', '055_digital_loyalty_card.sql', '058_paymongo_gcash_sources.sql', '058_staff_shift_breaks_schedule.sql', '059_guest_account_claims.sql', '060_trusted_devices.sql'] as $migration) {
         passthru(TEST_MYSQL . " {$name} < \"{$root}\\database\\migrations\\{$migration}\"");
     }
     register_shutdown_function(fn() => passthru(TEST_MYSQL . " -e \"DROP DATABASE IF EXISTS {$name}\""));
@@ -87,6 +86,10 @@ function test_people(PDO $pdo): array
 {
     $customers = $pdo->query("SELECT c.id, c.user_id FROM customers c JOIN users u ON u.id = c.user_id JOIN roles r ON r.id = u.role_id
         WHERE r.role_name = 'Customer' ORDER BY c.id LIMIT 2")->fetchAll();
+    // In this throwaway copy only: release their unpaid online bookings, which would otherwise send
+    // every test booking to "Continue payment" (PayMongo::heldBooking) -- e.g. one left from trying the site.
+    $pdo->exec("UPDATE appointments SET status = 'Cancelled' WHERE customer_id IN (" . implode(',', array_merge([0], array_map('intval', array_column($customers, 'id')))) . ")
+        AND status = 'Pending' AND deposit_paid = 0 AND online_payment_token IS NOT NULL");
     $admin = $pdo->query("SELECT u.id FROM users u JOIN roles r ON r.id = u.role_id WHERE r.role_name = 'Admin' ORDER BY u.id LIMIT 1")->fetchColumn();
     $cashier = $pdo->query("SELECT u.id FROM users u JOIN roles r ON r.id = u.role_id WHERE r.role_name = 'Cashier' AND u.branch_id = 1 ORDER BY u.id LIMIT 1")->fetchColumn();
     if (count($customers) < 2 || !$admin || !$cashier) exit("The dev database needs two customer accounts, an admin and a Daraga cashier.\n");

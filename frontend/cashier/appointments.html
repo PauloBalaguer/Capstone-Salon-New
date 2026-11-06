@@ -37,6 +37,40 @@
         button[id^="btnClose"]:hover { @apply bg-white/10; }
 
         .badge-live { @apply animate-pulse; }
+
+        /* Cashier Panel building blocks (one place, reused by the popups).
+           In the components layer so a utility class (pl-8, w-full...) still wins. */
+        @layer components {
+        .stat-card { @apply flex flex-col gap-0.5 rounded-2xl border border-[#E8DCC8] bg-[#FFFDF9] p-4 shadow-sm hover:border-[#006D6F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006D6F] transition-colors; }
+        .stat-card.is-active { @apply border-[#006D6F] ring-1 ring-[#006D6F]; }
+        .stat-card-gold { @apply border-[#E0B84C] bg-[#FFF6DF]; }
+        .stat-label { @apply text-sm font-semibold text-slate-600; }
+        .stat-value { @apply text-2xl sm:text-3xl font-black text-slate-900 leading-tight break-words; }
+        .stat-hint { @apply text-xs text-slate-500; }
+        .queue-tab { @apply shrink-0 whitespace-nowrap rounded-full border border-[#E8DCC8] bg-white px-3.5 py-1.5 text-sm font-semibold text-slate-600 hover:border-[#006D6F]; }
+        .queue-tab span { @apply ml-1 rounded-full bg-[#F7F0E4] px-2 text-xs font-bold text-slate-700; }
+        .queue-tab.is-active { @apply border-[#006D6F] bg-[#E5F2F0] text-[#06464A]; }
+        .queue-tab.is-active span { @apply bg-white; }
+        .modal-panel { @apply bg-white w-full max-h-[92dvh] sm:max-h-[90vh] flex flex-col overflow-hidden rounded-t-2xl sm:rounded-2xl shadow-2xl border border-gray-100; }
+        .modal-panel > .overflow-y-auto { @apply min-h-0 flex-1; }
+        .modal-head { @apply bg-[#06464A] px-5 py-4 text-white flex justify-between items-center gap-3 shrink-0; }
+        .modal-close { @apply w-9 h-9 shrink-0 inline-flex items-center justify-center rounded-full text-2xl leading-none text-white/80 hover:bg-white/10 hover:text-white; }
+        .field-label { @apply block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5; }
+        .field-input { @apply w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-[#006D6F]; }
+        .btn-primary { @apply inline-flex items-center justify-center gap-1 rounded-xl bg-[#006D6F] hover:bg-[#06464A] px-4 py-3 font-bold text-white shadow-sm disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed; }
+        .btn-secondary { @apply inline-flex items-center justify-center gap-1 rounded-xl border border-[#D9C9B4] bg-white hover:bg-[#F7F0E4] px-4 py-3 font-bold text-slate-700; }
+        .btn-row { @apply inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2 text-sm font-bold whitespace-nowrap; }
+        .step-dot { @apply flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2 text-slate-400; }
+        .step-dot span { @apply w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-xs; }
+        .step-dot.is-active { @apply border-[#006D6F] bg-[#E5F2F0] text-[#06464A]; }
+        .step-dot.is-active span { @apply border-[#006D6F] bg-[#006D6F] text-white; }
+        .step-dot.is-done { @apply text-emerald-700; }
+        .step-dot.is-done span { @apply border-emerald-600 bg-emerald-600 text-white; }
+        .pay-method-card { @apply flex items-center justify-center gap-2 rounded-xl border border-[#D9C9B4] bg-white py-2.5 text-base font-semibold text-slate-600 cursor-pointer select-none hover:border-[#006D6F]; }
+        .pay-method-card.is-active { @apply border-[#006D6F] bg-[#006D6F]/10 text-[#06464A] ring-1 ring-[#006D6F]; }
+        .chip-btn { @apply rounded-lg border border-[#D9C9B4] bg-white py-2 text-sm font-semibold text-slate-700 hover:border-[#006D6F]; }
+        .chip-btn.is-active { @apply border-[#006D6F] bg-[#006D6F]/10 text-[#06464A] ring-1 ring-[#006D6F]; }
+        }
     </style>
     <link rel="stylesheet" href="../../frontend/cashier/cashier-theme.css?v=20261103">
 <script src="../../function/shared/booking-validation.js"></script>
@@ -82,7 +116,7 @@
                 </a>
                 <a href="payment.html" data-nav-page="payment.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
                     <i class="fa-solid fa-money-check-dollar w-5 text-center text-slate-400"></i>
-                    <span class="text-base">Checkout & Payments</span>
+                    <span class="text-base">Payment Records</span>
                 </a>
                 <a href="inventory.html" data-nav-page="inventory.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
                     <i class="fa-solid fa-boxes-stacked w-5 text-center text-slate-400"></i>
@@ -106,181 +140,146 @@
         </div>
     </aside>
 
-    <main class="flex-1 flex flex-col overflow-hidden">
-        <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 z-10 shrink-0">
-            <div class="flex items-center space-x-4">
-                <h2 class="font-bold text-xl text-gray-800">Appointments</h2>
-                <span id="branchLabel" class="bg-amber-50 border border-amber-300 font-bold text-slate-900 text-xs rounded-xl px-3 py-1.5 shadow-sm">Loading branch…</span>
+    <main class="flex-1 flex flex-col overflow-hidden min-w-0">
+        <header class="bg-white border-b border-gray-200 min-h-16 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-3 z-10 shrink-0">
+            <div class="flex items-center gap-3 min-w-0">
+                <h2 class="font-bold text-xl text-gray-800 truncate">Appointment History</h2>
+                <span id="branchLabel" class="hidden md:inline-block bg-amber-50 border border-amber-300 font-bold text-slate-900 text-xs rounded-xl px-3 py-1.5 shadow-sm truncate">Loading branch…</span>
             </div>
-            <div class="text-right">
-                <p class="text-xs text-gray-500 font-medium">System Date & Time</p>
-                <p class="text-xs font-semibold text-gray-700" id="liveClock">--</p>
-            </div>
+            <p class="hidden lg:block text-sm font-semibold text-gray-600" id="liveClock">--</p>
         </header>
 
-        <section class="flex-1 p-6 overflow-y-auto bg-gray-50 space-y-4">
-            <div class="stagger-item flex justify-between items-center flex-wrap gap-3">
-                <div class="flex items-center gap-2 bg-white border border-gray-200 rounded-xl p-1 shadow-sm" id="statusTabs">
-                    <button data-tab="Pending" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold">Pending</button>
-                    <button data-tab="Confirmed" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold">Confirmed</button>
-                    <button data-tab="In Progress" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold">In Progress</button>
-                    <button data-tab="Completed" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold">Completed</button>
-                    <button data-tab="Cancelled" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold">Cancelled</button>
-                    <button data-tab="All" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold">All</button>
-                </div>
-                <div class="relative w-72">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400 text-xs"></i>
-                    <input id="apptSearch" type="text" placeholder="Search name, contact, or reference..." class="w-full bg-white border border-gray-300 rounded-lg pl-9 pr-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 transition-shadow">
-                </div>
+        <section class="flex-1 p-4 sm:p-6 overflow-y-auto space-y-5">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div class="stat-card"><span class="stat-label">Appointments</span><span class="stat-value" id="sumTotal">0</span><span class="stat-hint">in this list</span></div>
+                <div class="stat-card"><span class="stat-label">Completed</span><span class="stat-value" id="sumCompleted">0</span><span class="stat-hint" id="sumCompletedValue">₱0.00</span></div>
+                <div class="stat-card"><span class="stat-label">Upcoming</span><span class="stat-value" id="sumUpcoming">0</span><span class="stat-hint">pending or confirmed</span></div>
+                <div class="stat-card"><span class="stat-label">Cancelled / no-show</span><span class="stat-value" id="sumCancelled">0</span><span class="stat-hint">did not happen</span></div>
             </div>
 
-            <div class="stagger-item bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                <h3 class="font-bold text-gray-800 text-base mb-3"><i class="fa-solid fa-calendar text-amber-500 mr-2"></i>Branch Appointment Pipeline</h3>
-                <div class="overflow-x-auto text-xs">
-                    <table class="w-full text-left text-gray-600">
-                        <thead class="bg-slate-50 text-slate-700 uppercase font-bold border-b border-gray-200">
-                            <tr>
-                                <th class="p-2.5">Reference</th>
-                                <th class="p-2.5">Date</th>
-                                <th class="p-2.5">Start</th>
-                                <th class="p-2.5">End</th>
-                                <th class="p-2.5">Client</th>
-                                <th class="p-2.5">Contact</th>
-                                <th class="p-2.5">Service(s)</th>
-                                <th class="p-2.5">Duration</th>
-                                <th class="p-2.5">Staff</th>
-                                <th class="p-2.5">Status</th>
-                                <th class="p-2.5">Payment</th>
-                                <th class="p-2.5">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="appointmentsTableBody" class="divide-y divide-gray-100">
-                            <tr><td class="p-3" colspan="12"><div class="skeleton skeleton-line w-full"></div></td></tr>
-                            <tr><td class="p-3" colspan="12"><div class="skeleton skeleton-line w-full"></div></td></tr>
-                            <tr><td class="p-3" colspan="12"><div class="skeleton skeleton-line w-full"></div></td></tr>
-                        </tbody>
-                    </table>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="px-4 sm:px-5 py-4 border-b border-gray-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_auto_auto] gap-3 items-end">
+                    <div class="sm:col-span-2 lg:col-span-1">
+                        <label for="apptSearch" class="field-label">Search</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                            <input id="apptSearch" type="search" placeholder="Name, mobile number or reference" class="field-input pl-9">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="apptPeriod" class="field-label">When</label>
+                        <select id="apptPeriod" class="field-input lg:w-44">
+                            <option value="all">All dates</option>
+                            <option value="today">Today</option>
+                            <option value="upcoming">Upcoming</option>
+                            <option value="7">Last 7 days</option>
+                            <option value="30">Last 30 days</option>
+                            <option value="month">This month</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="apptStatus" class="field-label">Status</label>
+                        <select id="apptStatus" class="field-input lg:w-48">
+                            <option value="All">All statuses</option>
+                            <option>Pending</option>
+                            <option>Confirmed</option>
+                            <option>In Progress</option>
+                            <option>Completed</option>
+                            <option>Reschedule Requested</option>
+                            <option>Cancelled</option>
+                            <option>No-Show</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Column headings (desktop only; phones get stacked cards) -->
+                <div class="hidden lg:grid grid-cols-[8rem_1.2fr_1.4fr_1fr_8.5rem_7rem_2.5rem] gap-4 px-5 py-2.5 bg-[#F7F0E4] text-xs font-bold uppercase tracking-wider text-slate-600">
+                    <span>Time</span><span>Client</span><span>Services</span><span>Stylist</span><span>Status</span><span class="text-right">Amount</span><span></span>
+                </div>
+                <div id="appointmentsList">
+                    <div class="skeleton-row"><div class="flex-1 space-y-2"><div class="skeleton skeleton-line w-1/3"></div><div class="skeleton skeleton-line w-1/2"></div></div></div>
+                    <div class="skeleton-row"><div class="flex-1 space-y-2"><div class="skeleton skeleton-line w-2/5"></div><div class="skeleton skeleton-line w-1/3"></div></div></div>
+                </div>
+                <div class="px-4 sm:px-5 py-3 border-t border-gray-200 flex flex-wrap items-center justify-between gap-3">
+                    <p id="apptCountLabel" class="text-sm text-slate-500"></p>
+                    <button type="button" id="btnShowMore" class="hidden btn-secondary py-2 text-sm">Show more</button>
                 </div>
             </div>
         </section>
     </main>
 
-    <div id="depositModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-center justify-center hidden opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-gray-100 transform scale-95 transition-transform duration-300">
-            <div class="bg-slate-950 p-4 text-white flex justify-between items-center">
-                <h4 class="font-bold text-base tracking-wide"><i class="fa-solid fa-hand-holding-dollar text-amber-400 mr-2"></i>Payment Details &amp; Admit Client</h4>
-                <button id="btnCloseDepositModal" class="text-gray-400 hover:text-white transition-all text-lg">&times;</button>
+    <!-- Booking details. Actions for the booking live in the footer. -->
+    <div id="detailsModal" role="dialog" aria-modal="true" aria-labelledby="detailsTitle" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-end sm:items-center justify-center hidden opacity-0 transition-opacity duration-300 sm:p-4">
+        <div class="modal-panel max-w-lg transform scale-95 transition-transform duration-300">
+            <div class="modal-head">
+                <div class="min-w-0">
+                    <h4 id="detailsTitle" class="font-bold text-lg">Booking details</h4>
+                    <p id="detailsRef" class="text-xs font-mono text-white/70 truncate"></p>
+                </div>
+                <button id="btnCloseDetailsModal" type="button" class="modal-close" aria-label="Close">&times;</button>
             </div>
-            <div class="p-5 space-y-3.5 text-xs">
-                <p class="prose-justify text-gray-500">Viewing these details does not verify the payment. Check the cash or wallet transaction first; <strong class="text-gray-700">Verify Payment</strong> then records it as verified, assigns an on-duty stylist and confirms the booking. A verified deposit locks this reservation and gives it priority over any conflicting unpaid booking for the same stylist and time.</p>
+            <div class="p-5 overflow-y-auto" id="detailsModalBody"></div>
+            <div id="detailsActions" class="px-5 pb-5 pt-1 grid grid-cols-2 gap-2"></div>
+        </div>
+    </div>
 
-                <div id="depositVerifyBanner" class="hidden text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 space-y-1">
-                    <p class="font-bold uppercase tracking-wide text-xs">Self-reported by customer, not yet verified</p>
-                    <p>Amount: <strong id="depositVerifyAmount"></strong> via <strong id="depositVerifyMethod"></strong></p>
-                    <p id="depositVerifyRefRow" class="hidden">Reference: <strong id="depositVerifyRefValue"></strong></p>
-                    <p id="depositVerifyNoRef" class="hidden ">No reference given, Cash deposit, verify in person before confirming.</p>
-                    <p class="text-amber-700/80">Check this against your GCash/Maya account (or that Cash was actually received) before confirming.</p>
-                </div>
-
+    <div id="reassignModal" role="dialog" aria-modal="true" aria-labelledby="reassignTitle" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] items-end sm:items-center justify-center hidden opacity-0 transition-opacity duration-300 sm:p-4">
+        <div class="modal-panel max-w-sm transform scale-95 transition-transform duration-300">
+            <div class="modal-head">
+                <h4 id="reassignTitle" class="font-bold text-lg">Assign stylist</h4>
+                <button id="btnCloseReassignModal" type="button" class="modal-close" aria-label="Close">&times;</button>
+            </div>
+            <div class="p-5 space-y-4">
                 <div>
-                    <label class="block text-xs text-gray-500 font-bold uppercase mb-1">Deposit Amount</label>
-                    <input id="depositAmountInput" type="number" step="0.01" min="0.01" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <label for="reassignStaffSelect" class="field-label">Stylist</label>
+                    <select id="reassignStaffSelect" class="field-input"></select>
                 </div>
-                <div>
-                    <label class="block text-xs text-gray-500 font-bold uppercase mb-1">Payment Method</label>
-                    <select id="depositMethodInput" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">
-                        <option value="" disabled selected>-- Select --</option>
-                        <option value="Cash">Cash</option>
-                        <option value="GCash">GCash</option>
-                        <option value="Maya">Maya</option>
-                        <option value="PayMongo-GCash">GCash (PayMongo)</option>
-                        <option value="PayMongo-Maya">Maya (PayMongo)</option>
-                        <option value="PayMongo-Card">Card (PayMongo)</option>
-                        <option value="PayMongo">PayMongo (legacy combined)</option>
-                    </select>
-                </div>
-                <button id="btnConfirmDeposit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 rounded-xl transition duration-150">Confirm &amp; Admit</button>
+                <button id="btnConfirmReassign" type="button" class="btn-primary w-full">Assign stylist</button>
             </div>
         </div>
     </div>
 
-    <div id="detailsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-center justify-center hidden opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl border border-gray-100 transform scale-95 transition-transform duration-300">
-            <div class="bg-slate-950 p-4 text-white flex justify-between items-center">
-                <h4 class="font-bold text-base tracking-wide"><i class="fa-solid fa-circle-info text-amber-400 mr-2"></i>Booking Details</h4>
-                <button id="btnCloseDetailsModal" class="text-gray-400 hover:text-white transition-all text-lg">&times;</button>
+    <div id="rescheduleModal" role="dialog" aria-modal="true" aria-labelledby="rescheduleTitle" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] items-end sm:items-center justify-center hidden opacity-0 transition-opacity duration-300 sm:p-4">
+        <div class="modal-panel max-w-md transform scale-95 transition-transform duration-300">
+            <div class="modal-head">
+                <h4 id="rescheduleTitle" class="font-bold text-lg">Reschedule booking</h4>
+                <button id="btnCloseRescheduleModal" type="button" class="modal-close" aria-label="Close">&times;</button>
             </div>
-            <div class="p-5 space-y-2 text-xs" id="detailsModalBody"></div>
-        </div>
-    </div>
-
-    <div id="reassignModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-center justify-center hidden opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-gray-100 transform scale-95 transition-transform duration-300">
-            <div class="bg-slate-950 p-4 text-white flex justify-between items-center">
-                <h4 class="font-bold text-base tracking-wide"><i class="fa-solid fa-user-gear text-amber-400 mr-2"></i>Assign / Reassign Staff</h4>
-                <button id="btnCloseReassignModal" class="text-gray-400 hover:text-white transition-all text-lg">&times;</button>
-            </div>
-            <div class="p-5 space-y-3.5 text-xs">
-                <div>
-                    <label class="block text-xs text-gray-500 font-bold uppercase mb-1">Select Staff</label>
-                    <select id="reassignStaffSelect" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"></select>
-                </div>
-                <button id="btnConfirmReassign" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 rounded-xl transition duration-150">Assign Staff</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="rescheduleModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-center justify-center hidden opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl border border-gray-100 transform scale-95 transition-transform duration-300">
-            <div class="bg-slate-950 p-4 text-white flex justify-between items-center">
-                <h4 class="font-bold text-base tracking-wide"><i class="fa-solid fa-calendar-days text-amber-400 mr-2"></i>Reschedule Booking</h4>
-                <button id="btnCloseRescheduleModal" class="text-gray-400 hover:text-white transition-all text-lg" aria-label="Close">&times;</button>
-            </div>
-            <div class="p-5 space-y-3.5 text-xs max-h-[80vh] overflow-y-auto">
+            <div class="p-5 space-y-4 text-sm overflow-y-auto">
                 <div id="rescheduleInfo" class="rounded-xl bg-gray-50 border border-gray-200 p-3 grid grid-cols-2 gap-x-3 gap-y-2"></div>
-                <div class="rounded-xl bg-amber-50 border border-amber-200 p-3 flex items-start gap-2">
-                    <i class="fa-solid fa-clock-rotate-left text-amber-600 mt-0.5"></i>
-                    <div>
-                        <span class="block text-xs text-amber-700 font-bold uppercase">Current schedule</span>
-                        <span class="font-semibold text-slate-800" id="rescheduleCurrent"></span>
-                    </div>
+                <div class="rounded-xl bg-amber-50 border border-amber-200 p-3">
+                    <span class="block text-xs text-amber-800 font-bold uppercase">Current schedule</span>
+                    <span class="font-semibold text-slate-800" id="rescheduleCurrent"></span>
                 </div>
                 <div>
-                    <label for="rescheduleDate" class="block text-xs text-gray-500 font-bold uppercase mb-1">New date</label>
-                    <input id="rescheduleDate" type="date" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <label for="rescheduleDate" class="field-label">New date</label>
+                    <input id="rescheduleDate" type="date" class="field-input">
                 </div>
                 <div>
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="block text-xs text-gray-500 font-bold uppercase">New time</span>
-                        <span class="flex items-center gap-2.5 text-xs text-gray-500">
-                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded border border-gray-300 bg-white"></span>Open</span>
-                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-amber-500"></span>Selected</span>
-                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-gray-100"></span><span class="line-through">Full</span> / current</span>
-                        </span>
+                    <span class="field-label">New time</span>
+                    <div id="rescheduleSlots" class="grid grid-cols-3 sm:grid-cols-4 gap-1.5 max-h-48 overflow-y-auto">
+                        <p class="col-span-4 text-gray-400">Pick a date to see open times.</p>
                     </div>
-                    <div id="rescheduleSlots" class="grid grid-cols-4 gap-1.5 max-h-48 overflow-y-auto">
-                        <p class="col-span-4 text-gray-400 ">Pick a date to see open times.</p>
-                    </div>
-                    <p class="text-xs text-gray-400 mt-1" id="rescheduleSlotNote"></p>
+                    <p class="text-xs text-gray-500 mt-1" id="rescheduleSlotNote"></p>
                 </div>
                 <div>
-                    <label for="rescheduleReason" class="block text-xs text-gray-500 font-bold uppercase mb-1">Reason for the customer <span class="normal-case font-normal">(optional)</span></label>
-                    <input id="rescheduleReason" type="text" maxlength="200" placeholder="e.g. Stylist unavailable that morning" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <label for="rescheduleReason" class="field-label">Reason for the customer <span class="normal-case font-normal">(optional)</span></label>
+                    <input id="rescheduleReason" type="text" maxlength="200" placeholder="e.g. Stylist unavailable that morning" class="field-input">
                 </div>
                 <ul class="rounded-xl bg-slate-50 border border-slate-200 p-3 space-y-1 text-xs text-slate-600 list-disc list-inside">
-                    <li>Same reference, services, and deposit, nothing is re-charged.</li>
+                    <li>Same reference, services and payment. Nothing is charged again.</li>
                     <li>Keeps the current stylist if free; otherwise another qualified stylist is assigned.</li>
                     <li id="rescheduleStatusNote"></li>
-                    <li>The customer is notified of the new schedule (and the reason, if given).</li>
+                    <li>The customer is told the new schedule (and the reason, if given).</li>
                 </ul>
-                <button id="btnConfirmReschedule" disabled class="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-xs py-2.5 rounded-xl transition duration-150">Move Booking</button>
-                <button id="btnAskCustomerReschedule" class="w-full bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-xs py-2.5 rounded-xl transition duration-150">Ask Customer to Reschedule Instead</button>
+                <button id="btnConfirmReschedule" type="button" disabled class="btn-primary w-full">Move booking</button>
+                <button id="btnAskCustomerReschedule" type="button" class="btn-secondary w-full">Ask the customer to pick a new time instead</button>
             </div>
         </div>
     </div>
 
     <script src="../../function/cashier/cashier-common.js"></script>
     <script src="../../function/shared/appointment-arrival.js"></script>
-    <script src="../../function/cashier/appointments.js?v=20261104-cards"></script>
+    <script src="../../function/cashier/appointments.js?v=20261105b"></script>
 </body>
 </html>

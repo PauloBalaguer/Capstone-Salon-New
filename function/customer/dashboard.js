@@ -25,8 +25,17 @@ function customerApp() {
     optionalMixin('customerTrackBookingMixin'),
     {
       init() {
-        customerHighlightNav();
         this.loadDashboardData();
+      },
+
+      openSignOutConfirm() {
+        this.isNotificationPanelOpen = false;
+        this.isSignOutConfirmOpen = true;
+        this.$nextTick(() => this.$refs.signOutCancel?.focus());
+      },
+
+      closeSignOutConfirm() {
+        this.isSignOutConfirmOpen = false;
       },
 
       // Pulls the logged-in customer's profile, appointments, reviews, home
@@ -53,6 +62,7 @@ function customerApp() {
             }
 
             this.customerProfile = body.profile;
+            this.csrfToken = body.csrfToken || '';
             if (window.AddressForms) AddressForms.setSaved(body.profile);
             this.loadServerNotifications(body.notifications);
             this.appointments = body.appointments;
@@ -77,6 +87,8 @@ function customerApp() {
             // (see optionalMixin above).
             if (this.prefillBookingForm) this.prefillBookingForm();
             this.checkForReminders();
+            // Sidebar "Track Booking" from another page lands on appointments.html?track=1.
+            if (this.openTrackModal && new URLSearchParams(window.location.search).get('track') === '1') this.openTrackModal();
 
             this.animateCount('displayServiceCount', countCompletedServices(this.appointments));
             setTimeout(() => { this.isBooting = false; }, 450);

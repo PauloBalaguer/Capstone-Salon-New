@@ -17,6 +17,7 @@ require_once '../../backend/shared/config/helpers/LoyaltyCard.php';
 require_once '../../backend/shared/config/booking/HomeServiceRequest.php';
 require_once '../../backend/shared/config/booking/ServiceDuration.php';
 require_once '../../backend/shared/config/payments/ReservationPayment.php';
+require_once '../../backend/shared/config/security/Csrf.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -308,6 +309,8 @@ try {
     echo json_encode([
         'success' => true,
         'profile' => $profile,
+        // Sent back by state-changing calls such as saveProfilePhoto.php.
+        'csrfToken' => Csrf::token(),
         'notifications' => $notifications,
         'appointments' => $appointments,
         'allBookings' => $allBookings,

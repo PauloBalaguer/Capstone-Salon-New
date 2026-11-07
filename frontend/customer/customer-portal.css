@@ -1,0 +1,317 @@
+/* ==========================================================================
+   Customer portal shell: sidebar, top header, phone bottom navigation,
+   Sign Out confirmation, and the few new pieces on Dashboard / My Profile.
+   Markup comes from function/customer/customer-shell.js.
+   Loaded after clean-theme.css, so it uses "html body.cp-portal" selectors.
+
+   Layout:
+     1024px and up  -> dark green sidebar + header with page title, bell,
+                       avatar and name (opens My Profile).
+     below 1024px   -> phone/tablet header (logo, bell, Sign Out, avatar)
+                       + fixed five-item bottom navigation.
+   Colours are the existing salon palette (brand-palette.css / clean-theme.css).
+   ========================================================================== */
+
+:root {
+  --cp-green: #006D6F;        /* brand teal: actions, active nav */
+  --cp-green-dark: #06464A;   /* sidebar */
+  --cp-cream: #FFF8EE;
+  --cp-surface: #FFFDF9;
+  --cp-border: #E8DCC8;
+  --cp-ink: #222222;
+  --cp-muted: #475569;
+  --cp-nav-muted: #6B807B;    /* inactive bottom-nav items: muted gray-green */
+  --cp-gold: #E0B84C;
+  --cp-header-h: 64px;
+  --cp-bottom-h: 64px;
+}
+
+/* ---------- Shared bits ---------- */
+html body.cp-portal .cp-icon { width: 20px; height: 20px; flex-shrink: 0; }
+html body.cp-portal .cp-icon-lg { width: 22px; height: 22px; flex-shrink: 0; }
+
+html body.cp-portal .cp-avatar {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  border-radius: 999px; overflow: hidden;
+  background: var(--cp-green); color: #FFFFFF;
+  font-weight: 700; letter-spacing: .02em;
+  box-shadow: 0 0 0 2px var(--cp-surface), 0 0 0 3px var(--cp-border);
+}
+html body.cp-portal .cp-avatar img { width: 100%; height: 100%; object-fit: cover; }
+html body.cp-portal .cp-avatar-md { width: 40px; height: 40px; font-size: .875rem; }
+
+html body.cp-portal .cp-brand-logo { width: 40px; height: 40px; border-radius: 999px; object-fit: cover; flex-shrink: 0; }
+html body.cp-portal .cp-brand-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+html body.cp-portal .cp-brand-text strong { font-family: Georgia, Cambria, 'Times New Roman', serif; font-size: 1.0625rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html body.cp-portal .cp-brand-text small { font-size: .75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---------- Desktop sidebar ---------- */
+html body.cp-portal .cp-sidebar { display: none; }
+@media (min-width: 1024px) {
+  html body.cp-portal .cp-sidebar {
+    display: flex; flex-direction: column; flex-shrink: 0;
+    width: 256px; height: 100%; padding: 20px 16px;
+    overflow-y: auto; z-index: 20;
+    background: var(--cp-green-dark) !important;
+  }
+}
+html body.cp-portal .cp-brand {
+  display: flex; align-items: center; gap: 12px;
+  padding: 4px 8px 20px; margin-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 248, 238, .12);
+  color: var(--cp-cream) !important; text-decoration: none;
+  min-height: 0 !important;
+}
+html body.cp-portal .cp-sidebar .cp-brand-text strong { color: var(--cp-cream) !important; }
+html body.cp-portal .cp-sidebar .cp-brand-text small { color: rgba(255, 248, 238, .62) !important; font-size: .75rem !important; }
+html body.cp-portal .cp-side-heading {
+  margin: 0 0 8px; padding: 0 12px;
+  font-size: .75rem !important; font-weight: 700; letter-spacing: .12em;
+  color: rgba(255, 248, 238, .58) !important;
+}
+html body.cp-portal .cp-side-nav { display: flex; flex-direction: column; gap: 4px; }
+html body.cp-portal .cp-sidebar .cp-side-link {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  min-height: 46px; padding: 10px 12px;
+  border: 0; border-radius: 12px; background: transparent !important;
+  color: rgba(255, 248, 238, .78) !important;
+  font-size: .9375rem !important; font-weight: 500; text-align: left; text-decoration: none;
+  cursor: pointer; transition: background-color .15s ease, color .15s ease;
+}
+html body.cp-portal .cp-sidebar .cp-side-link span { font-size: .9375rem !important; color: inherit !important; }
+html body.cp-portal .cp-sidebar .cp-side-link:hover {
+  background: rgba(255, 248, 238, .08) !important; color: var(--cp-cream) !important;
+}
+html body.cp-portal .cp-sidebar .cp-side-link.is-active {
+  background: rgba(255, 248, 238, .12) !important; color: var(--cp-cream) !important;
+  font-weight: 600; box-shadow: inset 3px 0 0 var(--cp-gold) !important;
+}
+html body.cp-portal .cp-sidebar .cp-side-link.is-active svg { color: var(--cp-gold) !important; }
+html body.cp-portal .cp-sidebar .cp-side-link:focus-visible { outline: 2px solid var(--cp-gold); outline-offset: 2px; }
+html body.cp-portal .cp-side-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid rgba(255, 248, 238, .12); }
+html body.cp-portal .cp-sidebar .cp-signout-link:hover,
+html body.cp-portal .cp-sidebar .cp-signout-link:focus-visible {
+  color: #F2A3A3 !important; background: rgba(242, 163, 163, .12) !important;
+}
+
+/* ---------- Header ---------- */
+html body.cp-portal main > header.cp-header {
+  position: sticky; top: 0; z-index: 40; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: nowrap !important;
+  gap: 12px; min-height: var(--cp-header-h); padding: 10px 24px !important;
+  background: var(--cp-surface) !important; border-bottom: 1px solid var(--cp-border) !important;
+}
+html body.cp-portal .cp-header-brand { display: none; }
+html body.cp-portal main > header.cp-header h2.cp-header-title {
+  margin: 0; min-width: 0; color: var(--cp-ink) !important;
+  font-size: 1.375rem !important; line-height: 1.3;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+html body.cp-portal .cp-header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: nowrap !important; }
+html body.cp-portal .cp-icon-btn {
+  position: relative; display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; min-height: 44px !important; padding: 0 !important;
+  border-radius: 999px; border: 0; background: transparent; color: #3F4F4C; cursor: pointer;
+  transition: background-color .15s ease, color .15s ease;
+}
+html body.cp-portal .cp-icon-btn:hover { background: #F2EADC; color: var(--cp-green); }
+html body.cp-portal .cp-icon-btn:focus-visible,
+html body.cp-portal .cp-profile-link:focus-visible { outline: 2px solid var(--cp-green); outline-offset: 2px; }
+html body.cp-portal .cp-badge {
+  position: absolute; top: 6px; right: 5px;
+  min-width: 18px; height: 18px; padding: 0 4px;
+  border-radius: 999px; border: 2px solid var(--cp-surface);
+  background: #C2410C; color: #FFFFFF;
+  font-size: 10px !important; font-weight: 700; line-height: 14px; text-align: center;
+}
+html body.cp-portal .cp-header-signout { display: none; }
+html body.cp-portal .cp-profile-link {
+  display: inline-flex; align-items: center; gap: 10px; min-width: 0;
+  min-height: 44px; padding: 2px 12px 2px 2px; margin-left: 4px;
+  border-radius: 999px; color: var(--cp-ink) !important; text-decoration: none;
+  transition: background-color .15s ease;
+}
+html body.cp-portal .cp-profile-link:hover { background: #F2EADC; }
+html body.cp-portal .cp-profile-name {
+  max-width: 180px; font-size: .9375rem !important; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* Notification pop-up */
+html body.cp-portal .cp-bell-wrap { position: relative; }
+html body.cp-portal .cp-notification-panel {
+  position: absolute; top: calc(100% + 10px); right: -8px; z-index: 50;
+  display: flex; flex-direction: column;
+  width: min(380px, calc(100vw - 32px)) !important;
+  max-height: min(32rem, calc(100dvh - 96px)) !important;
+  overflow: hidden; color: var(--cp-ink);
+  background: var(--cp-surface) !important; border: 1px solid var(--cp-border) !important;
+  border-radius: 16px; box-shadow: 0 18px 42px -18px rgba(6, 70, 74, .45) !important;
+}
+html body.cp-portal .cp-notification-head {
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+  padding: 10px 10px 10px 16px; border-bottom: 1px solid var(--cp-border);
+}
+html body.cp-portal .cp-notification-head h4 { margin: 0 auto 0 0; font-size: 1rem !important; font-weight: 700; color: var(--cp-ink); }
+html body.cp-portal .cp-notification-head .notification-read-all { margin-left: 0; }
+html body.cp-portal .cp-notification-head .notification-close { min-width: 36px; min-height: 36px !important; border-radius: 999px; }
+html body.cp-portal .cp-notification-panel .notification-list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+html body.cp-portal .cp-notification-empty { padding: 32px 16px; text-align: center; font-size: .875rem; color: var(--cp-muted); }
+
+/* ---------- Phone bottom navigation ---------- */
+html body.cp-portal #customer-mobile-nav.cp-bottom-nav { display: none; }
+
+/* ---------- Phones and tablets (below 1024px) ---------- */
+@media (max-width: 1023.98px) {
+  html body.cp-portal main > header.cp-header {
+    min-height: calc(var(--cp-header-h) + env(safe-area-inset-top, 0px));
+    padding: calc(8px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px)) !important;
+  }
+  html body.cp-portal .cp-header-brand {
+    display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1 1 auto;
+    color: var(--cp-ink) !important; text-decoration: none; min-height: 44px;
+  }
+  html body.cp-portal .cp-header-brand .cp-brand-text strong { color: var(--cp-green-dark) !important; }
+  html body.cp-portal .cp-header-brand .cp-brand-text small { color: var(--cp-muted) !important; font-size: .8125rem !important; }
+  html body.cp-portal main > header.cp-header h2.cp-header-title { display: none; }
+  html body.cp-portal .cp-header-actions { gap: 2px; }
+  html body.cp-portal .cp-header-signout { display: inline-flex; }
+  html body.cp-portal .cp-profile-link { padding: 2px; margin-left: 2px; }
+  html body.cp-portal .cp-profile-name { display: none; }
+
+  /* The pop-up drops below the header and spans the screen width. */
+  html body.cp-portal .cp-notification-panel {
+    position: fixed; top: calc(var(--cp-header-h) + env(safe-area-inset-top, 0px) + 6px);
+    left: 12px; right: 12px; width: auto !important;
+    max-height: calc(100dvh - var(--cp-header-h) - var(--cp-bottom-h) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 24px) !important;
+  }
+
+  html body.cp-portal #customer-mobile-nav.cp-bottom-nav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 45;
+    display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding: 4px max(4px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(4px, env(safe-area-inset-left, 0px));
+    border-top: 1px solid var(--cp-border) !important;
+    box-shadow: 0 -6px 20px -16px rgba(6, 70, 74, .5);
+    backdrop-filter: none;
+  }
+  html body.cp-portal #customer-mobile-nav a.cp-bottom-link {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    min-width: 0; min-height: 56px !important; padding: 6px 2px !important;
+    border-radius: 12px; background: transparent !important;
+    color: var(--cp-nav-muted) !important; text-decoration: none;
+  }
+  html body.cp-portal #customer-mobile-nav a.cp-bottom-link .cp-bottom-icon { width: 22px; height: 22px; flex-shrink: 0; }
+  html body.cp-portal #customer-mobile-nav a.cp-bottom-link span {
+    max-width: 100%; font-size: .75rem !important; line-height: 1.2 !important; font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  html body.cp-portal #customer-mobile-nav a.cp-bottom-link.is-active { color: var(--cp-green) !important; }
+  html body.cp-portal #customer-mobile-nav a.cp-bottom-link.is-active span { font-weight: 700; }
+  html body.cp-portal #customer-mobile-nav a.cp-bottom-link:focus-visible { outline: 2px solid var(--cp-green); outline-offset: -2px; }
+
+  /* Room for the bottom bar, so it never covers the end of a page. */
+  html body.cp-portal main::after {
+    content: ""; display: block; flex-shrink: 0;
+    height: calc(var(--cp-bottom-h) + env(safe-area-inset-bottom, 0px));
+  }
+  html body.cp-portal main .pb-24 { padding-bottom: 1.5rem !important; }
+}
+
+/* Very small phones (320px): tighter header so nothing overlaps. */
+@media (max-width: 359.98px) {
+  html body.cp-portal main > header.cp-header { padding-left: 12px !important; padding-right: 8px !important; gap: 6px; }
+  html body.cp-portal .cp-header-brand { gap: 8px; }
+  html body.cp-portal .cp-header-brand .cp-brand-logo { width: 34px; height: 34px; }
+  html body.cp-portal .cp-header-brand .cp-brand-text strong { font-size: .9375rem; }
+  html body.cp-portal .cp-icon-btn { width: 40px; height: 40px; min-height: 40px !important; }
+  html body.cp-portal .cp-avatar-md { width: 36px; height: 36px; }
+  html body.cp-portal #customer-mobile-nav a.cp-bottom-link span { font-size: .6875rem !important; }
+}
+
+/* ---------- Sign Out confirmation ---------- */
+html body.cp-portal .cp-modal-backdrop {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  padding: max(16px, env(safe-area-inset-top, 0px)) 16px max(16px, env(safe-area-inset-bottom, 0px));
+  background: rgba(15, 23, 42, .55); overflow-y: auto;
+}
+html body.cp-portal .cp-modal {
+  width: 100%; max-width: 400px; max-height: calc(100dvh - 32px); overflow-y: auto;
+  padding: 24px; border-radius: 18px; text-align: center;
+  background: var(--cp-surface); color: var(--cp-ink);
+  border: 1px solid var(--cp-border); box-shadow: 0 28px 70px -30px rgba(6, 70, 74, .6);
+}
+html body.cp-portal .cp-modal-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 52px; height: 52px; margin-bottom: 12px; border-radius: 999px;
+  background: #FDECEC; color: #B91C1C;
+}
+html body.cp-portal .cp-modal h3 { margin: 0 0 6px; font-size: 1.25rem !important; font-weight: 700; color: var(--cp-ink) !important; }
+html body.cp-portal .cp-modal p { margin: 0; font-size: .9375rem; line-height: 1.5; color: var(--cp-muted); }
+html body.cp-portal .cp-modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+
+html body.cp-portal .cp-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 46px !important; padding: 10px 18px; border-radius: 999px !important;
+  font-size: .9375rem !important; font-weight: 700; text-decoration: none; cursor: pointer;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+html body.cp-portal .cp-btn:focus-visible { outline: 2px solid var(--cp-green); outline-offset: 2px; }
+html body.cp-portal .cp-btn-secondary { background: var(--cp-surface) !important; color: var(--cp-ink) !important; border: 1px solid #D9C9B4 !important; }
+html body.cp-portal .cp-btn-secondary:hover { background: #F7F0E4 !important; }
+html body.cp-portal .cp-btn-danger { background: #B91C1C !important; color: #FFFFFF !important; border: 1px solid #B91C1C !important; }
+html body.cp-portal .cp-btn-danger:hover { background: #991B1B !important; }
+html body.cp-portal .cp-btn-outline { background: transparent !important; color: var(--cp-green) !important; border: 1px solid #A9C7C6 !important; }
+html body.cp-portal .cp-btn-outline:hover { background: rgba(0, 109, 111, .07) !important; }
+html body.cp-portal .cp-btn.is-disabled { opacity: .55; pointer-events: none; }
+html body.cp-portal .cp-text-link { color: var(--cp-green) !important; font-size: .9375rem; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; min-height: 44px; display: inline-flex; align-items: center; }
+html body.cp-portal .cp-text-link:hover { color: var(--cp-green-dark) !important; }
+
+/* ---------- Dashboard quick actions ---------- */
+html body.cp-portal .cp-quick-actions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+html body.cp-portal .cp-quick-action {
+  display: flex; align-items: center; gap: 10px; min-width: 0; min-height: 56px !important;
+  padding: 12px 14px; border-radius: 14px;
+  background: var(--cp-surface); border: 1px solid var(--cp-border);
+  color: var(--cp-ink) !important; font-size: .9375rem !important; font-weight: 600; text-decoration: none;
+  transition: border-color .15s ease, background-color .15s ease;
+}
+html body.cp-portal .cp-quick-action span { font-size: .9375rem !important; min-width: 0; overflow-wrap: anywhere; }
+html body.cp-portal .cp-quick-action svg {
+  width: 36px; height: 36px; padding: 8px; flex-shrink: 0; border-radius: 10px;
+  background: #E5F2F0; color: var(--cp-green);
+}
+html body.cp-portal .cp-quick-action:hover { border-color: #A9C7C6; background: #FFFFFF; }
+html body.cp-portal .cp-quick-action:focus-visible { outline: 2px solid var(--cp-green); outline-offset: 2px; }
+@media (max-width: 767.98px) {
+  html body.cp-portal .cp-quick-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  html body.cp-portal .cp-quick-action { padding: 10px 12px; gap: 8px; }
+  html body.cp-portal .cp-quick-action svg { width: 32px; height: 32px; padding: 7px; }
+  html body.cp-portal .cp-quick-action, html body.cp-portal .cp-quick-action span { font-size: .875rem !important; }
+}
+
+/* ---------- My Profile: photo card ---------- */
+html body.cp-portal .cp-photo-card { display: flex; align-items: center; gap: 20px; }
+html body.cp-portal .cp-photo-frame {
+  position: relative; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 96px; height: 96px; border-radius: 999px; overflow: hidden;
+  background: var(--cp-green); color: #FFFFFF; font-size: 1.75rem; font-weight: 700;
+  box-shadow: 0 0 0 3px var(--cp-surface), 0 0 0 4px var(--cp-border);
+}
+html body.cp-portal .cp-photo-frame img { width: 100%; height: 100%; object-fit: cover; }
+html body.cp-portal .cp-photo-busy {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: rgba(6, 70, 74, .65); color: #FFFFFF; font-size: .8125rem; font-weight: 600;
+}
+html body.cp-portal .cp-photo-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
+html body.cp-portal .cp-photo-copy > p { max-width: 100%; overflow-wrap: anywhere; }
+html body.cp-portal .cp-photo-button { margin: 10px 0 4px; min-height: 44px !important; padding: 8px 16px; font-size: .875rem !important; }
+html body.cp-portal .cp-photo-button span { font-size: .875rem !important; }
+@media (max-width: 479.98px) {
+  html body.cp-portal .cp-photo-card { flex-direction: column; text-align: center; gap: 14px; }
+  html body.cp-portal .cp-photo-copy { align-items: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body.cp-portal .cp-side-link, html body.cp-portal .cp-icon-btn, html body.cp-portal .cp-btn, html body.cp-portal .cp-quick-action { transition: none; }
+}

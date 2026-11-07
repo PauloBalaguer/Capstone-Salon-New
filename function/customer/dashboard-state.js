@@ -7,7 +7,14 @@ function customerDashboardState() {
     appointmentSearchQuery: '',
     selectedBranchForServices: 'daraga',
     isNotificationPanelOpen: false,
-    isProfileMenuOpen: false,
+    // Sign Out confirmation (header icon on phones, sidebar on larger screens).
+    isSignOutConfirmOpen: false,
+    // Profile photo upload on My Profile.
+    isUploadingPhoto: false,
+    // Per-session token for state-changing customer requests (getDashboardData.php).
+    csrfToken: '',
+    // services-promos.html?book=1: the Book Appointment entry point.
+    bookingEntry: new URLSearchParams(window.location.search).get('book') === '1',
     isReviewModalOpen: false,
     isEditingReview: false,
     isCancelModalOpen: false,

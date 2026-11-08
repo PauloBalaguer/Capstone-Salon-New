@@ -140,26 +140,4 @@ function mergeMixins(...sources) {
   return target;
 }
 
-// Highlights the sidebar/mobile-nav links matching the current page filename.
-// Mirrors function/admin/shared-data.js's adminHighlightNav(). Call from init().
-function customerHighlightNav() {
-  const current = location.pathname.split('/').pop();
-
-  document.querySelectorAll('#customer-sidebar [data-nav-page]').forEach(link => {
-    const isActive = link.getAttribute('data-nav-page') === current;
-    link.classList.toggle('bg-luxury-900/60', isActive);
-    link.classList.toggle('text-white', isActive);
-    link.classList.toggle('font-medium', isActive);
-    link.classList.toggle('border-l-4', isActive);
-    link.classList.toggle('border-gold-400', isActive);
-    link.classList.toggle('text-slate-400', !isActive);
-    link.classList.toggle('hover:bg-slate-800/50', !isActive);
-    link.classList.toggle('hover:text-slate-200', !isActive);
-  });
-
-  document.querySelectorAll('#customer-mobile-nav [data-nav-page]').forEach(link => {
-    const isActive = link.getAttribute('data-nav-page') === current;
-    link.classList.toggle('text-gold-400', isActive);
-    link.classList.toggle('text-slate-400', !isActive);
-  });
-}
+// Active navigation is marked by function/customer/customer-shell.js.

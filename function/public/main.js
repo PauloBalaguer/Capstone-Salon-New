@@ -1013,9 +1013,12 @@
 
   // Shift status can change anytime staff clock in/out elsewhere in the
   // system, so refresh it periodically rather than only on tab switch.
+  // Skipped while the browser tab is in the background, so a forgotten open tab
+  // doesn't keep calling the server all day.
   setInterval(() => {
+    if (document.hidden) return;
     if (document.getElementById('stylists-tab')?.classList.contains('active-page')) renderStaff(true);
-  }, 60000);
+  }, 120000);
 
   document.querySelectorAll('.staff-tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {

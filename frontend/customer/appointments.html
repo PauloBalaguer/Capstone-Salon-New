@@ -212,7 +212,7 @@
                       <p><strong class="font-bold">Payment method:</strong> <span x-text="PortalPresentation.methodLabel(appt.paymentMethod) || 'Not selected'"></span></p>
                       <p><strong class="font-bold">Payment status:</strong> <span x-text="appointmentPaymentLabel(appt)"></span></p>
                       <p x-show="!appt.depositVerified && appt.depositAmount && !['Cancelled', 'No-Show'].includes(appt.status)" class="prose-justify text-[#B45309]">Your reservation payment is awaiting verification. If you have already paid, please do not pay again.</p>
-                      <p x-show="appt.depositVerified && appt.remainingBalance  class="prose-justify"> 0 && !['Cancelled', 'No-Show'].includes(appt.status)">Pay your remaining balance at the branch via Cash, GCash, or Maya.</p>
+                      <p x-show="appt.depositVerified && appt.remainingBalance > 0 && !['Cancelled', 'No-Show'].includes(appt.status)" class="prose-justify">Pay your remaining balance at the branch via Cash, GCash, or Maya.</p>
                     </div>
                   </details>
 

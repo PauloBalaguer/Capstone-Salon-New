@@ -38,6 +38,39 @@ function customerApp() {
         this.isSignOutConfirmOpen = false;
       },
 
+      // Sidebar badge on My Bookings: upcoming active bookings.
+      upcomingBookingCount() {
+        const active = ['Pending', 'Confirmed', 'In Progress', 'Reschedule Requested', 'Reschedule Required'];
+        const today = getLocalISODate();
+        return (this.appointments || []).filter(a => active.includes(a.status) && String(a.date || '') >= today).length;
+      },
+
+      customerFirstName() {
+        return String(this.customerProfile.name || '').trim().split(/\s+/)[0] || 'there';
+      },
+
+      todayLabel() {
+        return new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+      },
+
+      // Dashboard "Services you'll love": the first four service categories
+      // from the live catalogs, with their duration range.
+      serviceTeasers() {
+        const byCategory = new Map();
+        Object.values(this.servicesCatalog || {}).forEach(list => (list || []).forEach(service => {
+          const name = service.category || 'Salon Services';
+          const minutes = Number(service.durationMinutes) || 0;
+          const entry = byCategory.get(name) || { name, min: Infinity, max: 0, count: 0 };
+          if (minutes) { entry.min = Math.min(entry.min, minutes); entry.max = Math.max(entry.max, minutes); }
+          entry.count += 1;
+          byCategory.set(name, entry);
+        }));
+        return [...byCategory.values()].slice(0, 4).map(entry => ({
+          name: entry.name,
+          detail: entry.max ? (entry.min === entry.max ? entry.min + ' min' : entry.min + '–' + entry.max + ' min') : entry.count + ' services'
+        }));
+      },
+
       // Pulls the logged-in customer's profile, appointments, reviews, home
       // service requests, and the shared catalogs from the real backend.
       // Requires an active PHP session, so this only works when the page is

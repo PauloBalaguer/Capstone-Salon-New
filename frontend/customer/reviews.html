@@ -147,7 +147,7 @@
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
   <!-- Customer portal shell (sidebar, header, bottom nav); loaded after the shared themes. -->
-  <link rel="stylesheet" href="../../frontend/customer/customer-portal.css?v=20261107">
+  <link rel="stylesheet" href="../../frontend/customer/customer-portal.css?v=20261108">
 </head>
 
 <body data-customer-page="reviews" data-page-title="My Feedback"
@@ -173,6 +173,7 @@
       <div x-show="!isBooting" x-transition:enter="transition ease-out duration-500"
         x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
         <div class="p-6 space-y-6 pb-24 md:pb-6">
+          <div data-customer-shell="intro" data-eyebrow="WE'D LOVE TO HEAR FROM YOU" data-title="Share your" data-accent="experience" data-text="Your feedback helps every visit feel a little better."></div>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <template x-if="myReviews.length === 0">
               <section class="reviews-empty-state col-span-full bg-slate-900 border border-luxury-900 rounded-2xl" aria-labelledby="reviews-empty-title">
@@ -241,6 +242,7 @@
           </div>
         </div>
       </div>
+      <div data-customer-shell="footer"></div>
     </main>
   </div>
 
@@ -309,7 +311,7 @@
   <!-- App logic, split by concern. Only what this page's markup uses:
        the reviews list and edit-review modal. Appointments, booking,
        home service, and profile mixins live on their own pages. -->
-  <script src="../../function/customer/customer-shell.js?v=20261107"></script>
+  <script src="../../function/customer/customer-shell.js?v=20261108"></script>
   <script src="../../function/customer/dashboard-helpers.js"></script>
   <script src="../../function/customer/dashboard-state.js"></script>
   <script src="../../function/customer/dashboard-notifications.js"></script>

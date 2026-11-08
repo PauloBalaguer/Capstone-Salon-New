@@ -68,7 +68,7 @@
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
   <!-- Customer portal shell (sidebar, header, bottom nav); loaded after the shared themes. -->
-  <link rel="stylesheet" href="../../frontend/customer/customer-portal.css?v=20261107">
+  <link rel="stylesheet" href="../../frontend/customer/customer-portal.css?v=20261108">
 </head>
 <body data-customer-page="services" data-page-title="Explore Services" class="salon-portal services-page bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
@@ -97,6 +97,13 @@
 
         <div class="p-6 space-y-6 pb-24 md:pb-6">
           <div class="services-content mx-auto">
+            <div class="cp-intro">
+              <div class="cp-intro-copy">
+                <span class="cp-eyebrow" x-text="bookingEntry || showBookingForm ? 'YOUR NEXT VISIT' : 'TREAT YOURSELF'"></span>
+                <h1><span x-text="bookingEntry || showBookingForm ? 'Book an' : 'Explore our'"></span> <em x-text="bookingEntry || showBookingForm ? 'appointment' : 'services'"></em></h1>
+                <p x-text="bookingEntry || showBookingForm ? 'Choose your branch, add services, and find a time that works for you.' : 'Find the care that feels right for you.'"></p>
+              </div>
+            </div>
 
             <div class="flex items-center justify-center gap-1.5 sm:gap-3 mb-4 flex-wrap" x-show="showBookingForm || showBookingSuccess || selectedServicesForBooking.length > 0">
               <template x-for="(label, i) in bookingProgressLabels()" :key="label">
@@ -111,7 +118,6 @@
             </div>
 
             <div class="bg-slate-900 border border-luxury-900 rounded-2xl p-5 space-y-4">
-              <h3 class="font-serif text-base font-bold text-white" x-text="showBookingForm || bookingEntry ? 'Book an Appointment' : 'Explore Our Offerings'"></h3>
               <p x-show="bookingEntry && !showBookingForm && !showBookingSuccess" class="text-sm text-slate-400">Choose a branch, then tap <strong>Book now</strong> on the service you want.</p>
               <!-- Branch: three short pills instead of a dropdown (full name shown below). -->
               <div x-show="!showBookingForm && !showBookingSuccess" class="space-y-1.5">
@@ -597,6 +603,7 @@
         </div>
 
       </div>
+      <div data-customer-shell="footer"></div>
     </main>
   </div>
 
@@ -607,7 +614,7 @@
        browsing services/promos and the booking flow. Appointments,
        reviews, home service, and profile mixins live on their own pages. -->
   <script src="../../function/shared/service-duration.js"></script>
-  <script src="../../function/customer/customer-shell.js?v=20261107"></script>
+  <script src="../../function/customer/customer-shell.js?v=20261108"></script>
   <script src="../../function/customer/dashboard-helpers.js"></script>
   <script src="../../function/customer/dashboard-state.js"></script>
   <script src="../../function/customer/dashboard-notifications.js"></script>

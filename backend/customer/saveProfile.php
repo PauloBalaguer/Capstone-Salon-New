@@ -48,6 +48,15 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     exit();
 }
 
+// The photo is normally saved on its own by saveProfilePhoto.php. Older
+// clients may still send it here, so apply the same format and size check.
+if ($profilePicture !== null && $profilePicture !== '' && (strlen($profilePicture) > 900_000
+    || !preg_match('#^data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$#D', $profilePicture))) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'Please choose a PNG, JPG or WebP photo smaller than 600 KB.']);
+    exit();
+}
+
 [$firstName, $lastName] = array_pad(explode(' ', $name, 2), 2, '');
 
 require_once __DIR__ . '/../../backend/shared/config/helpers/Address.php';

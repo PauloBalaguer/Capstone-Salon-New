@@ -2,16 +2,57 @@
 
 function customerProfileMixin() {
   return {
-    handleProfilePictureUpload(event) {
-      const file = event.target.files[0];
-      if (file && file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          this.customerProfile.profilePicture = e.target.result;
-          this.pushToast('success', 'Profile picture updated. Click "Save" to apply changes.');
-        };
-        reader.readAsDataURL(file);
+    // Add or change the profile photo. The picked image is shrunk to at most
+    // 400px in the browser and saved straight away through
+    // backend/customer/saveProfilePhoto.php, which re-checks it.
+    async handleProfilePictureUpload(event) {
+      const input = event.target;
+      const file = input.files && input.files[0];
+      input.value = '';
+      if (!file) return;
+      if (!/^image\/(png|jpeg|webp)$/.test(file.type)) {
+        return this.pushToast('error', 'Please choose a PNG, JPG or WebP photo.');
       }
+      if (file.size > 10 * 1024 * 1024) {
+        return this.pushToast('error', 'That photo is larger than 10 MB. Please choose a smaller one.');
+      }
+      this.isUploadingPhoto = true;
+      try {
+        const dataUrl = await this.shrinkProfilePhoto(file);
+        const formData = new FormData();
+        formData.append('profilePicture', dataUrl);
+        formData.append('csrfToken', this.csrfToken);
+        const response = await fetch('../../backend/customer/saveProfilePhoto.php', { method: 'POST', body: formData, headers: { 'X-CSRF-Token': this.csrfToken } });
+        const body = await response.json();
+        if (!response.ok || !body.success) throw new Error(body.message || 'Could not save your photo.');
+        this.customerProfile.profilePicture = body.profilePicture;
+        this.pushToast('success', 'Profile photo updated.');
+      } catch (error) {
+        this.pushToast('error', error.message && !/JSON|fetch/i.test(error.message) ? error.message : 'Could not save your photo. Please try again.');
+      } finally {
+        this.isUploadingPhoto = false;
+      }
+    },
+
+    shrinkProfilePhoto(file) {
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+          const scale = Math.min(1, 400 / Math.max(img.width, img.height));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(img.width * scale));
+          canvas.height = Math.max(1, Math.round(img.height * scale));
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          URL.revokeObjectURL(url);
+          resolve(canvas.toDataURL('image/jpeg', 0.85));
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('That file could not be read as an image.')); };
+        img.src = url;
+      });
     },
 
     saveProfile() {
@@ -22,9 +63,7 @@ function customerProfileMixin() {
       formData.append('phone', this.customerProfile.phone);
       formData.append('notifyEmail', this.customerProfile.notificationPrefs.email ? '1' : '0');
       formData.append('notifySms', this.customerProfile.notificationPrefs.sms ? '1' : '0');
-      if (this.customerProfile.profilePicture) {
-        formData.append('profilePicture', this.customerProfile.profilePicture);
-      }
+      // The photo is saved on its own when it is picked (saveProfilePhoto.php).
 
       fetch('../../backend/customer/saveProfile.php', { method: 'POST', body: formData })
         .then(response => response.json().then(body => ({ status: response.status, body })))

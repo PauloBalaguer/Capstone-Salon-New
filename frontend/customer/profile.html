@@ -65,7 +65,7 @@
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
   <!-- Customer portal shell (sidebar, header, bottom nav); loaded after the shared themes. -->
-  <link rel="stylesheet" href="../../frontend/customer/customer-portal.css?v=20261107">
+  <link rel="stylesheet" href="../../frontend/customer/customer-portal.css?v=20261108">
 </head>
 <body data-customer-page="profile" data-page-title="My Profile" class="salon-portal bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
@@ -90,28 +90,40 @@
 
       <div x-show="!isBooting" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
 
-        <div class="p-6 pb-24 md:pb-6">
-          <div class="w-full max-w-3xl mx-auto space-y-6">
-            <div class="cp-photo-card bg-slate-900 border border-luxury-900 rounded-2xl p-5 sm:p-6">
+        <div class="cp-page">
+          <div data-customer-shell="intro" data-eyebrow="A LITTLE ABOUT YOU" data-title="My" data-accent="profile" data-text="Keep your details up to date for a smoother visit."></div>
+          <div class="cp-profile-layout">
+            <!-- Summary: photo, name, counts and shortcuts -->
+            <section class="cp-card cp-profile-summary" aria-label="Your account">
+              <div class="cp-profile-cover" aria-hidden="true"></div>
               <div class="cp-photo-frame" :aria-busy="isUploadingPhoto.toString()">
                 <img x-show="customerProfile.profilePicture" :src="customerProfile.profilePicture" alt="Your profile photo" @error="customerProfile.profilePicture = ''">
                 <span x-show="!customerProfile.profilePicture" aria-hidden="true" x-text="(customerProfile.name || '').split(' ').filter(Boolean).map(n => n[0]).slice(0, 2).join('').toUpperCase()"></span>
                 <span x-show="isUploadingPhoto" class="cp-photo-busy" style="display: none;">Saving…</span>
               </div>
-              <div class="cp-photo-copy">
-                <p class="text-lg font-bold text-white" x-text="customerProfile.name"></p>
-                <p class="text-sm text-slate-400" x-text="customerProfile.email"></p>
-                <p class="text-sm text-slate-500" x-text="customerProfile.phone"></p>
-                <label for="profile-picture-upload" class="cp-btn cp-btn-outline cp-photo-button" :class="isUploadingPhoto ? 'is-disabled' : ''">
-                  <svg aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9zM15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              <h2 x-text="customerProfile.name"></h2>
+              <p class="cp-profile-role">Customer account</p>
+              <span class="cp-active-pill"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></svg> Active account</span>
+              <div class="cp-photo-actions">
+                <label for="profile-picture-upload" class="cp-btn cp-btn-outline" :class="isUploadingPhoto ? 'is-disabled' : ''">
+                  <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9zM15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                   <span x-text="customerProfile.profilePicture ? 'Change Profile Photo' : 'Add Profile Photo'"></span>
                 </label>
                 <input type="file" @change="handleProfilePictureUpload($event)" :disabled="isUploadingPhoto" accept="image/png, image/jpeg, image/webp" class="sr-only" id="profile-picture-upload">
-                <p class="text-xs text-slate-500">PNG, JPG or WebP. Saved as soon as you choose it.</p>
               </div>
-            </div>
+              <p class="cp-photo-note">PNG, JPG or WebP · Saved as soon as you choose it</p>
+              <div class="cp-mini-stats">
+                <div><strong x-text="(appointments || []).length"></strong><span>Bookings</span></div>
+                <div><strong x-text="(myReviews || []).length"></strong><span>Reviews</span></div>
+              </div>
+              <div class="cp-summary-links">
+                <a href="dashboard.html#cp-loyalty-title" class="cp-summary-link is-highlight"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m12 2 3.1 6.3L22 9.3l-5 4.9 1.2 6.8-6.2-3.3-6.2 3.3L7 14.2 2 9.3l6.9-1z"/></svg><span>My Loyalty Card</span><span class="cp-summary-count" x-text="customerProfile.loyaltyCard.stamps + '/10'"></span><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+                <a href="reviews.html" class="cp-summary-link"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20.5 5.5a5.5 5.5 0 0 0-7.8 0L12 6.2l-.7-.7a5.5 5.5 0 0 0-7.8 7.8L12 22l8.5-8.7a5.5 5.5 0 0 0 0-7.8z"/></svg><span>My Feedback</span><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+              </div>
+            </section>
 
-            <div class="bg-slate-900 border border-luxury-900 rounded-2xl p-5 sm:p-6">
+            <div class="cp-profile-forms">
+            <section class="bg-slate-900 border border-luxury-900 rounded-2xl p-5 sm:p-6">
               <h3 class="font-serif text-base font-bold text-white">Personal Information</h3>
               <p class="text-xs text-slate-400 mt-1">Keep your contact details up to date to receive appointment reminders and important notifications.</p>
               <form @submit.prevent="saveProfile()" class="space-y-4 text-xs mt-4">
@@ -138,9 +150,9 @@
                   <button type="submit" class="px-5 py-2 bg-gradient-to-r from-luxury-600 to-luxury-800 text-white font-bold rounded-lg hover:shadow-lg hover:shadow-luxury-600/20 transition active:scale-95">Save Changes</button>
                 </div>
               </form>
-            </div>
+            </section>
 
-            <div class="bg-slate-900 border border-luxury-900 rounded-2xl p-5 sm:p-6">
+            <section class="bg-slate-900 border border-luxury-900 rounded-2xl p-5 sm:p-6">
               <h3 class="font-serif text-base font-bold text-white">Notification Preferences</h3>
               <p class="text-xs text-slate-400 mt-1">Choose how you receive updates about your appointments and exclusive offers.</p>
               <div class="mt-4 space-y-3 text-xs">
@@ -171,9 +183,9 @@
               <div class="pt-4 flex justify-end">
                 <button type="button" @click="saveProfile()" class="px-5 py-2 bg-gradient-to-r from-luxury-600 to-luxury-800 text-white text-xs font-bold rounded-lg hover:shadow-lg hover:shadow-luxury-600/20 transition active:scale-95">Save Preferences</button>
               </div>
-            </div>
+            </section>
 
-            <div class="bg-slate-900 border border-luxury-900 rounded-2xl p-5 sm:p-6">
+            <section class="bg-slate-900 border border-luxury-900 rounded-2xl p-5 sm:p-6">
               <h3 class="font-serif text-base font-bold text-white">Change Password</h3>
               <p class="prose-justify text-xs text-slate-400 mt-1">Change your password regularly to keep your account secure. We'll email a code to confirm the change.</p>
 
@@ -245,9 +257,11 @@
               </form>
 
               <div x-show="passwordChangeStatus.success" x-text="passwordChangeStatus.success" class="text-xs text-emerald-400 bg-emerald-950/50 p-2 rounded-lg text-center mt-3" x-transition></div>
-            </div>
+            </section>
 
             </div>
+          </div>
+          <div data-customer-shell="footer"></div>
         </div>
 
       </div>
@@ -261,7 +275,7 @@
        profile picture upload, profile/preferences saving, and password
        change. Appointments, booking, reviews, and home service mixins
        live on their own pages. -->
-  <script src="../../function/customer/customer-shell.js?v=20261107"></script>
+  <script src="../../function/customer/customer-shell.js?v=20261108"></script>
   <script src="../../function/customer/dashboard-helpers.js"></script>
   <script src="../../function/customer/dashboard-state.js"></script>
   <script src="../../function/customer/dashboard-notifications.js"></script>

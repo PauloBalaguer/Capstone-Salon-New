@@ -12,6 +12,7 @@ require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
+require_once '../../backend/shared/config/setup/cloudinary.php';
 
 sendCorsHeaders();
 AuditLog::captureRequest();
@@ -90,7 +91,7 @@ try {
     }
     if ($profilePicture !== null && $profilePicture !== '') {
         $sql .= ', profile_picture = ?';
-        $params[] = $profilePicture;
+        $params[] = Cloudinary::storePhoto($profilePicture, 'customer-' . (int) $userId);
     }
     $sql .= ' WHERE user_id = ?';
     $params[] = $userId;

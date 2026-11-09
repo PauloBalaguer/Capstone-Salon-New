@@ -1013,9 +1013,12 @@
 
   // Shift status can change anytime staff clock in/out elsewhere in the
   // system, so refresh it periodically rather than only on tab switch.
+  // Skipped while the browser tab is in the background, so a forgotten open tab
+  // doesn't keep calling the server all day.
   setInterval(() => {
+    if (document.hidden) return;
     if (document.getElementById('stylists-tab')?.classList.contains('active-page')) renderStaff(true);
-  }, 60000);
+  }, 120000);
 
   document.querySelectorAll('.staff-tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1826,16 +1829,16 @@
   const BA_LOOKS = [
     { kicker: 'Hair', title: 'Organic Rebonding', price: '₱999', where: 'Daraga Main · Cabangan',
       blurb: 'Any length, one sitting. Straightened without the harsh chemical smell and sealed with keratin, so it grows out soft instead of snapping at the line.',
-      before: 'frontend/shared/image/Before rebond.jpg',
-      after:  'frontend/shared/image/after rebond.jpg' },
+      before: 'frontend/shared/image/Before-rebond.jpg',
+      after:  'frontend/shared/image/after-rebond.jpg' },
     { kicker: 'Brows', title: 'Premium Microblading', price: '₱2,500', where: 'Daraga Main · Yashano Mall',
       blurb: 'Hair-stroke brows mapped to your face, not to a stencil. Healed shape lasts through the year with one touch-up.',
       before: 'frontend/shared/image/latestenhancebeforeMicrobladding.jpg',
-      after:  'frontend/shared/image/ehance after mricobladding.jpg' },
+      after:  'frontend/shared/image/ehance-after-mricobladding.jpg' },
     { kicker: 'Skin', title: 'Basic Facial', price: '₱499', where: 'All three branches',
       blurb: 'Deep clean, extraction, and a calming mask. The one to book before an event, or every few weeks to keep congestion down.',
-      before: 'frontend/shared/image/basic facial before.jpg',
-      after:  'frontend/shared/image/basic facial after.jpg' }
+      before: 'frontend/shared/image/basic-facial-before.jpg',
+      after:  'frontend/shared/image/basic-facial-after.jpg' }
   ];
 
   (function () {

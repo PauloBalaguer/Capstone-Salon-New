@@ -17,6 +17,7 @@ require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/security/Csrf.php';
+require_once '../../backend/shared/config/setup/cloudinary.php';
 
 sendCorsHeaders();
 AuditLog::captureRequest();
@@ -52,6 +53,9 @@ $expected = ['png' => IMAGETYPE_PNG, 'jpeg' => IMAGETYPE_JPEG, 'webp' => IMAGETY
 if ($info === false || $info[2] !== $expected || $info[0] < 1 || $info[1] < 1 || $info[0] > 4000 || $info[1] > 4000) {
     photoFail(400, 'That file is not a valid image. Please choose another photo.');
 }
+
+// Kept on Cloudinary when it is set up (only the URL is saved), else in the database.
+$photo = Cloudinary::storePhoto($photo, 'customer-' . (int) $_SESSION['user_id']);
 
 try {
     $pdo = Database::getInstance();

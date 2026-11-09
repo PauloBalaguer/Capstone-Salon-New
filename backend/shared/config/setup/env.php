@@ -74,6 +74,10 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
     }
     // Optional salon rule (see .env.example): hidden while unset, not counted as missing.
     echo str_pad('SALON_LATE_GRACE_MINUTES', 26) . (env('SALON_LATE_GRACE_MINUTES') !== '' ? 'set' : 'not set (late-arrival rule hidden)') . "\n";
+    // Optional: Cloudinary storage for photos (see setup/cloudinary.php).
+    foreach (['CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET'] as $key) {
+        echo str_pad($key, 26) . (env($key) !== '' ? 'set' : 'not set (photos stay on this server)') . "\n";
+    }
     echo $missing ? "\n{$missing} setting(s) missing; those features stay switched off.\n" : "\nAll settings present.\n";
     exit($missing ? 1 : 0);
 }

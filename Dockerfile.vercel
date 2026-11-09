@@ -19,7 +19,7 @@ ENV PORT=80 \
 # uses pdo_mysql; mysqli is installed for any tooling that expects it.
 RUN docker-php-ext-install mysqli pdo_mysql opcache \
     && mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
-    && a2enmod headers remoteip setenvif \
+    && a2enmod headers remoteip rewrite setenvif \
     && a2dismod -f autoindex status \
     && a2dissite 000-default \
     && echo 'Listen ${PORT}' > /etc/apache2/ports.conf

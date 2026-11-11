@@ -39,6 +39,13 @@ function adminBookingsApp() {
       for (const field of ['bookingFilterBranch','bookingFilterStatus','bookingFilterPayment','bookingSearch','bookingDateFrom','bookingDateTo']) {
         this.$watch(field, () => { clearTimeout(this.filterTimer); this.filterTimer = setTimeout(() => this.loadBookings(1), 0); });
       }
+      // Filters passed from the Dashboard cards (e.g. ?status=Pending&branch=daraga).
+      const fromUrl = {
+        bookingSearch: AdminUI.param('search'), bookingFilterBranch: AdminUI.param('branch'),
+        bookingFilterStatus: AdminUI.param('status'), bookingFilterPayment: AdminUI.param('payment'),
+        bookingDateFrom: AdminUI.param('from'), bookingDateTo: AdminUI.param('to')
+      };
+      Object.entries(fromUrl).forEach(([field, value]) => { if (value) this[field] = value; });
       this.$watch('$store.admin.bookings', () => {
         if (this.detailsBooking) {
           const updated = Alpine.store('admin').bookings.find(booking => booking.id === this.detailsBooking.id);
@@ -46,6 +53,22 @@ function adminBookingsApp() {
           else this.$refs.bookingDetails.close();
         }
       });
+    },
+
+    // Booking total: service price (salon) or final quote (home service; null until quoted).
+    totalAmount(booking) {
+      if (booking.isHomeService) return booking.quotePrice ?? null;
+      return Number(booking.price || 0);
+    },
+    // Money actually received: checkout payments (which already include a
+    // recorded deposit) or, before checkout, the verified deposit only.
+    amountPaid(booking) {
+      if (booking.isHomeService) return Number(booking.amountPaid || 0);
+      if (booking.checkoutPaid) return Number(booking.checkoutRevenue || 0);
+      return booking.depositPaid && booking.depositVerified ? Number(booking.depositAmount || 0) : 0;
+    },
+    staffBadge(status) {
+      return { 'On Shift': 'lm-badge lm-badge--success', 'Busy': 'lm-badge lm-badge--info', 'On Break': 'lm-badge lm-badge--pending' }[status] || 'lm-badge lm-badge--neutral';
     },
 
     getFilteredBookings() {

@@ -1,3 +1,9 @@
+# Allow this laptop and devices connected to its Windows mobile hotspot.
+<RequireAny>
+  Require local
+  Require ip 192.168.137.0/24
+</RequireAny>
+
 # This project is still under active development, so CSS/JS/HTML
 # edits need to show up on the next reload instead of getting stuck
 # behind the browser's own cache (no Cache-Control header here means

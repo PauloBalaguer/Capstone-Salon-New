@@ -15,7 +15,18 @@ async function adminFetchInventoryHistory(params) {
 
 function adminInventoryApp() {
   return {
-    inventoryFilterBranch: 'all',
+    inventoryFilterBranch: AdminUI.param('branch') || 'all',
+    productSearch: '',
+    // 'all' | 'low' (at/below minimum, incl. out) | 'out' | 'ok'. Dashboard links with ?stock=low.
+    stockFilter: AdminUI.param('stock') || 'all',
+
+    // Adjust Stock modal
+    adjustItem: null,
+    adjustDelta: '',
+    adjustReasonPreset: 'Restock / delivery received',
+    adjustReasonText: '',
+    adjustSaving: false,
+    adjustError: '',
     // 'active' = the stock registry, 'archived' = archived items (restorable),
     // 'history' = the usage & movement log.
     inventoryView: 'active',
@@ -44,11 +55,72 @@ function adminInventoryApp() {
       this.$watch('inventoryFilterBranch', () => { if (this.inventoryView === 'history') this.loadHistory(); });
     },
 
+    stockStatus(item) {
+      if (item.stock <= 0) return 'out';
+      return item.stock <= item.minQty ? 'low' : 'ok';
+    },
+
+    branchItems() {
+      const list = Alpine.store('admin').inventory;
+      return this.inventoryFilterBranch === 'all' ? list : list.filter(i => i.branchId === this.inventoryFilterBranch);
+    },
+
+    // Product search, branch and stock status all apply together.
     getFilteredInventory() {
+      const q = this.productSearch.trim().toLowerCase();
+      return this.branchItems().filter(i => {
+        if (this.inventoryView === 'archived' ? i.isActive : !i.isActive) return false;
+        if (q && ![i.name, i.category, i.supplier].some(v => String(v || '').toLowerCase().includes(q))) return false;
+        if (this.inventoryView === 'active' && this.stockFilter !== 'all') {
+          const status = this.stockStatus(i);
+          if (this.stockFilter === 'low' && status === 'ok') return false;
+          if (this.stockFilter === 'out' && status !== 'out') return false;
+          if (this.stockFilter === 'ok' && status !== 'ok') return false;
+        }
+        return true;
+      }).sort((a, b) => a.name.localeCompare(b.name));
+    },
+
+    openAdjust(item) {
+      this.adjustItem = item;
+      this.adjustDelta = '';
+      this.adjustReasonPreset = 'Restock / delivery received';
+      this.adjustReasonText = '';
+      this.adjustError = '';
+    },
+    adjustNewQty() {
+      const delta = Number(this.adjustDelta);
+      if (!this.adjustItem || this.adjustDelta === '' || !Number.isInteger(delta)) return NaN;
+      return this.adjustItem.stock + delta;
+    },
+    adjustReason() {
+      return this.adjustReasonPreset === 'Other' ? this.adjustReasonText.trim() : this.adjustReasonPreset;
+    },
+    canSaveAdjustment() {
+      const delta = Number(this.adjustDelta);
+      return this.adjustDelta !== '' && Number.isInteger(delta) && delta !== 0 && this.adjustNewQty() >= 0 && this.adjustReason() !== '';
+    },
+    // Saved through backend/admin/adjustStock.php, which records the change
+    // (with this reason) in inventory_adjustments and refuses negative stock.
+    async saveAdjustment() {
+      if (!this.canSaveAdjustment()) {
+        this.adjustError = this.adjustNewQty() < 0 ? 'Stock cannot go below zero.' : 'Enter a whole-number change and a reason.';
+        return;
+      }
       const store = Alpine.store('admin');
-      let list = store.inventory;
-      if (this.inventoryFilterBranch !== 'all') list = list.filter(i => i.branchId === this.inventoryFilterBranch);
-      return list.filter(i => this.inventoryView === 'archived' ? !i.isActive : i.isActive);
+      this.adjustSaving = true;
+      this.adjustError = '';
+      try {
+        const result = await store.post('adjustStock.php', { id: this.adjustItem.id, delta: Number(this.adjustDelta), reason: this.adjustReason() });
+        if (!result.success) { this.adjustError = result.message || 'Failed to adjust stock.'; return; }
+        LMToast.show(`Stock updated: ${this.adjustItem.name} now has ${result.stock} units.`, 'success');
+        this.adjustItem = null;
+        await store.refresh();
+      } catch (e) {
+        this.adjustError = 'A network error occurred. Check the item history before trying again.';
+      } finally {
+        this.adjustSaving = false;
+      }
     },
 
     archivedCount() {

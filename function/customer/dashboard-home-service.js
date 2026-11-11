@@ -173,10 +173,10 @@ function customerHomeServiceMixin() {
 
     getHomeServiceStatusBadgeClass(status) {
       const classes = {
-        'Pending Review': 'bg-amber-950 text-amber-400 border border-amber-900/60',
-        'Confirmed': 'bg-indigo-950 text-indigo-400 border border-indigo-900/60',
-        'Completed': 'bg-emerald-950 text-emerald-400 border border-emerald-900/60',
-        'Cancelled': 'bg-rose-950 text-rose-400 border border-rose-900/60'
+        'Pending Review': 'bg-amber-950 text-amber-400 border border-[#774800]/60',
+        'Confirmed': 'bg-indigo-950 text-indigo-400 border border-[#1A547A]/60',
+        'Completed': 'bg-emerald-950 text-emerald-400 border border-[#115C39]/60',
+        'Cancelled': 'bg-rose-950 text-rose-400 border border-[#9C1E15]/60'
       };
       return classes[status] || 'bg-slate-800 text-slate-300';
     },

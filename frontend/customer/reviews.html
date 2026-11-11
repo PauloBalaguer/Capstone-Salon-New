@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+  <link rel="stylesheet" href="../shared/theme-tokens.css">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Leo Mejillano Salon - My Reviews</title>
@@ -15,21 +16,21 @@
         extend: {
           colors: {
             luxury: {
-              50: "#F4FBFA",
-              100: "#E5F2F0",
-              200: "#C7E0DD",
-              500: "#006D6F",
-              600: "#006D6F",
-              700: "#06464A",
-              800: "#06464A",
-              900: "#06464A",
-              950: "#FFF8EE",
+              50: "#EEF7F2",
+              100: "#DDF0E6",
+              200: "#DDF0E6",
+              500: "#16604B",
+              600: "#16604B",
+              700: "#0E3B2F",
+              800: "#0E3B2F",
+              900: "#0E3B2F",
+              950: "#F6F8F7",
             },
             gold: {
-              100: "#fef08a",
-              400: "#facc15",
-              500: "#eab308",
-              600: "#ca8a04",
+              100: "#FAF2DC",
+              400: "#E0B84C",
+              500: "#E0B84C",
+              600: "#E0B84C",
             },
           },
         },
@@ -48,16 +49,16 @@
     }
 
     ::-webkit-scrollbar-track {
-      background: #FFF8EE;
+      background: var(--bg);
     }
 
     ::-webkit-scrollbar-thumb {
-      background: #006D6F;
+      background: var(--brand);
       border-radius: 4px;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-      background: #06464A;
+      background: var(--brand-dark);
     }
 
     @keyframes fadeUp {
@@ -88,9 +89,9 @@
 
     .skeleton {
       background: linear-gradient(90deg,
-          #FFF8EE 25%,
-          #E8DCC8 37%,
-          #FFF8EE 63%);
+          var(--bg) 25%,
+          var(--border) 37%,
+          var(--bg) 63%);
       background-size: 400% 100%;
       animation: shimmer 1.4s ease infinite;
     }
@@ -135,7 +136,7 @@
 
     .card-lift:hover {
       transform: translateY(-3px);
-      box-shadow: 0 12px 24px -8px rgba(0, 109, 111, 0.35);
+      box-shadow: 0 12px 24px -8px rgba(22, 96, 75, 0.35);
     }
   </style>
   <link rel="stylesheet" href="../../frontend/customer/customer-theme.css?v=20261104-notif2">
@@ -147,7 +148,8 @@
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
   <!-- Customer portal shell (sidebar, header, bottom nav); loaded after the shared themes. -->
-  <link rel="stylesheet" href="../../frontend/customer/customer-portal.css?v=20261108">
+  <link rel="stylesheet" href="../../frontend/customer/customer-portal.css?v=20261110">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
 </head>
 
 <body data-customer-page="reviews" data-page-title="My Feedback"
@@ -311,11 +313,12 @@
   <!-- App logic, split by concern. Only what this page's markup uses:
        the reviews list and edit-review modal. Appointments, booking,
        home service, and profile mixins live on their own pages. -->
-  <script src="../../function/customer/customer-shell.js?v=20261108"></script>
+  <script src="../../function/customer/customer-shell.js?v=20261110"></script>
   <script src="../../function/customer/dashboard-helpers.js"></script>
   <script src="../../function/customer/dashboard-state.js"></script>
   <script src="../../function/customer/dashboard-notifications.js"></script>
   <script src="../../function/customer/dashboard-reviews.js"></script>
+  <script src="../../function/shared/live-sync.js?v=20261110"></script>
   <script src="../../function/customer/dashboard.js"></script>
 </body>
 

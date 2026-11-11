@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+  <link rel="stylesheet" href="../shared/theme-tokens.css">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Reservation Payment | Leo Mejillano Salon &amp; Beauty</title>
@@ -31,33 +32,45 @@
   <link rel="stylesheet" href="../../frontend/shared/payment-methods.css?v=20261104-payment-logos" />
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
+  <link rel="stylesheet" href="../../frontend/public/public-unify.css?v=20261110d">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
 </head>
 
-<body class="bg-sand-100 text-ink font-body min-h-screen flex items-center justify-center p-4">
+<body class="gw-site gw-result bg-sand-100 text-ink font-body min-h-screen flex items-center justify-center p-4">
   <main class="w-full max-w-md bg-panel border border-bronze/50 rounded-2xl p-6 sm:p-8 shadow-sm text-center">
+    <div id="resultIcon" class="mx-auto mb-3 w-14 h-14 rounded-full flex items-center justify-center bg-sand-200 text-ink/60" aria-hidden="true">
+      <svg class="w-7 h-7 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" d="M12 3a9 9 0 1 0 9 9" /></svg>
+    </div>
     <p class="text-[11px] font-bold tracking-widest uppercase text-ink/50">Reservation payment</p>
     <h1 id="resultTitle" class="font-display text-2xl mt-2">Checking your payment…</h1>
     <p id="resultMessage" class="text-sm text-ink/60 mt-3">This only takes a moment.</p>
     <p id="resultHold" class="hidden text-sm text-ink/60 mt-2" role="timer"></p>
-    <p id="resultReason" class="hidden text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg p-3 mt-3"></p>
-    <dl id="resultDetails" class="hidden text-sm text-left border-y border-bronze/40 py-3 mt-5 space-y-1">
+    <p id="resultReason" class="hidden text-sm text-[color:var(--danger)] bg-rose-50 border border-[#9C1E15]/30 rounded-lg p-3 mt-3"></p>
+    <dl id="resultDetails" class="hidden text-sm text-justify border-y border-bronze/40 py-3 mt-5 space-y-1">
       <div class="flex justify-between gap-3"><dt class="text-ink/50">Reference</dt><dd id="resultRef" class="font-bold"></dd></div>
       <div class="flex justify-between gap-3"><dt class="text-ink/50" id="resultAmountLabel">Amount</dt><dd id="resultAmount" class="font-bold"></dd></div>
+      <div id="resultStatusRow" class="hidden flex justify-between gap-3"><dt class="text-ink/50">Payment status</dt><dd id="resultStatus" class="font-bold"></dd></div>
       <div id="resultMethodRow" class="hidden flex justify-between gap-3"><dt class="text-ink/50">Method</dt><dd id="resultMethod" class="font-bold"></dd></div>
       <div id="resultDateRow" class="hidden flex justify-between gap-3"><dt class="text-ink/50">Date</dt><dd id="resultDate" class="font-bold"></dd></div>
       <div id="resultPaymentIdRow" class="hidden flex justify-between gap-3"><dt class="text-ink/50">PayMongo payment ID</dt><dd id="resultPaymentId" class="font-mono text-xs break-all text-right"></dd></div>
     </dl>
     <!-- GCash / Maya / Card buttons for "Try again" and "Choose another method" (paymongoPay.php). -->
-    <p id="resultLateRule" data-late-rule class="hidden text-sm text-left text-ink/70 bg-sand-100 border border-bronze/40 rounded-lg p-3 mt-4"><b>Late arrival:</b> <span data-late-rule-text></span></p>
+    <p id="resultLateRule" data-late-rule class="hidden text-sm text-justify text-ink/70 bg-sand-100 border border-bronze/40 rounded-lg p-3 mt-4"><b>Late arrival:</b> <span data-late-rule-text></span></p>
     <div id="resultMethods" class="hidden mt-6 grid gap-2"></div>
+    <div id="resultRedirect" class="hidden mt-5 rounded-xl border border-bronze/40 bg-sand-100 p-3 text-sm" role="timer" aria-live="polite">
+      <p>Redirecting to <span id="resultRedirectTarget">the homepage</span> in <b id="resultCountdown" class="text-plum">10</b> seconds…</p>
+      <div class="mt-2 h-1.5 rounded-full bg-sand-200 overflow-hidden"><div id="resultCountdownBar" class="h-full bg-plum transition-all duration-1000 ease-linear" style="width:100%"></div></div>
+    </div>
     <div class="mt-6 flex flex-col gap-2">
+      <a id="resultGoNow" href="../../index.html" class="hidden rounded-full bg-plum text-white font-bold text-sm py-3 hover:brightness-110 transition">Go now</a>
+      <button id="resultCheckAgain" type="button" class="hidden rounded-full bg-plum text-white font-bold text-sm py-3 hover:brightness-110 transition">Check payment status again</button>
       <a id="resultRetry" href="#" class="hidden rounded-full bg-plum text-white font-bold text-sm py-3 hover:brightness-110 transition">Try payment again</a>
       <a id="resultBack" href="../../index.html" class="rounded-full border border-bronze/60 font-bold text-sm py-3 hover:bg-sand-200 transition">Back to home</a>
     </div>
   </main>
   <script src="../../function/shared/pending-payment.js"></script>
   <script src="../../function/shared/late-arrival-rule.js"></script>
-  <script src="../../function/public/payment-result.js"></script>
+  <script src="../../function/public/payment-result.js?v=20261110b"></script>
 </body>
 
 </html>

@@ -51,7 +51,7 @@ document.addEventListener('alpine:init', () => {
       this.error = '';
       try {
         const bookingQuery = this.bookingQuery ? new URLSearchParams(this.bookingQuery).toString() : '';
-        const response = await fetch(ADMIN_API_BASE + 'getDashboardData.php' + (bookingQuery ? '?' + bookingQuery : ''), { credentials: 'same-origin' });
+        const response = await fetch(ADMIN_API_BASE + 'getDashboardData.php' + (bookingQuery ? '?' + bookingQuery : ''), { credentials: 'same-origin', cache: 'no-store' });
         if (response.status === 401) {
           window.location.href = '../../frontend/auth/login.html';
           return;
@@ -189,8 +189,9 @@ document.addEventListener('alpine:init', () => {
 
     getStaffStatusSummary() {
       return {
-        onDuty: this.staffList.filter(s => s.status === 'On Duty').length,
-        withClient: this.staffList.filter(s => s.status === 'With Client').length,
+        onDuty: this.staffList.filter(s => s.status === 'On Shift').length,
+        withClient: this.staffList.filter(s => s.status === 'Busy').length,
+        onBreak: this.staffList.filter(s => s.status === 'On Break').length,
         offShift: this.staffList.filter(s => s.status === 'Off Shift').length
       };
     },
@@ -250,18 +251,20 @@ document.addEventListener('alpine:init', () => {
   });
 
   Alpine.store('admin').refresh();
+  // Keep staff status and bookings live across every branch: reload the
+  // moment a shift, break, booking or assignment changes anywhere
+  // (function/shared/live-sync.js); the 30 s timer stays as a safety net.
+  if (window.LiveSync) window.LiveSync.start({ branch: 'all', onChange: () => Alpine.store('admin').refresh() });
+  setInterval(() => { if (!document.hidden) Alpine.store('admin').refresh(); }, 30000);
 });
 
 /* Highlights the sidebar nav link matching the current page filename. Call from
    each page's x-init alongside that page's own init logic. */
 function adminHighlightNav() {
   const current = location.pathname.split('/').pop();
+  // Styling lives in frontend/admin/admin-panel.css ([aria-current="page"]).
   document.querySelectorAll('[data-nav-page]').forEach(link => {
-    const isActive = link.getAttribute('data-nav-page') === current;
-    link.classList.toggle('admin-nav-active', isActive);
-    link.classList.toggle('font-medium', isActive);
-    link.classList.toggle('border-l-4', isActive);
-    link.classList.toggle('border-gold-400', isActive);
-    link.classList.toggle('text-slate-400', !isActive);
+    if (link.getAttribute('data-nav-page') === current) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
   });
 }

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="stylesheet" href="../shared/theme-tokens.css">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Leo Mejillano Salon - Customer Portal</title>
@@ -14,11 +15,11 @@
         extend: {
           colors: {
             luxury: {
-              50: '#F4FBFA', 100: '#E5F2F0', 200: '#C7E0DD', 500: '#006D6F',
-              600: '#006D6F', 700: '#06464A', 800: '#06464A', 900: '#06464A', 950: '#FFF8EE',
+              50: '#EEF7F2', 100: '#DDF0E6', 200: '#DDF0E6', 500: '#16604B',
+              600: '#16604B', 700: '#0E3B2F', 800: '#0E3B2F', 900: '#0E3B2F', 950: '#F6F8F7',
             },
             gold: {
-              100: '#fef08a', 400: '#facc15', 500: '#eab308', 600: '#ca8a04',
+              100: '#FAF2DC', 400: '#E0B84C', 500: '#E0B84C', 600: '#E0B84C',
             }
           }
         }
@@ -29,15 +30,15 @@
   <style>
     [x-cloak] { display: none !important; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #FFF8EE; }
-    ::-webkit-scrollbar-thumb { background: #006D6F; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #06464A; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--brand); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--brand-dark); }
 
     @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     .stagger-item { animation: fadeUp .45s cubic-bezier(.16,1,.3,1) both; }
 
     @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-    .skeleton { background: linear-gradient(90deg, #FFF8EE 25%, #E8DCC8 37%, #FFF8EE 63%); background-size: 400% 100%; animation: shimmer 1.4s ease infinite; }
+    .skeleton { background: linear-gradient(90deg, var(--bg) 25%, var(--border) 37%, var(--bg) 63%); background-size: 400% 100%; animation: shimmer 1.4s ease infinite; }
 
     @keyframes gentlePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
     .pulse-badge { animation: gentlePulse 1.6s ease-in-out infinite; }
@@ -46,7 +47,7 @@
     .topbar-shine { background-size: 200% 100%; animation: topbarShine 7s linear infinite; }
 
     .card-lift { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
-    .card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(0, 109, 111, 0.35); }
+    .card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(22, 96, 75, 0.35); }
   </style>
   <link rel="stylesheet" href="../../frontend/customer/customer-theme.css?v=20261104-notif2">
   <script src="../../function/customer/theme-config.js"></script>
@@ -57,7 +58,8 @@
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
   <!-- Customer portal shell (sidebar, header, bottom nav); loaded after the shared themes. -->
-  <link rel="stylesheet" href="../../frontend/customer/customer-portal.css?v=20261108">
+  <link rel="stylesheet" href="../../frontend/customer/customer-portal.css?v=20261110">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
 </head>
 <body data-customer-page="dashboard" data-page-title="Dashboard" class="salon-portal bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
@@ -99,7 +101,7 @@
               <h2>Beautiful moments<br><em>begin here.</em></h2>
               <p>Your favorite beauty services, thoughtful care, and time to feel like yourself again.</p>
               <div class="cp-hero-actions">
-                <a href="services-promos.html?book=1" class="cp-btn cp-btn-light">Book an appointment <svg class="cp-icon-sm" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+                <a href="services-promos.html?book=1" class="cp-btn cp-btn-light">Book an Appointment <svg class="cp-icon-sm" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
                 <a href="services-promos.html" class="cp-btn cp-btn-glass">Explore services</a>
               </div>
             </div>
@@ -107,7 +109,7 @@
 
           <!-- Quick links, so pages that are not in the phone bottom bar stay one tap away. -->
           <nav class="cp-quick-grid" aria-label="Quick actions">
-            <a href="services-promos.html?book=1" class="cp-quick-card"><span class="cp-quick-icon is-leaf"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg></span><span class="cp-quick-copy"><strong>Book Appointment</strong><small>Find your perfect time</small></span><svg class="cp-icon-sm" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+            <a href="services-promos.html?book=1" class="cp-quick-card"><span class="cp-quick-icon is-leaf"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg></span><span class="cp-quick-copy"><strong>Book an Appointment</strong><small>Find your perfect time</small></span><svg class="cp-icon-sm" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
             <a href="appointments.html?track=1" class="cp-quick-card"><span class="cp-quick-icon is-beige"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="7"/><path d="m16 16 5 5"/></svg></span><span class="cp-quick-copy"><strong>Track Booking</strong><small>Check your status</small></span><svg class="cp-icon-sm" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
             <a href="reviews.html" class="cp-quick-card"><span class="cp-quick-icon is-blush"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20.5 5.5a5.5 5.5 0 0 0-7.8 0L12 6.2l-.7-.7a5.5 5.5 0 0 0-7.8 7.8L12 22l8.5-8.7a5.5 5.5 0 0 0 0-7.8z"/></svg></span><span class="cp-quick-copy"><strong>My Feedback</strong><small>Rate a finished visit</small></span><svg class="cp-icon-sm" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
             <a href="home-service.html" class="cp-quick-card"><span class="cp-quick-icon is-leaf"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg></span><span class="cp-quick-copy"><strong>Home Service</strong><small>We come to you</small></span><svg class="cp-icon-sm" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
@@ -144,7 +146,7 @@
                   <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg>
                   <h3>No upcoming appointment</h3>
                   <p>Ready for a fresh look? Pick a branch and a time that suits you.</p>
-                  <a href="services-promos.html?book=1" class="cp-btn cp-btn-primary">Book an appointment <svg class="cp-icon-sm" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+                  <a href="services-promos.html?book=1" class="cp-btn cp-btn-primary">Book an Appointment <svg class="cp-icon-sm" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
                 </div>
               </template>
             </section>
@@ -274,11 +276,12 @@
        the next-appointment card, appointment details, and status
        badges. Booking, reviews, home service, and profile mixins live
        on their own pages. -->
-  <script src="../../function/customer/customer-shell.js?v=20261108"></script>
+  <script src="../../function/customer/customer-shell.js?v=20261110"></script>
   <script src="../../function/customer/dashboard-helpers.js"></script>
   <script src="../../function/customer/dashboard-state.js"></script>
   <script src="../../function/customer/dashboard-notifications.js"></script>
   <script src="../../function/customer/dashboard-appointments.js"></script>
+  <script src="../../function/shared/live-sync.js?v=20261110"></script>
   <script src="../../function/customer/dashboard.js"></script>
 </body>
 </html>

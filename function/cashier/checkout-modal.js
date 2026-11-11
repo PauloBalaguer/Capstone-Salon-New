@@ -74,7 +74,7 @@ const CheckoutModal = (() => {
   function showAlreadyPaid(receipt) {
     co.paid = true;
     const notice = $('alreadyPaidNotice');
-    notice.className = 'bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-sm text-emerald-800 flex items-center gap-2';
+    notice.className = 'bg-emerald-50 border border-[#115C39]/30 rounded-xl p-3 text-sm text-[color:var(--success)] flex items-center gap-2';
     notice.innerHTML = `<i class="fa-solid fa-circle-check"></i><span>Already paid (${escapeHtml(receipt.invoiceId)}).</span>`;
     $('btnSellProduct').disabled = true;
     $('btnProcessPayment').disabled = true;
@@ -106,7 +106,7 @@ const CheckoutModal = (() => {
             <button type="button" class="cart-qty-btn w-8 h-8 font-bold text-slate-600 hover:bg-gray-100 rounded-r-lg" data-action="inc" aria-label="Increase quantity">+</button>
           </div>
           <span class="w-20 text-right font-semibold text-slate-800">${CashierApp.formatCurrency(p.price * p.qty)}</span>
-          <button type="button" class="cart-remove-btn text-slate-400 hover:text-rose-600" aria-label="Remove ${escapeHtml(p.name)}"><i class="fa-solid fa-xmark"></i></button>
+          <button type="button" class="cart-remove-btn text-slate-400 hover:text-[color:var(--danger)]" aria-label="Remove ${escapeHtml(p.name)}"><i class="fa-solid fa-xmark"></i></button>
         </div>
       </div>`));
     $('cartItemsContainer').innerHTML = rows.join('');
@@ -257,12 +257,12 @@ const CheckoutModal = (() => {
     container.innerHTML = items.map(item => {
       const remaining = item.stock - (co.cart.find(p => p.id === item.id)?.qty || 0);
       return `
-      <button type="button" class="product-pick-btn w-full flex justify-between items-center bg-white border border-gray-200 hover:border-[#006D6F] rounded-xl p-3 text-left ${remaining <= 0 ? 'opacity-50 cursor-not-allowed' : ''}" data-product-id="${escapeHtml(item.id)}" ${remaining <= 0 ? 'disabled' : ''}>
+      <button type="button" class="product-pick-btn w-full flex justify-between items-center bg-white border border-gray-200 hover:border-teal-500 rounded-xl p-3 text-justify ${remaining <= 0 ? 'opacity-50 cursor-not-allowed' : ''}" data-product-id="${escapeHtml(item.id)}" ${remaining <= 0 ? 'disabled' : ''}>
         <span>
           <span class="block font-bold text-slate-800">${escapeHtml(item.name)}</span>
           <span class="block text-xs text-gray-500">${escapeHtml(item.category)} · ${remaining} in stock</span>
         </span>
-        <span class="font-bold text-[#06464A]">${CashierApp.formatCurrency(item.price)}</span>
+        <span class="font-bold text-teal-700">${CashierApp.formatCurrency(item.price)}</span>
       </button>`;
     }).join('');
   }

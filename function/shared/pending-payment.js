@@ -80,15 +80,15 @@ window.PendingPayment = {
         const style = document.createElement('style');
         style.id = 'pendingPaymentNoticeStyles';
         style.textContent = `
-          #pendingPaymentNotice .payment-notice { margin:20px 24px 0; padding:20px; display:flex; align-items:center; justify-content:space-between; gap:20px; background:#FFF8EE; color:#06464A; border:1px solid #D9C79E; border-left:4px solid #A67C00; border-radius:14px; }
-          #pendingPaymentNotice .payment-notice-title { margin:0 0 6px; font-size:16px; font-weight:700; color:#06464A; }
-          #pendingPaymentNotice .payment-notice-reference { margin:0 0 6px; font-size:14px; overflow-wrap:anywhere; color:#06464A; }
-          #pendingPaymentNotice .payment-notice-message { margin:0; font-size:14px; line-height:1.5; color:#52636A; }
+          #pendingPaymentNotice .payment-notice { margin:20px 24px 0; padding:20px; display:flex; align-items:center; justify-content:space-between; gap:20px; background:#F6F8F7; color:#0E3B2F; border:1px solid #CDD6D0; border-left:4px solid #6C4C09; border-radius:14px; }
+          #pendingPaymentNotice .payment-notice-title { margin:0 0 6px; font-size:16px; font-weight:700; color:#0E3B2F; }
+          #pendingPaymentNotice .payment-notice-reference { margin:0 0 6px; font-size:14px; overflow-wrap:anywhere; color:#0E3B2F; }
+          #pendingPaymentNotice .payment-notice-message { margin:0; font-size:14px; line-height:1.5; color:#4A5751; }
           #pendingPaymentNotice .payment-notice-actions { display:flex; flex-direction:column; align-items:center; gap:10px; flex-shrink:0; }
-          #pendingPaymentNotice .payment-notice-pay { display:inline-block; padding:11px 22px; background:#006D6F; color:#fff; border-radius:999px; font-size:14px; font-weight:700; text-decoration:none; text-align:center; }
-          #pendingPaymentNotice .payment-notice-pay:hover { background:#06464A; }
-          #pendingPaymentNotice .payment-notice-view { color:#006D6F; font-size:14px; font-weight:600; text-decoration:none; }
-          #pendingPaymentNotice a:focus-visible { outline:3px solid #A67C00; outline-offset:4px; }
+          #pendingPaymentNotice .payment-notice-pay { display:inline-block; padding:11px 22px; background:#16604B; color:#fff; border-radius:999px; font-size:14px; font-weight:700; text-decoration:none; text-align:center; }
+          #pendingPaymentNotice .payment-notice-pay:hover { background:#0E3B2F; }
+          #pendingPaymentNotice .payment-notice-view { color:#16604B; font-size:14px; font-weight:600; text-decoration:none; }
+          #pendingPaymentNotice a:focus-visible { outline:3px solid #6C4C09; outline-offset:4px; }
           @media(max-width:640px) { #pendingPaymentNotice .payment-notice { margin:16px 16px 0; padding:16px; flex-direction:column; align-items:stretch; gap:16px; } #pendingPaymentNotice .payment-notice-actions { align-items:stretch; text-align:center; } }
         `;
         document.head.appendChild(style);

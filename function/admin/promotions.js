@@ -45,7 +45,10 @@ function adminDefaultPackageForm() {
 
 function adminPromotionsApp() {
   return {
-    serviceFilterBranch: 'all',
+    // One branch at a time (defaults to the first branch once data loads).
+    serviceFilterBranch: AdminUI.param('branch') || '',
+    serviceCategory: 'all',
+    serviceSearch: '',
     openServiceModal: false,
     editingServiceId: null,
     serviceForm: adminDefaultServiceForm(),
@@ -61,17 +64,55 @@ function adminPromotionsApp() {
 
     init() {
       adminHighlightNav();
+      const pickBranch = (branches) => {
+        if (branches.length && !branches.some(b => b.id === this.serviceFilterBranch)) this.serviceFilterBranch = branches[0].id;
+      };
+      pickBranch(Alpine.store('admin').branches);
+      this.$watch('$store.admin.branches', pickBranch);
+      this.$watch('serviceFilterBranch', () => { this.serviceCategory = 'all'; });
     },
 
+    branchServices() {
+      return Alpine.store('admin').services.filter(s => s.branchId === this.serviceFilterBranch);
+    },
+
+    // Only the categories this branch actually offers; the five core salon
+    // categories are listed first, any other category after them.
+    branchCategories() {
+      const order = ['hair', 'nails', 'facial', 'lashes', 'brows'];
+      const counts = new Map();
+      this.branchServices().forEach(s => {
+        const name = (s.category || '').trim() || 'Uncategorized';
+        counts.set(name, (counts.get(name) || 0) + 1);
+      });
+      const rank = (name) => { const i = order.indexOf(name.toLowerCase()); return i === -1 ? order.length : i; };
+      return [...counts].map(([name, count]) => ({ name, count }))
+        .sort((a, b) => rank(a.name) - rank(b.name) || a.name.localeCompare(b.name));
+    },
+
+    // Branch + category + search, most frequently booked first (bookingCount
+    // = rows in appointment_services for that service).
     getFilteredServices() {
-      const store = Alpine.store('admin');
-      if (this.serviceFilterBranch === 'all') return store.services;
-      return store.services.filter(s => s.branchId === this.serviceFilterBranch);
+      const q = this.serviceSearch.trim().toLowerCase();
+      return this.branchServices().filter(s => {
+        const cat = (s.category || '').trim() || 'Uncategorized';
+        if (this.serviceCategory !== 'all' && cat !== this.serviceCategory) return false;
+        return !q || [s.name, s.description].some(v => String(v || '').toLowerCase().includes(q));
+      }).sort((a, b) => (b.bookingCount || 0) - (a.bookingCount || 0) || a.name.localeCompare(b.name));
+    },
+
+    branchPromotions() {
+      return Alpine.store('admin').promotions.filter(p => p.branchId === this.serviceFilterBranch);
+    },
+
+    serviceName(serviceId) {
+      const service = Alpine.store('admin').services.find(s => s.id === serviceId);
+      return service ? service.name : '';
     },
 
     openNewServiceModal() {
       this.editingServiceId = null;
-      this.serviceForm = adminDefaultServiceForm();
+      this.serviceForm = { ...adminDefaultServiceForm(), branchId: this.serviceFilterBranch };
       this.openServiceModal = true;
     },
 
@@ -144,7 +185,7 @@ function adminPromotionsApp() {
 
     openNewPromoModal() {
       this.editingPromoId = null;
-      this.promoForm = adminDefaultPromoForm();
+      this.promoForm = { ...adminDefaultPromoForm(), branchId: this.serviceFilterBranch };
       this.openPromoModal = true;
     },
 
@@ -200,9 +241,10 @@ function adminPromotionsApp() {
       await store.refresh();
     },
 
-    async removePromo(promoId) {
+    async removePromo(promo) {
+      if (!(await LMConfirm({ title: `Delete "${promo.title}"?`, message: "This can't be undone.", confirmLabel: 'Delete' }))) return;
       const store = Alpine.store('admin');
-      const result = await store.post('deletePromotion.php', { id: promoId });
+      const result = await store.post('deletePromotion.php', { id: promo.id });
       if (!result.success) {
         LMToast.show(result.message || 'Failed to delete promotion.', 'error');
         return;
@@ -270,9 +312,10 @@ function adminPromotionsApp() {
       await store.refresh();
     },
 
-    async removePackage(packageId) {
+    async removePackage(pkg) {
+      if (!(await LMConfirm({ title: `Delete "${pkg.packageName}"?`, message: "This can't be undone.", confirmLabel: 'Delete' }))) return;
       const store = Alpine.store('admin');
-      const result = await store.post('deleteWeddingPackage.php', { id: packageId });
+      const result = await store.post('deleteWeddingPackage.php', { id: pkg.id });
       if (!result.success) {
         LMToast.show(result.message || 'Failed to delete wedding package.', 'error');
         return;

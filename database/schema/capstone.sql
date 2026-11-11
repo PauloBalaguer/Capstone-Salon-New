@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS `customers` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id` INT UNSIGNED NULL,
   `first_name` VARCHAR(100) NOT NULL,
+  `middle_name` VARCHAR(100) NULL DEFAULT NULL,
   `last_name` VARCHAR(100) NOT NULL,
   `phone_number` VARCHAR(20) NOT NULL,
   `address` TEXT NULL,

@@ -1,12 +1,16 @@
 function adminCustomersApp() {
   return {
     customerSearchQuery: '',
-    customerFilterAccountType: 'all',
+    customerFilterAccountType: ['Registered', 'Guest'].includes(AdminUI.param('type')) ? AdminUI.param('type') : 'all',
     openHistoryModalFlag: false,
     selectedCustomer: null,
 
     init() {
       adminHighlightNav();
+    },
+
+    countType(type) {
+      return Alpine.store('admin').customerDirectory.filter(c => c.accountType === type).length;
     },
 
     getFilteredCustomers() {
@@ -15,7 +19,7 @@ function adminCustomersApp() {
       if (this.customerFilterAccountType !== 'all') list = list.filter(c => c.accountType === this.customerFilterAccountType);
       if (this.customerSearchQuery.trim()) {
         const q = this.customerSearchQuery.trim().toLowerCase();
-        list = list.filter(c => c.name.toLowerCase().includes(q) || c.phone.includes(q));
+        list = list.filter(c => [c.name, c.phone, c.email].some(v => String(v || '').toLowerCase().includes(q)));
       }
       return list;
     },
@@ -29,12 +33,16 @@ function adminCustomersApp() {
       this.openHistoryModalFlag = true;
     },
 
+    // Matches bookings by the customer's database id (customers.id), so two
+    // different people are never merged; falls back to the phone number only
+    // if an older API response has no id.
     getCustomerBookings() {
       const store = Alpine.store('admin');
-      if (!this.selectedCustomer) return [];
+      const customer = this.selectedCustomer;
+      if (!customer) return [];
       return store.bookings
-        .filter(b => b.clientPhone === this.selectedCustomer.phone)
-        .sort((a, b) => (a.date < b.date ? 1 : -1));
+        .filter(b => customer.id && b.customerId ? b.customerId === customer.id : b.clientPhone === customer.phone)
+        .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
     }
   };
 }

@@ -23,6 +23,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $itemId = (int) ($_POST['id'] ?? 0);
 $delta = (int) ($_POST['delta'] ?? 0);
+// Optional reason from the Adjust Stock form; the quick buttons keep the old default text.
+$reason = trim((string) ($_POST['reason'] ?? ''));
+$reason = $reason === '' ? 'Quick adjustment from Inventory page' : mb_substr($reason, 0, 255);
 
 if ($itemId <= 0 || $delta === 0) {
     http_response_code(400);
@@ -44,6 +47,11 @@ try {
 
     $previousStock = (int) $item['quantity_on_hand'];
     $wasLow = $previousStock <= (int) $item['reorder_level'];
+    if ($previousStock + $delta < 0) {
+        http_response_code(422);
+        echo json_encode(['success' => false, 'message' => "Only {$previousStock} unit(s) are in stock, so the quantity cannot go below zero."]);
+        exit();
+    }
     $newStock = max(0, min((int) $item['max_stock'], $previousStock + $delta));
 
     $pdo->beginTransaction();
@@ -53,7 +61,7 @@ try {
     $pdo->prepare('
         INSERT INTO inventory_adjustments (inventory_id, adjustment_type, quantity, reason, previous_stock, new_stock, adjusted_by)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-    ')->execute([$itemId, $delta >= 0 ? 'add' : 'sub', abs($delta), 'Quick adjustment from Inventory page', $previousStock, $newStock, $_SESSION['user_id']]);
+    ')->execute([$itemId, $delta >= 0 ? 'add' : 'sub', abs($delta), $reason, $previousStock, $newStock, $_SESSION['user_id']]);
 
     if (!$wasLow && $newStock <= (int) $item['reorder_level']) {
         $stmt = $pdo->prepare('SELECT branch_name FROM branches WHERE id = ?');

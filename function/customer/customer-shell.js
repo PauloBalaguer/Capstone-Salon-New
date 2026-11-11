@@ -28,14 +28,18 @@
     bell: '<path d="M18 8a6 6 0 0 0-12 0c0 8-3 8-3 10h18c0-2-3-2-3-10M10 21h4"/>',
     signout: '<path d="M10 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5M15 8l4 4-4 4M8 12h11"/>',
     close: '<path d="M6 6l12 12M18 6 6 18"/>',
-    arrow: '<path d="M5 12h14m-6-6 6 6-6 6"/>'
+    arrow: '<path d="M5 12h14m-6-6 6 6-6 6"/>',
+    menu: '<path d="M4 6h16M4 12h16M4 18h16"/>'
   };
   const icon = (name, cls) =>
     '<svg class="' + (cls || 'cp-icon') + '" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">' + ICONS[name] + '</svg>';
   window.customerShellIcon = icon;
 
-  // Desktop/tablet sidebar, in the order the customer asked for.
-  const SIDEBAR = [
+  // The one navigation list. The desktop sidebar and the phone menu drawer
+  // both render all of it; the phone bottom bar shows the first
+  // BOTTOM_COUNT items with the same labels, plus a Menu button for the rest,
+  // so wording never differs between screen sizes.
+  const NAV = [
     { key: 'dashboard', label: 'Dashboard', href: 'dashboard.html', icon: 'home' },
     { key: 'book', label: 'Book Appointment', href: 'services-promos.html?book=1', icon: 'book' },
     { key: 'bookings', label: 'My Bookings', href: 'appointments.html', icon: 'bookings' },
@@ -43,14 +47,7 @@
     { key: 'track', label: 'Track Booking', href: 'appointments.html?track=1', icon: 'track', track: true },
     { key: 'feedback', label: 'My Feedback', href: 'reviews.html', icon: 'feedback' }
   ];
-  // Phone bottom bar: exactly five equal items.
-  const BOTTOM = [
-    { key: 'dashboard', label: 'Home', href: 'dashboard.html', icon: 'home' },
-    { key: 'services', label: 'Services', href: 'services-promos.html', icon: 'services' },
-    { key: 'book', label: 'Book', href: 'services-promos.html?book=1', icon: 'book' },
-    { key: 'bookings', label: 'Bookings', href: 'appointments.html', icon: 'bookings' },
-    { key: 'profile', label: 'Profile', href: 'profile.html', icon: 'profile' }
-  ];
+  const BOTTOM_COUNT = 4;
 
   const LOGOUT_URL = '../../backend/auth/logout.php?portal=customer';
   // LM monogram + wordmark, used in the sidebar and the phone header.
@@ -62,14 +59,13 @@
     const page = document.body.dataset.customerPage || '';
     const params = new URLSearchParams(location.search);
     const map = {
-      dashboard: { side: 'dashboard', bottom: 'dashboard' },
-      appointments: params.get('track') === '1' ? { side: 'track', bottom: 'bookings' } : { side: 'bookings', bottom: 'bookings' },
-      services: params.get('book') === '1' ? { side: 'book', bottom: 'book' } : { side: 'services', bottom: 'services' },
-      'home-service': { side: 'book', bottom: 'book' },
-      reviews: { side: 'feedback', bottom: '' },
-      profile: { side: '', bottom: 'profile' }
+      dashboard: 'dashboard',
+      appointments: params.get('track') === '1' ? 'track' : 'bookings',
+      services: params.get('book') === '1' ? 'book' : 'services',
+      'home-service': 'book',
+      reviews: 'feedback'
     };
-    return map[page] || { side: '', bottom: '' };
+    return map[page] || '';
   }
 
   const avatar = (size) =>
@@ -79,7 +75,7 @@
     '</span>';
 
   function sidebarHtml(active) {
-    const items = SIDEBAR.map(item => {
+    const items = NAV.map(item => {
       const current = item.key === active;
       // On a page that already has the Track modal, open it in place.
       const track = item.track ? ' @click="if ($data.openTrackModal) { $event.preventDefault(); $data.openTrackModal(); }"' : '';
@@ -89,10 +85,12 @@
       return '<a href="' + item.href + '" data-nav-key="' + item.key + '" class="cp-side-link' + (current ? ' is-active' : '') + '"' +
         (current ? ' aria-current="page"' : '') + track + '>' + icon(item.icon) + '<span>' + item.label + '</span>' + count + '</a>';
     }).join('');
-    return '<aside id="customer-sidebar" class="cp-sidebar" aria-label="Customer menu">' +
+    return '<aside id="customer-sidebar" class="cp-sidebar" aria-label="Customer navigation">' +
+      // Phones/tablets only: closes the slide-in menu.
+      '<button type="button" class="cp-drawer-close" data-cp-drawer-close aria-label="Close menu">' + icon('close') + '</button>' +
       '<a href="dashboard.html" class="cp-brand">' + BRAND_MARK +
         '<span class="cp-brand-text"><strong>LEO MEJILLANO</strong><small>SALON &amp; BEAUTY</small></span></a>' +
-      '<p class="cp-side-heading" id="cp-side-heading">CUSTOMER MENU</p>' +
+      '<p class="cp-side-heading" id="cp-side-heading">CUSTOMER NAVIGATION</p>' +
       '<nav class="cp-side-nav" aria-labelledby="cp-side-heading">' + items + '</nav>' +
       '<div class="cp-side-footer"><p class="cp-side-heading cp-side-heading-sm">CUSTOMER ACCESS</p>' +
         '<button type="button" class="cp-side-link cp-signout-link" @click="openSignOutConfirm()">' +
@@ -153,12 +151,47 @@
   }
 
   function bottomNavHtml(active) {
-    const items = BOTTOM.map(item => {
+    const shown = NAV.slice(0, BOTTOM_COUNT);
+    const items = shown.map(item => {
       const current = item.key === active;
       return '<a href="' + item.href + '" data-nav-key="' + item.key + '" class="cp-bottom-link' + (current ? ' is-active' : '') + '"' +
         (current ? ' aria-current="page"' : '') + '>' + icon(item.icon, 'cp-bottom-icon') + '<span>' + item.label + '</span></a>';
     }).join('');
-    return '<nav id="customer-mobile-nav" class="cp-bottom-nav" aria-label="Customer navigation">' + items + '</nav>';
+    // The remaining items (Track Booking, My Feedback) and Sign out live in the menu drawer.
+    const inMenu = active && !shown.some(item => item.key === active);
+    const menu = '<button type="button" class="cp-bottom-link' + (inMenu ? ' is-active' : '') + '" data-cp-drawer-open ' +
+      'aria-controls="customer-sidebar" aria-expanded="false">' + icon('menu', 'cp-bottom-icon') + '<span>Menu</span></button>';
+    return '<nav id="customer-mobile-nav" class="cp-bottom-nav" aria-label="Customer navigation">' + items + menu + '</nav>';
+  }
+
+  // Below 1024px the sidebar becomes a slide-in drawer opened from the bottom bar.
+  function setupDrawer() {
+    const drawer = document.getElementById('customer-sidebar');
+    const opener = document.querySelector('[data-cp-drawer-open]');
+    if (!drawer || !opener) return;
+    const phone = window.matchMedia('(max-width: 1023.98px)');
+    const backdrop = document.createElement('div');
+    backdrop.className = 'cp-drawer-backdrop';
+    document.body.appendChild(backdrop);
+    const setOpen = (open, restoreFocus) => {
+      document.body.classList.toggle('cp-drawer-open', open);
+      opener.setAttribute('aria-expanded', String(open));
+      drawer.inert = phone.matches && !open;
+      if (open) (drawer.querySelector('[data-cp-drawer-close]') || drawer).focus({ preventScroll: true });
+      else if (restoreFocus) opener.focus({ preventScroll: true });
+    };
+    setOpen(false);
+    const sync = () => setOpen(false);
+    if (phone.addEventListener) phone.addEventListener('change', sync); else phone.addListener(sync);
+    opener.addEventListener('click', () => setOpen(!document.body.classList.contains('cp-drawer-open')));
+    backdrop.addEventListener('click', () => setOpen(false, true));
+    drawer.addEventListener('click', e => {
+      if (e.target.closest('[data-cp-drawer-close]')) setOpen(false, true);
+      else if (phone.matches && e.target.closest('a[href], .cp-signout-link')) setOpen(false);
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && document.body.classList.contains('cp-drawer-open')) setOpen(false, true);
+    });
   }
 
   function signOutHtml() {
@@ -203,9 +236,9 @@
     const title = esc(booking ? 'Book Appointment' : (body.dataset.pageTitle || ''));
     const active = activeKeys();
     const parts = {
-      sidebar: () => sidebarHtml(active.side),
+      sidebar: () => sidebarHtml(active),
       header: () => headerHtml(title),
-      'bottom-nav': () => bottomNavHtml(active.bottom),
+      'bottom-nav': () => bottomNavHtml(active),
       signout: () => signOutHtml(),
       footer: () => footerHtml()
     };
@@ -216,6 +249,7 @@
       if (build) slot.outerHTML = build();
     });
     body.classList.add('cp-portal');
+    setupDrawer();
   }
 
   render();

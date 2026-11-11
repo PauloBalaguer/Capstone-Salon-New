@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="../shared/theme-tokens.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leo Mejillano Salon - Cashier Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { theme: { extend: { colors: { teal: { 50: "#EEF7F2", 100: "#DDF0E6", 200: "#DDF0E6", 300: "#CDD6D0", 400: "#16604B", 500: "#16604B", 700: "#0E3B2F", 900: "#0A2E24" }, gold: { 100: "#FAF2DC", 200: "#FAF2DC", 300: "#E0B84C", 500: "#E0B84C", 600: "#E0B84C", 800: "#6C4C09" }, bronze: "#E2E7E3" } } } };</script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style type="text/tailwindcss">
         /* Converted from assets/css/cashier.css. Tailwind has no utility for
@@ -12,8 +14,8 @@
            else below uses @apply with normal Tailwind classes. */
         ::-webkit-scrollbar { @apply w-1.5 h-1.5; }
         ::-webkit-scrollbar-track { @apply bg-transparent; }
-        ::-webkit-scrollbar-thumb { @apply bg-slate-300 rounded-full; }
-        ::-webkit-scrollbar-thumb:hover { @apply bg-slate-400; }
+        ::-webkit-scrollbar-thumb { @apply bg-[color:var(--border-strong)] rounded-full; }
+        ::-webkit-scrollbar-thumb:hover { @apply bg-[color:var(--muted)]; }
 
         @keyframes fade-up {
             from { opacity: 0; transform: translateY(8px); }
@@ -24,7 +26,7 @@
         .card-lift { @apply transition duration-200 hover:-translate-y-0.5 hover:shadow-lg; }
 
         /* Skeleton placeholder shown while a page's first fetch is in flight. */
-        .skeleton { @apply bg-slate-200 animate-pulse rounded-lg; }
+        .skeleton { @apply bg-[color:var(--border)] animate-pulse rounded-lg; }
         .skeleton-line { @apply h-3.5; }
         .skeleton-row { @apply flex items-center gap-3 p-4; }
         .skeleton-avatar { @apply w-9 h-9 rounded-full shrink-0; }
@@ -41,35 +43,35 @@
         /* Cashier Panel building blocks (one place, reused by the popups).
            In the components layer so a utility class (pl-8, w-full...) still wins. */
         @layer components {
-        .stat-card { @apply flex flex-col gap-0.5 rounded-2xl border border-[#E8DCC8] bg-[#FFFDF9] p-4 shadow-sm hover:border-[#006D6F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006D6F] transition-colors; }
-        .stat-card.is-active { @apply border-[#006D6F] ring-1 ring-[#006D6F]; }
-        .stat-card-gold { @apply border-[#E0B84C] bg-[#FFF6DF]; }
+        .stat-card { @apply flex flex-col gap-0.5 rounded-2xl border border-[color:var(--border)] bg-[color:var(--card)] p-4 shadow-sm hover:border-teal-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 transition-colors; }
+        .stat-card.is-active { @apply border-teal-500 ring-1 ring-teal-500; }
+        .stat-card-gold { @apply border-gold-500 bg-[color:var(--accent-soft)]; }
         .stat-label { @apply text-sm font-semibold text-slate-600; }
         .stat-value { @apply text-2xl sm:text-3xl font-black text-slate-900 leading-tight break-words; }
         .stat-hint { @apply text-xs text-slate-500; }
-        .queue-tab { @apply shrink-0 whitespace-nowrap rounded-full border border-[#E8DCC8] bg-white px-3.5 py-1.5 text-sm font-semibold text-slate-600 hover:border-[#006D6F]; }
-        .queue-tab span { @apply ml-1 rounded-full bg-[#F7F0E4] px-2 text-xs font-bold text-slate-700; }
-        .queue-tab.is-active { @apply border-[#006D6F] bg-[#E5F2F0] text-[#06464A]; }
+        .queue-tab { @apply shrink-0 whitespace-nowrap rounded-full border border-[color:var(--border)] bg-white px-3.5 py-1.5 text-sm font-semibold text-slate-600 hover:border-teal-500; }
+        .queue-tab span { @apply ml-1 rounded-full bg-[color:var(--bg)] px-2 text-xs font-bold text-slate-700; }
+        .queue-tab.is-active { @apply border-teal-500 bg-teal-100 text-teal-700; }
         .queue-tab.is-active span { @apply bg-white; }
         .modal-panel { @apply bg-white w-full max-h-[92dvh] sm:max-h-[90vh] flex flex-col overflow-hidden rounded-t-2xl sm:rounded-2xl shadow-2xl border border-gray-100; }
         .modal-panel > .overflow-y-auto { @apply min-h-0 flex-1; }
-        .modal-head { @apply bg-[#06464A] px-5 py-4 text-white flex justify-between items-center gap-3 shrink-0; }
+        .modal-head { @apply bg-teal-700 px-5 py-4 text-white flex justify-between items-center gap-3 shrink-0; }
         .modal-close { @apply w-9 h-9 shrink-0 inline-flex items-center justify-center rounded-full text-2xl leading-none text-white/80 hover:bg-white/10 hover:text-white; }
         .field-label { @apply block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5; }
-        .field-input { @apply w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-[#006D6F]; }
-        .btn-primary { @apply inline-flex items-center justify-center gap-1 rounded-xl bg-[#006D6F] hover:bg-[#06464A] px-4 py-3 font-bold text-white shadow-sm disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed; }
-        .btn-secondary { @apply inline-flex items-center justify-center gap-1 rounded-xl border border-[#D9C9B4] bg-white hover:bg-[#F7F0E4] px-4 py-3 font-bold text-slate-700; }
+        .field-input { @apply w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-teal-500; }
+        .btn-primary { @apply inline-flex items-center justify-center gap-1 rounded-xl bg-teal-500 hover:bg-teal-700 px-4 py-3 font-bold text-white shadow-sm disabled:bg-[color:var(--border)] disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed; }
+        .btn-secondary { @apply inline-flex items-center justify-center gap-1 rounded-xl border border-bronze bg-white hover:bg-[color:var(--bg)] px-4 py-3 font-bold text-slate-700; }
         .btn-row { @apply inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2 text-sm font-bold whitespace-nowrap; }
         .step-dot { @apply flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2 text-slate-400; }
         .step-dot span { @apply w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-xs; }
-        .step-dot.is-active { @apply border-[#006D6F] bg-[#E5F2F0] text-[#06464A]; }
-        .step-dot.is-active span { @apply border-[#006D6F] bg-[#006D6F] text-white; }
-        .step-dot.is-done { @apply text-emerald-700; }
-        .step-dot.is-done span { @apply border-emerald-600 bg-emerald-600 text-white; }
-        .pay-method-card { @apply flex items-center justify-center gap-2 rounded-xl border border-[#D9C9B4] bg-white py-2.5 text-base font-semibold text-slate-600 cursor-pointer select-none hover:border-[#006D6F]; }
-        .pay-method-card.is-active { @apply border-[#006D6F] bg-[#006D6F]/10 text-[#06464A] ring-1 ring-[#006D6F]; }
-        .chip-btn { @apply rounded-lg border border-[#D9C9B4] bg-white py-2 text-sm font-semibold text-slate-700 hover:border-[#006D6F]; }
-        .chip-btn.is-active { @apply border-[#006D6F] bg-[#006D6F]/10 text-[#06464A] ring-1 ring-[#006D6F]; }
+        .step-dot.is-active { @apply border-teal-500 bg-teal-100 text-teal-700; }
+        .step-dot.is-active span { @apply border-teal-500 bg-teal-500 text-white; }
+        .step-dot.is-done { @apply text-[color:var(--success)]; }
+        .step-dot.is-done span { @apply border-[color:var(--success)] bg-emerald-600 text-white; }
+        .pay-method-card { @apply flex items-center justify-center gap-2 rounded-xl border border-bronze bg-white py-2.5 text-base font-semibold text-slate-600 cursor-pointer select-none hover:border-teal-500; }
+        .pay-method-card.is-active { @apply border-teal-500 bg-teal-500/10 text-teal-700 ring-1 ring-teal-500; }
+        .chip-btn { @apply rounded-lg border border-bronze bg-white py-2 text-sm font-semibold text-slate-700 hover:border-teal-500; }
+        .chip-btn.is-active { @apply border-teal-500 bg-teal-500/10 text-teal-700 ring-1 ring-teal-500; }
         }
     </style>
     <link rel="stylesheet" href="../../frontend/cashier/cashier-theme.css?v=20261103">
@@ -78,10 +80,12 @@
   <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=20261103-signout-cream" />
   <script src="../../function/shared/toast.js"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
-  <link rel="stylesheet" href="../../frontend/shared/mobile-nav.css?v=20261103c">
-  <script src="../../function/shared/mobile-nav.js?v=20261103" defer></script>
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
+  <!-- Cashier Panel redesign: loaded last, scoped to body.cp-cashier. -->
+  <link rel="stylesheet" href="../../frontend/cashier/cashier-panel.css?v=20261110d">
+  <link rel="stylesheet" href="../../frontend/shared/portal-unify.css?v=20261110b">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
 </head>
 <body class="salon-portal bg-gray-100 font-sans antialiased flex h-screen overflow-hidden">
 
@@ -134,7 +138,7 @@
 
         <div>
             <div class="px-3 pb-2">
-                <a href="../../backend/auth/logout.php?portal=cashier" id="btnSignOut" class="w-full text-left flex items-center space-x-3 px-4 py-2.5 rounded-lg text-xs transition-all text-rose-400 hover:bg-rose-900/40 hover:text-rose-300"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H5v14h4M13 8l4 4-4 4M9 12h12"/></svg><span>Sign Out</span></a>
+                <a href="../../backend/auth/logout.php?portal=cashier" id="btnSignOut" class="w-full text-justify flex items-center space-x-3 px-4 py-2.5 rounded-lg text-xs transition-all text-rose-400 hover:bg-rose-900/40 hover:text-rose-300"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H5v14h4M13 8l4 4-4 4M9 12h12"/></svg><span>Sign Out</span></a>
             </div>
         </div>
     </aside>
@@ -143,11 +147,11 @@
         <header class="bg-white border-b border-gray-200 min-h-16 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-3 z-10 shrink-0">
             <div class="flex items-center gap-3 min-w-0">
                 <h2 class="font-bold text-xl text-gray-800 truncate">Cashier Panel</h2>
-                <span id="branchLabel" class="hidden md:inline-block bg-amber-50 border border-amber-300 font-bold text-slate-900 text-xs rounded-xl px-3 py-1.5 shadow-sm truncate">Loading branch…</span>
+                <span id="branchLabel" class="hidden md:inline-block bg-amber-50 border border-[#774800]/40 font-bold text-slate-900 text-xs rounded-xl px-3 py-1.5 shadow-sm truncate">Loading branch…</span>
             </div>
             <div class="flex items-center gap-3">
                 <p class="hidden lg:block text-sm font-semibold text-gray-600" id="liveClock">--</p>
-                <button id="btnNewWalkIn" type="button" class="bg-[#006D6F] hover:bg-[#06464A] text-white font-bold text-sm px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-sm">
+                <button id="btnNewWalkIn" type="button" class="bg-teal-500 hover:bg-teal-700 text-white font-bold text-sm px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-sm">
                     <i class="fa-solid fa-plus"></i><span>New walk-in</span>
                 </button>
             </div>
@@ -156,22 +160,22 @@
         <section class="flex-1 p-4 sm:p-6 overflow-y-auto space-y-5">
             <!-- Today at a glance. Each card filters the queue below. -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4" id="statCardsContainer">
-                <button type="button" data-queue-tab="pending" class="stat-card text-left">
+                <button type="button" data-queue-tab="pending" class="stat-card text-justify">
                     <span class="stat-label">Needs confirmation</span>
                     <span class="stat-value" id="statPendingConfirmation">0</span>
                     <span class="stat-hint" id="statPaymentsToVerifyHint">No payments to check</span>
                 </button>
-                <button type="button" data-queue-tab="confirmed" class="stat-card text-left">
+                <button type="button" data-queue-tab="confirmed" class="stat-card text-justify">
                     <span class="stat-label">Confirmed, waiting</span>
                     <span class="stat-value" id="statConfirmed">0</span>
                     <span class="stat-hint" id="statTodayAppointments">0 appointments today</span>
                 </button>
-                <button type="button" data-queue-tab="service" class="stat-card text-left">
+                <button type="button" data-queue-tab="service" class="stat-card text-justify">
                     <span class="stat-label">In service</span>
                     <span class="stat-value" id="statInProgress">0</span>
                     <span class="stat-hint" id="statWalkInsToday">0 walk-ins today</span>
                 </button>
-                <button type="button" data-queue-tab="pay" class="stat-card stat-card-gold text-left">
+                <button type="button" data-queue-tab="pay" class="stat-card stat-card-gold text-justify">
                     <span class="stat-label">Ready to pay</span>
                     <span class="stat-value" id="statReadyForCheckout">0</span>
                     <span class="stat-hint" id="statToCollect">₱0.00 to collect</span>
@@ -186,10 +190,10 @@
                     </div>
                     <div class="relative w-full lg:w-72">
                         <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-                        <input id="queueSearch" type="search" placeholder="Search name or reference" class="w-full bg-gray-50 border border-gray-300 rounded-xl pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006D6F]">
+                        <input id="queueSearch" type="search" placeholder="Search name or reference" class="w-full bg-gray-50 border border-gray-300 rounded-xl pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
                     </div>
                 </div>
-                <div id="queueTabs" role="tablist" aria-label="Queue filter" class="flex gap-2 overflow-x-auto px-4 sm:px-5 py-3 border-b border-gray-100 bg-[#FFFDF9]">
+                <div id="queueTabs" role="tablist" aria-label="Queue filter" class="flex gap-2 overflow-x-auto px-4 sm:px-5 py-3 border-b border-gray-100 bg-[color:var(--card)]">
                     <button type="button" role="tab" data-queue-tab="all" class="queue-tab">All <span data-count="all">0</span></button>
                     <button type="button" role="tab" data-queue-tab="pending" class="queue-tab">Needs confirmation <span data-count="pending">0</span></button>
                     <button type="button" role="tab" data-queue-tab="confirmed" class="queue-tab">Confirmed <span data-count="confirmed">0</span></button>
@@ -225,9 +229,15 @@
                     <div id="servicesCheckboxContainer" class="bg-gray-50 border border-gray-300 rounded-xl p-3 max-h-48 overflow-y-auto space-y-1"></div>
                 </div>
                 <div>
-                    <label for="selectStylist" class="field-label">Stylist</label>
+                    <label for="selectStylist" class="field-label">Available staff</label>
                     <select id="selectStylist" required class="field-input"></select>
+                    <p class="cp-field-hint">Only staff on shift can take a walk-in. Overlapping bookings are blocked by the system.</p>
                 </div>
+                <div class="cp-walkin-summary" aria-live="polite">
+                    <div><span class="field-label">Schedule</span><strong id="walkInSchedule">Today, now</strong></div>
+                    <div><span class="field-label">Estimated total</span><strong id="walkInTotal">₱0.00</strong></div>
+                </div>
+                <p class="cp-field-hint">Walk-ins start now at this branch. To book a later date or time, use the regular booking flow.</p>
                 <div class="pt-1 grid grid-cols-2 gap-3">
                     <button type="button" id="btnCancelModal" class="btn-secondary">Cancel</button>
                     <button type="submit" class="btn-primary">Add to queue</button>
@@ -254,7 +264,7 @@
             <div class="p-5 space-y-4 overflow-y-auto">
                 <!-- Step 1 -->
                 <div data-step="1" class="space-y-4">
-                    <div class="rounded-xl border border-gray-200 bg-[#FFFDF9] p-4">
+                    <div class="rounded-xl border border-gray-200 bg-[color:var(--card)] p-4">
                         <p class="font-bold text-xl text-slate-900 capitalize" id="cfClient">-</p>
                         <p class="text-sm text-slate-500" id="cfPhone">-</p>
                         <dl class="grid grid-cols-2 gap-3 mt-4 text-sm">
@@ -265,7 +275,7 @@
                             <div><dt class="field-label">Total</dt><dd id="cfTotal" class="font-bold text-slate-900">-</dd></div>
                         </dl>
                     </div>
-                    <p id="cfConflict" class="hidden rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm p-3"><i class="fa-solid fa-triangle-exclamation mr-1"></i>This time overlaps another booking for the same stylist. Pick a different stylist.</p>
+                    <p id="cfConflict" class="hidden rounded-xl bg-rose-50 border border-[#9C1E15]/30 text-[color:var(--danger)] text-sm p-3"><i class="fa-solid fa-triangle-exclamation mr-1"></i>This time overlaps another booking for the same stylist. Pick a different stylist.</p>
                     <div>
                         <label for="cfStaff" class="field-label">Stylist</label>
                         <select id="cfStaff" class="field-input"></select>
@@ -279,24 +289,24 @@
 
                 <!-- Step 2 -->
                 <div data-step="2" class="hidden space-y-4">
-                    <div class="rounded-xl border border-gray-200 bg-[#FFFDF9] p-4 space-y-2 text-sm">
+                    <div class="rounded-xl border border-gray-200 bg-[color:var(--card)] p-4 space-y-2 text-sm">
                         <div class="flex justify-between"><span class="text-slate-600">Booking total</span><span id="cfPayTotal" class="font-semibold">-</span></div>
                         <div class="flex justify-between"><span class="text-slate-600">Needed to confirm</span><span id="cfPayRequired" class="font-bold text-slate-900">-</span></div>
                     </div>
-                    <div id="cfReported" class="hidden rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm space-y-1">
-                        <p class="font-bold text-amber-900"><i class="fa-solid fa-mobile-screen-button mr-1"></i>Customer says they paid</p>
-                        <p class="text-amber-900"><span id="cfReportedAmount" class="font-bold"></span> via <span id="cfReportedMethod" class="font-bold"></span></p>
-                        <p id="cfReportedRefRow" class="text-amber-900">Reference no. <span id="cfReportedRef" class="font-mono font-bold"></span></p>
-                        <p class="text-amber-800">Check this in the salon's GCash or Maya app before you verify.</p>
+                    <div id="cfReported" class="hidden rounded-xl bg-amber-50 border border-[#774800]/30 p-4 text-sm space-y-1">
+                        <p class="font-bold text-[color:var(--warn)]"><i class="fa-solid fa-mobile-screen-button mr-1"></i>Customer says they paid</p>
+                        <p class="text-[color:var(--warn)]"><span id="cfReportedAmount" class="font-bold"></span> via <span id="cfReportedMethod" class="font-bold"></span></p>
+                        <p id="cfReportedRefRow" class="text-[color:var(--warn)]">Reference no. <span id="cfReportedRef" class="font-mono font-bold"></span></p>
+                        <p class="text-[color:var(--warn)]">Check this in the salon's GCash or Maya app before you verify.</p>
                     </div>
-                    <div id="cfAlreadyPaid" class="hidden rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-sm text-emerald-800"><i class="fa-solid fa-circle-check mr-1"></i>The reservation payment is already verified. You only need to confirm.</div>
+                    <div id="cfAlreadyPaid" class="hidden rounded-xl bg-emerald-50 border border-[#115C39]/30 p-4 text-sm text-[color:var(--success)]"><i class="fa-solid fa-circle-check mr-1"></i>The reservation payment is already verified. You only need to confirm.</div>
                     <div id="cfPayFields" class="space-y-4">
                         <div>
                             <p class="field-label">Paid with</p>
                             <div class="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Payment method" id="cfMethodGroup">
-                                <button type="button" role="radio" data-cf-method="Cash" class="pay-method-card"><i class="fa-solid fa-money-bill-wave text-emerald-600"></i>Cash</button>
-                                <button type="button" role="radio" data-cf-method="GCash" class="pay-method-card"><i class="fa-solid fa-wallet text-blue-600"></i>GCash</button>
-                                <button type="button" role="radio" data-cf-method="Maya" class="pay-method-card"><i class="fa-solid fa-wallet text-emerald-700"></i>Maya</button>
+                                <button type="button" role="radio" data-cf-method="Cash" class="pay-method-card"><i class="fa-solid fa-money-bill-wave text-[color:var(--success)]"></i>Cash</button>
+                                <button type="button" role="radio" data-cf-method="GCash" class="pay-method-card"><i class="fa-solid fa-wallet text-[color:var(--info)]"></i>GCash</button>
+                                <button type="button" role="radio" data-cf-method="Maya" class="pay-method-card"><i class="fa-solid fa-wallet text-[color:var(--success)]"></i>Maya</button>
                             </div>
                             <p id="cfOnlineMethod" class="hidden mt-2 text-sm text-slate-600">Paid online through <span class="font-bold" id="cfOnlineMethodName"></span>.</p>
                         </div>
@@ -309,17 +319,17 @@
                             <p class="text-xs text-slate-500 mt-1">At least the amount needed to confirm, and no more than the booking total.</p>
                         </div>
                     </div>
-                    <p id="cfError" role="alert" class="hidden rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm p-3"></p>
+                    <p id="cfError" role="alert" class="hidden rounded-xl bg-rose-50 border border-[#9C1E15]/30 text-[color:var(--danger)] text-sm p-3"></p>
                     <div class="grid grid-cols-2 gap-3 pt-1">
                         <button type="button" id="btnConfirmBack2" class="btn-secondary"><i class="fa-solid fa-arrow-left mr-1"></i>Back</button>
                         <button type="button" id="btnConfirmSubmit" class="btn-primary">Verify &amp; confirm</button>
                     </div>
-                    <button type="button" id="btnConfirmAttention" class="hidden w-full text-sm font-bold text-rose-700 hover:underline py-1">Payment doesn't match? Mark it for checking</button>
+                    <button type="button" id="btnConfirmAttention" class="hidden w-full text-sm font-bold text-[color:var(--danger)] hover:underline py-1">Payment doesn't match? Mark it for checking</button>
                 </div>
 
                 <!-- Done -->
                 <div data-step="3" class="hidden text-center space-y-3 py-4">
-                    <div class="mx-auto w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-2xl"><i class="fa-solid fa-check"></i></div>
+                    <div class="mx-auto w-14 h-14 rounded-full bg-emerald-100 text-[color:var(--success)] flex items-center justify-center text-2xl"><i class="fa-solid fa-check"></i></div>
                     <p id="cfDoneTitle" class="font-bold text-lg text-slate-800">Booking confirmed</p>
                     <p id="cfDoneText" class="text-sm text-slate-500"></p>
                     <button type="button" id="btnConfirmDone" class="btn-primary w-full">Done</button>
@@ -345,13 +355,13 @@
                         <div id="alreadyPaidNotice" class="hidden"></div>
                         <div class="flex items-center justify-between gap-3">
                             <h5 class="font-bold text-slate-800">Bill</h5>
-                            <button id="btnSellProduct" type="button" disabled class="text-sm font-semibold text-[#06464A] border border-[#006D6F]/40 hover:bg-[#006D6F]/10 rounded-lg px-3 py-1.5 flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed">
+                            <button id="btnSellProduct" type="button" disabled class="text-sm font-semibold text-teal-700 border border-teal-500/40 hover:bg-teal-500/10 rounded-lg px-3 py-1.5 flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed">
                                 <i class="fa-solid fa-plus"></i><span>Add product</span>
                             </button>
                         </div>
                         <div id="cartItemsContainer" class="divide-y divide-gray-100 rounded-xl border border-gray-200"></div>
 
-                        <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-2">
+                        <div class="rounded-xl border border-[#774800]/30 bg-amber-50 p-4 space-y-2">
                             <label for="loyaltyRewardSelect" class="block font-semibold text-slate-800">Loyalty card</label>
                             <p id="loyaltyCardInfo" class="text-sm text-slate-600">Loading loyalty card…</p>
                             <select id="loyaltyRewardSelect" class="w-full rounded-lg border p-2 text-slate-800" disabled><option value="">No reward</option></select>
@@ -362,14 +372,14 @@
 
                         <div class="rounded-xl bg-slate-50 border border-gray-200 p-4 space-y-2 text-sm">
                             <div class="flex justify-between text-slate-600"><span>Services</span><span id="serviceChargesDisplay" class="font-medium">₱0.00</span></div>
-                            <div id="loyaltyDiscountRow" class="hidden flex justify-between text-emerald-700"><span>Loyalty reward</span><span id="loyaltyDiscountDisplay"></span></div>
-                            <div id="reservationReceivedRow" class="flex justify-between text-emerald-700"><span>Reservation already paid</span><span id="reservationReceivedDisplay" class="font-medium">&minus; ₱0.00</span></div>
+                            <div id="loyaltyDiscountRow" class="hidden flex justify-between text-[color:var(--success)]"><span>Loyalty reward</span><span id="loyaltyDiscountDisplay"></span></div>
+                            <div id="reservationReceivedRow" class="flex justify-between text-[color:var(--success)]"><span>Reservation already paid</span><span id="reservationReceivedDisplay" class="font-medium">&minus; ₱0.00</span></div>
                             <div id="productsChargeRow" class="flex justify-between text-slate-600"><span>Remaining for services</span><span id="remainingServiceDisplay" class="font-medium">₱0.00</span></div>
                             <div id="productsTotalRow" class="hidden flex justify-between text-slate-600"><span>Products</span><span id="subtotalDisplay" class="font-medium">₱0.00</span></div>
                             <div id="tipRow" class="hidden flex justify-between text-slate-600"><span>Tip</span><span id="tipDisplay" class="font-medium">₱0.00</span></div>
                             <div class="flex justify-between items-baseline pt-3 mt-1 border-t border-gray-300">
                                 <span class="font-bold text-slate-800">Amount due</span>
-                                <span id="totalDisplay" class="text-3xl font-black text-[#06464A]">₱0.00</span>
+                                <span id="totalDisplay" class="text-3xl font-black text-teal-700">₱0.00</span>
                             </div>
                         </div>
                     </div>
@@ -380,9 +390,9 @@
                             <div>
                                 <p class="field-label">Payment method</p>
                                 <div class="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Payment method">
-                                    <button type="button" data-method="Cash" class="pay-method-card" role="radio"><i class="fa-solid fa-money-bill-wave text-emerald-600"></i>Cash</button>
-                                    <button type="button" data-method="GCash" class="pay-method-card" role="radio"><i class="fa-solid fa-wallet text-blue-600"></i>GCash</button>
-                                    <button type="button" data-method="Maya" class="pay-method-card" role="radio"><i class="fa-solid fa-wallet text-emerald-700"></i>Maya</button>
+                                    <button type="button" data-method="Cash" class="pay-method-card" role="radio"><i class="fa-solid fa-money-bill-wave text-[color:var(--success)]"></i>Cash</button>
+                                    <button type="button" data-method="GCash" class="pay-method-card" role="radio"><i class="fa-solid fa-wallet text-[color:var(--info)]"></i>GCash</button>
+                                    <button type="button" data-method="Maya" class="pay-method-card" role="radio"><i class="fa-solid fa-wallet text-[color:var(--success)]"></i>Maya</button>
                                 </div>
                                 <p id="methodNote" class="hidden text-sm text-slate-500 mt-2"><i class="fa-solid fa-circle-info mr-1"></i>Check that the payment arrived on the salon's account before completing.</p>
                             </div>
@@ -393,7 +403,7 @@
                                     <button type="button" data-tip="50" class="tip-btn chip-btn">₱50</button>
                                     <button type="button" data-tip="100" class="tip-btn chip-btn">₱100</button>
                                     <button type="button" data-tip="200" class="tip-btn chip-btn">₱200</button>
-                                    <input id="customTipInput" type="number" min="0" inputmode="decimal" placeholder="Other" aria-label="Other tip amount" class="min-w-0 rounded-lg border border-[#D9C9B4] text-sm font-semibold text-center py-2 focus:outline-none focus:ring-2 focus:ring-[#006D6F]">
+                                    <input id="customTipInput" type="number" min="0" inputmode="decimal" placeholder="Other" aria-label="Other tip amount" class="min-w-0 rounded-lg border border-bronze text-sm font-semibold text-center py-2 focus:outline-none focus:ring-2 focus:ring-teal-500">
                                 </div>
                             </div>
                             <div id="cashSection" class="space-y-3">
@@ -409,23 +419,23 @@
                                         <button type="button" class="cash-quick-btn chip-btn" data-amount="1000">₱1,000</button>
                                     </div>
                                 </div>
-                                <div class="flex justify-between items-baseline rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3">
-                                    <span class="font-semibold text-emerald-900">Change</span>
-                                    <span id="changeDueDisplay" class="text-2xl font-black text-emerald-700">₱0.00</span>
+                                <div class="flex justify-between items-baseline rounded-xl bg-emerald-50 border border-[#115C39]/30 px-4 py-3">
+                                    <span class="font-semibold text-[color:var(--success)]">Change</span>
+                                    <span id="changeDueDisplay" class="text-2xl font-black text-[color:var(--success)]">₱0.00</span>
                                 </div>
                             </div>
                             <div class="space-y-2">
-                                <button id="btnProcessPayment" type="button" disabled class="w-full bg-[#006D6F] hover:bg-[#06464A] text-white font-bold py-3.5 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed">
+                                <button id="btnProcessPayment" type="button" disabled class="w-full bg-teal-500 hover:bg-teal-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 disabled:bg-[color:var(--border)] disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed">
                                     <i class="fa-solid fa-receipt"></i><span id="payButtonLabel">Complete payment</span>
                                 </button>
-                                <p id="payHint" role="status" aria-live="polite" class="text-sm text-center text-slate-500 min-h-[1.25rem]"></p>
+                                <p id="payHint" role="status" aria-live="polite" class="text-sm text-center text-slate-500 min-h-5"></p>
                             </div>
                         </div>
                         <div id="paymentPaidState" class="hidden py-6 text-center space-y-3">
-                            <div class="mx-auto w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-2xl"><i class="fa-solid fa-check"></i></div>
+                            <div class="mx-auto w-14 h-14 rounded-full bg-emerald-100 text-[color:var(--success)] flex items-center justify-center text-2xl"><i class="fa-solid fa-check"></i></div>
                             <p class="font-bold text-lg text-slate-800">Paid</p>
                             <p class="text-sm text-slate-500">Nothing more to collect for this visit.</p>
-                            <a id="paymentPaidReceiptLink" href="receipt.html" class="inline-flex items-center gap-2 bg-[#006D6F] text-white text-sm font-bold px-4 py-2.5 rounded-xl"><i class="fa-solid fa-receipt"></i>View receipt</a>
+                            <a id="paymentPaidReceiptLink" href="receipt.html" class="inline-flex items-center gap-2 bg-teal-500 text-white text-sm font-bold px-4 py-2.5 rounded-xl"><i class="fa-solid fa-receipt"></i>View receipt</a>
                         </div>
                     </div>
                 </div>
@@ -450,10 +460,12 @@
         </div>
     </div>
 
-    <script src="../../function/cashier/cashier-common.js"></script>
+    <script src="../../function/shared/live-sync.js?v=20261110"></script>
+    <script src="../../function/cashier/cashier-shell.js?v=20261110c"></script>
+    <script src="../../function/cashier/cashier-common.js?v=20261110"></script>
     <script src="../../function/shared/appointment-arrival.js"></script>
     <script src="../../function/shared/confirm-dialog.js"></script>
     <script src="../../function/cashier/checkout-modal.js?v=20261105"></script>
-    <script src="../../function/cashier/dashboard.js?v=20261105b"></script>
+    <script src="../../function/cashier/dashboard.js?v=20261110"></script>
 </body>
 </html>

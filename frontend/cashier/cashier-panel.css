@@ -1,0 +1,569 @@
+/* ==========================================================================
+   Leo Mejillano Cashier Panel -- shell, theme and responsive layout.
+   Loaded last on frontend/cashier/*.html (after the shared theme files).
+   Every rule is scoped to body.cp-cashier, a class only
+   function/cashier/cashier-shell.js adds, so the Admin, Staff and Customer
+   portals are never affected even though they share clean-theme.css.
+
+   Theme: dark teal sidebar, warm cream workspace, white cards, teal primary
+   buttons, gold checkout buttons, navy/teal text, light beige borders.
+   Same palette as the Admin Panel redesign (frontend/admin/admin-panel.css).
+   ========================================================================== */
+:root {
+  --cp-teal-900: var(--brand-deep);
+  --cp-teal-800: var(--brand-dark);
+  --cp-teal: var(--brand);
+  --cp-teal-hover: var(--brand);
+  --cp-teal-soft: var(--brand-soft);
+  --cp-gold: var(--accent);
+  --cp-gold-hover: var(--accent);
+  --cp-gold-soft: var(--accent-soft);
+  --cp-cream: var(--bg);
+  --cp-cream-2: var(--bg);
+  --cp-card: #FFFFFF;
+  --cp-card-soft: var(--card);
+  --cp-border: var(--border);
+  --cp-border-strong: var(--border);
+  --cp-ink: var(--text);
+  --cp-text: var(--text-body-color);
+  --cp-muted: var(--muted);
+  --cp-danger: var(--danger);
+  --cp-radius: 16px;
+  --cp-radius-sm: 10px;
+  --cp-shadow: 0 1px 2px rgba(24, 38, 31, .05), 0 4px 14px -6px rgba(24, 38, 31, .08);
+  --cp-shadow-pop: 0 24px 60px -18px rgba(10, 46, 36, .45);
+  --cp-font-display: "Playfair Display", Georgia, serif;
+}
+
+/* ---------- Page ---------- */
+html body.cp-cashier {
+  background: var(--cp-cream) !important;
+  color: var(--cp-text);
+  overflow-x: hidden;
+}
+html body.cp-cashier :focus-visible { outline: 3px solid var(--cp-gold); outline-offset: 2px; }
+html body.cp-cashier > main { background: var(--cp-cream) !important; min-width: 0; }
+html body.cp-cashier > main > section { background: transparent !important; }
+
+/* ---------- Sidebar (desktop) / Menu drawer (below 1024px) ----------
+   Same structure and rhythm as the Customer Portal sidebar
+   (customer-portal.css): 253px, brand, eyebrow headings, 44px links,
+   gold inset bar on the active link, Sign Out at the bottom. */
+html body.cp-cashier aside.cp-sidebar {
+  width: 253px !important;
+  flex: none;
+  display: flex !important;
+  flex-direction: column;
+  height: 100vh; height: 100dvh;
+  padding: 28px 17px 18px;
+  overflow-y: auto;
+  background: linear-gradient(180deg, var(--cp-teal-800) 0%, var(--cp-teal-900) 100%) !important;
+  color: var(--brand-softer) !important;
+  border-right: 0;
+  box-shadow: none !important;
+  z-index: 60;
+}
+html body.cp-cashier aside.cp-sidebar * { color: inherit; }
+
+html body.cp-cashier .cp-brand { display: flex; align-items: center; gap: 11px; padding: 4px 8px 22px; background: transparent !important; border-bottom: 1px solid rgba(255,255,255,.1); }
+html body.cp-cashier .cp-brand-logo { width: 40px; height: 40px; flex: none; border-radius: 11px; object-fit: cover; border: 1px solid var(--cp-gold); background: #fff; }
+html body.cp-cashier .cp-brand-text { min-width: 0; }
+html body.cp-cashier aside .cp-brand-name { margin: 0; font-family: var(--cp-font-display); font-size: 16px; font-weight: 700; letter-spacing: .04em; line-height: 1.2; color: #FFFFFF !important; text-transform: uppercase !important; white-space: nowrap; }
+html body.cp-cashier aside .cp-brand-sub { margin: 3px 0 0; font-size: 10px; font-weight: 800; letter-spacing: .27em; text-transform: uppercase; color: var(--cp-gold) !important; white-space: nowrap; }
+html body.cp-cashier .cp-close {
+  display: none; align-self: flex-end; width: 44px; height: 44px; margin: -8px -6px 4px 0; border-radius: 10px;
+  align-items: center; justify-content: center; font-size: 18px;
+  background: transparent !important; color: #fff !important; border: 0; cursor: pointer;
+}
+
+html body.cp-cashier .cp-branch-card {
+  text-align: left !important;
+  margin: 18px 0 0; padding: 12px 14px; border-radius: 12px;
+  background: rgba(255, 255, 255, .07) !important; border: 1px solid rgba(224, 184, 76, .25) !important;
+}
+html body.cp-cashier aside .cp-branch-kicker { margin: 0; display: flex; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: rgba(238,247,242,.65) !important; }
+html body.cp-cashier .cp-live-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--success); box-shadow: 0 0 0 3px rgba(17, 92, 57, .2); }
+html body.cp-cashier aside .cp-branch-name { margin: 6px 0 2px; font-size: 14px; font-weight: 700; line-height: 1.3; color: #FFFFFF !important; }
+html body.cp-cashier aside .cp-branch-meta { margin: 0; font-size: 12px; color: rgba(238,247,242,.72) !important; overflow-wrap: anywhere; }
+
+html body.cp-cashier aside .cp-side-heading { margin: 26px 12px 12px; font-size: 11px; font-weight: 800; letter-spacing: .2em; color: rgba(238,247,242,.55) !important; }
+html body.cp-cashier aside .cp-side-heading-sm { margin: 0 0 10px 11px; font-size: 10px; }
+html body.cp-cashier aside .cp-nav { flex: none; padding: 0 !important; display: flex; flex-direction: column; gap: 4px; }
+html body.cp-cashier aside .cp-nav a.nav-item {
+  flex: none !important;
+  display: flex; align-items: center; gap: 13px;
+  min-height: 44px; padding: 11px 13px !important; border-radius: 10px !important;
+  color: rgba(238,247,242,.78) !important; background: transparent !important;
+  text-decoration: none; font-size: 14px !important; font-weight: 700 !important;
+  border-left: 0 !important;
+  transition: background .15s, color .15s;
+}
+html body.cp-cashier aside .cp-nav a.nav-item i { width: 19px; text-align: center; font-size: 16px; color: inherit !important; }
+html body.cp-cashier aside .cp-nav a.nav-item:hover { background: rgba(255,255,255,.08) !important; color: #FFFFFF !important; }
+html body.cp-cashier aside .cp-nav a.nav-item[aria-current="page"] {
+  background: rgba(255, 255, 255, .12) !important; color: #FFFFFF !important;
+  box-shadow: inset 3px 0 0 var(--cp-gold) !important;
+}
+html body.cp-cashier aside .cp-nav a.nav-item[aria-current="page"] i { color: var(--cp-gold) !important; }
+html body.cp-cashier .cp-nav-text { flex: 1; min-width: 0; }
+html body.cp-cashier aside .cp-nav-badge {
+  min-width: 24px; padding: 1px 8px; border-radius: 999px; text-align: center;
+  font-size: 11px; font-weight: 800; background: var(--cp-gold) !important; color: var(--cp-teal-900) !important;
+}
+
+html body.cp-cashier .cp-sidebar-foot { margin-top: auto; padding: 16px 3px 2px; border-top: 1px solid rgba(255,255,255,.13); background: transparent !important; }
+html body.cp-cashier .cp-avatar {
+  width: 40px; height: 40px; flex: none; border-radius: 999px;
+  display: inline-grid; place-items: center; font-weight: 800; font-size: 13px;
+  background: var(--cp-gold) !important; color: var(--cp-teal-900) !important;
+}
+html body.cp-cashier .cp-avatar--sm { width: 40px; height: 40px; }
+html body.cp-cashier aside .cp-signout {
+  display: flex; align-items: center; gap: 13px; min-height: 44px; padding: 11px 13px;
+  border: 1px solid rgba(255, 255, 255, .14); border-radius: 11px;
+  color: var(--brand-softer) !important; text-decoration: none; font-size: 14px; font-weight: 700; background: transparent !important;
+}
+html body.cp-cashier aside .cp-signout i { width: 19px; text-align: center; }
+html body.cp-cashier aside .cp-signout:hover { background: rgba(255, 255, 255, .07) !important; border-color: rgba(224, 184, 76, .5); color: #FFFFFF !important; }
+
+html body.cp-cashier .cp-backdrop { display: none; }
+html body.cp-cashier .cp-bottom-nav { display: none; }
+
+/* Justified text reads with gaps ("Cold      Wax Strips"); the cashier pages want left-aligned text. */
+html body.cp-cashier :is(.text-justify, .cp-branch-card, .cp-branch-card *, table.cp-table :is(td, th):not(.text-center):not(.text-right)) { text-align: left !important; }
+
+/* clean-theme.css justifies every <p> in all portals; cashier copy reads left-aligned. */
+html body.cp-cashier p:not(.text-center):not(.text-right) { text-align: left; }
+
+/* Inventory "Adjust": the button grows to fit its label instead of the label spilling out. */
+html body.cp-cashier table.cp-table .btn-row { min-width: max-content; padding: 0 14px; white-space: nowrap; }
+
+/* ---------- Header (Customer Portal arrangement) ---------- */
+html body.cp-cashier header.cp-topbar {
+  position: sticky; top: 0; z-index: 40; flex-shrink: 0;
+  display: flex !important; align-items: center; justify-content: space-between; flex-wrap: nowrap !important;
+  gap: 12px; height: auto !important; min-height: 72px;
+  padding: 10px 36px !important;
+  background: rgba(246, 248, 247, .96) !important;
+  border-bottom: 1px solid var(--cp-border) !important;
+  box-shadow: none !important;
+}
+html body.cp-cashier .cp-header-brand { display: none; }
+html body.cp-cashier .cp-header-title {
+  display: flex; align-items: center; gap: 8px; min-width: 0; margin: 0;
+  font-size: 12px; font-weight: 800; letter-spacing: .07em; color: var(--cp-muted);
+  white-space: nowrap; overflow: hidden;
+}
+html body.cp-cashier .cp-header-title b { color: var(--cp-border-strong); font-weight: 400; }
+html body.cp-cashier .cp-header-title strong { color: var(--cp-teal-800); letter-spacing: .03em; overflow: hidden; text-overflow: ellipsis; }
+html body.cp-cashier .cp-topbar-actions { display: flex; align-items: center; gap: 12px; flex-wrap: nowrap !important; justify-content: flex-end; flex-shrink: 0; min-width: 0; }
+html body.cp-cashier .cp-branch-chip {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 240px;
+  padding: 5px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
+  background: var(--cp-teal-soft) !important; color: var(--cp-teal-800) !important; border: 1px solid var(--border-strong) !important;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: none !important;
+}
+html body.cp-cashier .cp-clock { margin: 0; font-size: 13px; font-weight: 600; color: var(--cp-muted) !important; white-space: nowrap; }
+html body.cp-cashier .cp-page-action { min-height: 44px; border-radius: 10px !important; white-space: nowrap; }
+html body.cp-cashier .cp-icon-btn {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 44px; height: 44px; border-radius: 12px; font-size: 16px;
+  border: 1px solid var(--cp-border) !important; background: var(--cp-card) !important; color: var(--cp-text) !important; text-decoration: none;
+}
+html body.cp-cashier .cp-icon-btn:hover { background: var(--cp-teal-soft) !important; }
+html body.cp-cashier .cp-header-signout { display: none !important; }
+html body.cp-cashier .cp-profile-btn {
+  display: inline-flex; align-items: center; gap: 10px; min-width: 0; min-height: 44px; padding: 2px 8px 2px 2px;
+  border-radius: 12px; color: var(--cp-ink) !important; text-decoration: none;
+}
+html body.cp-cashier .cp-profile-btn:hover, html body.cp-cashier .cp-profile-btn[aria-current="page"] { background: var(--cp-cream-2) !important; }
+html body.cp-cashier .cp-profile-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+html body.cp-cashier .cp-profile-name { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 700; }
+html body.cp-cashier .cp-profile-text small { font-size: 12px; color: var(--cp-muted); }
+/* The page's primary header action (New Walk-In). */
+html body.cp-cashier #btnNewWalkIn {
+  min-height: 44px; border-radius: 10px !important; background: var(--cp-teal) !important; color: #fff !important;
+}
+html body.cp-cashier #btnNewWalkIn:hover { background: var(--cp-teal-hover) !important; }
+
+/* ---------- Content area + page heading ---------- */
+/* .cp-page beats portal-unify.css's later section padding. */
+html body.cp-cashier > main > section.cp-page { padding: 0 36px 34px !important; }
+html body.cp-cashier > main > section.cp-page > .cp-intro { margin: 32px 0 24px !important; min-width: 0; }
+html body.cp-cashier .cp-eyebrow { display: block; font-size: 11px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: var(--cp-teal); }
+html body.cp-cashier > main section .cp-intro h2.cp-page-title {
+  margin: 8px 0 0; font-size: 38px !important; line-height: 1.1 !important; letter-spacing: -.015em;
+  color: var(--cp-ink) !important; white-space: normal; overflow-wrap: anywhere;
+}
+
+/* ---------- Receipt (print page, no navigation) ---------- */
+html body.cp-cashier.cp-receipt { background: var(--cp-cream) !important; }
+html body.cp-receipt .no-print a,
+html body.cp-receipt .no-print button,
+html body.cp-receipt #receiptNotFound a {
+  min-height: 44px; padding: 10px 16px !important; border-radius: 10px !important; font-size: 14px !important;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+html body.cp-receipt .no-print a { padding-left: 4px !important; color: var(--cp-teal-800) !important; }
+html body.cp-receipt .no-print button,
+html body.cp-receipt #receiptNotFound a { background: var(--cp-teal) !important; color: #fff !important; }
+html body.cp-receipt .no-print button:hover,
+html body.cp-receipt #receiptNotFound a:hover { background: var(--cp-teal-hover) !important; }
+html body.cp-receipt :is(#receiptCard, #receiptNotFound) { border-radius: 17px !important; border-color: var(--cp-border) !important; box-shadow: var(--cp-shadow) !important; }
+
+/* Cards */
+html body.cp-cashier main section .bg-white.rounded-2xl,
+html body.cp-cashier main section .bg-white.rounded-xl,
+html body.cp-cashier main section .card {
+  background: var(--cp-card) !important;
+  border: 1px solid var(--cp-border) !important;
+  border-radius: var(--cp-radius) !important;
+  box-shadow: var(--cp-shadow) !important;
+}
+
+/* Summary cards */
+html body.cp-cashier .stat-card {
+  position: relative; display: flex; flex-direction: column; gap: 2px; text-align: left !important;
+  padding: 16px 18px !important; border-radius: var(--cp-radius) !important;
+  background: var(--cp-card) !important; border: 1px solid var(--cp-border) !important; box-shadow: var(--cp-shadow) !important;
+  text-decoration: none; transition: border-color .15s, transform .15s, box-shadow .15s;
+}
+html body.cp-cashier button.stat-card, html body.cp-cashier a.stat-card { cursor: pointer; }
+html body.cp-cashier button.stat-card:hover, html body.cp-cashier a.stat-card:hover { border-color: var(--cp-teal) !important; transform: translateY(-1px); }
+html body.cp-cashier .stat-card.is-active { border-color: var(--cp-teal) !important; box-shadow: 0 0 0 2px var(--cp-teal) inset, var(--cp-shadow) !important; }
+html body.cp-cashier .stat-card-gold { background: var(--cp-gold-soft) !important; border-color: var(--accent) !important; }
+html body.cp-cashier .stat-label { font-size: 13px !important; font-weight: 600 !important; color: var(--cp-muted) !important; }
+html body.cp-cashier .stat-value { font-size: clamp(22px, 2.1vw, 30px) !important; font-weight: 800 !important; color: var(--cp-ink) !important; line-height: 1.15; overflow-wrap: normal !important; word-break: keep-all; }
+html body.cp-cashier .stat-hint { font-size: 12.5px !important; color: var(--cp-muted) !important; }
+html body.cp-cashier #statCardsContainer .stat-card::after {
+  content: "View"; position: absolute; top: 14px; right: 14px; font-size: 11px; font-weight: 700;
+  color: var(--cp-teal); opacity: 0; transition: opacity .15s;
+}
+html body.cp-cashier #statCardsContainer .stat-card:hover::after,
+html body.cp-cashier #statCardsContainer .stat-card.is-active::after { opacity: 1; }
+html body.cp-cashier #statCardsContainer .stat-card.is-active::after { content: "Filtered"; }
+
+/* Filter pills */
+html body.cp-cashier .queue-tab {
+  min-height: 38px; border-radius: 999px !important; border: 1px solid var(--cp-border) !important;
+  background: var(--cp-card) !important; color: var(--cp-text) !important; font-weight: 600;
+}
+html body.cp-cashier .queue-tab.is-active { background: var(--cp-teal) !important; border-color: var(--cp-teal) !important; color: #FFFFFF !important; }
+html body.cp-cashier .queue-tab.is-active span { background: rgba(255,255,255,.22) !important; color: #FFFFFF !important; }
+
+/* Inputs */
+html body.cp-cashier .field-input,
+html body.cp-cashier main input[type="search"],
+html body.cp-cashier main input[type="text"],
+html body.cp-cashier main input[type="date"],
+html body.cp-cashier main select {
+  min-height: 44px; border-radius: 12px !important; border: 1px solid var(--cp-border-strong) !important;
+  background: var(--cp-card-soft) !important; color: var(--cp-ink) !important; font-size: 15px;
+}
+html body.cp-cashier .field-label { color: var(--cp-muted) !important; letter-spacing: .06em; }
+html body.cp-cashier .cp-field-hint { margin: 6px 0 0; font-size: 12.5px; color: var(--cp-muted); }
+
+/* Buttons */
+html body.cp-cashier .btn-row { min-height: 40px; border-radius: 12px !important; text-decoration: none; }
+html body.cp-cashier .cp-btn-primary, html body.cp-cashier .btn-primary { background: var(--cp-teal) !important; color: #FFFFFF !important; border: 1px solid var(--cp-teal) !important; }
+html body.cp-cashier .cp-btn-primary:hover, html body.cp-cashier .btn-primary:hover:not(:disabled) { background: var(--cp-teal-hover) !important; }
+html body.cp-cashier .btn-primary:disabled { background: var(--border) !important; border-color: var(--border) !important; color: var(--muted) !important; }
+html body.cp-cashier .cp-btn-gold { background: var(--cp-gold) !important; color: var(--cp-teal-900) !important; border: 1px solid var(--cp-gold) !important; }
+html body.cp-cashier .cp-btn-gold:hover { background: var(--cp-gold-hover) !important; }
+html body.cp-cashier .cp-btn-ghost { background: var(--cp-card) !important; color: var(--cp-teal-800) !important; border: 1px solid var(--cp-border-strong) !important; }
+html body.cp-cashier .cp-btn-ghost:hover { background: var(--cp-teal-soft) !important; }
+html body.cp-cashier .cp-btn-outline { background: var(--cp-card) !important; color: var(--cp-teal) !important; border: 1px solid var(--cp-teal) !important; }
+html body.cp-cashier .cp-btn-outline:hover { background: var(--cp-teal-soft) !important; }
+html body.cp-cashier .btn-secondary { border-radius: 12px !important; border-color: var(--cp-border-strong) !important; }
+html body.cp-cashier .cp-link-btn { background: none; border: 0; padding: 0; text-align: left; cursor: pointer; max-width: 100%; display: block; }
+html body.cp-cashier .cp-link-btn:hover { color: var(--cp-teal) !important; text-decoration: underline; }
+
+/* Badges */
+html body.cp-cashier .cp-badge {
+  display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 700; white-space: nowrap; line-height: 1.4;
+}
+html body.cp-cashier .cp-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; }
+html body.cp-cashier .cp-sub { display: block; font-size: 12px; color: var(--cp-muted); font-weight: 400; }
+
+/* Empty states */
+html body.cp-cashier .cp-empty { padding: 48px 16px; text-align: center; color: var(--cp-muted); }
+html body.cp-cashier .cp-empty i { font-size: 30px; color: var(--border-strong); margin-bottom: 10px; display: block; }
+html body.cp-cashier .cp-empty-title { margin: 0 0 4px; font-weight: 700; color: var(--cp-ink); font-size: 15px; }
+html body.cp-cashier .cp-empty p { margin: 0; font-size: 14px; }
+
+/* Modals */
+html body.cp-cashier .modal-panel { border-radius: 20px !important; border: 1px solid var(--cp-border) !important; box-shadow: var(--cp-shadow-pop) !important; }
+html body.cp-cashier .modal-head { background: var(--cp-teal-800) !important; color: #FFFFFF !important; }
+html body.cp-cashier .modal-head * { color: #FFFFFF !important; }
+html body.cp-cashier .modal-close { min-width: 40px; min-height: 40px; }
+
+/* ---------- Today's queue (dashboard) ---------- */
+html body.cp-cashier #queueContainer { border-top: 0; }
+html body.cp-cashier .cp-q-section {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px;
+  padding: 10px 20px; font-size: 13px; border-top: 1px solid var(--cp-border);
+}
+html body.cp-cashier .cp-q-section strong { font-size: 14px; }
+html body.cp-cashier .cp-q-section.is-today { background: var(--cp-cream-2); color: var(--cp-teal-800); }
+html body.cp-cashier .cp-q-section.is-late { background: var(--warn-soft); color: var(--warn); }
+html body.cp-cashier .cp-q-section.is-upcoming { background: var(--cp-teal-soft); color: var(--cp-teal-800); }
+html body.cp-cashier .cp-q-row {
+  display: grid; align-items: center; gap: 14px;
+  grid-template-columns: 84px minmax(0, 1.6fr) minmax(0, 1.4fr) auto;
+  padding: 14px 20px; border-top: 1px solid var(--border);
+}
+html body.cp-cashier .cp-q-row:hover { background: var(--cp-card-soft); }
+html body.cp-cashier .cp-q-time strong { display: block; font-size: 14px; color: var(--cp-ink); white-space: nowrap; }
+html body.cp-cashier .cp-q-date { display: block; font-size: 12px; font-weight: 600; color: var(--cp-teal-800); }
+html body.cp-cashier .cp-q-date.is-late { color: var(--cp-danger); }
+html body.cp-cashier .cp-q-who { display: flex; align-items: center; gap: 12px; min-width: 0; }
+html body.cp-cashier .cp-q-avatar { width: 40px; height: 40px; flex: none; border-radius: 999px; display: grid; place-items: center; font-weight: 700; font-size: 13px; background: var(--cp-teal-soft); color: var(--cp-teal-800); }
+html body.cp-cashier .cp-q-who-text { min-width: 0; }
+html body.cp-cashier .cp-q-who-text p { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html body.cp-cashier .cp-q-name { font-weight: 700; color: var(--cp-ink); font-size: 15px; }
+html body.cp-cashier .cp-q-service { font-size: 13.5px; color: var(--cp-text); }
+html body.cp-cashier .cp-q-meta { font-size: 12px; color: var(--cp-muted); }
+html body.cp-cashier .cp-q-facts { margin: 0; display: grid; grid-template-columns: repeat(3, auto); gap: 4px 14px; justify-content: start; }
+html body.cp-cashier .cp-q-facts dt { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--cp-muted); }
+html body.cp-cashier .cp-q-facts dd { margin: 2px 0 0; }
+html body.cp-cashier .cp-q-balance dd { font-weight: 800; color: var(--cp-ink); white-space: nowrap; }
+html body.cp-cashier .cp-q-actions { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+
+/* Walk-in summary */
+html body.cp-cashier .cp-walkin-summary {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px 14px; border-radius: 12px;
+  background: var(--cp-cream); border: 1px solid var(--cp-border);
+}
+html body.cp-cashier .cp-walkin-summary strong { display: block; color: var(--cp-ink); font-size: 15px; }
+
+/* ---------- Appointments & Payment Records lists ---------- */
+html body.cp-cashier .cp-appt-head,
+html body.cp-cashier .cp-appt-row {
+  display: grid; gap: 12px; align-items: center;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr) minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr) auto auto 84px;
+}
+html body.cp-cashier .cp-pay-head,
+html body.cp-cashier .cp-pay-row {
+  display: grid; gap: 12px; align-items: center;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1.4fr) 92px 92px 100px minmax(0, 1fr) 150px;
+}
+html body.cp-cashier .cp-appt-head,
+html body.cp-cashier .cp-pay-head {
+  padding: 10px 20px; background: var(--cp-cream-2); color: var(--cp-muted);
+  font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+}
+html body.cp-cashier .cp-appt-row,
+html body.cp-cashier .cp-pay-row {
+  width: 100%; padding: 13px 20px; border-top: 1px solid var(--border); background: transparent; text-align: left !important; font-size: 14px; color: var(--cp-text);
+}
+html body.cp-cashier .cp-appt-row { cursor: pointer; }
+html body.cp-cashier .cp-appt-row:hover, html body.cp-cashier .cp-pay-row:hover { background: var(--cp-card-soft); }
+html body.cp-cashier .cp-cell { min-width: 0; overflow-wrap: anywhere; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+html body.cp-cashier .cp-cell-strong { font-weight: 700; color: var(--cp-ink); }
+html body.cp-cashier .cp-cell-action { align-items: flex-end; }
+html body.cp-cashier .cp-sort-note { margin: 0; padding: 8px 20px; font-size: 12.5px; color: var(--cp-muted); border-top: 1px solid var(--border); }
+
+/* ---------- Inventory ---------- */
+html body.cp-cashier .cp-table thead { background: var(--cp-cream-2) !important; }
+html body.cp-cashier .cp-table th { font-size: 11.5px; letter-spacing: .06em; color: var(--cp-muted) !important; }
+html body.cp-cashier .cp-table td { font-size: 14px; }
+html body.cp-cashier .cp-stock-bar { margin-top: 6px; height: 5px; border-radius: 999px; background: var(--border); overflow: hidden; }
+html body.cp-cashier .cp-stock-bar > div { height: 100%; border-radius: 999px; }
+
+/* ---------- Staff ---------- */
+html body.cp-cashier .cp-staff-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+html body.cp-cashier .cp-staff-actions > * { flex: 1 1 auto; }
+
+/* ==========================================================================
+   Phones and tablets (< 1024px), as in the Customer Portal: brand header,
+   bottom navigation, and the sidebar as a Menu drawer
+   ========================================================================== */
+@media (max-width: 1023.98px) {
+  html body.cp-cashier { --cp-bottom-h: 64px; }
+  html body.cp-cashier aside.cp-sidebar {
+    position: fixed !important; top: 0; bottom: 0; left: 0; z-index: 70;
+    width: min(18rem, 85vw) !important;
+    padding: calc(20px + env(safe-area-inset-top, 0px)) 17px calc(18px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-105%); visibility: hidden;
+    transition: transform .25s ease, visibility 0s linear .25s;
+    box-shadow: 0 0 40px rgba(0,0,0,.35) !important;
+  }
+  html body.cp-cashier.cp-nav-open aside.cp-sidebar { transform: translateX(0); visibility: visible; transition: transform .25s ease; }
+  html body.cp-cashier .cp-close { display: inline-flex; }
+  html body.cp-cashier .cp-backdrop {
+    display: block; position: fixed; inset: 0; z-index: 65;
+    background: rgba(24, 38, 31, .5); opacity: 0; pointer-events: none; transition: opacity .25s ease;
+  }
+  html body.cp-cashier.cp-nav-open .cp-backdrop { opacity: 1; pointer-events: auto; }
+
+  /* Header: logo + name on the left, actions on the right. */
+  html body.cp-cashier header.cp-topbar {
+    min-height: calc(64px + env(safe-area-inset-top, 0px));
+    padding: calc(8px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px)) !important;
+  }
+  html body.cp-cashier .cp-header-brand { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1 1 auto; min-height: 44px; color: var(--cp-ink) !important; text-decoration: none; }
+  html body.cp-cashier .cp-header-brand img { width: 34px; height: 34px; flex: none; border-radius: 9px; object-fit: cover; background: #fff; border: 1px solid var(--cp-gold); }
+  html body.cp-cashier .cp-header-brand span { min-width: 0; font-size: 13px; font-weight: 800; letter-spacing: .05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  html body.cp-cashier .cp-header-title,
+  html body.cp-cashier .cp-clock,
+  html body.cp-cashier header .cp-branch-chip,
+  html body.cp-cashier .cp-profile-text { display: none !important; }
+  html body.cp-cashier .cp-topbar-actions { gap: 8px; }
+  html body.cp-cashier .cp-header-signout { display: inline-flex !important; }
+  html body.cp-cashier .cp-profile-btn { padding: 0; }
+
+  html body.cp-cashier > main > section.cp-page {
+    padding: 0 24px calc(var(--cp-bottom-h) + env(safe-area-inset-bottom, 0px) + 24px) !important;
+  }
+
+  /* Bottom navigation: first four sections + Menu. */
+  html body.cp-cashier .cp-bottom-nav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 45;
+    display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding: 4px max(4px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(4px, env(safe-area-inset-left, 0px));
+    background: rgba(255, 255, 255, .97);
+    border-top: 1px solid var(--cp-border);
+    box-shadow: 0 -8px 24px -18px rgba(10, 46, 36, .45);
+  }
+  html body.cp-cashier .cp-bottom-link {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    min-width: 0; min-height: 56px; padding: 6px 2px; border: 0; border-radius: 12px;
+    background: transparent; color: var(--cp-muted) !important; text-decoration: none; cursor: pointer; font: inherit;
+  }
+  html body.cp-cashier .cp-bottom-link i { font-size: 19px; line-height: 22px; height: 22px; }
+  html body.cp-cashier .cp-bottom-link,
+  html body.cp-cashier .cp-bottom-link span {
+    max-width: 100%; font-size: 11px !important; line-height: 1.15 !important; font-weight: 700; text-align: center;
+    overflow-wrap: normal; word-break: normal; hyphens: none;
+  }
+  html body.cp-cashier .cp-bottom-link.is-active { color: var(--cp-teal) !important; }
+  html body.cp-cashier .cp-bottom-link.is-active span { font-weight: 800; }
+  html body.cp-cashier .cp-bottom-link i { font-size: 19px !important; }
+  html body.cp-cashier .cp-bottom-link:focus-visible { outline-offset: -3px; }
+
+  html body.cp-cashier .cp-q-row { grid-template-columns: 76px minmax(0, 1fr) auto; }
+  html body.cp-cashier .cp-q-facts { grid-column: 2 / 3; }
+  html body.cp-cashier .cp-q-actions { grid-column: 3; grid-row: 1 / span 2; flex-direction: column; align-items: stretch; }
+
+  /* Appointments / payment lists become labelled cards. */
+  html body.cp-cashier .cp-appt-head, html body.cp-cashier .cp-pay-head { display: none; }
+  html body.cp-cashier .cp-appt-row, html body.cp-cashier .cp-pay-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; padding: 16px 20px;
+  }
+  html body.cp-cashier .cp-cell[data-label]::before {
+    content: attr(data-label); font-size: 11px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--cp-muted);
+  }
+  html body.cp-cashier .cp-cell-action { grid-column: 1 / -1; align-items: stretch; }
+  html body.cp-cashier .cp-cell-action > * { width: 100%; }
+}
+
+/* ==========================================================================
+   Phones (< 768px)
+   ========================================================================== */
+@media (max-width: 767.98px) {
+  html body.cp-cashier > main > section.cp-page {
+    padding: 0 16px calc(var(--cp-bottom-h) + env(safe-area-inset-bottom, 0px) + 20px) !important;
+  }
+  html body.cp-cashier > main > section.cp-page > .cp-intro { margin: 22px 0 18px !important; }
+  html body.cp-cashier > main section .cp-intro h2.cp-page-title { font-size: 32px !important; }
+  /* Header page actions (New walk-in, Download CSV) become 44px icon buttons. */
+  html body.cp-cashier .cp-page-action { width: 44px; padding: 0 !important; justify-content: center; flex: none; }
+  html body.cp-cashier .cp-page-action span { display: none; }
+  html body.cp-cashier .stat-value { font-size: 24px !important; }
+  html body.cp-cashier .stat-card { padding: 14px !important; }
+
+  /* Queue rows -> labelled cards */
+  html body.cp-cashier .cp-q-row { grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 16px; }
+  html body.cp-cashier .cp-q-time { display: flex; align-items: baseline; gap: 8px; }
+  html body.cp-cashier .cp-q-time::before,
+  html body.cp-cashier .cp-q-service::before { content: attr(data-label) ": "; font-weight: 600; color: var(--cp-muted); }
+  html body.cp-cashier .cp-q-time { order: 2; }
+  html body.cp-cashier .cp-q-who { order: 1; }
+  html body.cp-cashier .cp-q-who-text p { white-space: normal; }
+  html body.cp-cashier .cp-q-facts { order: 3; grid-column: auto; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  html body.cp-cashier .cp-q-actions { order: 4; grid-column: auto; grid-row: auto; flex-direction: row; }
+  html body.cp-cashier .cp-q-actions > * { flex: 1 1 0; min-height: 44px; }
+  html body.cp-cashier .cp-q-section { padding: 10px 16px; }
+
+  html body.cp-cashier .cp-appt-row, html body.cp-cashier .cp-pay-row { padding: 14px 16px; }
+  html body.cp-cashier .cp-walkin-summary { grid-template-columns: 1fr; }
+  html body.cp-cashier .btn-row, html body.cp-cashier .btn-primary, html body.cp-cashier .btn-secondary { min-height: 44px; }
+
+  /* Inventory tables -> labelled cards */
+  html body.cp-cashier table.cp-table,
+  html body.cp-cashier table.cp-table tbody { display: block; width: 100%; min-width: 0 !important; }
+  html body.cp-cashier table.cp-table thead { display: none; }
+  html body.cp-cashier table.cp-table tr {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px;
+    padding: 14px 4px; border-bottom: 1px solid var(--border);
+  }
+  html body.cp-cashier table.cp-table td { display: flex; flex-direction: column; align-items: flex-start; padding: 0 !important; text-align: left !important; min-width: 0; overflow-wrap: anywhere; }
+  html body.cp-cashier table.cp-table td[data-label]::before {
+    content: attr(data-label); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--cp-muted);
+  }
+  html body.cp-cashier table.cp-table td[colspan] { grid-column: 1 / -1; align-items: center; }
+  html body.cp-cashier table.cp-table td.cp-cell-action { grid-column: 1 / -1; align-items: stretch; }
+  html body.cp-cashier table.cp-table td.cp-cell-action > * { width: 100%; }
+  html body.cp-cashier .cp-stock-bar { width: 100%; }
+  html body.cp-cashier .overflow-x-auto:has(> table.cp-table) { overflow-x: visible; }
+
+  /* Modals become bottom sheets with full-width content. */
+  html body.cp-cashier .modal-panel { border-radius: 20px 20px 0 0 !important; }
+}
+
+/* Small desktops: the clock steps aside so the breadcrumb and actions fit. */
+@media (min-width: 1024px) and (max-width: 1279.98px) {
+  /* The clock and branch chip step aside (the branch stays in the sidebar card). */
+  html body.cp-cashier .cp-clock,
+  html body.cp-cashier header .cp-branch-chip { display: none !important; }
+  /* Appointment / payment lists use their labelled-card layout until 1280px,
+     the Customer Portal's small-laptop breakpoint, so no column is crushed. */
+  html body.cp-cashier .cp-appt-head, html body.cp-cashier .cp-pay-head { display: none; }
+  html body.cp-cashier .cp-appt-row, html body.cp-cashier .cp-pay-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 16px; padding: 16px 20px;
+  }
+  html body.cp-cashier .cp-cell[data-label]::before {
+    content: attr(data-label); font-size: 11px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--cp-muted);
+  }
+  html body.cp-cashier .cp-cell-action { grid-column: 1 / -1; align-items: flex-end; }
+}
+
+/* Narrow phones: two-line labels such as "Payment Records" need a taller bar. */
+@media (max-width: 479.98px) {
+  html body.cp-cashier { --cp-bottom-h: 84px; }
+  html body.cp-cashier .cp-bottom-link span { font-size: 10.5px !important; }
+}
+
+@media (max-width: 359.98px) {
+  html body.cp-cashier header.cp-topbar { padding-left: 12px !important; padding-right: 10px !important; gap: 6px; }
+  html body.cp-cashier .cp-header-brand span { display: none; }
+  html body.cp-cashier :is(.cp-icon-btn, .cp-page-action) { width: 42px; height: 42px; min-height: 42px; }
+  html body.cp-cashier .cp-avatar--sm { width: 38px; height: 38px; }
+  html body.cp-cashier .cp-bottom-link span { font-size: 9.5px !important; letter-spacing: -.01em; }
+  html body.cp-cashier > main section .cp-intro h2.cp-page-title { font-size: 28px !important; }
+  html body.cp-cashier .cp-q-facts { grid-template-columns: 1fr 1fr; }
+  html body.cp-cashier .cp-appt-row, html body.cp-cashier .cp-pay-row { grid-template-columns: minmax(0, 1fr); }
+  html body.cp-cashier .grid.grid-cols-2:has(> .stat-card) { grid-template-columns: minmax(0, 1fr) !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body.cp-cashier aside.cp-sidebar, html body.cp-cashier .cp-backdrop, html body.cp-cashier .stat-card { transition: none; }
+}
+
+/* Keep full names and record subtitles readable without changing type sizes. */
+html body.cp-cashier #staffContainerGrid .truncate,
+html body.cp-cashier :is(#profileName, #profileEmail, #profileRole, #profileTerminal, #profileAssignedBranch, #profileBranchLocation),
+html body.cp-cashier #checkoutModal .modal-head p,
+html body.cp-cashier #confirmRef {
+  white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere;
+  min-width: 0; max-width: 100%;
+}
+html body.cp-cashier :is(#checkoutModal, #confirmModal) .modal-head > div { min-width: 0; }
+html body.cp-cashier :is(#checkoutModal, #confirmModal) .modal-close { flex-shrink: 0; }
+
+@media print {
+  html body.cp-cashier aside.cp-sidebar, html body.cp-cashier .cp-backdrop, html body.cp-cashier .cp-bottom-nav { display: none !important; }
+}

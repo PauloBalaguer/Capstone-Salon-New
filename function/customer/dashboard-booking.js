@@ -126,20 +126,24 @@ function customerBookingMixin() {
     slotAvailabilityRequest: 0,
     slotsReady: false,
     slotsError: '',
-    async refreshAvailableSlots() {
+    async refreshAvailableSlots(options) {
+      // quiet (live sync): keep showing the current times while re-checking.
+      const quiet = !!(options && options.quiet);
       const request = ++this.slotAvailabilityRequest;
-      this.slotsReady = false;
-      this.slotsError = '';
-      this.slotAvailabilityMap = {};
+      if (!quiet) {
+        this.slotsReady = false;
+        this.slotsError = '';
+        this.slotAvailabilityMap = {};
+      }
       if (!this.bookingForm.date || !this.selectedBranchForServices || !this.selectedServicesForBooking.length) {
         this.slotsLoading = false;
         return false;
       }
-      this.slotsLoading = true;
+      if (!quiet) this.slotsLoading = true;
       const params = new URLSearchParams({ branchKey: this.selectedBranchForServices, date: this.bookingForm.date, assignment: 'single' });
       this.selectedServicesForBooking.forEach(s => params.append('services[]', s.id));
       try {
-        const response = await fetch('../../backend/public/getAvailableSlots.php?' + params);
+        const response = await fetch('../../backend/public/getAvailableSlots.php?' + params, { cache: 'no-store' });
         const body = await response.json();
         if (request !== this.slotAvailabilityRequest) return false;
         if (response.ok === false || !body.success || !Array.isArray(body.slots)) throw new Error(body.message || 'Could not check available times.');
@@ -148,9 +152,10 @@ function customerBookingMixin() {
         this.availableTimeSlots = body.slots.map(s => s.time);
         this.slotAvailabilityMap = map;
         this.slotsReady = true;
+        this.slotsError = '';
         return true;
       } catch (error) {
-        if (request === this.slotAvailabilityRequest) this.slotsError = 'Could not check available times. Please try again.';
+        if (request === this.slotAvailabilityRequest && !quiet) this.slotsError = 'Could not check available times. Please try again.';
         return false;
       } finally {
         if (request === this.slotAvailabilityRequest) this.slotsLoading = false;
@@ -437,25 +442,29 @@ function customerBookingMixin() {
     staffAvailabilityLoading: false,
     staffAvailabilityError: '',
     staffAvailabilityRequest: 0,
-    async refreshAvailableStaff() {
+    async refreshAvailableStaff(options) {
+      const quiet = !!(options && options.quiet);
       const request = ++this.staffAvailabilityRequest;
-      this.staffAvailabilityLoading = true;
-      this.staffAvailabilityError = '';
-      this.liveAvailableStaff = [];
-      this.liveBusyStaff = [];
+      if (!quiet) {
+        this.staffAvailabilityLoading = true;
+        this.staffAvailabilityError = '';
+        this.liveAvailableStaff = [];
+        this.liveBusyStaff = [];
+      }
       const params = new URLSearchParams({branchKey:this.selectedBranchForServices, date:this.bookingForm.date, time:this.bookingForm.time});
       this.selectedServicesForBooking.forEach(s => params.append('services[]',s.id));
       try {
-        const response = await fetch('../../backend/public/getAvailableStaff.php?' + params);
+        const response = await fetch('../../backend/public/getAvailableStaff.php?' + params, { cache: 'no-store' });
         const body = await response.json();
         if (request !== this.staffAvailabilityRequest) return false;
         if (response.ok === false || !body.success || !Array.isArray(body.staff)) throw new Error('Unavailable');
         this.liveAvailableStaff = body.staff;
         this.liveBusyStaff = body.busy || [];
+        this.staffAvailabilityError = '';
         if (this.bookingForm.staffId && !body.staff.some(s => String(s.id) === String(this.bookingForm.staffId))) this.bookingForm.staffId = '';
         return true;
       } catch {
-        if (request === this.staffAvailabilityRequest) this.staffAvailabilityError = 'Could not check available stylists. Please try again.';
+        if (request === this.staffAvailabilityRequest && !quiet) this.staffAvailabilityError = 'Could not check available stylists. Please try again.';
         return false;
       } finally {
         if (request === this.staffAvailabilityRequest) this.staffAvailabilityLoading = false;

@@ -38,7 +38,7 @@
         other.addEventListener('click', () => this.chooseOther());
         choice.className = 'flex flex-wrap gap-2 mb-3';
         [this.savedButton, other].forEach(button => {
-          button.className = 'min-h-[44px] px-3 py-2 rounded-lg border border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50 disabled:cursor-not-allowed';
+          button.className = 'min-h-[44px] px-3 py-2 rounded-lg border border-[color:var(--muted)] text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--brand)] disabled:opacity-50 disabled:cursor-not-allowed';
           button.setAttribute('aria-pressed', 'false');
         });
         choice.append(this.savedButton, other); root.append(choice);
@@ -52,7 +52,7 @@
         control.id = label.htmlFor; control.name = `address_${key}`;
         control.className = root.dataset.addressStyle === 'light'
           ? 'w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base'
-          : 'w-full min-w-0 text-base bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-400';
+          : 'w-full min-w-0 text-base bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-[color:var(--brand)]';
         if (index < 3) {
           control.setAttribute('aria-required', String(!this.optional));
           control.addEventListener('change', () => this.change(key));

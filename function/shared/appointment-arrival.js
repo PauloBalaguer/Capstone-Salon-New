@@ -23,7 +23,7 @@
       catch (error) { active = false; LMToast.show(error.message, 'error'); return false; }
       const review = result.review;
       const dialog = document.createElement('dialog');
-      dialog.className = 'rounded-2xl border border-slate-300 bg-white text-slate-800 p-5 shadow-2xl';
+      dialog.className = 'rounded-2xl border border-[color:var(--border-strong)] bg-white text-slate-800 p-5 shadow-2xl';
       dialog.style.cssText = 'width:min(32rem,calc(100% - 2rem));max-height:90dvh;overflow:auto';
       dialog.setAttribute('aria-labelledby', 'arrivalReviewTitle');
       dialog.innerHTML = `<form method="dialog" class="space-y-4">
@@ -32,14 +32,14 @@
         <p data-arrival-summary class="text-sm whitespace-pre-line"></p>
         <p data-arrival-help class="text-sm">The full service and cleaning buffer must fit. Another customer's appointment will not be moved. Payments stay unchanged. Selecting another stylist replaces only the current main stylist's services.</p>
         <label class="block text-sm font-semibold">Staff for this arrival<select data-arrival-staff class="block w-full rounded-lg border p-3 mt-1"></select></label>
-        <button type="button" data-arrival-start class="w-full rounded-lg bg-[#006D6F] text-white p-3 font-bold disabled:opacity-50">Confirm arrival and start service</button>
+        <button type="button" data-arrival-start class="w-full rounded-lg bg-[color:var(--brand)] text-white p-3 font-bold disabled:opacity-50">Confirm arrival and start service</button>
         <details><summary class="cursor-pointer py-2 font-semibold">Choose another schedule</summary>
           <label class="block mt-2">Date<input data-arrival-date type="date" class="block border rounded-lg w-full p-3 mt-1"></label>
           <button type="button" data-arrival-load class="w-full border rounded-lg p-3 mt-2">Find available times</button>
           <label class="block mt-2">Available time<select data-arrival-time class="block border rounded-lg p-3 w-full mt-1"></select></label>
-          <button type="button" data-arrival-reschedule disabled class="w-full rounded-lg bg-[#006D6F] text-white p-3 mt-2 disabled:opacity-50">Confirm reschedule</button>
+          <button type="button" data-arrival-reschedule disabled class="w-full rounded-lg bg-[color:var(--brand)] text-white p-3 mt-2 disabled:opacity-50">Confirm reschedule</button>
         </details>
-        <p data-arrival-error role="status" aria-live="polite" class="text-sm text-rose-700"></p>
+        <p data-arrival-error role="status" aria-live="polite" class="text-sm text-[color:var(--danger)]"></p>
         <button value="close" class="w-full rounded-lg border p-3">Close without changes</button>
       </form>`;
       const find = name => dialog.querySelector(`[data-arrival-${name}]`);
@@ -52,12 +52,12 @@
       // only: lateness never cancels, marks a no-show or changes payment by itself.
       const late = review.isLate ? (review.minutesLate ? review.minutesLate + ' minutes' : 'less than one minute') + ' after reserved start' : 'on time or early';
       // Fixed colours: each portal re-themes Tailwind's palette differently (admin's slate-100 is charcoal).
-      const green = 'background:#EDF8F1;border-color:#B7DFC6;color:#17603A', amber = 'background:#FFF7E2;border-color:#D9BB69;color:#7A5200';
+      const green = 'background:#E6F4EC;border-color:#E6F4EC;color:#115C39', amber = 'background:#FAF2DC;border-color:#E0B84C;color:#6C4C09';
       const verdicts = {
         on_time: ['On time', 'The customer arrived at or before the reserved start.', green],
         within: ['Within the grace period', `Arrived ${late} (grace period: ${review.graceMinutes} minutes).`, green],
         beyond: ['Beyond the grace period', `Arrived ${late}: ${review.minutesLate - review.graceMinutes} minutes past the ${review.graceMinutes}-minute grace period.`, amber],
-        unset: ['Late (no grace period set)', `Arrived ${late}. SALON_LATE_GRACE_MINUTES is not configured.`, 'background:#F1F5F9;border-color:#CBD5E1;color:#1E293B']
+        unset: ['Late (no grace period set)', `Arrived ${late}. SALON_LATE_GRACE_MINUTES is not configured.`, 'background:#F6F8F7;border-color:#CDD6D0;color:#18261F']
       };
       const [verdictTitle, verdictText, verdictTone] = verdicts[review.graceStatus] || verdicts.unset;
       find('grace').style.cssText = verdictTone;

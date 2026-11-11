@@ -41,6 +41,7 @@ const STAFF_ICONS = {
   chevronRight: '<path d="m9 18 6-6-6-6"/>',
   chevronLeft: '<path d="m15 18-6-6 6-6"/>',
   x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
   alert: '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
   info: '<circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/>',
   package: '<path d="m7.5 4.3 9 5.2M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7z"/><path d="M3.3 7 12 12l8.7-5M12 22V12"/>',
@@ -67,6 +68,7 @@ function staffPortal() {
       { key: 'appointments', label: 'My Appointments', short: 'Bookings', icon: 'calendar' },
       { key: 'attendance', label: 'My Attendance', short: 'Attendance', icon: 'clock' },
       { key: 'schedule', label: 'My Schedule', short: 'Schedule', icon: 'schedule' },
+      { key: 'profile', label: 'My Profile', short: 'Profile', icon: 'user' },
     ],
     notificationsOpen: false,
 
@@ -103,7 +105,17 @@ function staffPortal() {
     passwordSuccess: '',
     signingOut: false,
 
+    // Below 1024px the sidebar is a Menu drawer opened from the bottom bar (as in the Customer Portal).
+    menuOpen: false,
+    compact: false,
+
     init() {
+      const compactQuery = window.matchMedia('(max-width: 1023.98px)');
+      const syncCompact = () => { this.compact = compactQuery.matches; this.closeMenu(); };
+      syncCompact();
+      if (compactQuery.addEventListener) compactQuery.addEventListener('change', syncCompact);
+      else compactQuery.addListener(syncCompact);
+      this.$watch('menuOpen', open => document.body.classList.toggle('sp-drawer-open', open));
       this.applyHash();
       window.addEventListener('hashchange', () => this.applyHash());
       this.$watch('apptTab', () => { this.apptPage = 1; this.expandedId = null; });
@@ -112,7 +124,8 @@ function staffPortal() {
       this.setAttRange('month');
       document.addEventListener('keydown', e => {
         if (e.key !== 'Escape') return;
-        if (this.shiftOutOpen) this.shiftOutOpen = false;
+        if (this.menuOpen) this.closeMenu(true);
+        else if (this.shiftOutOpen) this.shiftOutOpen = false;
         else if (this.signOutOpen && !this.signingOut) this.signOutOpen = false;
         else this.notificationsOpen = false;
       });
@@ -137,6 +150,7 @@ function staffPortal() {
         });
       }
       this.notificationsOpen = false;
+      this.closeMenu();
       document.title = `${STAFF_VIEWS[this.view].title} | Leo Mejillano Staff Portal`;
     },
 
@@ -146,6 +160,19 @@ function staffPortal() {
     },
 
     openProfile() { this.go('profile'); },
+
+    toggleMenu() {
+      if (this.menuOpen) { this.closeMenu(true); return; }
+      this.notificationsOpen = false;
+      this.menuOpen = true;
+      this.$nextTick(() => this.$refs.drawerClose && this.$refs.drawerClose.focus({ preventScroll: true }));
+    },
+
+    closeMenu(restoreFocus) {
+      if (!this.menuOpen) return;
+      this.menuOpen = false;
+      if (restoreFocus && this.$refs.menuButton) this.$refs.menuButton.focus({ preventScroll: true });
+    },
 
     pageTitle() { return STAFF_VIEWS[this.view].title; },
 

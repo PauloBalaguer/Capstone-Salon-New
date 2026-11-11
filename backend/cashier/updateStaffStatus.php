@@ -16,6 +16,7 @@ require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
+require_once '../../backend/shared/config/helpers/StaffShift.php';
 
 sendCorsHeaders();
 AuditLog::captureRequest();
@@ -35,7 +36,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $staffId = (int) ($_POST['id'] ?? 0);
 $status = trim($_POST['status'] ?? '');
-$allowedStatuses = ['On Duty', 'With Client', 'Off Shift'];
+// Only the attendance itself can be overridden; Busy / On Break are derived
+// (StaffShift::liveStatusSql). 'On Duty' is accepted as the old name of On Shift.
+$allowedStatuses = ['On Shift', 'On Duty', 'Off Shift'];
 
 if ($staffId <= 0 || !in_array($status, $allowedStatuses, true)) {
     http_response_code(400);
@@ -70,18 +73,20 @@ try {
 
     $pdo->beginTransaction();
 
-    $pdo->prepare('UPDATE employees SET shift_status = ? WHERE id = ?')->execute([$status, $staffId]);
-
-    if ($status === 'On Duty') {
-        $stmt = $pdo->prepare('SELECT id FROM attendance WHERE employee_id = ? AND DATE(clock_in_time) = CURDATE() AND clock_out_time IS NULL');
-        $stmt->execute([$staffId]);
-        if (!$stmt->fetchColumn()) {
-            $pdo->prepare('INSERT INTO attendance (employee_id, clock_in_time) VALUES (?, NOW())')->execute([$staffId]);
+    // Same lock and open-shift rule as the Staff Portal's shiftAction.php,
+    // so this override can't open a second shift or leave a break running.
+    $pdo->prepare('SELECT id FROM employees WHERE id = ? FOR UPDATE')->execute([$staffId]);
+    $openShift = StaffShift::openShift($pdo, $staffId, true);
+    if ($status === 'Off Shift') {
+        if ($openShift) {
+            $pdo->prepare('UPDATE attendance_breaks SET break_end = GREATEST(break_start, NOW()) WHERE attendance_id = ? AND break_end IS NULL')
+                ->execute([$openShift['id']]);
+            $pdo->prepare('UPDATE attendance SET clock_out_time = GREATEST(clock_in_time, NOW()) WHERE id = ?')->execute([$openShift['id']]);
         }
-    } elseif ($status === 'Off Shift') {
-        $pdo->prepare('UPDATE attendance SET clock_out_time = NOW() WHERE employee_id = ? AND DATE(clock_in_time) = CURDATE() AND clock_out_time IS NULL')
-            ->execute([$staffId]);
+    } elseif (!$openShift) {
+        $pdo->prepare('INSERT INTO attendance (employee_id, clock_in_time) VALUES (?, NOW())')->execute([$staffId]);
     }
+    $status = $status === 'Off Shift' ? StaffShift::STATUS_OFF : StaffShift::STATUS_ON;
 
     $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "ATTENDANCE", ?)')
         ->execute(["{$employee['name']} at {$employee['branch_name']} is now {$status}."]);

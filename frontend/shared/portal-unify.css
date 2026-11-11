@@ -1,0 +1,200 @@
+/* =====================================================================
+   Portal Unify -- one design language for the Admin, Cashier and Staff
+   portals, modelled on the Customer Portal (customer-portal.css).
+
+   What it shares:  typography (DM Sans + DM Serif Display), control sizes
+   (44px buttons/inputs, 10px radius), card radius (17px), sidebar rhythm
+   (eyebrow nav labels, 44px links, 19px icons, gold active bar), table
+   headers, focus rings and small-screen spacing.
+   What it never touches: colours. Every colour below is an existing token
+   of the portal it styles (--lm-*, --cp-*, --sp-*), so each portal keeps
+   its own palette.
+
+   Load it LAST, after the portal's own stylesheet.
+   ===================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap');
+
+:root {
+  --pu-sans: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --pu-serif: "DM Serif Display", Georgia, serif;
+  --pu-radius-card: 17px;
+  --pu-radius-ctl: 10px;
+  --pu-ctl-h: 44px;
+}
+
+/* ---------- Typography ---------- */
+body.lm-admin,
+html body.cp-cashier,
+body.sp-body { font-family: var(--pu-sans) !important; -webkit-font-smoothing: antialiased; }
+body.lm-admin :is(button, input, select, textarea),
+html body.cp-cashier :is(button, input, select, textarea),
+body.sp-body :is(button, input, select, textarea) { font-family: var(--pu-sans); }
+body.lm-admin { --lm-font: var(--pu-sans); --lm-font-display: var(--pu-serif); --lm-radius: var(--pu-radius-card); }
+html body.cp-cashier { --cp-font-display: var(--pu-serif); --cp-radius: var(--pu-radius-card); }
+body.sp-body { --sp-radius: var(--pu-radius-card); }
+
+/* Serif headings, regular weight -- exactly how the Customer Portal sets them. */
+body.lm-admin :is(.lm-topbar-title h1, .lm-card-head h2, .lm-card-head h3, .lm-section-title, .lm-modal-head h2, .lm-brand-name),
+html body.cp-cashier :is(.cp-page-title, .cp-brand-name),
+html body.cp-cashier > main :is(h2, h3),
+html body.cp-cashier .modal-panel :is(h2, h3),
+body.sp-body :is(.sp-topbar-title h1, .sp-mobile-title, .sp-card-title, .sp-welcome-hello, .sp-modal-title) {
+  font-family: var(--pu-serif) !important;
+  font-weight: 400 !important;
+  letter-spacing: -.01em;
+}
+body.lm-admin .lm-topbar-title h1,
+html body.cp-cashier .cp-page-title,
+body.sp-body .sp-topbar-title h1 { font-size: 28px !important; line-height: 1.15; }
+body.lm-admin :is(.lm-card-head h2, .lm-card-head h3, .lm-section-title),
+body.sp-body .sp-card-title { font-size: 21px !important; line-height: 1.25; }
+html body.cp-cashier > main section :is(h2, h3) { font-size: 21px !important; line-height: 1.25; }
+body.sp-body .sp-welcome-hello { font-size: 30px !important; line-height: 1.15; }
+body.sp-body .sp-modal-title,
+body.lm-admin .lm-modal-head h2 { font-size: 22px !important; }
+/* Big numbers stay sans and bold for scanning, like the Customer stat tiles. */
+body.lm-admin .lm-stat-value { font-family: var(--pu-sans) !important; font-weight: 800; letter-spacing: -.02em; font-size: 28px; }
+
+/* ---------- Sidebar navigation ---------- */
+body.lm-admin .lm-nav-label,
+html body.cp-cashier aside .cp-nav-label {
+  margin-top: 6px; font-size: 11px !important; font-weight: 800; letter-spacing: .2em !important;
+}
+body.lm-admin .lm-nav { gap: 4px; padding: 14px 14px; }
+html body.cp-cashier .cp-nav { gap: 4px; padding: 12px 14px; }
+body.sp-body .sp-nav { gap: 4px; }
+
+body.lm-admin .lm-nav a,
+html body.cp-cashier aside .cp-nav a.nav-item {
+  gap: 13px; min-height: var(--pu-ctl-h); padding: 10px 13px;
+  border-radius: var(--pu-radius-ctl); font-size: 14px !important; font-weight: 700 !important;
+}
+body.lm-admin .lm-nav a svg { width: 19px; height: 19px; }
+html body.cp-cashier aside .cp-nav a.nav-item i { width: 19px; font-size: 16px; }
+
+/* Customer Portal active state: tinted pill + 3px gold bar on the inside edge.
+   The bar is drawn as an inset shadow so the text no longer shifts by 3px. */
+body.lm-admin .lm-nav a,
+html body.cp-cashier aside .cp-nav a.nav-item { border-left: 0 !important; }
+body.lm-admin .lm-nav a[aria-current="page"] { box-shadow: inset 3px 0 0 var(--lm-gold); }
+html body.cp-cashier aside .cp-nav a.nav-item[aria-current="page"] { box-shadow: inset 3px 0 0 var(--cp-gold) !important; }
+
+@media (min-width: 1024px) {
+  body.sp-body .sp-nav-link { gap: 13px; min-height: var(--pu-ctl-h); padding: 10px 13px; border-radius: var(--pu-radius-ctl); font-size: 14px; font-weight: 700; }
+  body.sp-body .sp-nav-link svg { width: 19px; height: 19px; }
+}
+
+/* Sign-out rows: same height and icon size as nav links. */
+body.lm-admin .lm-signout { gap: 13px; min-height: var(--pu-ctl-h); padding: 10px 13px; font-weight: 700; }
+body.lm-admin .lm-signout svg { width: 19px; height: 19px; flex: none; }   /* was unsized -> rendered huge */
+
+/* ---------- Admin shell fixes ---------- */
+/* .lm-btn / .lm-close come later in admin-panel.css and re-showed the drawer
+   buttons on desktop. They only belong below 1024px. */
+@media (min-width: 1024px) {
+  body.lm-admin .lm-sidebar-close,
+  body.lm-admin .lm-menu-btn { display: none !important; }
+}
+
+/* ---------- Top bars ---------- */
+body.lm-admin .lm-topbar { min-height: 76px; padding: 14px 32px; }
+body.sp-body .sp-topbar { min-height: 76px; }
+
+/* ---------- Cards ---------- */
+body.lm-admin .lm-card,
+body.sp-body .sp-card,
+html body.cp-cashier .modal-panel { border-radius: var(--pu-radius-card) !important; }
+body.lm-admin .lm-card { padding: 22px; }
+body.lm-admin .lm-card--flush { padding: 0; }
+body.lm-admin .lm-card--flush .lm-card-head { padding: 20px 22px 0; }
+body.sp-body .sp-card { padding: 20px; }
+
+/* ---------- Buttons ---------- */
+body.lm-admin .lm-btn,
+body.sp-body .sp-btn {
+  min-height: var(--pu-ctl-h); border-radius: var(--pu-radius-ctl) !important;
+  font-weight: 700; transition: background-color .15s, border-color .15s, color .15s, box-shadow .15s, transform .1s;
+}
+body.lm-admin .lm-btn--icon { width: var(--pu-ctl-h); }
+body.lm-admin .lm-btn--sm,
+body.sp-body .sp-btn-sm { min-height: 38px; }
+body.sp-body .sp-btn-lg { min-height: 52px; border-radius: 12px !important; }
+html body.cp-cashier :is(.btn-primary, .btn-secondary, .btn-row) { border-radius: var(--pu-radius-ctl) !important; font-weight: 700; }
+body.lm-admin .lm-btn:active:not(:disabled),
+body.sp-body .sp-btn:active:not(:disabled),
+html body.cp-cashier :is(.btn-primary, .btn-secondary, .btn-row):active:not(:disabled) { transform: translateY(1px); }
+:is(body.lm-admin, html body.cp-cashier, body.sp-body) :is(button, .lm-btn, .sp-btn):disabled { cursor: not-allowed; }
+
+/* ---------- Forms ---------- */
+body.lm-admin :is(.lm-input, .lm-select),
+body.sp-body :is(.sp-input, .sp-select) { min-height: var(--pu-ctl-h); border-radius: var(--pu-radius-ctl) !important; }
+html body.cp-cashier main :is(input[type="text"], input[type="search"], input[type="number"], input[type="email"], input[type="tel"], input[type="date"], input[type="password"], select) {
+  border-radius: var(--pu-radius-ctl) !important;
+}
+
+/* Focus ring in each portal's own accent. */
+body.lm-admin :focus-visible { outline: 3px solid var(--lm-gold); outline-offset: 2px; }
+body.sp-body :focus-visible { outline: 3px solid var(--sp-gold); outline-offset: 2px; }
+
+/* ---------- Tables ---------- */
+body.lm-admin .lm-table th,
+html body.cp-cashier .cp-table th,
+body.sp-body .sp-table th {
+  font-size: 11px !important; font-weight: 800 !important; letter-spacing: .12em !important; text-transform: uppercase;
+}
+body.lm-admin .lm-table td,
+body.sp-body .sp-table td { padding-top: 14px; padding-bottom: 14px; }
+body.lm-admin .lm-table th:first-child, body.lm-admin .lm-table td:first-child,
+body.sp-body .sp-table th:first-child, body.sp-body .sp-table td:first-child { padding-left: 22px; }
+body.lm-admin .lm-table th:last-child, body.lm-admin .lm-table td:last-child,
+body.sp-body .sp-table th:last-child, body.sp-body .sp-table td:last-child { padding-right: 22px; }
+body.lm-admin .lm-table-wrap,
+body.sp-body .sp-table-card { -webkit-overflow-scrolling: touch; }
+
+/* ---------- Content width / spacing ---------- */
+body.lm-admin .lm-content { padding: 28px 32px 48px; gap: 24px; max-width: 1440px; }
+@media (min-width: 1024px) {
+  html body.cp-cashier > main > section { padding: 28px 32px 48px !important; }
+}
+
+/* The nav label span carried its own larger size. */
+html body.cp-cashier aside .cp-nav a.nav-item .cp-nav-text { font-size: 14px !important; font-weight: 700 !important; }
+
+/* Shared "Security" password card (function/shared/password-card.js uses
+   inline styles): match the other card headings and radius. */
+:is(body.lm-admin, html body.cp-cashier, body.sp-body) [data-password-card] > section { border-radius: var(--pu-radius-card) !important; }
+:is(body.lm-admin, html body.cp-cashier, body.sp-body) [data-password-card] > section > h3 {
+  font-family: var(--pu-serif) !important; font-weight: 400 !important; font-size: 21px !important; line-height: 1.25;
+}
+
+/* ---------- Tablet + phone ---------- */
+@media (max-width: 1023.98px) {
+  body.lm-admin .lm-topbar { padding: 12px 20px; }
+  body.lm-admin .lm-content { padding: 20px 20px 40px; }
+  body.lm-admin .lm-topbar-title h1,
+  html body.cp-cashier .cp-page-title,
+  body.sp-body .sp-topbar-title h1 { font-size: 24px !important; }
+}
+@media (max-width: 767.98px) {
+  body.lm-admin .lm-topbar { padding: 10px 16px; gap: 10px; }
+  body.lm-admin .lm-content { padding: 16px 16px 32px; gap: 16px; }
+  body.lm-admin .lm-card { padding: 18px; }
+  body.lm-admin .lm-card--flush { padding: 0; }
+  body.lm-admin .lm-card--flush .lm-card-head { padding: 16px 18px 0; }
+  body.sp-body .sp-card { padding: 16px; }
+  body.lm-admin .lm-topbar-title h1,
+  html body.cp-cashier .cp-page-title,
+  body.sp-body .sp-topbar-title h1 { font-size: 22px !important; }
+  body.sp-body .sp-welcome-hello { font-size: 25px !important; }
+  body.lm-admin :is(.lm-card-head h2, .lm-card-head h3, .lm-section-title),
+  body.sp-body .sp-card-title,
+  html body.cp-cashier > main section :is(h2, h3) { font-size: 19px !important; }
+  /* Cashier header: title + menu on one row, actions on one row (was three). */
+  html body.cp-cashier .cp-clock { display: none !important; }
+  html body.cp-cashier .cp-topbar-actions { flex-wrap: nowrap !important; justify-content: flex-end !important; gap: 8px; }
+  html body.cp-cashier .cp-topbar-actions > * { flex: 0 0 auto; }
+  /* 16px inputs stop iOS from zooming the page on focus. */
+  body.lm-admin :is(.lm-input, .lm-select, .lm-textarea),
+  body.sp-body :is(.sp-input, .sp-select, input, select, textarea),
+  html body.cp-cashier main :is(input, select, textarea) { font-size: 16px !important; }
+}

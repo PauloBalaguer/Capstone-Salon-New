@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="stylesheet" href="../shared/theme-tokens.css">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Leo Mejillano Salon - Home Service</title>
@@ -14,11 +15,11 @@
         extend: {
           colors: {
             luxury: {
-              50: '#F4FBFA', 100: '#E5F2F0', 200: '#C7E0DD', 500: '#006D6F',
-              600: '#006D6F', 700: '#06464A', 800: '#06464A', 900: '#06464A', 950: '#FFF8EE',
+              50: '#EEF7F2', 100: '#DDF0E6', 200: '#DDF0E6', 500: '#16604B',
+              600: '#16604B', 700: '#0E3B2F', 800: '#0E3B2F', 900: '#0E3B2F', 950: '#F6F8F7',
             },
             gold: {
-              100: '#fef08a', 400: '#facc15', 500: '#eab308', 600: '#ca8a04',
+              100: '#FAF2DC', 400: '#E0B84C', 500: '#E0B84C', 600: '#E0B84C',
             }
           }
         }
@@ -29,15 +30,15 @@
   <style>
     [x-cloak] { display: none !important; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #FFF8EE; }
-    ::-webkit-scrollbar-thumb { background: #006D6F; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #06464A; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--brand); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--brand-dark); }
 
     @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     .stagger-item { animation: fadeUp .45s cubic-bezier(.16,1,.3,1) both; }
 
     @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-    .skeleton { background: linear-gradient(90deg, #FFF8EE 25%, #E8DCC8 37%, #FFF8EE 63%); background-size: 400% 100%; animation: shimmer 1.4s ease infinite; }
+    .skeleton { background: linear-gradient(90deg, var(--bg) 25%, var(--border) 37%, var(--bg) 63%); background-size: 400% 100%; animation: shimmer 1.4s ease infinite; }
 
     @keyframes gentlePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
     .pulse-badge { animation: gentlePulse 1.6s ease-in-out infinite; }
@@ -46,7 +47,7 @@
     .topbar-shine { background-size: 200% 100%; animation: topbarShine 7s linear infinite; }
 
     .card-lift { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
-    .card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(0, 109, 111, 0.35); }
+    .card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(22, 96, 75, 0.35); }
   </style>
   <link rel="stylesheet" href="../../frontend/customer/customer-theme.css?v=20261104-notif2">
   <link rel="stylesheet" href="../../frontend/shared/payment-methods.css?v=20261104-payment-logos">
@@ -59,7 +60,8 @@
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
   <!-- Customer portal shell (sidebar, header, bottom nav); loaded after the shared themes. -->
-  <link rel="stylesheet" href="../../frontend/customer/customer-portal.css?v=20261108">
+  <link rel="stylesheet" href="../../frontend/customer/customer-portal.css?v=20261110">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
 </head>
 <body data-customer-page="home-service" data-page-title="Home Service" class="salon-portal bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
@@ -109,7 +111,7 @@
                 <div class="flex justify-between items-start lg:col-span-2">
                   <div>
                     <p class="font-serif font-bold text-white" x-text="request.eventType"></p>
-                    <p class="text-xs text-slate-400" x-text="request.address"></p><p class="text-xs font-mono text-[#475569] break-all" x-text="request.id"></p>
+                    <p class="text-xs text-slate-400" x-text="request.address"></p><p class="text-xs font-mono text-[color:var(--muted)] break-all" x-text="request.id"></p>
                   </div>
                   <span :class="getHomeServiceStatusBadgeClass(request.status)" class="px-2 py-0.5 rounded text-xs font-bold" x-text="getHomeServiceStatusLabel(request.status)"></span>
                 </div>
@@ -120,7 +122,7 @@
                   <div><dt x-text="homeServiceScheduleWord(request) + ' time (PH)'">Time (PH)</dt><dd x-text="homeServiceTime(request)"></dd></div>
                   <div x-show="homeServiceDetails(request).clients"><dt>Clients</dt><dd x-text="homeServiceDetails(request).clients"></dd></div>
                 </dl>
-                <p x-show="homeServiceCompletedNote(request)" class="text-xs rounded-lg p-3 bg-[#FEF3C7] text-[#78350F]" x-text="homeServiceCompletedNote(request)"></p>
+                <p x-show="homeServiceCompletedNote(request)" class="text-xs rounded-lg p-3 bg-[color:var(--warn-soft)] text-[color:var(--accent-ink)]" x-text="homeServiceCompletedNote(request)"></p>
                 <details class="home-request-details border border-slate-700 rounded-lg p-3 text-xs">
                   <summary class="font-bold cursor-pointer">View details</summary>
                   <dl class="home-request-fields mt-3">
@@ -141,14 +143,14 @@
                     <div x-show="request.paymentMethod"><dt>Method</dt><dd x-text="PortalPresentation.methodLabel(request.paymentMethod)"></dd></div>
                     <div><dt>Payment status</dt><dd x-text="homeServicePaymentLabel(request)"></dd></div>
                   </dl>
-                  <p x-show="homeServiceQuoteChanged(request)" class="text-xs text-amber-800" x-text="'Quote changed from ' + formatPeso(homeServiceDetails(request).originalPrice) + ' to ' + formatPeso(request.quotePrice) + '. Please confirm with the branch.'"></p>
+                  <p x-show="homeServiceQuoteChanged(request)" class="text-xs text-[color:var(--warn)]" x-text="'Quote changed from ' + formatPeso(homeServiceDetails(request).originalPrice) + ' to ' + formatPeso(request.quotePrice) + '. Please confirm with the branch.'"></p>
                 </section>
                 <!-- Reservation fee (down payment) set with the quote: GCash, Maya or Card through PayMongo. -->
-                <div x-show="request.status === 'Payment Required' && request.depositAmount && !request.paymentMethod" class="rounded-xl p-3 bg-[#FEF3C7] border border-[#FCD34D] text-[#78350F] text-xs space-y-2">
+                <div x-show="request.status === 'Payment Required' && request.depositAmount && !request.paymentMethod" class="rounded-xl p-3 bg-[color:var(--warn-soft)] border border-[color:var(--accent)] text-[color:var(--accent-ink)] text-xs space-y-2">
                   <p><strong x-text="'Reservation fee due: ' + formatPeso(request.depositAmount)"></strong> pay it to confirm your booking. The remaining balance is paid on the event day.</p>
                   <div x-show="request.payUrls" class="grid gap-2">
                     <template x-for="option in [{value: 'PayMongo-GCash', logo: 'gcash', name: 'GCash'}, {value: 'PayMongo-Maya', logo: 'maya', name: 'Maya'}, {value: 'PayMongo-Card', logo: 'card', name: 'Credit / Debit Card'}]" :key="option.value">
-                      <a :href="request.payUrls?.[option.value]" class="flex items-center gap-3 rounded-lg bg-white border border-[#FCD34D] hover:border-[#006D6F] text-[#06464A] font-bold px-3 py-2 transition">
+                      <a :href="request.payUrls?.[option.value]" class="flex items-center gap-3 rounded-lg bg-white border border-[color:var(--accent)] hover:border-[color:var(--brand)] text-[color:var(--brand-dark)] font-bold px-3 py-2 transition">
                         <span class="pm-logo" :class="'pm-logo--' + option.logo" aria-hidden="true"></span><span x-text="'Pay ' + formatPeso(request.depositAmount) + ' with ' + option.name"></span>
                       </a>
                     </template>
@@ -157,8 +159,8 @@
                 </div>
                 <!-- Remaining balance after the DP -->
                 <div x-show="request.quotePrice != null && request.amountPaid > 0 && request.balanceDue > 0 && !['Cancelled', 'Completed'].includes(request.status)" class="rounded-xl p-3 text-xs space-y-2 border"
-                     :class="request.balanceDue > 0 ? 'bg-[#FEF3C7] border-[#FCD34D] text-[#78350F]' : 'bg-[#DCFCE7] border-[#86EFAC] text-[#166534]'">
-                  <a x-show="request.balancePayUrl" :href="request.balancePayUrl" class="inline-flex items-center justify-center w-full rounded-lg bg-[#006D6F] hover:bg-[#06464A] text-white font-bold py-2 transition"
+                     :class="request.balanceDue > 0 ? 'bg-[color:var(--warn-soft)] border-[color:var(--accent)] text-[color:var(--accent-ink)]' : 'bg-[color:var(--success-soft)] border-[color:var(--success-soft)] text-[color:var(--success)]'">
+                  <a x-show="request.balancePayUrl" :href="request.balancePayUrl" class="inline-flex items-center justify-center w-full rounded-lg bg-[color:var(--brand)] hover:bg-[color:var(--brand-dark)] text-white font-bold py-2 transition"
                      x-text="'Pay ' + formatPeso(request.balanceDue) + ' now (GCash, Maya or card)'"></a>
                   <p x-show="request.balanceDue > 0 && !request.balancePayUrl" class="text-xs">Pay the balance at the branch.</p>
                 </div>
@@ -167,15 +169,15 @@
                   <button x-show="request.canReschedule && hsRescheduleId !== request.id" @click="openHomeServiceReschedule(request)"
                           class="w-full bg-luxury-700 hover:bg-luxury-600 text-white font-semibold py-1.5 rounded-lg transition active:scale-95">Reschedule</button>
                   <p x-show="!request.canReschedule && request.rescheduleNote" class="text-xs text-slate-500" x-text="request.rescheduleNote"></p>
-                  <div x-show="hsRescheduleId === request.id" class="rounded-xl p-3 bg-[#F7F1E6] border border-[#E4D7C0] text-[#1F2937] space-y-2">
-                    <p class="text-xs text-[#4B5563]" x-text="'Pick a new date at least ' + request.rescheduleCutoffDays + ' days away. Your quote, reservation fee and assigned team carry over (the team must be free then). ' + request.reschedulesLeft + ' online change' + (request.reschedulesLeft === 1 ? '' : 's') + ' left.'"></p>
+                  <div x-show="hsRescheduleId === request.id" class="rounded-xl p-3 bg-[color:var(--bg)] border border-[color:var(--border)] text-[color:var(--text)] space-y-2">
+                    <p class="text-xs text-[color:var(--text-body-color)]" x-text="'Pick a new date at least ' + request.rescheduleCutoffDays + ' days away. Your quote, reservation fee and assigned team carry over (the team must be free then). ' + request.reschedulesLeft + ' online change' + (request.reschedulesLeft === 1 ? '' : 's') + ' left.'"></p>
                     <div class="grid grid-cols-2 gap-2">
-                      <input type="date" x-model="hsRescheduleDate" :min="hsRescheduleMin(request)" class="w-full bg-white text-[#1F2937] rounded-lg p-2 border border-[#D9C9B4] focus:outline-none">
-                      <input type="time" x-model="hsRescheduleTime" class="w-full bg-white text-[#1F2937] rounded-lg p-2 border border-[#D9C9B4] focus:outline-none">
+                      <input type="date" x-model="hsRescheduleDate" :min="hsRescheduleMin(request)" class="w-full bg-white text-[color:var(--text)] rounded-lg p-2 border border-[color:var(--border)] focus:outline-none">
+                      <input type="time" x-model="hsRescheduleTime" class="w-full bg-white text-[color:var(--text)] rounded-lg p-2 border border-[color:var(--border)] focus:outline-none">
                     </div>
                     <div class="flex gap-2">
-                      <button type="button" @click="hsRescheduleId = null" class="flex-1 py-1.5 rounded-lg bg-[#EFE6D6] hover:bg-[#E4D7C0] font-bold">Keep Date</button>
-                      <button type="button" @click="submitHomeServiceReschedule(request)" :disabled="hsRescheduling" class="flex-1 py-1.5 rounded-lg bg-[#006D6F] hover:bg-[#06464A] text-white font-bold disabled:opacity-50" x-text="hsRescheduling ? 'Moving…' : 'Move Booking'"></button>
+                      <button type="button" @click="hsRescheduleId = null" class="flex-1 py-1.5 rounded-lg bg-[color:var(--border)] hover:bg-[color:var(--border)] font-bold">Keep Date</button>
+                      <button type="button" @click="submitHomeServiceReschedule(request)" :disabled="hsRescheduling" class="flex-1 py-1.5 rounded-lg bg-[color:var(--brand)] hover:bg-[color:var(--brand-dark)] text-white font-bold disabled:opacity-50" x-text="hsRescheduling ? 'Moving…' : 'Move Booking'"></button>
                     </div>
                   </div>
                 </div>
@@ -203,12 +205,12 @@
       <form @submit.prevent="submitHomeServiceRequest()" @change.debounce.250ms="refreshEventAvailability()" class="space-y-4 text-xs min-h-0 overflow-y-auto overscroll-contain pr-3 pb-1">
         <p class="text-slate-400">Send your details. We’ll review your request and send a quote.</p>
 
-        <section aria-label="Contact details from your profile" class="flex flex-wrap items-center justify-center text-center gap-x-3 gap-y-1 rounded-lg border border-[#E8DCC8] bg-[#FFFDF9] px-3 py-2.5 text-[#475569] break-words">
-          <span><b class="text-[#222222]">Name:</b> <span x-text="customerProfile.name || 'Not saved'"></span></span>
+        <section aria-label="Contact details from your profile" class="flex flex-wrap items-center justify-center text-center gap-x-3 gap-y-1 rounded-lg border border-[color:var(--border)] bg-[color:var(--card)] px-3 py-2.5 text-[color:var(--muted)] break-words">
+          <span><b class="text-[color:var(--text)]">Name:</b> <span x-text="customerProfile.name || 'Not saved'"></span></span>
           <span aria-hidden="true">·</span>
-          <span><b class="text-[#222222]">Mobile:</b> <span x-text="customerProfile.phone || 'Not saved'"></span></span>
+          <span><b class="text-[color:var(--text)]">Mobile:</b> <span x-text="customerProfile.phone || 'Not saved'"></span></span>
           <span aria-hidden="true">·</span>
-          <span class="break-all"><b class="text-[#222222]">Email:</b> <span x-text="customerProfile.email || 'Not saved'"></span></span>
+          <span class="break-all"><b class="text-[color:var(--text)]">Email:</b> <span x-text="customerProfile.email || 'Not saved'"></span></span>
         </section>
         <p x-show="homeServiceError" x-text="homeServiceError" role="alert" class="text-rose-200 bg-rose-950 rounded-lg p-3"></p>
 
@@ -315,7 +317,7 @@
             <div x-show="!eventBookedLoading && eventBookedDates.length">
               <span class="text-slate-400" x-text="'Fully booked for this selection (next ' + eventBookedDays + ' days):'"></span>
               <template x-for="d in eventBookedDates" :key="d">
-                <span class="inline-block rounded-full px-2.5 py-0.5 mr-1 mt-1 line-through" :class="d === homeServiceForm.preferredDate ? 'bg-rose-900 text-rose-100' : 'bg-slate-800 text-slate-400'" x-text="homeServiceDate({ preferredDate: d })"></span>
+                <span class="inline-block rounded-full px-2.5 py-0.5 mr-1 mt-1 line-through" :class="d === homeServiceForm.preferredDate ? 'bg-rose-900 text-[color:var(--danger-soft)]' : 'bg-slate-800 text-slate-400'" x-text="homeServiceDate({ preferredDate: d })"></span>
               </template>
               <p x-show="eventBookedDates.includes(homeServiceForm.preferredDate)" class="mt-1.5 font-semibold text-rose-300">Your preferred date is fully booked. Please choose another date.</p>
             </div>
@@ -330,30 +332,30 @@
         <p class="prose-justify text-slate-500 -mt-2">This stays a preferred date until the salon confirms it. Your schedule needs approval and any required payment.</p>
 
         <!-- How payment works + estimated DP -->
-        <div class="rounded-xl bg-[#F0FAFA] border border-[#99D5D6] text-[#1F2937] p-4 space-y-2.5">
-          <p class="font-bold text-[#06464A]">No payment yet</p>
+        <div class="rounded-xl bg-[color:var(--bg)] border border-[color:var(--border-strong)] text-[color:var(--text)] p-4 space-y-2.5">
+          <p class="font-bold text-[color:var(--brand-dark)]">No payment yet</p>
           <p>We’ll send you a quote first. If you accept it, you’ll pay a <b>non-refundable</b> reservation fee to confirm.</p>
           <details>
             <summary class="font-bold cursor-pointer py-2">Payment details</summary>
-          <ol class="list-decimal list-inside space-y-1 text-xs text-[#374151] leading-relaxed">
+          <ol class="list-decimal list-inside space-y-1 text-xs text-[color:var(--text-body-color)] leading-relaxed">
             <li><b>No payment now</b> just send this request.</li>
             <li>We review it and send your <b>quote</b> with a <b>reservation fee (DP)</b> by notification and email.</li>
             <li class="prose-justify">After approval, pay the deposit via <b>GCash, Maya or card</b> (PayMongo). Confirmation follows payment and availability checks.</li>
             <li>Pay the <b>remaining balance on the event day</b>.</li>
           </ol>
-          <div class="rounded-lg bg-white border border-[#99D5D6] p-3 text-xs">
+          <div class="rounded-lg bg-white border border-[color:var(--border-strong)] p-3 text-xs">
             <template x-if="hsEstimatedDp()">
-              <p><span class="text-[#6B7280]">Estimated DP for Package <span x-text="homeServiceForm.weddingPackage"></span>:</span>
-                 <b class="text-[#06464A] text-xs" x-text="(hsEstimatedDp().fixed ? '' : 'about ') + formatPeso(hsEstimatedDp().amount)"></b>
-                 <span class="text-[#6B7280]" x-text="hsEstimatedDp().fixed ? '(fixed reservation fee)' : '(≈30% of ' + formatPeso(hsEstimatedDp().price) + ')'"></span></p>
+              <p><span class="text-[color:var(--muted)]">Estimated DP for Package <span x-text="homeServiceForm.weddingPackage"></span>:</span>
+                 <b class="text-[color:var(--brand-dark)] text-xs" x-text="(hsEstimatedDp().fixed ? '' : 'about ') + formatPeso(hsEstimatedDp().amount)"></b>
+                 <span class="text-[color:var(--muted)]" x-text="hsEstimatedDp().fixed ? '(fixed reservation fee)' : '(≈30% of ' + formatPeso(hsEstimatedDp().price) + ')'"></span></p>
             </template>
             <template x-if="!hsEstimatedDp()">
-              <p class="text-[#6B7280]" x-text="homeServiceForm.eventType === 'Wedding' ? 'Choose a package to see its estimated DP.' : 'Your DP is set in your quote usually around 30% of the total, depending on venue, number of clients and services.'"></p>
+              <p class="text-[color:var(--muted)]" x-text="homeServiceForm.eventType === 'Wedding' ? 'Choose a package to see its estimated DP.' : 'Your DP is set in your quote usually around 30% of the total, depending on venue, number of clients and services.'"></p>
             </template>
-            <p class="mt-1 text-xs text-[#6B7280]">The final amount is confirmed in your quote.</p>
+            <p class="mt-1 text-xs text-[color:var(--muted)]">The final amount is confirmed in your quote.</p>
           </div>
           </details>
-          <p class="prose-justify text-xs text-[#6B7280]">The DP is <b>non-refundable</b>, but it carries over if you <b>reschedule</b> (online, at least 3 days before the event).</p>
+          <p class="prose-justify text-xs text-[color:var(--muted)]">The DP is <b>non-refundable</b>, but it carries over if you <b>reschedule</b> (online, at least 3 days before the event).</p>
         </div>
 
         <div>
@@ -407,11 +409,11 @@
 
   <div x-show="isHomeServiceSuccess" x-transition.opacity class="fixed inset-0 z-[9998] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4" style="display: none;">
     <div x-show="isHomeServiceSuccess" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" @click.outside="isHomeServiceSuccess = false" class="bg-slate-900 border border-luxury-800 rounded-2xl max-w-sm w-full p-6 space-y-5 text-center">
-      <div class="w-16 h-16 bg-emerald-950 border-4 border-emerald-800 rounded-full flex items-center justify-center mx-auto">
+      <div class="w-16 h-16 bg-emerald-950 border-4 border-[color:var(--success)] rounded-full flex items-center justify-center mx-auto">
         <svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
       </div>
       <h3 class="text-base font-serif font-bold text-white">Home Service Request Received</h3>
-      <div class="text-xs text-left text-slate-300 bg-slate-800 border border-slate-700 rounded-lg p-3 space-y-1">
+      <div class="text-xs text-justify text-slate-300 bg-slate-800 border border-slate-700 rounded-lg p-3 space-y-1">
         <p><strong class="text-slate-500 inline-block w-28">Reference Number:</strong> <span class="font-mono text-purple-300 break-all" x-text="homeServiceRequests[0]?.id"></span></p>
         <p><strong class="text-slate-500 inline-block w-28">Event Type:</strong> <span x-text="homeServiceRequests[0]?.eventType"></span></p>
         <p x-show="homeServiceRequests[0]?.weddingPackage"><strong class="text-slate-500 inline-block w-28">Package:</strong> <span x-text="'Package ' + homeServiceRequests[0]?.weddingPackage"></span></p>
@@ -485,13 +487,14 @@
        the home service request list/modal and the track-a-booking modal.
        Appointments, booking, reviews, and profile mixins live on their
        own pages. -->
-  <script src="../../function/customer/customer-shell.js?v=20261108"></script>
+  <script src="../../function/customer/customer-shell.js?v=20261110"></script>
   <script src="../../function/customer/dashboard-helpers.js"></script>
   <script src="../../function/customer/dashboard-state.js?v=home-service-aligned-1"></script>
   <script src="../../function/customer/dashboard-notifications.js"></script>
   <script src="../../function/shared/address-form.js"></script>
   <script src="../../function/customer/dashboard-home-service.js?v=home-service-aligned-1"></script>
   <script src="../../function/customer/dashboard-track-booking.js"></script>
+  <script src="../../function/shared/live-sync.js?v=20261110"></script>
   <script src="../../function/customer/dashboard.js"></script>
 </body>
 </html>

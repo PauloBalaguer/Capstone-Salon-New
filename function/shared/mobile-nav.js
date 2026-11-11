@@ -10,13 +10,13 @@
     document.body.classList.add('lm-has-drawer');
     drawer.classList.add('lm-drawer');
     if (!drawer.id) drawer.id = 'lm-portal-menu';
-    drawer.setAttribute('aria-label', drawer.getAttribute('aria-label') || 'Main menu');
+    drawer.setAttribute('aria-label', drawer.getAttribute('aria-label') || 'Main navigation');
 
-    const title = (document.title || '').split(/[|\-–]/)[0].trim() || 'Menu';
+    const title = (document.title || '').split(/[|\-–]/)[0].trim() || 'Navigation';
     const bar = document.createElement('div');
     bar.className = 'lm-mobilebar';
     bar.innerHTML =
-      '<button type="button" aria-expanded="false" aria-label="Open menu">' +
+      '<button type="button" aria-expanded="false" aria-label="Open navigation">' +
       '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>' +
       '</button><span class="lm-mobilebar-title"></span>';
     bar.querySelector('.lm-mobilebar-title').textContent = title;
@@ -32,7 +32,7 @@
     const setOpen = open => {
       document.body.classList.toggle('lm-drawer-open', open);
       button.setAttribute('aria-expanded', String(open));
-      button.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      button.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
       // Keep the hidden drawer out of the tab order on phones.
       if (mobile.matches) drawer.inert = !open; else drawer.inert = false;
       if (open) (drawer.querySelector('a, button') || drawer).focus({ preventScroll: true });

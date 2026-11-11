@@ -54,9 +54,9 @@ function needsAttention(item) {
 }
 
 function statusBadgeStyle(status) {
-  if (status === 'Out of Stock') return 'background:#FFE4E6;color:#9F1239;border:1px solid #FDA4AF';
-  if (status === 'Low Stock') return 'background:#FEF3C7;color:#92400E;border:1px solid #FCD34D';
-  return 'background:#DCFCE7;color:#166534;border:1px solid #86EFAC';
+  if (status === 'Out of Stock') return 'background:#FDECEA;color:#9C1E15;border:1px solid #FDECEA';
+  if (status === 'Low Stock') return 'background:#FFF3D6;color:#6C4C09;border:1px solid #E0B84C';
+  return 'background:#E6F4EC;color:#115C39;border:1px solid #E6F4EC';
 }
 
 function renderInventory() {
@@ -95,17 +95,15 @@ function renderInventory() {
       const pct = Math.min(100, Math.round((item.stock / (item.maxStock || 1)) * 100));
       const barColor = status === 'In Stock' ? 'bg-emerald-500' : 'bg-rose-500';
       return `
-        <tr class="hover:bg-amber-50/40 transition-colors duration-150" ${String(item.id) === String(state.productId) ? 'style="background:#E5F2F0"' : ''}>
-          <td class="px-3 py-2 font-semibold text-slate-800">${escapeHtml(item.name)}</td>
-          <td class="px-3 py-2 text-gray-500">${escapeHtml(item.category)}</td>
-          <td class="px-3 py-2 text-center font-bold whitespace-nowrap">${item.stock} <span class="text-gray-400 font-normal">/ ${item.maxStock}</span></td>
-          <td class="px-3 py-2">
-            <div class="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-              <div class="${barColor} h-1.5 rounded-full transition-all duration-500 ease-out" style="width:${pct}%"></div>
-            </div>
+        <tr class="cp-inv-row" ${String(item.id) === String(state.productId) ? 'style="background:var(--brand-soft)"' : ''}>
+          <td data-label="Product" class="px-3 py-2 font-semibold text-slate-800">${escapeHtml(item.name)}</td>
+          <td data-label="Category" class="px-3 py-2 text-gray-500">${escapeHtml(item.category)}</td>
+          <td data-label="Available" class="px-3 py-2 text-center font-bold whitespace-nowrap">${item.stock} <span class="text-gray-400 font-normal">/ ${item.maxStock}</span>
+            <div class="cp-stock-bar" aria-hidden="true"><div class="${barColor}" style="width:${pct}%"></div></div>
           </td>
-          <td class="px-3 py-2 text-center"><span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold whitespace-nowrap" style="${statusBadgeStyle(status)}">${status}</span></td>
-          <td class="px-3 py-2 text-right"><button type="button" data-adjust="${escapeHtml(item.id)}" class="px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap" style="min-height:32px !important;background:#FFFFFF !important;color:#006D6F !important;border:1px solid #006D6F !important">Adjust</button></td>
+          <td data-label="Minimum stock" class="px-3 py-2 text-center whitespace-nowrap" title="Shown as Low Stock at 20% of maximum or less">${Math.floor(item.maxStock * 0.2)}</td>
+          <td data-label="Status" class="px-3 py-2 text-center"><span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold whitespace-nowrap" style="${statusBadgeStyle(status)}">${status}</span></td>
+          <td class="px-3 py-2 text-right cp-cell-action"><button type="button" data-adjust="${escapeHtml(item.id)}" class="btn-row cp-btn-outline" aria-label="Adjust stock for ${escapeHtml(item.name)}">Adjust</button></td>
         </tr>
       `;
     }).join('');
@@ -138,7 +136,7 @@ function renderProductList() {
   const q = document.getElementById('invProductSearch').value.trim().toLowerCase();
   const items = (state.data?.inventory || []).filter(i => !q || i.name.toLowerCase().includes(q));
   list.innerHTML = items.length ? items.map(i => `
-    <button type="button" data-product="${escapeHtml(i.id)}" class="w-full flex items-center justify-between gap-3 px-3 py-2 text-left text-xs hover:bg-amber-50">
+    <button type="button" data-product="${escapeHtml(i.id)}" class="w-full flex items-center justify-between gap-3 px-3 py-2 text-justify text-xs hover:bg-amber-50">
       <span class="font-semibold text-slate-800">${escapeHtml(i.name)}</span>
       <span class="shrink-0 text-gray-500">${i.stock} in stock</span>
     </button>`).join('') : '<p class="px-3 py-4 text-center text-xs text-gray-400">No matching product.</p>';
@@ -164,17 +162,17 @@ function renderEod() {
   const card = document.getElementById('eodStockStatusCard');
   const text = document.getElementById('eodStockSummaryText');
   if (critical.length) {
-    card.className = 'p-3 bg-rose-50 rounded-xl border border-rose-200 text-xs text-rose-800';
+    card.className = 'p-3 bg-rose-50 rounded-xl border border-[#9C1E15]/30 text-xs text-[color:var(--danger)]';
     text.textContent = `${critical.length} product(s) are low or out of stock.`;
   } else {
-    card.className = 'p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-800';
+    card.className = 'p-3 bg-emerald-50 rounded-xl border border-[#115C39]/30 text-xs text-[color:var(--success)]';
     text.textContent = 'All products are in stock.';
   }
 }
 
 
 function stockTabStyle(active) {
-  return active ? 'background:#006D6F !important;color:#FFFFFF !important' : 'background:transparent !important;color:#475569 !important';
+  return active ? 'background:#16604B !important;color:#FFFFFF !important' : 'background:transparent !important;color:#4A5751 !important';
 }
 
 function renderPreview() {
@@ -188,7 +186,7 @@ function renderPreview() {
   }
   const result = adding ? item.stock + quantity : item.stock - quantity;
   preview.classList.remove('hidden');
-  preview.style.color = result < 0 ? '#B91C1C' : '#06464A';
+  preview.style.color = result < 0 ? 'var(--danger)' : 'var(--brand-dark)';
   preview.textContent = result < 0
     ? `Only ${item.stock} in stock, so you can't deduct ${quantity}.`
     : `${item.name}: ${item.stock} → ${result}`;
@@ -275,17 +273,17 @@ function renderAdjustmentLog() {
   const tbody = document.getElementById('inventoryLogTableBody');
   tbody.innerHTML = rows.length ? rows.slice(first, first + state.logPageSize).map(row => {
     const change = row.newStock - row.previousStock;
-    const color = change > 0 ? '#166534' : change < 0 ? '#B91C1C' : '#475569';
+    const color = change > 0 ? '#115C39' : change < 0 ? '#9C1E15' : '#4A5751';
     const changeLabel = change > 0 ? `+${change}` : change < 0 ? `−${Math.abs(change)}` : '0';
     return `
       <tr>
-        <td class="p-2.5">${logDate(row.timestamp)}</td>
-        <td class="p-2.5 font-semibold text-slate-800">${escapeHtml(row.product)}</td>
-        <td class="p-2.5 whitespace-nowrap">${escapeHtml(LOG_TYPES[row.action] || row.action)}</td>
-        <td class="p-2.5 text-center font-bold" style="color:${color}">${changeLabel}</td>
-        <td class="p-2.5 text-center whitespace-nowrap">${row.previousStock} &rarr; ${row.newStock}</td>
-        <td class="p-2.5">${escapeHtml(logReason(row))}</td>
-        <td class="p-2.5">${escapeHtml(row.adjustedBy || 'System')}</td>
+        <td data-label="Date" class="p-2.5">${logDate(row.timestamp)}</td>
+        <td data-label="Product" class="p-2.5 font-semibold text-slate-800">${escapeHtml(row.product)}</td>
+        <td data-label="Type" class="p-2.5 whitespace-nowrap">${escapeHtml(LOG_TYPES[row.action] || row.action)}</td>
+        <td data-label="Change" class="p-2.5 text-center font-bold" style="color:${color}">${changeLabel}</td>
+        <td data-label="Stock" class="p-2.5 text-center whitespace-nowrap">${row.previousStock} &rarr; ${row.newStock}</td>
+        <td data-label="Reason" class="p-2.5">${escapeHtml(logReason(row))}</td>
+        <td data-label="By" class="p-2.5">${escapeHtml(row.adjustedBy || 'System')}</td>
       </tr>`;
   }).join('') : `<tr><td colspan="7" class="p-6 text-center text-gray-400">${state.logRows.length ? 'No entries match these filters.' : 'No stock changes logged for this branch yet.'}</td></tr>`;
 

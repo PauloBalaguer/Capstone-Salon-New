@@ -37,7 +37,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 require_once __DIR__ . '/../../backend/shared/config/booking/BookingValidation.php';
 BookingValidation::enforce($_POST, [
-    'fullname' => ['name', true, 'your full name'],
+    'first_name' => ['name', false, 'your first name'],
+    'middle_name' => ['name', false, 'your middle name'],
+    'last_name' => ['name', false, 'your last name'],
+    'fullname' => ['name', false, 'your full name'],
     'contact' => ['mobile', true, 'a mobile number (09XXXXXXXXX)'],
     'branch' => ['id', true, 'a staff or branch selection'],
     'services' => ['ids', true, 'service or staff selections'],
@@ -48,7 +51,27 @@ BookingValidation::enforce($_POST, [
     'email' => ['email', false, 'an email address'],
 ]);
 
-$fullName = trim($_POST['fullname'] ?? '');
+$firstName = trim($_POST['first_name'] ?? '');
+$middleName = !empty($_POST['middle_name_na']) ? '' : trim($_POST['middle_name'] ?? '');
+$lastName = trim($_POST['last_name'] ?? '');
+if ($firstName === '' && $lastName === '') {
+    // Older clients send only the combined name.
+    [$firstName, $lastName] = array_pad(explode(' ', trim($_POST['fullname'] ?? ''), 2), 2, '');
+}
+if ($firstName === '' || $lastName === '') {
+    http_response_code(422);
+    $missing = $firstName === '' ? 'first_name' : 'last_name';
+    echo json_encode(['success' => false, 'message' => 'Please enter your ' . ($missing === 'first_name' ? 'first' : 'last') . ' name.', 'errors' => [$missing => 'Please enter your ' . ($missing === 'first_name' ? 'first' : 'last') . ' name.']]);
+    exit();
+}
+foreach (['first_name' => $firstName, 'middle_name' => $middleName, 'last_name' => $lastName] as $field => $value) {
+    if (mb_strlen($value) > 100) {
+        http_response_code(422);
+        echo json_encode(['success' => false, 'message' => 'Names can be at most 100 characters.', 'errors' => [$field => 'Names can be at most 100 characters.']]);
+        exit();
+    }
+}
+$fullName = implode(' ', array_filter([$firstName, $middleName, $lastName], 'strlen'));
 $contact = trim($_POST['contact'] ?? '');
 $branchId = (int) ($_POST['branch'] ?? 0);
 $date = trim($_POST['appointment_date'] ?? '');
@@ -120,7 +143,6 @@ if (!$agreedToTerms) {
     exit();
 }
 
-[$firstName, $lastName] = array_pad(explode(' ', $fullName, 2), 2, '');
 
 $ip_address = RateLimiter::getIpAddress();
 $otp_fail_limiter = new RateLimiter($ip_address, 'submit_booking_otp_fail', 10, 900);
@@ -247,7 +269,7 @@ try {
             exit();
         }
         $until = Scheduling::staffConflictUntil($pdo, $stylistId, $segmentStart->format('Y-m-d H:i:s'), $durations[$serviceId]);
-        if ($until !== null) {
+        if ($until !== null || !Scheduling::staffCanTakeBooking($pdo, $stylistId, $segmentStart->format('Y-m-d H:i:s'), $durations[$serviceId])) {
             $pdo->rollBack();
             http_response_code(409);
             echo json_encode(['success' => false, 'message' => Scheduling::SLOT_UNAVAILABLE_MESSAGE]);
@@ -294,8 +316,8 @@ try {
     if ($existingCustomer) {
         $customerId = $existingCustomer['id'];
     } else {
-        $ins = $pdo->prepare('INSERT INTO customers (first_name, last_name, phone_number) VALUES (?, ?, ?)');
-        $ins->execute([$firstName, $lastName, $contact]);
+        $ins = $pdo->prepare('INSERT INTO customers (first_name, middle_name, last_name, phone_number) VALUES (?, ?, ?, ?)');
+        $ins->execute([$firstName, $middleName !== '' ? $middleName : null, $lastName, $contact]);
         $customerId = $pdo->lastInsertId();
     }
 

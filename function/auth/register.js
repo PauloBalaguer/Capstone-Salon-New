@@ -37,6 +37,69 @@ document.addEventListener('DOMContentLoaded', function () {
     termsModal.close();
   });
 
+  // Keep what was typed (never the passwords) so "Go back" from the
+  // verify page brings the form back filled in. Cleared once verified.
+  const DRAFT_KEY = 'lmRegisterDraft';
+  const draftFields = ['reg-firstname', 'reg-middlename', 'reg-middlename-na', 'reg-lastname', 'reg-email', 'reg-contact', 'reg-notify-sms', 'reg-terms'];
+  try {
+    const draft = JSON.parse(sessionStorage.getItem(DRAFT_KEY) || '{}');
+    draftFields.forEach(function (id) {
+      const el = document.getElementById(id);
+      if (!el || !(id in draft)) return;
+      if (el.type === 'checkbox') el.checked = !!draft[id]; else el.value = draft[id];
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  } catch (err) { /* storage unavailable: start blank */ }
+  function saveDraft() {
+    const draft = {};
+    draftFields.forEach(function (id) {
+      const el = document.getElementById(id);
+      if (el) draft[id] = el.type === 'checkbox' ? el.checked : el.value;
+    });
+    try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); } catch (err) {}
+  }
+  form.addEventListener('input', saveDraft);
+  form.addEventListener('change', saveDraft);
+
+  // N/A means no middle name: clear and lock the field.
+  const middleInput = document.getElementById('reg-middlename');
+  const middleNA = document.getElementById('reg-middlename-na');
+  function syncMiddleNA() {
+    middleInput.disabled = middleNA.checked;
+    if (middleNA.checked) middleInput.value = '';
+  }
+  middleNA.addEventListener('change', syncMiddleNA);
+  setTimeout(syncMiddleNA, 0); // after a saved draft is restored
+
+  const NAME_RE = /^[\p{L}\p{M} .’'\-]+$/u;
+  const nameOk = function (v) { return NAME_RE.test(v) && /\p{L}/u.test(v) && v.length <= 100; };
+
+  const mobileInput = document.getElementById('reg-contact');
+  const mobileError = document.getElementById('reg-contact-error');
+  mobileInput.setAttribute('aria-describedby', 'reg-contact-error');
+  mobileError.setAttribute('aria-live', 'polite');
+  function validateMobile() {
+    const valid = /^9\d{9}$/.test(mobileInput.value.trim());
+    mobileInput.setAttribute('aria-invalid', String(!valid));
+    if (!valid) {
+      LM.markWrong('reg-contact', 'Please enter a valid mobile number (9XXXXXXXXX after +63).');
+    } else {
+      mobileInput.closest('.field-box').classList.remove('is-wrong');
+      mobileError.classList.remove('show');
+      LM.wrong = LM.wrong.filter(function (input) { return input !== mobileInput; });
+    }
+    return valid;
+  }
+  mobileInput.addEventListener('blur', function () {
+    validateMobile();
+  });
+  // Run after the shared input handler clears old errors.
+  document.addEventListener('input', function (event) {
+    if (event.target === mobileInput) {
+      validateMobile();
+    }
+  });
+
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     LM.clearWrong();
@@ -52,13 +115,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let ok = true;
 
+    const middleName = middleNA.checked ? '' : LM.value('reg-middlename');
+    const badName = 'Use letters, spaces, apostrophes, periods or hyphens only.';
+
     if (!firstName) {
       LM.markWrong('reg-firstname', 'Enter your first name.');
+      ok = false;
+    } else if (!nameOk(firstName)) {
+      LM.markWrong('reg-firstname', badName);
+      ok = false;
+    }
+
+    if (middleName && !nameOk(middleName)) {
+      LM.markWrong('reg-middlename', badName + ' Or tick N/A.');
       ok = false;
     }
 
     if (!lastName) {
       LM.markWrong('reg-lastname', 'Enter your last name.');
+      ok = false;
+    } else if (!nameOk(lastName)) {
+      LM.markWrong('reg-lastname', badName);
       ok = false;
     }
 
@@ -70,13 +147,7 @@ document.addEventListener('DOMContentLoaded', function () {
       ok = false;
     }
 
-    if (!contact) {
-      LM.markWrong('reg-contact', 'Enter your mobile number, like 917 123 4567.');
-      ok = false;
-    } else if (!LM.isMobile(contact)) {
-      LM.markWrong('reg-contact', 'Enter the 10 digits after +63, starting with 9, like 917 123 4567.');
-      ok = false;
-    }
+    if (!validateMobile()) ok = false;
 
     if (!passwordValid(password)) {
       LM.markWrong('reg-password', 'Use 8+ characters with an uppercase letter, a lowercase letter, a number, and a special character.');

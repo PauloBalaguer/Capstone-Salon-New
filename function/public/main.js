@@ -25,6 +25,14 @@
       targetNav.classList.add('active-tab');
     }
 
+    // Keep the phone menu's highlight in step with the page being shown,
+    // so it is still marked the next time the menu opens.
+    document.querySelectorAll('[data-mobile-tab]').forEach(item => {
+      const on = item.dataset.mobileTab === tabId;
+      item.classList.toggle('is-active', on);
+      if (on) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
+    });
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -38,12 +46,21 @@
     mobileNav.classList.toggle('hidden', !open);
     mobileNav.classList.toggle('flex', open);
     menuBtn.setAttribute('aria-expanded', String(open));
+    menuBtn.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
     document.body.style.overflow = open ? 'hidden' : mobileNavPreviousOverflow;
     if (open) mobileNav.querySelector('button, a[href]')?.focus();
     else if (wasOpen) menuBtn.focus();
   }
   if (menuBtn && mobileNav) {
     menuBtn.addEventListener('click', () => setMobileNav(mobileNav.classList.contains('hidden')));
+    // Menu items: close the menu first (it locks page scrolling), then show
+    // the chosen section so the jump back to the top isn't blocked.
+    mobileNav.querySelectorAll('[data-mobile-tab]').forEach(item => {
+      item.addEventListener('click', () => {
+        setMobileNav(false);
+        switchTab(item.dataset.mobileTab);
+      });
+    });
     document.addEventListener('keydown', event => {
       if (mobileNav.classList.contains('hidden')) return;
       if (event.key === 'Escape') { event.preventDefault(); setMobileNav(false); }
@@ -230,7 +247,7 @@
     if (bookingModalOverlay.classList.contains('opacity-0')) openBookingModal();
     document.getElementById('bookingAccessPanel').classList.add('hidden');
     document.getElementById('bookingFormPanel').classList.remove('hidden');
-    document.getElementById('bookingModeText').textContent = 'Guest booking just your name and mobile number are required.';
+    document.getElementById('bookingModeText').textContent = 'Guest Booking: Only your name and mobile number are required.';
     document.getElementById('bookingModeBadge').textContent = 'Guest';
     document.getElementById('bookingModeBadge').className = 'shrink-0 rounded-full bg-copper/10 border border-copper/25 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-copper-dark';
     document.getElementById('bookingModalBox').scrollTop = 0;
@@ -308,7 +325,7 @@
   };
 
   function buildWeddingPackageCard(pkg) {
-    const styles = WEDDING_PACKAGE_STYLES[pkg.style] || WEDDING_PACKAGE_STYLES.Plain;
+    const styles = WEDDING_PACKAGE_STYLES.Plain;
     const priceLabel = '₱' + Number(pkg.price).toLocaleString();
 
     const figure = document.createElement('figure');
@@ -333,7 +350,7 @@
       dot.className = styles.dot;
       const span = document.createElement('span');
       span.style.textAlign = 'justify';
-      span.textContent = feature.replace(/\s+\s+/g, ' ');
+      span.textContent = feature.replace(/\s*—\s*/g, ' ').replace(/\s+\s+/g, ' ');
       li.appendChild(dot);
       li.appendChild(span);
       list.appendChild(li);
@@ -674,13 +691,13 @@
 
     if (bData.promo) {
       svcPromo.classList.remove('hidden');
-      svcPromoText.textContent = bData.promo;
+      svcPromoText.textContent = bData.promo.split(' · ').join('\n');
     } else {
       svcPromo.classList.add('hidden');
     }
 
     svcGroups.innerHTML = SERVICE_GROUPS.map(g =>
-      `<button onclick="setSvcGroup('${g.k}')" class="svc-grp ${activeSvcGroup === g.k ? 'on' : ''} rounded-2xl p-3 text-left">
+      `<button onclick="setSvcGroup('${g.k}')" class="svc-grp ${activeSvcGroup === g.k ? 'on' : ''} rounded-2xl p-3 text-justify">
          <span class="block text-xs font-bold">${g.label}</span>
        </button>`).join('');
 
@@ -734,7 +751,7 @@
     const button = (page, label, disabled = false, active = false) =>
       `<button type="button" data-svc-page="${page}" ${disabled ? 'disabled' : ''} ${active ? 'aria-current="page"' : ''}
         aria-label="${label === 'Previous' || label === 'Next' ? label + ' page' : 'Page ' + page}"
-        class="min-w-[40px] min-h-[40px] px-3 py-2 rounded-xl border text-xs font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-plum disabled:opacity-40 disabled:cursor-not-allowed ${active ? 'bg-plum text-white border-plum' : 'bg-panel text-plum border-bronze/40 hover:border-plum'}">${label}</button>`;
+        class="min-w-10 min-h-10 px-3 py-2 rounded-xl border text-xs font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-plum disabled:opacity-40 disabled:cursor-not-allowed ${active ? 'bg-plum text-white border-plum' : 'bg-panel text-plum border-bronze/40 hover:border-plum'}">${label}</button>`;
     const pages = [];
     for (let page = 1; page <= pageCount; page++) {
       if (page === 1 || page === pageCount || Math.abs(page - currentSvcPage) <= 1 || (currentSvcPage <= 2 && page <= 3) || (currentSvcPage >= pageCount - 1 && page >= pageCount - 2)) pages.push(page);
@@ -852,12 +869,12 @@
     return (parts[0][0] + (parts[0][1] || '')).toUpperCase();
   }
 
-  // Mirrors employees.shift_status, kept live by the staff login/logout
-  // attendance system (see backend/auth/login.php) -- not something anyone
-  // sets by hand for the public site.
+  // Live status from backend/public/getStaffRoster.php -- the same rule
+  // the Admin and Cashier panels use (StaffShift::liveStatusSql).
   const STAFF_STATUS_META = {
-    'On Duty': { cls: 'is-available', label: 'Available now', note: 'Currently clocked in and able to take walk-ins or bookings.' },
-    'With Client': { cls: 'is-busy', label: 'With a client', note: 'Attending to another guest right now book ahead for a later slot.' },
+    'On Shift': { cls: 'is-available', label: 'Available now', note: 'Currently clocked in and able to take walk-ins or bookings.' },
+    'On Break': { cls: 'is-busy', label: 'On a short break', note: 'Clocked in but on a break right now book ahead for a later slot.' },
+    'Busy': { cls: 'is-busy', label: 'With a client', note: 'Attending to another guest right now book ahead for a later slot.' },
     'Off Shift': { cls: '', label: 'Off duty', note: "Not clocked in at the moment. Book an appointment for a time they're scheduled to work." }
   };
   function staffStatusMeta(status) {
@@ -873,7 +890,7 @@
 
     if (role.bookable) {
       return `
-        <button type="button" onclick="openStaffProfile('${escAttr(s.id)}')" class="bg-panel p-4 rounded-2xl border border-bronze/20 shadow-sm text-left hover:-translate-y-1 hover:shadow-md hover:border-plum/30 transition duration-300 group">
+        <button type="button" onclick="openStaffProfile('${escAttr(s.id)}')" class="bg-panel p-4 rounded-2xl border border-bronze/20 shadow-sm text-justify hover:-translate-y-1 hover:shadow-md hover:border-plum/30 transition duration-300 group">
           ${avatar}
           <span class="block font-bold text-[13px] text-ink leading-tight">${escAttr(s.name)}</span>
           ${statusBadge}
@@ -881,7 +898,7 @@
       `;
     }
     return `
-      <div class="bg-panel/60 p-4 rounded-2xl border border-bronze/10 text-left opacity-80 cursor-default">
+      <div class="bg-panel/60 p-4 rounded-2xl border border-bronze/10 text-justify opacity-80 cursor-default">
         ${avatar}
         <span class="block font-bold text-[13px] text-ink leading-tight">${escAttr(s.name)}</span>
         ${statusBadge}
@@ -927,7 +944,7 @@
     }
 
     const requestId = ++staffRosterRequestId;
-    fetch('backend/public/getStaffRoster.php?branchKey=' + encodeURIComponent(branch))
+    fetch('backend/public/getStaffRoster.php?branchKey=' + encodeURIComponent(branch), { cache: 'no-store' })
       .then(r => r.json())
       .then(res => {
         if (requestId !== staffRosterRequestId || currentStaffBranch !== branch) return;
@@ -1317,14 +1334,33 @@
     if (!noScroll) document.getElementById('hsRequest')?.scrollIntoView({ behavior:'smooth', block:'start' });
   }
 
+  function hsFullName() {
+    return ['hsFirstName', 'hsMiddleInitial', 'hsLastName']
+      .map(id => {
+        const input = document.getElementById(id);
+        return input.disabled ? '' : input.value.trim();
+      }).filter(Boolean).join(' ');
+  }
+
+  document.getElementById('hsMiddleInitialNA')?.addEventListener('change', event => {
+    const middle = document.getElementById('hsMiddleInitial');
+    middle.disabled = event.target.checked;
+    if (event.target.checked) {
+      middle.value = '';
+      middle.setCustomValidity('');
+      middle.setAttribute('aria-invalid', 'false');
+      BookingFormValidation.message(middle, '');
+    }
+  });
+
   function hsNext(from) {
     if (from === 2 && !AddressForms.prepare('guest-service-address')) return;
-    if (from === 1 && !BookingFormValidation.fields([['#hsName', 'text'], ['#hsPhone', 'mobile'], ['#hsEmail', 'email']])) return;
+    if (from === 1 && !BookingFormValidation.fields([['#hsFirstName', 'name'], ['#hsMiddleInitial', 'initial', false], ['#hsLastName', 'name'], ['#hsPhone', 'mobile'], ['#hsEmail', 'email']])) return;
     if (from === 2 && !BookingFormValidation.fields([['#hsClients', 'quantity'], ['#hsVenue', 'address'], ['#hsDate', 'date'], ['#hsTime', 'time']])) return;
     if (from === 1) {
-      const name = document.getElementById('hsName').value.trim();
+      const name = hsFullName();
       const phone = document.getElementById('hsPhone').value.trim();
-      if (!name) { fieldError('hsName', 'Please enter your full name.'); return; }
+      if (!name) { fieldError('hsFirstName', 'Please enter your name.'); return; }
       if (!/^09\d{9}$/.test(phone)) { fieldError('hsPhone', 'Please enter a valid 11-digit mobile number (09XXXXXXXXX).'); return; }
       // Required: guests track and reschedule with reference + email, and get updates there.
       const email = document.getElementById('hsEmail').value.trim();
@@ -1507,7 +1543,7 @@
 
   function hsBuildReview() {
     const email = document.getElementById('hsEmail').value.trim();
-    document.getElementById('rvName').textContent = document.getElementById('hsName').value.trim();
+    document.getElementById('rvName').textContent = hsFullName();
     document.getElementById('rvPhone').textContent = document.getElementById('hsPhone').value.trim();
     document.getElementById('rvEmail').textContent = email || '';
     document.getElementById('rvEmailRow').classList.toggle('hidden', !email);
@@ -1531,9 +1567,9 @@
   function hsSubmit() {
     const formData = new FormData();
     if (!AddressForms.prepare('guest-service-address', formData)) return;
-    if (!BookingFormValidation.fields([['#hsName', 'text'], ['#hsPhone', 'mobile'], ['#hsEmail', 'email'], ['#hsClients', 'quantity'], ['#hsVenue', 'address'], ['#hsDate', 'date'], ['#hsTime', 'time']])) return;
+    if (!BookingFormValidation.fields([['#hsFirstName', 'name'], ['#hsMiddleInitial', 'initial', false], ['#hsLastName', 'name'], ['#hsPhone', 'mobile'], ['#hsEmail', 'email'], ['#hsClients', 'quantity'], ['#hsVenue', 'address'], ['#hsDate', 'date'], ['#hsTime', 'time']])) return;
     if (!hsValidateSchedule()) return;
-    const name = document.getElementById('hsName').value.trim();
+    const name = hsFullName();
     const phone = document.getElementById('hsPhone').value.trim();
     const email = document.getElementById('hsEmail').value.trim();
     const venue = document.getElementById('hsVenue').value.trim();
@@ -1604,7 +1640,9 @@
 
   function hsReset() {
     AddressForms.resetGuest();
-    ['hsName','hsPhone','hsEmail','hsClients','hsDate','hsTime','hsVenue','hsVenueDetails','hsNotes','hsOtherEvent'].forEach(id => {
+    document.getElementById('hsMiddleInitialNA').checked = false;
+    document.getElementById('hsMiddleInitial').disabled = false;
+    ['hsFirstName','hsMiddleInitial','hsLastName','hsPhone','hsEmail','hsClients','hsDate','hsTime','hsVenue','hsVenueDetails','hsNotes','hsOtherEvent'].forEach(id => {
       const el = document.getElementById(id); if (el) el.value = '';
     });
     document.getElementById('hsEventType').value = '';
@@ -1743,21 +1781,21 @@
 
   const BRANCH_PICKER_CARDS = [
     {
-      key: 'daraga', delay: 'sr-d1', badge: 'Flagship', name: 'Daraga Main',
-      address: 'Salon &amp; Make-Up Studio · Regidor St.',
-      blurb: 'The full menu hair, nails, skin, brows, lashes, and event make-up, plus the skin care centre.',
+      key: 'daraga', delay: 'sr-d1', badge: 'Hair & Beauty Studio', name: 'Daraga Main',
+      address: 'Hair, Beauty &amp; Makeup Studio · Regidor St.',
+      blurb: 'Our Daraga Main branch provides a range of salon and beauty services, including hair treatments, nail care, skincare, lash and brow services, and makeup for special occasions.',
       tags: ['Hair', 'Nails', 'Skin', 'Make-up'], hours: '8:00 AM – 8:00 PM, daily'
     },
     {
-      key: 'yashano', delay: 'sr-d2', badge: 'Mall studio', name: 'Yashano Mall',
-      address: "Skin Brows · 2F, beside Angel's Pizza",
-      blurb: 'Facials, peels, and brow work in the middle of Legazpi easy to slot into a mall run.',
+      key: 'yashano', delay: 'sr-d2', badge: 'Skin &amp; Brow Studio', name: 'Yashano Mall',
+      address: "Facial &amp; Brow Services · 2nd Floor, beside Angel's Pizza",
+      blurb: 'Our Yashano Mall branch offers facial treatments, skin peeling services, and eyebrow care, with a focus on skincare and brow grooming.',
       tags: ['Skin', 'Brows', 'Lashes'], hours: '9:30 AM – 8:00 PM, daily'
     },
     {
-      key: 'cabangan', delay: 'sr-d3', badge: 'Lash &amp; brow hub', name: 'Cabangan',
-      address: 'Lash &amp; Brows · Rizal St., Brgy. 18',
-      blurb: 'Lash extensions, lifts, and brow shaping plus cuts, colour, and rebonding.',
+      key: 'cabangan', delay: 'sr-d3', badge: 'Lash, Brow &amp; Hair', name: 'Cabangan',
+      address: 'Lash, Brow &amp; Hair Services · Rizal St., Brgy. 18',
+      blurb: 'Our Cabangan branch provides eyelash extensions, lash lifts, and eyebrow shaping, along with haircuts, hair coloring, and hair rebonding services.',
       tags: ['Lashes', 'Brows', 'Hair'], hours: '8:00 AM – 8:00 PM, daily'
     }
   ];
@@ -1768,22 +1806,22 @@
     const clockIcon = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>`;
     grid.innerHTML = BRANCH_PICKER_CARDS.map(b => `
       <article class="sr ${b.delay} branch-pick bg-sand-100 border border-bronze/25 rounded-3xl p-7 flex flex-col">
-        <div class="flex items-start justify-between gap-3">
-          <span class="text-[10px] font-bold tracking-[0.16em] uppercase text-copper-dark bg-copper/15 rounded-full px-3 py-1.5">${b.badge}</span>
-          <span class="text-[11px] font-bold flex items-center gap-1.5 text-ink/55">
+        <div class="branch-pick-header flex items-center justify-between">
+          <span class="branch-pick-badge font-bold uppercase text-copper-dark bg-copper/15 rounded-full py-1.5">${b.badge}</span>
+          <span class="branch-pick-status font-bold flex items-center text-ink/55">
             <span class="live-dot" data-live="${b.key}"></span>
             <span data-live-label="${b.key}"></span>
           </span>
         </div>
         <h3 class="font-display text-[1.6rem] leading-tight mt-5">${b.name}</h3>
         <p class="text-[13px] text-ink/55 mt-1.5">${b.address}</p>
-        <p class="text-sm text-ink/70 mt-4 leading-relaxed">${b.blurb}</p>
-        <div class="flex flex-wrap gap-2 mt-5">
+        <p class="prose-justify text-sm text-ink/70 mt-4 leading-relaxed">${b.blurb}</p>
+        <div class="branch-pick-tags flex flex-wrap gap-2">
           ${b.tags.map(t => `<span class="text-[11px] font-semibold rounded-full border border-bronze/40 px-3 py-1.5">${t}</span>`).join('')}
         </div>
         <p class="text-[12px] text-ink/50 mt-5 flex items-center gap-2">${clockIcon}${b.hours}</p>
-        <div class="flex gap-2.5 mt-6 pt-6 border-t border-bronze/25">
-          <button onclick="goBranchMenu('${b.key}')" class="flex-1 rounded-full bg-plum text-white text-[13px] font-bold py-3 hover:brightness-110 transition">See menu</button>
+        <div class="branch-pick-actions flex gap-2.5 pt-6 border-t border-bronze/25">
+          <button onclick="goBranchMenu('${b.key}')" class="flex-1 rounded-full bg-plum text-white text-[13px] font-bold py-3 hover:brightness-110 transition">See services</button>
           <button onclick="bookService('', '', '${b.key}')" class="flex-1 rounded-full border border-ink/20 text-[13px] font-bold py-3 hover:border-plum hover:text-plum transition">Book here</button>
         </div>
       </article>
@@ -2055,7 +2093,7 @@
               '<p class="text-ink/60 text-[13px] mt-1">Paid ' + peso(res.amountPaid) + ' of ' + peso(res.quote) + '.' + (res.balancePayUrl ? '' : ' Pay in cash on the event day, or ask us for an online payment link.') + '</p>' +
               (res.balancePayUrl ? '<a href="' + escAttr(res.balancePayUrl) + '" class="mt-3 inline-flex w-full justify-center rounded-full bg-plum hover:bg-plum/85 text-white font-bold py-3 transition">Pay ' + peso(res.balanceDue) + ' now GCash, Maya or card</a>' : '') +
             '</div>'
-          : '<div class="mt-5 rounded-2xl bg-[#DCFCE7] border border-[#86EFAC] p-4 text-sm font-bold text-[#166534]">Fully paid ✓ thank you!</div>')
+          : '<div class="mt-5 rounded-2xl bg-[color:var(--success-soft)] border border-[color:var(--success-soft)] p-4 text-sm font-bold text-[color:var(--success)]">Fully paid ✓ thank you!</div>')
         : '') +
       // Home service online reschedule (backend/public/rescheduleHomeService.php).
       (isHome ? renderHomeServiceReschedule(res) : '');
@@ -2096,7 +2134,7 @@
     const msg = box.querySelector('.hs-resched-msg');
     const date = box.querySelector('.hs-resched-date').value;
     const time = box.querySelector('.hs-resched-time').value;
-    const say = (text, ok) => { msg.textContent = text; msg.className = 'hs-resched-msg mt-2 text-[12px] font-semibold ' + (ok ? 'text-[#15803D]' : 'text-copper-dark'); };
+    const say = (text, ok) => { msg.textContent = text; msg.className = 'hs-resched-msg mt-2 text-[12px] font-semibold ' + (ok ? 'text-[color:var(--success)]' : 'text-copper-dark'); };
     if (!date || !time) { say('Please choose a new date and time.', false); return; }
     btn.disabled = true;
     const body = new FormData();
@@ -2136,35 +2174,80 @@
           box.innerHTML = '<span class="text-copper-dark">No services available for this branch right now.</span>';
           return;
         }
-        // The branch's services listed directly (no category sections), with
-        // a search box and a running "selected" summary.
-        box.className = 'rounded-xl border border-bronze/50 bg-sand-100 p-3';
+        // Compact service cards: most-booked first (this branch's history,
+        // then menu best sellers), Popular / All / category filters (chips on
+        // desktop, a dropdown on mobile), search, and a 4-card preview.
+        const GROUP_ORDER = ['Hair Services', 'Nails & Spa', 'Lashes & Brows', 'Facial & Skin Care', 'Waxing & Laser',
+          'Aesthetic Treatments', 'Massage & Body Care', 'Make-Up Services', 'Promos & Packages'];
+        const groupOf = s => s.group || String(s.category || 'Other').split(' / ')[0];
+        const subCategory = s => String(s.category || '').split(' / ').slice(1).join(' / ') || s.category || '';
+        const services = res.services
+          .map((s, i) => ({ s, i }))
+          .sort((x, y) => (Number(y.s.bookingCount) || 0) - (Number(x.s.bookingCount) || 0)
+            || Number(!!y.s.bestSeller) - Number(!!x.s.bestSeller) || x.i - y.i)
+          .map(x => x.s);
+        const isPopular = s => Number(s.bookingCount) > 0 || !!s.bestSeller;
+        const hasPopular = services.some(isPopular);
+        const present = new Set(services.map(groupOf));
+        const groups = [...GROUP_ORDER.filter(g => present.has(g)), ...[...present].filter(g => !GROUP_ORDER.includes(g))];
+        const filters = [...(hasPopular ? [['popular', 'Popular']] : []), ['all', 'All Services'], ...groups.map(g => [g, g])];
+        box.className = 'bk-services';
         box.innerHTML =
-          '<input type="search" id="bookServiceSearch" placeholder="Search services…" class="w-full mb-2 px-3 py-2 border border-bronze/50 bg-white rounded-lg text-[13px] focus:outline-none focus:border-plum">' +
+          '<input type="search" id="bookServiceSearch" placeholder="Search services…" aria-label="Search services" class="bk-search">' +
+          '<div class="bk-chips bk-cat-desktop" role="group" aria-label="Service categories">' +
+            filters.map(([k, label], i) => '<button type="button" class="bk-chip' + (i ? '' : ' is-on') + '" data-cat="' + escAttr(k) + '" aria-pressed="' + (i ? 'false' : 'true') + '">' + escAttr(label) + '</button>').join('') +
+          '</div>' +
+          '<select id="bookServiceCat" class="bk-search bk-cat-mobile" aria-label="Service categories">' +
+            filters.map(([k, label]) => '<option value="' + escAttr(k) + '">' + escAttr(label) + '</option>').join('') +
+          '</select>' +
           '<p id="bookServiceSummary" class="text-xs text-ink/60 mb-2">Select one or more services. You can pick a different stylist for each.</p>' +
-          '<div class="max-h-64 overflow-y-auto pr-1">' +
-          res.services.map(s =>
-            '<label class="book-service-row flex items-center justify-between gap-3 py-1.5 cursor-pointer border-t border-bronze/15 first:border-t-0" data-search="' + escAttr(s.name.toLowerCase()) + '">' +
-              '<span class="flex items-center gap-2 text-ink text-sm">' +
-                '<input type="checkbox" class="book-service-check accent-plum" value="' + s.id + '" data-name="' + escAttr(s.name) + '" data-price="' + Number(s.price) + '" data-minutes="' + Number(s.durationMinutes || 30) + '"> ' +
-                escAttr(s.name) + ' <small class="text-ink/45">Estimated Duration: ' + escAttr(ServiceDuration.format(s.durationMinutes)) + '</small>' +
-              '</span>' +
-              '<span class="text-ink/60 whitespace-nowrap text-sm">₱' + Number(s.price).toFixed(0) + '</span>' +
+          '<div class="bk-service-grid">' +
+          services.map(s =>
+            '<label class="book-service-row bk-service-card" data-search="' + escAttr((s.name + ' ' + (s.category || '') + ' ' + groupOf(s)).toLowerCase()) + '" data-cat="' + escAttr(groupOf(s)) + '" data-popular="' + (isPopular(s) ? '1' : '') + '">' +
+              '<input type="checkbox" class="book-service-check bk-visually-hidden" value="' + s.id + '" data-name="' + escAttr(s.name) + '" data-price="' + Number(s.price) + '" data-minutes="' + Number(s.durationMinutes || 30) + '">' +
+              '<span class="bk-service-tick" aria-hidden="true"></span>' +
+              '<span class="bk-service-text"><span class="bk-service-name">' + escAttr(s.name) + '</span>' +
+              '<span class="bk-service-meta">' + escAttr(ServiceDuration.format(s.durationMinutes)) + (subCategory(s) ? ' · ' + escAttr(subCategory(s)) : '') + '</span></span>' +
+              '<span class="bk-service-price">₱' + Number(s.price).toLocaleString('en-PH') + '</span>' +
             '</label>').join('') +
+          '</div>' +
           '<p id="bookServiceNoMatch" class="hidden py-3 text-center text-[12px] text-ink/50">No services match your search.</p>' +
-          '</div>';
+          '<button type="button" id="bookServiceMore" class="bk-more hidden"></button>';
 
+        const SERVICE_PREVIEW = 4;
+        let activeCat = filters[0][0];
+        let showAll = false;
         const search = box.querySelector('#bookServiceSearch');
-        search.addEventListener('input', () => {
+        const moreBtn = box.querySelector('#bookServiceMore');
+        const catSelect = box.querySelector('#bookServiceCat');
+        const inFilter = row => activeCat === 'all' || (activeCat === 'popular' ? row.dataset.popular === '1' : row.dataset.cat === activeCat);
+        const applyServiceFilter = () => {
           const q = search.value.trim().toLowerCase();
-          let shown = 0;
-          box.querySelectorAll('.book-service-row').forEach(row => {
-            const match = !q || row.dataset.search.includes(q);
-            row.classList.toggle('hidden', !match);
-            if (match) shown++;
+          // A search looks across every service, not just the active category.
+          const matches = Array.from(box.querySelectorAll('.book-service-row')).filter(row => {
+            const ok = q ? row.dataset.search.includes(q) : inFilter(row);
+            row.classList.toggle('hidden', !ok);
+            return ok;
           });
-          box.querySelector('#bookServiceNoMatch').classList.toggle('hidden', shown > 0);
-        });
+          // Searching shows every match; otherwise keep the first few (selected ones always stay visible).
+          const limit = showAll || q ? Infinity : SERVICE_PREVIEW;
+          matches.forEach((row, i) => { if (i >= limit && !row.querySelector('input').checked) row.classList.add('hidden'); });
+          const hiddenCount = matches.filter(row => row.classList.contains('hidden')).length;
+          moreBtn.classList.toggle('hidden', q !== '' || (!hiddenCount && !(showAll && matches.length > SERVICE_PREVIEW)));
+          moreBtn.textContent = showAll ? 'Show Less' : 'View All Services (' + matches.length + ')';
+          box.querySelector('#bookServiceNoMatch').classList.toggle('hidden', matches.length > 0);
+        };
+        const setCategory = cat => {
+          activeCat = cat;
+          showAll = false;
+          catSelect.value = cat;
+          box.querySelectorAll('.bk-chip').forEach(c => { const on = c.dataset.cat === cat; c.classList.toggle('is-on', on); c.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+          applyServiceFilter();
+        };
+        search.addEventListener('input', applyServiceFilter);
+        moreBtn.addEventListener('click', () => { showAll = !showAll; applyServiceFilter(); });
+        catSelect.addEventListener('change', () => setCategory(catSelect.value));
+        box.querySelectorAll('.bk-chip').forEach(chip => chip.addEventListener('click', () => setCategory(chip.dataset.cat)));
         let preselectedService = false;
         const menuPrice = Number(String(currentBooking.price || '').replace(/[^0-9.]/g, ''));
         box.querySelectorAll('.book-service-check').forEach(input => {
@@ -2172,9 +2255,11 @@
             && (!menuPrice || Number(input.dataset.price) === menuPrice);
           if (input.checked) preselectedService = true;
         });
+        applyServiceFilter();
         updateServiceSummary();
         updateDepositRequiredDisplay();
         refreshSlotGridIfReady();
+        document.dispatchEvent(new CustomEvent('booking:services-loaded'));
       })
       .catch(() => { if (requestId === branchServicesRequestId) box.innerHTML = '<span class="text-copper-dark">Couldn\'t load services please try again.</span>'; });
   }
@@ -2261,7 +2346,7 @@
     const requestId = ++staffListRequestId;
     const params = new URLSearchParams({ branch: branchId, date, time });
     serviceIds.forEach(id => params.append('services[]', id));
-    fetch('backend/public/getAvailableStaff.php?' + params)
+    fetch('backend/public/getAvailableStaff.php?' + params, { cache: 'no-store' })
       .then(r => r.json())
       .then(res => {
         if (requestId !== staffListRequestId) return; // a newer selection superseded this response
@@ -2273,7 +2358,7 @@
         }
         // Anyone busy for any of the services can be waitlisted.
         const busyById = {};
-        services.forEach(svc => svc.staff.filter(s => !s.available).forEach(s => { busyById[s.id] = s; }));
+        services.forEach(svc => svc.staff.filter(s => !s.available && s.busyUntil).forEach(s => { busyById[s.id] = s; }));
         renderWaitlistOption(Object.values(busyById), { branchId, date, time });
 
         // One stylist per service, back-to-back. Every qualified stylist is
@@ -2288,19 +2373,20 @@
             (svc.staff.length
               ? '<div class="grid grid-cols-2 sm:grid-cols-3 gap-2">' + svc.staff.map(s =>
                   '<button type="button" data-staff="' + escAttr(s.id) + '" data-name="' + escAttr(s.name) + '"' + (s.available ? '' : ' disabled') +
-                  ' title="' + (s.available ? 'Free for this service' : escAttr(s.name) + ' is with another client until ' + escAttr(s.busyUntil)) + '"' +
-                  ' class="staff-btn rounded-lg border text-[12px] py-2 px-2 text-center transition ' +
-                    (s.available ? 'border-bronze/40 text-ink bg-white hover:border-plum hover:text-plum' : 'border-[#FDA4AF] bg-[#FFF1F2] text-[#9F1239]/80 cursor-not-allowed') + '">' +
+                  ' title="' + (s.available ? 'Free for this service' : s.busyUntil ? escAttr(s.name) + ' is with another client until ' + escAttr(s.busyUntil) : escAttr(s.name) + (s.currentShift === 'On Break' ? ' is on a break right now' : ' is off duty right now')) + '"' +
+                  ' aria-pressed="false" class="staff-btn bk-staff-card ' + (s.available ? 'is-available' : 'is-busy') + '">' +
+                    '<span class="bk-staff-check" aria-hidden="true">✓</span>' +
+                    '<span class="bk-staff-avatar" aria-hidden="true">' + escAttr(getStaffInitials(s.name)) + '</span>' +
                     '<span class="block font-semibold">' + escAttr(s.name) + '</span>' +
-                    (s.role ? '<span class="block text-[10px] opacity-60">' + escAttr(s.role) + '</span>' : '') +
-                    '<span class="mt-1 inline-flex items-center gap-1 text-[10px] font-bold ' + (s.available ? 'text-[#15803D]' : 'text-[#9F1239]') + '">' +
-                      '<span class="w-1.5 h-1.5 rounded-full ' + (s.available ? 'bg-[#16A34A]' : 'bg-[#E11D48]') + '"></span>' +
-                      (s.available ? 'Available' : 'Busy until ' + escAttr(s.busyUntil)) +
+                    '<span class="block text-[11px] opacity-70">' + escAttr(s.role || 'Stylist') + '</span>' +
+                    '<span class="mt-1 inline-flex items-center gap-1 text-[10px] font-bold ' + (s.available ? 'text-[color:var(--success)]' : 'text-[color:var(--danger)]') + '">' +
+                      '<span class="w-1.5 h-1.5 rounded-full ' + (s.available ? 'bg-[color:var(--success)]' : 'bg-[color:var(--danger)]') + '"></span>' +
+                      (s.available ? 'Available' : s.busyUntil ? 'Busy until ' + escAttr(s.busyUntil) : (s.currentShift === 'On Break' ? 'On break' : 'Off duty')) +
                     '</span>' +
                   '</button>').join('') + '</div>'
               : '<p class="text-[12px] text-copper-dark">No stylist at this branch offers this service.</p>') +
             (svc.staff.length && !svc.staff.some(s => s.available)
-              ? '<p class="mt-1.5 text-[11px] text-copper-dark">Everyone who does this service is busy at ' + escAttr(svc.start) + ' pick another time, or join a waitlist below.</p>' : '') +
+              ? '<p class="mt-1.5 text-[11px] text-copper-dark">No stylist who does this service is available at ' + escAttr(svc.start) + ' (busy, on a break or off duty). Pick another time' + (svc.staff.some(s => s.busyUntil) ? ', or join a waitlist below.' : '.') + '</p>' : '') +
           '</div>').join('') +
           (services.length > 1 ? '<p class="text-[11px] text-ink/55">Your services are done one after another, starting ' + escAttr(services[0].start) + '. The same stylist can do more than one if they\'re free.</p>' : '');
 
@@ -2319,6 +2405,7 @@
               selectedStaffId = complete ? picks[0].id : '';
               selectedStaffName = complete ? [...new Set(picks.map(p => p.name))].join(', ') : '';
               document.getElementById('bookDepositGate').classList.toggle('hidden', !complete);
+              document.dispatchEvent(new CustomEvent('booking:staff-changed'));
             });
           });
         });
@@ -2363,7 +2450,7 @@
     const requestId = ++slotGridRequestId;
     const serviceIds = Array.from(document.querySelectorAll('.book-service-check:checked')).map(c => c.value);
     const serviceQuery = serviceIds.map(id => '&services[]=' + encodeURIComponent(id)).join('');
-    fetch('backend/public/getAvailableSlots.php?branch=' + encodeURIComponent(branchId) + '&date=' + encodeURIComponent(date) + serviceQuery)
+    fetch('backend/public/getAvailableSlots.php?branch=' + encodeURIComponent(branchId) + '&date=' + encodeURIComponent(date) + serviceQuery, { cache: 'no-store' })
       .then(r => r.json())
       .then(res => {
         if (requestId !== slotGridRequestId) return; // a newer branch/date selection superseded this response
@@ -2382,8 +2469,11 @@
               '">' + s.time + '</button>';
           }).join('') +
         '</div>';
-        box.querySelectorAll('.slot-btn:not([disabled])').forEach(btn => {
+        // Every button is wired (disabled ones can't be clicked), so live
+        // sync can re-open a freed slot just by enabling it.
+        box.querySelectorAll('.slot-btn').forEach(btn => {
           btn.addEventListener('click', () => {
+            if (btn.disabled) return;
             box.querySelectorAll('.slot-btn').forEach(b => { b.classList.remove('is-selected'); b.setAttribute('aria-pressed', 'false'); });
             btn.classList.add('is-selected');
             btn.setAttribute('aria-pressed', 'true');
@@ -2395,6 +2485,84 @@
       })
       .catch(() => { if (requestId === slotGridRequestId) renderSlotLoadError(box); });
   }
+
+  // --- Live sync (function/shared/live-sync.js) ---
+  // Re-checks an open booking form in place when bookings or staff
+  // attendance change anywhere: taken times are disabled, freed ones
+  // re-enabled, and a guest whose chosen time or stylist was just taken is
+  // told so -- without wiping what they've already filled in.
+  const SLOT_OPEN_CLASSES = ['border-bronze/40', 'text-ink', 'hover:border-plum', 'hover:text-plum'];
+  const SLOT_TAKEN_CLASSES = ['border-bronze/20', 'text-ink/25', 'line-through', 'cursor-not-allowed'];
+  function liveRecheckBooking() {
+    const branchId = document.getElementById('bookBranchSelect')?.value;
+    const date = document.getElementById('bookDate')?.value;
+    const box = document.getElementById('bookSlotGrid');
+    if (!branchId || !date || !box || !box.querySelector('.slot-btn')) return;
+    const serviceIds = Array.from(document.querySelectorAll('.book-service-check:checked')).map(c => c.value);
+    const serviceQuery = serviceIds.map(id => '&services[]=' + encodeURIComponent(id)).join('');
+    const gridRequest = slotGridRequestId;
+    fetch('backend/public/getAvailableSlots.php?branch=' + encodeURIComponent(branchId) + '&date=' + encodeURIComponent(date) + serviceQuery, { cache: 'no-store' })
+      .then(r => r.json())
+      .then(res => {
+        if (gridRequest !== slotGridRequestId || !res.success || !Array.isArray(res.slots)) return;
+        const open = {};
+        res.slots.forEach(s => { open[s.time] = s.available === true; });
+        let lostSelection = false;
+        box.querySelectorAll('.slot-btn').forEach(btn => {
+          const isOpen = open[btn.dataset.slot] === true;
+          if (isOpen === !btn.disabled) return;
+          btn.disabled = !isOpen;
+          btn.classList.remove(...(isOpen ? SLOT_TAKEN_CLASSES : SLOT_OPEN_CLASSES));
+          btn.classList.add(...(isOpen ? SLOT_OPEN_CLASSES : SLOT_TAKEN_CLASSES));
+          if (!isOpen && btn.dataset.slot === selectedSlotLabel) {
+            lostSelection = true;
+            btn.classList.remove('is-selected');
+            btn.setAttribute('aria-pressed', 'false');
+          }
+        });
+        if (lostSelection) {
+          selectedSlotLabel = '';
+          updateServiceSummary();
+          resetStaffList();
+          showToast('That time was just booked by someone else. Please pick another time.');
+          return;
+        }
+        if (!selectedSlotLabel || !document.querySelector('#bookStaffList .staff-btn')) return;
+        const params = new URLSearchParams({ branch: branchId, date, time: selectedSlotLabel });
+        serviceIds.forEach(id => params.append('services[]', id));
+        const staffRequest = staffListRequestId;
+        fetch('backend/public/getAvailableStaff.php?' + params, { cache: 'no-store' })
+          .then(r => r.json())
+          .then(staffRes => {
+            if (staffRequest !== staffListRequestId || !staffRes.success) return;
+            const freeByService = {};
+            (staffRes.services || []).forEach(svc => { freeByService[svc.id] = svc.staff.filter(s => s.available).map(s => String(s.id)); });
+            const picks = Object.entries(selectedServiceStaff);
+            const lostPick = picks.some(([svc, s]) => !(freeByService[svc] || []).includes(String(s.id)));
+            const shown = Array.from(document.querySelectorAll('#bookStaffList .book-staff-service')).map(group =>
+              Array.from(group.querySelectorAll('.staff-btn:not([disabled])')).map(b => b.dataset.staff).sort().join(','));
+            const fresh = (staffRes.services || []).map(svc => (freeByService[svc.id] || []).slice().sort().join(','));
+            if (lostPick) {
+              showToast('A stylist you picked just became unavailable. Please choose again.');
+              refreshStaffListIfReady();
+            } else if (!picks.length && shown.join('|') !== fresh.join('|')) {
+              refreshStaffListIfReady();
+            }
+          })
+          .catch(() => {});
+      })
+      .catch(() => {});
+  }
+  window.addEventListener('DOMContentLoaded', () => {
+    if (!window.LiveSync) return;
+    window.LiveSync.start({
+      branch: 'all',
+      onChange: () => {
+        if (document.getElementById('stylists-tab')?.classList.contains('active-page')) renderStaff(true);
+        liveRecheckBooking();
+      }
+    });
+  });
 
   function refreshSlotGridIfReady() {
     const branchId = document.getElementById('bookBranchSelect').value;
@@ -2496,8 +2664,33 @@
     });
   });
 
+  // Guest name is entered as first / middle (or N/A) / last; #bookName holds
+  // the composed full name for the summary, waitlist and other readers.
+  const guestNameParts = () => {
+    const na = document.getElementById('bookMiddleNameNA')?.checked;
+    return {
+      first: document.getElementById('bookFirstName')?.value.trim() || '',
+      middle: na ? '' : (document.getElementById('bookMiddleName')?.value.trim() || ''),
+      last: document.getElementById('bookLastName')?.value.trim() || '',
+      middleNA: !!na,
+    };
+  };
+  const syncGuestFullName = () => {
+    const p = guestNameParts();
+    const full = document.getElementById('bookName');
+    if (full) full.value = [p.first, p.middle, p.last].filter(Boolean).join(' ');
+  };
+  ['bookFirstName', 'bookMiddleName', 'bookLastName'].forEach(id => document.getElementById(id)?.addEventListener('input', syncGuestFullName));
+  document.getElementById('bookMiddleNameNA')?.addEventListener('change', e => {
+    const middle = document.getElementById('bookMiddleName');
+    middle.disabled = e.target.checked;
+    if (e.target.checked) { middle.value = ''; BookingFormValidation.message(middle, ''); }
+    syncGuestFullName();
+  });
+
   document.getElementById('bookingModalForm')?.addEventListener('submit', e => {
-    if (!BookingFormValidation.fields([['#bookName', 'name'], ['#bookPhone', 'mobile'], ['#bookEmail', 'email', false], ['#bookDate', 'date']])) { e.preventDefault(); return; }
+    syncGuestFullName();
+    if (!BookingFormValidation.fields([['#bookFirstName', 'name'], ['#bookMiddleName', 'name', false], ['#bookLastName', 'name'], ['#bookPhone', 'mobile'], ['#bookEmail', 'email', false], ['#bookDate', 'date']])) { e.preventDefault(); return; }
     e.preventDefault();
 
     const branchId = document.getElementById('bookBranchSelect').value;
@@ -2520,13 +2713,16 @@
     const payMethod = quote.reservationRequirement === 'No Online Reservation' ? 'Cash' : document.querySelector('input[name="bookDepositMethod"]:checked')?.value;
     if (!payMethod) { fieldError('bookDepositMethod', 'Please choose a payment method.'); return; }
     bookDepositInfo = { amount: quote.amountDue, method: payMethod, reference: '' };
-    if (!name) { fieldError('bookName', 'Please enter your full name.'); return; }
+    const nameParts = guestNameParts();
+    if (!nameParts.first) { fieldError('bookFirstName', 'Please enter your first name.'); return; }
+    if (!nameParts.last) { fieldError('bookLastName', 'Please enter your last name.'); return; }
     if (!/^09\d{9}$/.test(phone)) { fieldError('bookPhone', 'Please enter a valid 11-digit mobile number (09XXXXXXXXX).'); return; }
     if (email && !/^\S+@\S+\.\S+$/.test(email)) { fieldError('bookEmail', 'Please enter a valid email address, or leave it blank.'); return; }
     if (!document.getElementById('bookAgreeTerms')?.checked) { fieldError(document.getElementById('bookAgreeTerms').closest('label'), 'Please agree to the Terms & Conditions.'); return; }
 
     pendingBooking = {
       branchId, date, time: selectedSlotLabel, name, phone, email,
+      firstName: nameParts.first, middleName: nameParts.middle, lastName: nameParts.last, middleNA: nameParts.middleNA,
       staffId: selectedStaffId, staffName: selectedStaffName,
       serviceStaff: Object.fromEntries(Object.entries(selectedServiceStaff).map(([svc, s]) => [svc, s.id])),
       depositAmount: bookDepositInfo.amount, depositMethod: bookDepositInfo.method, depositReference: bookDepositInfo.reference,
@@ -2731,6 +2927,10 @@
     BookingFormValidation.message(submitBtn, '');
     const formData = new FormData();
     formData.append('fullname', booking.name);
+    formData.append('first_name', booking.firstName || '');
+    formData.append('middle_name', booking.middleName || '');
+    formData.append('last_name', booking.lastName || '');
+    if (booking.middleNA) formData.append('middle_name_na', '1');
     formData.append('contact', booking.phone);
     formData.append('branch', booking.branchId);
     formData.append('appointment_date', booking.date);
@@ -2762,7 +2962,7 @@
             document.getElementById('bookingOtpPanel').classList.add('hidden');
             document.getElementById('bookingReviewPanel').classList.add('hidden');
             document.getElementById('bookingFormPanel').classList.remove('hidden');
-            const fields = {fullname:'bookName', contact:'bookPhone', email:'bookEmail', appointment_date:'bookDate', branch:'bookBranchSelect'};
+            const fields = {fullname:'bookFirstName', first_name:'bookFirstName', middle_name:'bookMiddleName', last_name:'bookLastName', contact:'bookPhone', email:'bookEmail', appointment_date:'bookDate', branch:'bookBranchSelect'};
             for (const [field, error] of Object.entries(res.errors || {})) BookingFormValidation.message(document.getElementById(fields[field] || 'bookSubmitBtn'), error);
             if (res.conflict) BookingFormValidation.message(document.getElementById('bookDate'), res.message);
           }

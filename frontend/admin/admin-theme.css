@@ -4,13 +4,13 @@
 :root {
   --admin-deep-teal: var(--brand-teal);
   --admin-gold: var(--brand-gold);
-  --admin-gold-dark: #B8933A;
+  --admin-gold-dark: var(--accent);
   --admin-gold-ink: var(--brand-gold-ink);
   --admin-dark-teal: var(--brand-teal-dark);
   --admin-cream: var(--brand-cream);
   --admin-panel: var(--brand-panel);
   --admin-warm-surface: var(--brand-sand);
-  --admin-bronze: #D9C9B4;
+  --admin-bronze: var(--border);
   --admin-sand: var(--brand-sand);
   --admin-charcoal: var(--brand-ink);
 }
@@ -27,7 +27,7 @@ html {
 body {
   background:
     radial-gradient(circle at 92% 4%, rgb(224 184 76 / 0.13), transparent 25rem),
-    radial-gradient(circle at 8% 96%, rgb(0 109 111 / 0.08), transparent 30rem),
+    radial-gradient(circle at 8% 96%, rgb(22 96 75 / 0.08), transparent 30rem),
     var(--admin-cream) !important;
   color: var(--admin-charcoal);
 }
@@ -69,9 +69,9 @@ textarea {
 /* Sidebar: the one strong brand surface, like the landing page's teal bands. */
 aside {
   color: var(--admin-cream);
-  background: linear-gradient(180deg, var(--admin-dark-teal), #05383B) !important;
-  border-color: rgb(232 220 200 / 0.2) !important;
-  box-shadow: 10px 0 34px -28px rgb(6 70 74 / 0.9);
+  background: linear-gradient(180deg, var(--admin-dark-teal), var(--brand-deep)) !important;
+  border-color: rgb(226 231 227 / 0.2) !important;
+  box-shadow: 10px 0 34px -28px rgb(14 59 47 / 0.9);
 }
 
 aside h1,
@@ -89,25 +89,25 @@ aside .text-slate-300 {
 
 aside .text-slate-400,
 aside .text-slate-500 {
-  color: rgb(255 248 238 / 0.68) !important;
+  color: rgb(246 248 247 / 0.68) !important;
 }
 
 aside .border-slate-800,
 aside .border-slate-800\/80 {
-  border-color: rgb(232 220 200 / 0.18) !important;
+  border-color: rgb(226 231 227 / 0.18) !important;
 }
 
 aside .bg-slate-950 {
-  background-color: rgb(34 34 34 / 0.2) !important;
+  background-color: rgb(24 38 31 / 0.2) !important;
 }
 
 aside a[data-nav-page] {
-  color: rgb(255 248 238 / 0.72) !important;
+  color: rgb(246 248 247 / 0.72) !important;
 }
 
 aside a[data-nav-page]:hover {
   color: var(--admin-cream) !important;
-  background: rgb(255 248 238 / 0.08) !important;
+  background: rgb(246 248 247 / 0.08) !important;
 }
 
 aside a[data-nav-page].admin-nav-active,
@@ -136,9 +136,9 @@ main > header {
   position: relative;
   z-index: 100;
   overflow: visible;
-  background: rgb(255 253 249 / 0.94) !important;
-  border-color: rgb(217 201 180 / 0.55) !important;
-  box-shadow: 0 6px 24px -18px rgb(34 34 34 / 0.28);
+  background: rgb(255 255 255 / 0.94) !important;
+  border-color: rgb(226 231 227 / 0.55) !important;
+  box-shadow: 0 6px 24px -18px rgb(24 38 31 / 0.28);
   backdrop-filter: blur(14px);
 }
 
@@ -192,7 +192,7 @@ main [class*="from-slate-900"] {
 
 main .shadow-xl,
 main .shadow-2xl {
-  box-shadow: 0 18px 44px -34px rgb(0 109 111 / 0.42);
+  box-shadow: 0 18px 44px -34px rgb(22 96 75 / 0.42);
 }
 
 main input:not([type="checkbox"]):not([type="radio"]),
@@ -200,28 +200,28 @@ main select,
 main textarea {
   color: var(--admin-charcoal) !important;
   background-color: var(--admin-cream) !important;
-  border-color: rgb(217 201 180 / 0.75) !important;
+  border-color: rgb(226 231 227 / 0.75) !important;
   border-radius: 12px;
   color-scheme: light;
 }
 
 main input::placeholder,
 main textarea::placeholder {
-  color: rgb(34 34 34 / 0.42);
+  color: rgb(24 38 31 / 0.42);
 }
 
 main input:not([type="checkbox"]):not([type="radio"]):focus,
 main select:focus,
 main textarea:focus {
   border-color: var(--admin-deep-teal) !important;
-  box-shadow: 0 0 0 3px rgb(0 109 111 / 0.13) !important;
+  box-shadow: 0 0 0 3px rgb(22 96 75 / 0.13) !important;
 }
 
 main button[class*="bg-luxury-600"],
 main a[class*="bg-luxury-600"] {
   color: var(--admin-panel) !important;
   border-radius: 999px;
-  box-shadow: 0 12px 24px -18px rgb(0 109 111 / 0.78);
+  box-shadow: 0 12px 24px -18px rgb(22 96 75 / 0.78);
 }
 
 main button[class*="bg-luxury-600"]:hover,
@@ -238,15 +238,15 @@ main table tbody tr {
 }
 
 main table tbody tr:hover {
-  background-color: rgb(243 233 214 / 0.72) !important;
+  background-color: rgb(226 231 227 / 0.72) !important;
 }
 
 main [class*="border-luxury-900"] {
-  border-color: rgb(0 109 111 / 0.16) !important;
+  border-color: rgb(22 96 75 / 0.16) !important;
 }
 
 main [class*="hover:border-luxury-500"]:hover {
-  border-color: rgb(0 109 111 / 0.55) !important;
+  border-color: rgb(22 96 75 / 0.55) !important;
 }
 
 .admin-badge {
@@ -262,33 +262,33 @@ main [class*="hover:border-luxury-500"]:hover {
 }
 
 .admin-badge--pending {
-  color: #7A5200 !important;
-  background: #FFF7E2 !important;
-  border-color: #ECD184 !important;
+  color: var(--accent-ink) !important;
+  background: var(--accent-soft) !important;
+  border-color: var(--accent) !important;
 }
 
 .admin-badge--confirmed {
   color: var(--admin-dark-teal) !important;
-  background: #E5F2F0 !important;
-  border-color: #B9D8D5 !important;
+  background: var(--brand-soft) !important;
+  border-color: var(--border-strong) !important;
 }
 
 .admin-badge--info {
-  color: #06464A !important;
-  background: #E5F2F0 !important;
-  border-color: #A3C9C6 !important;
+  color: var(--brand-dark) !important;
+  background: var(--brand-soft) !important;
+  border-color: var(--border-strong) !important;
 }
 
 .admin-badge--success {
-  color: #17603A !important;
-  background: #EDF8F1 !important;
-  border-color: #B7DFC6 !important;
+  color: var(--success) !important;
+  background: var(--success-soft) !important;
+  border-color: var(--success-soft) !important;
 }
 
 .admin-badge--danger {
-  color: #9F2D2D !important;
-  background: #FFF0F0 !important;
-  border-color: #F0C5C5 !important;
+  color: var(--danger) !important;
+  background: var(--danger-soft) !important;
+  border-color: var(--danger-soft) !important;
 }
 
 .admin-badge--neutral {
@@ -304,100 +304,100 @@ main [class*="hover:border-luxury-500"]:hover {
 }
 
 .admin-tier--gold {
-  color: #725000 !important;
-  background: #FAF2DC !important;
+  color: var(--accent-ink) !important;
+  background: var(--accent-soft) !important;
   border-color: var(--admin-gold) !important;
 }
 
 .admin-tier--silver {
-  color: #4D5555 !important;
-  background: #F1F3F2 !important;
-  border-color: #C9D0CE !important;
+  color: var(--text-body-color) !important;
+  background: var(--brand-softer) !important;
+  border-color: var(--border-strong) !important;
 }
 
 .admin-tier--bronze {
-  color: #824A25 !important;
-  background: #F8EEE5 !important;
-  border-color: #E2C2A8 !important;
+  color: var(--warn) !important;
+  background: var(--bg) !important;
+  border-color: var(--border-strong) !important;
 }
 
 /* Page-local Alpine states still use these Tailwind utilities. Re-surface
    them as light semantic chips so no dark-theme islands remain. */
 main .bg-amber-950,
 main .bg-amber-950\/40 {
-  background-color: #FFF7E2 !important;
+  background-color: var(--accent-soft) !important;
 }
 
 main .text-amber-300,
 main .text-amber-400,
 main .text-amber-400\/80,
 main .text-amber-500 {
-  color: #7A5200 !important;
+  color: var(--accent-ink) !important;
 }
 
 main .border-amber-900\/60 {
-  border-color: #ECD184 !important;
+  border-color: var(--accent) !important;
 }
 
 main .bg-emerald-950,
 main .bg-emerald-950\/20,
 main .bg-emerald-950\/40 {
-  background-color: #EDF8F1 !important;
+  background-color: var(--success-soft) !important;
 }
 
 main .text-emerald-300,
 main .text-emerald-400 {
-  color: #17603A !important;
+  color: var(--success) !important;
 }
 
 main .border-emerald-800,
 main .border-emerald-900\/40,
 main .border-emerald-900\/60,
 main .border-emerald-950\/40 {
-  border-color: #B7DFC6 !important;
+  border-color: var(--success-soft) !important;
 }
 
 main .bg-emerald-950.hover\:bg-emerald-900:hover {
-  background-color: #D8F0E1 !important;
+  background-color: var(--border) !important;
 }
 
 main .bg-rose-950,
 main .bg-rose-950\/40 {
-  background-color: #FFF0F0 !important;
+  background-color: var(--danger-soft) !important;
 }
 
 main .text-rose-300,
 main .text-rose-400,
 main .text-rose-500 {
-  color: #9F2D2D !important;
+  color: var(--danger) !important;
 }
 
 main .border-rose-900\/40,
 main .border-rose-950\/40 {
-  border-color: #F0C5C5 !important;
+  border-color: var(--danger-soft) !important;
 }
 
 main .bg-indigo-950,
 main .bg-indigo-950\/80 {
-  background-color: #E5F2F0 !important;
+  background-color: var(--brand-soft) !important;
 }
 
 main .text-indigo-300 {
-  color: #06464A !important;
+  color: var(--brand-dark) !important;
 }
 
 main .border-indigo-800,
 main .border-indigo-900\/60 {
-  border-color: #A3C9C6 !important;
+  border-color: var(--border-strong) !important;
 }
 
 main .bg-indigo-950\/80.hover\:bg-indigo-900:hover {
-  background-color: #E5F2F0 !important;
+  background-color: var(--brand-soft) !important;
 }
 
 @media (max-width: 767px) {
   aside {
-    box-shadow: 0 10px 30px -24px rgb(6 70 74 / 0.9);
+    box-shadow: 0 10px 30px -24px rgb(14 59 47 / 0.9);
   }
 }
 
@@ -471,9 +471,9 @@ body > .fixed.inset-0 { overflow-y: auto; }
 body > .fixed.inset-0 > div { max-height: 90dvh; overflow-y: auto; }
 /* Strengthen neutral secondary text on light content surfaces. */
 main :is(.text-gray-400, .text-gray-500, .text-slate-400, .text-slate-500):not(i):not(svg):not(#mobile-hero-card *) {
-  color: #475569 !important;
+  color: var(--muted) !important;
 }
-main :is(input, textarea)::placeholder { color: #475569; opacity: 1; }
+main :is(input, textarea)::placeholder { color: var(--muted); opacity: 1; }
 @media (max-width: 639px) {
   main > header { padding-inline: 1rem; }
   main > header > div { flex-wrap: wrap; min-width: 0; }
@@ -520,9 +520,9 @@ body.admin-bookings input::placeholder { color:var(--brand-muted) !important; }
 .booking-button:hover:not(:disabled) { background:var(--admin-sand); border-color:var(--admin-gold-ink); }
 .booking-button:focus-visible { outline:2px solid var(--admin-gold-ink); outline-offset:3px; }
 .booking-button:disabled { opacity:.5; cursor:not-allowed; }
-.booking-button-primary { background:#006D6F; border-color:#168d90; color:white; }
+.booking-button-primary { background:var(--brand); border-color:var(--brand); color:white; }
 .booking-table-scroll { width:100%; overflow-x:auto; border:1px solid var(--booking-border); border-radius:12px; }
-.booking-table { width:100%; min-width:1140px; border-collapse:collapse; background:var(--admin-panel); text-align:left; }
+.booking-table { width:100%; min-width:1140px; border-collapse:collapse; background:var(--admin-panel); text-align: justify; }
 body.admin-bookings .booking-table thead { background:var(--admin-warm-surface) !important; }
 .booking-table :is(th,td) { padding:.75rem .7rem; vertical-align:middle; border-bottom:1px solid var(--admin-sand); }
 body.admin-bookings .booking-table th { color:var(--brand-muted) !important; font-size: 1rem; letter-spacing:.025em; font-weight:700; white-space:nowrap; }
@@ -534,13 +534,13 @@ body.admin-bookings .booking-table tbody tr:hover { background:var(--admin-warm-
 .booking-payment-status { display:inline-block; max-width:125px; line-height:1.4; font-size: 1rem; color:var(--brand-muted); }
 .booking-table .admin-badge { font-size: .875rem !important; }
 .booking-pagination { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:.4rem; padding-top:.5rem; }
-.booking-pagination [aria-current=page] { background:#006D6F; border-color:#41b6b8; color:white; }
+.booking-pagination [aria-current=page] { background:var(--brand); border-color:var(--brand); color:white; }
 .booking-empty { padding:2.5rem 1rem; text-align:center; color:var(--brand-muted); border:1px dashed var(--admin-bronze); border-radius:12px; }
 .booking-empty :is(p,button) { margin-top:.75rem; }
-.booking-error { color:#9F2D2D; background:#FFF0F0; padding:1rem; border-radius:10px; }
+.booking-error { color:var(--danger); background:var(--danger-soft); padding:1rem; border-radius:10px; }
 .booking-mobile-list { display:none; }
 .booking-details-dialog { width:min(48rem,calc(100% - 2rem)); max-height:90dvh; overflow-y:auto; border:1px solid var(--admin-bronze); border-radius:16px; padding:1.25rem; background:var(--admin-panel); color:var(--admin-charcoal); }
-.booking-details-dialog::backdrop { background:rgb(2 6 23 / .8); backdrop-filter:blur(3px); }
+.booking-details-dialog::backdrop { background:rgb(24 38 31 / .8); backdrop-filter:blur(3px); }
 .booking-dialog-header { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1rem; }
 .booking-dialog-header h2 { font-size:1.25rem; font-weight:700; }
 .booking-detail-metadata { color:var(--brand-muted); font-size: 1rem; overflow-wrap:anywhere; }
@@ -582,18 +582,18 @@ body.admin-bookings > .fixed.inset-0 button.text-slate-400:hover { color: var(--
 .booking-detail-metadata, .booking-filters label { font-size: 1rem; line-height: 1.5; }
 .booking-payment-status { max-width: none; }
 .admin-notification-panel { width: 390px; padding: 0; gap: 0; }
-.admin-notice-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #e4d7c0; }
+.admin-notice-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
 .admin-notice-header button { padding: 4px 8px; font-size: 22px; min-height: 32px; }
 .admin-notice-list { max-height: min(25rem, 50dvh); }
-.admin-notice-card { padding: 14px 16px; border-bottom: 1px solid #e4d7c0; overflow-wrap: anywhere; font-size: 13px; line-height: 1.5; }
-.admin-notice-card > .flex > strong { color: #006D6F; }
+.admin-notice-card { padding: 14px 16px; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; font-size: 13px; line-height: 1.5; }
+.admin-notice-card > .flex > strong { color: var(--brand); }
 .admin-notice-reference { font-family: monospace; font-size: 12px; margin-top: 5px; }
-.admin-notice-unread { color: #006D6F; font-size: 11px; }
+.admin-notice-unread { color: var(--brand); font-size: 11px; }
 .admin-notice-fields { display: grid; gap: 4px; margin-top: 8px; }
 .admin-notice-fields > div { display: grid; grid-template-columns: 65px minmax(0, 1fr); gap: 8px; }
 .admin-notice-fields dt { font-weight: 600; }
 .admin-notice-fields dd { min-width: 0; }
-.admin-notice-time { font-size: 11px; color: #64748b; margin-top: 9px; }
-.admin-notice-footer { padding: 8px 12px; border-top: 1px solid #e4d7c0; }
-.admin-notice-footer button { width: 100%; padding: 8px; color: #006D6F; font-size: 13px; font-weight: 600; }
+.admin-notice-time { font-size: 11px; color: var(--muted); margin-top: 9px; }
+.admin-notice-footer { padding: 8px 12px; border-top: 1px solid var(--border); }
+.admin-notice-footer button { width: 100%; padding: 8px; color: var(--brand); font-size: 13px; font-weight: 600; }
 .admin-notice-footer button:disabled { opacity: .5; cursor: default; }

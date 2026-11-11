@@ -62,7 +62,7 @@ try {
     }
 
     $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "SERVICE", ?)')
-        ->execute(["{$name} was removed from the service menu."]);
+        ->execute(["{$name} was removed from the services list."]);
 
     echo json_encode(['success' => true, 'message' => 'Service deleted.']);
 } catch (PDOException $e) {

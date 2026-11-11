@@ -1,0 +1,175 @@
+/* Shared size-only scale. Load after each area's theme.
+   Repeated :root specificity intentionally beats legacy !important size rules.
+   Families, weights, colours, icon sizes and layout remain owned by each area. */
+:root {
+  --type-hero: clamp(40px, calc(34.057142857px + 1.523809524vw), 56px);
+  --type-page: 38px;
+  --type-section: 24px;
+  --type-card: 20px;
+  --type-dialog: 26px;
+  --type-body: 16px;
+  --type-control: 16px;
+  --type-label: 14px;
+  --type-button: 14px;
+  --type-table: 14px;
+  --type-helper: 13px;
+  --type-bottom-nav: 11px;
+}
+@media (max-width: 767.98px) {
+  :root { --type-page: 32px; --type-dialog: 24px; }
+}
+
+/* Body copy; smaller utility text is supporting copy, not a heading scale. */
+:root:root:root:root body { font-size: var(--type-body) !important; }
+:root:root:root:root body :where(:where(p:not([class*="stat"]):not([class*="brand"]):not([class*="summary-value"]):not([class*="clock"]):not([class*="avatar"])), .text-base, .text-sm, .prose-justify, .cp-intro p,
+  .lm-intro-copy p, .sp-intro p, .cp-hero p, .cp-modal p, .sp-readonly,
+  .terms-modal-body, .cp-empty p, .lm-empty p, .sp-empty p,
+  .sp-shift-stats dd, .sp-profile-facts dd, .sp-modal-stats dd) {
+  font-size: var(--type-body) !important;
+  line-height: 1.5;
+}
+:root:root:root:root body :where(small, .text-xs, .cp-small, .sp-small, .lm-hint,
+  .cp-field-hint, .field-error, .booking-field-error, .sp-error,
+  .lm-stat-note, .stat-hint, .svc-card-meta, .bk-service-meta,
+  .bk-sum-hint, .bk-aside-note, .bk-branch-meta, .svc-card-cat, .cp-upcoming-meta, .cp-footer, .notification-time,
+  .lm-notif-time, .cp-photo-note, .cp-quick-copy small,
+  .admin-badge, .cp-badge, .sp-badge, .lm-badge, .cp-nav-count,
+  .cp-chip, .cp-feature-tag, .cp-reward-pill, .service-category-badge,
+  .service-promo-badge, .svc-card-tag, .staff-status-badge) {
+  font-size: var(--type-helper) !important;
+  line-height: 1.4;
+}
+
+/* Labels and text controls. Icon-only buttons and icon elements are excluded. */
+:root:root:root:root body :where(label, .field-label, .lm-label, .lm-field > span,
+  .sp-label, .branch-detail-label, .lm-stat-label, .stat-label, .sp-stat-label,
+  .cp-mini-stats span, .cp-eyebrow, .lm-dl dt,
+  .sp-shift-stats dt, .sp-profile-facts dt, .sp-modal-stats dt,
+  .sp-detail-list dt, .sp-summary-label, .cp-cashier dt,
+  .cp-cashier .info-label, .cp-cashier .cp-branch-kicker,
+  .cp-cashier .cp-side-heading, .cp-cashier .cp-branch-name) {
+  font-size: var(--type-label) !important;
+  line-height: 1.4;
+}
+:root:root:root:root body :where(button:not(:has(> svg:only-child)):not(:has(> i:only-child)):not(.cp-icon-btn):not(.sp-icon-btn):not(.lm-close):not(.modal-close):not(.cp-close):not(.sp-drawer-close):not(.cp-drawer-close):not(.eye):not(.notification-close):not(.terms-modal-close):not([aria-label="Close"]), .lm-btn, .sp-btn, .cp-btn, .btn-row,
+  .service-add-button, .cp-text-button, .cp-text-link, .sp-link-btn,
+  .terms-modal-foot button, button.text-xs, button.text-base) {
+  font-size: var(--type-button) !important;
+  line-height: 1.4;
+}
+/* A text span inside a button must not resurrect a legacy text-xs size. */
+:root:root:root:root body :where(.lm-btn, .sp-btn, .cp-btn, .btn-row, .btn-primary,
+  .btn-secondary, .auth-page .btn) > span:where(:not([class*="icon"]):not([x-html])) {
+  font-size: inherit !important;
+  line-height: inherit;
+}
+:root:root:root:root body :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="image"]), select, textarea,
+  button[type="submit"], input[type="submit"], form .btn-primary,
+  form .lm-btn--primary, form .sp-btn-primary, form .cp-btn-primary,
+  .auth-page .btn, .modal .btn-primary, .fixed .btn-primary,
+  #btnProcessPayment, #btnConfirmNext, #btnConfirmSubmit, #btnConfirmDone,
+  .cp-profile-forms > section > .pt-4 > button) {
+  font-size: var(--type-control) !important;
+  line-height: 1.5;
+}
+
+/* Drawer/desktop navigation uses the same size; bottom navigation is separate. */
+:root:root:root:root body :where(.cp-side-link, .cp-side-link > span, .lm-nav a,
+  .lm-nav a > span, .sp-nav-link, .sp-nav-label, .cp-nav .nav-item,
+  .cp-nav-text, .mobile-nav-item, .nav-tab-link, .lm-signout, .cp-signout) {
+  font-size: var(--type-button) !important;
+  line-height: 1.4;
+}
+:root:root:root:root body :where(.cp-bottom-link > span, .lm-bottom-link > span,
+  .sp-bottomnav-link > span:last-child) {
+  font-size: var(--type-bottom-nav) !important;
+  line-height: 1.25 !important;
+}
+:root:root:root:root body :where(.admin-badge, .cp-badge, .sp-badge, .lm-badge,
+  .cp-nav-count, .cp-chip, .cp-feature-tag, .cp-reward-pill,
+  .service-category-badge, .service-promo-badge, .svc-card-tag,
+  .staff-status-badge, .sp-tab-count, .cp-notification-count,
+  .cp-active-pill, .cp-summary-count, .sp-status-pill,
+  .sp-user-role, .sp-badge-count, .cp-branch-chip, .cp-nav-badge,
+  .cp-cashier .cp-branch-meta, .queue-tab [data-count]) {
+  font-size: var(--type-helper) !important;
+  line-height: 1.4;
+}
+
+/* Card/subsection titles are the default smaller heading role. */
+:root:root:root:root body :where(main h3, main h4, main h5, .gw-site h3, .gw-site h4,
+  .cp-card h2, .lm-card-head h2, .lm-card-head h3, .sp-card-title,
+  .cp-upcoming-service, .cp-appt-service, .cp-feature-card h3,
+  .cp-profile-summary h2, .cp-profile-forms h3, .cp-empty h3,
+  .cp-reward h3, .lm-empty h3, .bk-sec-title, .bk-aside-title, .branch-card-name,
+  .branch-rate-title, .svc-card-name, .terms-modal-body h3,
+  [data-password-card] h3, .sp-welcome-hello, .sp-profile-name,
+  .sp-empty-title, .sp-appt-client, .modal-panel h5) {
+  font-size: var(--type-card) !important;
+  line-height: 1.3 !important;
+}
+/* Top-level sections, including role-page sections and public tab sections. */
+:root:root:root:root body :where(.gw-site .page-body h2, main > section > h2,
+  .lm-section-title, .cp-section-heading h2, .cp-subheading,
+  .cp-loyalty > h2, .cp-hero h2, #reviewable-heading,
+  .cp-cashier > main > section > div > h3,
+  .cp-cashier > main > section > h3) {
+  font-size: var(--type-section) !important;
+  line-height: 1.25 !important;
+}
+/* Page titles, not sidebar brands or receipt letterheads. */
+:root:root:root:root body :where(.cp-intro h1, .lm-intro-copy h1, .sp-intro h1,
+  .cp-intro .cp-page-title, .lm-topbar-title h1, .auth-page h1, .auth-page .title,
+  .gw-result #resultTitle, .gw-site .app-page:not(#home-tab) > section:first-child > div > div:first-child > h2) {
+  font-size: var(--type-page) !important;
+  line-height: 1.2 !important;
+}
+:root:root:root:root body.gw-site .hero-revised h1.font-display {
+  font-size: var(--type-hero) !important;
+  line-height: 1.15 !important;
+}
+/* Only the main title of a dialog; subheadings inside it stay card-sized. */
+:root:root:root:root body :where(.lm-modal-head h2, .sp-modal-title, .cp-modal h3,
+  .modal-head h2, .modal-head h3, .modal-head h4,
+  .terms-modal-head h2, #servicesPopupTitle, #staffProfileName,
+  #bookingModalBox h3.font-display, #trackModalBox h3.font-display,
+  [role="dialog"] > div > h3:first-of-type, body > .fixed.inset-0 > div > h3:first-of-type,
+  .cp-notification-head h4, .lm-bell-head h3, .lm-bell-head > strong,
+  .sp-notif-head > p,
+  #inventoryLogModal h4, #stockAdjustmentConfirmModal h4,
+  .cp-portal .fixed.inset-0 h3.text-base.font-serif) {
+  font-size: var(--type-dialog) !important;
+  line-height: 1.25 !important;
+}
+
+/* Tables retain their current scrolling/stacking layout. */
+:root:root:root:root body :where(table, th, td, th > span, td > span,
+  .lm-cell-main, .lm-cell-sub, .cp-cell-main, .cp-cell-sub,
+  .cp-q-row :is(p, span:not(.cp-q-avatar):not([aria-hidden]), strong, dt, dd),
+  .cp-appt-head, .cp-pay-head,
+  .cp-appt-row :is(p, span:not([aria-hidden]), strong),
+  .cp-pay-row :is(p, span:not([aria-hidden]), strong),
+  #paymentList > .grid :is(p, span:not([aria-hidden]), a, strong)) {
+  font-size: var(--type-table) !important;
+  line-height: 1.4;
+}
+:root:root:root:root body :where(.lm-table--stack, .cp-table) td[data-label]::before {
+  font-size: var(--type-table) !important;
+  line-height: 1.4;
+}
+/* Desktop table badges keep the helper scale; stacked card values use 14px. */
+@media (min-width: 768px) {
+  :root:root:root:root body :where(td > .admin-badge, td > .lm-badge,
+    td > .sp-badge, td > .cp-badge, .cp-q-row .cp-badge,
+    .cp-appt-row .cp-badge, .cp-pay-row .cp-badge) {
+    font-size: var(--type-helper) !important;
+  }
+}
+@media (max-width: 767.98px) {
+  :root:root:root:root body :where(.sp-att-card-stats dt, .sp-att-card-stats dd,
+    .sp-att-card .sp-strong, .cp-q-facts dt, .cp-q-facts dd,
+    td[data-label] :is(p, strong, small, a, button, .cp-sub, .lm-cell-sub)) {
+    font-size: var(--type-table) !important;
+    line-height: 1.4;
+  }
+}

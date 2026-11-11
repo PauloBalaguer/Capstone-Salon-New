@@ -37,12 +37,12 @@ function titleCase(value) {
 
 function statusBadgeClass(status) {
   switch (status) {
-    case 'Pending': return 'bg-amber-100 text-amber-800';
-    case 'Confirmed': return 'bg-purple-100 text-purple-800';
-    case 'In Progress': return 'bg-indigo-100 text-indigo-800';
-    case 'Completed': return 'bg-emerald-100 text-emerald-800';
-    case 'Cancelled': return 'bg-rose-100 text-rose-800';
-    default: return 'bg-slate-100 text-slate-700';
+    case 'Pending': return 'bg-amber-100 text-[color:var(--warn)]';
+    case 'Confirmed': return 'bg-purple-100 text-[color:var(--info)]';
+    case 'In Progress': return 'bg-indigo-100 text-[color:var(--info)]';
+    case 'Completed': return 'bg-emerald-100 text-[color:var(--success)]';
+    case 'Cancelled': return 'bg-rose-100 text-[color:var(--danger)]';
+    default: return 'bg-[color:var(--bg)] text-slate-700';
   }
 }
 
@@ -61,7 +61,7 @@ const CashierApp = {
       if (value !== null && value !== undefined && value !== '') query.append(key, value);
     });
     const qs = query.toString();
-    const response = await fetch(CASHIER_API_BASE + endpoint + (qs ? '?' + qs : ''), { credentials: 'same-origin' });
+    const response = await fetch(CASHIER_API_BASE + endpoint + (qs ? '?' + qs : ''), { credentials: 'same-origin', cache: 'no-store' });
     if (response.status === 401) {
       window.location.href = '../../frontend/auth/login.html';
       throw new Error('Not authenticated');
@@ -92,24 +92,69 @@ const CashierApp = {
   },
 
   async fetchDashboard() {
-    return this.get('getDashboardData.php');
+    const result = await this.get('getDashboardData.php');
+    if (result && result.success) this.applyProfileChrome(result.cashierProfile);
+    return result;
+  },
+
+  /* Reload this page's data whenever anything at the branch changes on any
+     device (staff shift/break, bookings, cancellations, assignments) -- see
+     function/shared/live-sync.js. */
+  liveSync(reload, branchKey) {
+    if (!window.LiveSync) return null;
+    return window.LiveSync.start({ branch: branchKey, onChange: reload });
   },
 
   formatCurrency(n) {
     return '₱' + Number(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   },
 
+  /* Live date/time in the salon's time zone (Asia/Manila), whatever the
+     device's own clock zone is. */
   startClock(elementId) {
     const el = document.getElementById(elementId);
     if (!el) return;
+    const opts = { timeZone: 'Asia/Manila' };
     const tick = () => {
       const now = new Date();
-      const datePart = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: '2-digit' });
-      const timePart = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-      el.textContent = `${datePart} | ${timePart}`;
+      let datePart, timePart;
+      try {
+        datePart = now.toLocaleDateString('en-US', { ...opts, weekday: 'short', year: 'numeric', month: 'short', day: '2-digit' });
+        timePart = now.toLocaleTimeString('en-US', { ...opts, hour: '2-digit', minute: '2-digit', hour12: true });
+      } catch (e) {
+        datePart = now.toLocaleDateString('en-US');
+        timePart = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      }
+      el.textContent = `${datePart} · ${timePart}`;
     };
     tick();
-    setInterval(tick, 1000);
+    setInterval(tick, 15000);
+  },
+
+  /* Display-only money helpers, using the same rule as backend/cashier/payment.php:
+     a verified reservation deposit counts toward the service total; once a
+     checkout payment exists the booking has no balance. The backend stays the
+     source of truth for every amount actually charged. */
+  amountPaid(b) {
+    if (b.checkoutPaid) return Number(b.price || 0);
+    return (b.depositPaid && b.depositVerified) ? Number(b.depositAmount || 0) : 0;
+  },
+
+  balanceOf(b) {
+    if (b.checkoutPaid) return 0;
+    return Math.max(0, Math.round((Number(b.price || 0) - this.amountPaid(b)) * 100) / 100);
+  },
+
+  initials(name) {
+    return String(name || '').trim().split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('') || 'C';
+  },
+
+  /* Puts the signed-in cashier's name/initials in the sidebar and header. */
+  applyProfileChrome(profile) {
+    if (!profile) return;
+    const name = titleCase(profile.name || 'Cashier');
+    document.querySelectorAll('[data-cp-name]').forEach(el => { el.textContent = name; });
+    document.querySelectorAll('[data-cp-initials]').forEach(el => { el.textContent = this.initials(name); });
   },
 
   toast(message, type = 'info') {
@@ -157,14 +202,14 @@ const CashierApp = {
     const titleEl = document.getElementById('sidebarBranchTitle');
     const branchSubtitle = document.getElementById('cashierBranchSubtitle');
     if (branchSubtitle) {
-      const branchNames = { daraga: 'Daraga Branch - Cashier', yashano: 'Yashano Branch - Cashier', cabangan: 'Cabangan Branch - Cashier' };
+      const branchNames = { daraga: 'Daraga Branch', yashano: 'Yashano Branch', cabangan: 'Cabangan Branch' };
       branchSubtitle.textContent = branchNames[branchKey] || 'Branch unavailable';
     }
     const terminalEl = document.getElementById('sidebarTerminalId');
     const labelEl = document.getElementById('branchLabel');
     if (titleEl) titleEl.textContent = info.name;
     if (terminalEl) terminalEl.textContent = info.terminal;
-    if (labelEl) labelEl.textContent = `🏬 ${info.name}`;
+    if (labelEl) labelEl.innerHTML = `<i class="fa-solid fa-store" aria-hidden="true"></i> ${escapeHtml(info.name)}`;
     return info;
   },
 
@@ -172,15 +217,10 @@ const CashierApp = {
      pattern as function/admin/shared-data.js's adminHighlightNav(). Every
      nav link carries data-nav-page="<filename>.html". */
   highlightNav() {
-    const current = location.pathname.split('/').pop();
+    const current = location.pathname.split('/').pop() || 'dashboard.html';
     document.querySelectorAll('#sidebarNav .nav-item').forEach(link => {
-      const isActive = link.getAttribute('data-nav-page') === current;
-      link.classList.toggle('bg-amber-500', isActive);
-      link.classList.toggle('text-slate-950', isActive);
-      link.classList.toggle('font-medium', isActive);
-      link.classList.toggle('text-slate-300', !isActive);
-      link.classList.toggle('hover:bg-slate-800', !isActive);
-      link.classList.toggle('hover:text-white', !isActive);
+      if (link.getAttribute('data-nav-page') === current) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
     });
   },
 

@@ -25,32 +25,32 @@ const LMToast = (function () {
   const TYPE = {
     error: {
       title: 'Check this',
-      card: 'bg-[#B23A3A]/10 text-[#B23A3A]', cardBar: 'bg-[#B23A3A]',
-      pill: 'bg-[#B23A3A]/25 text-[#F2A3A3]', pillBar: 'bg-[#F2A3A3]',
+      card: 'bg-[#9C1E15]/10 text-[color:var(--danger)]', cardBar: 'bg-[color:var(--danger)]',
+      pill: 'bg-[#9C1E15]/25 text-[color:var(--border-strong)]', pillBar: 'bg-[color:var(--border-strong)]',
       icon: '<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/>'
     },
     success: {
       title: 'All set',
-      card: 'bg-[#2F7D4F]/10 text-[#2F7D4F]', cardBar: 'bg-[#2F7D4F]',
-      pill: 'bg-[#2F7D4F]/30 text-[#8BE0AE]', pillBar: 'bg-[#8BE0AE]',
+      card: 'bg-[#115C39]/10 text-[color:var(--success)]', cardBar: 'bg-[color:var(--success)]',
+      pill: 'bg-[#115C39]/30 text-[color:var(--border-strong)]', pillBar: 'bg-[color:var(--border-strong)]',
       icon: '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>'
     },
     warning: {
       title: 'Heads up',
-      card: 'bg-[#B7791F]/10 text-[#B7791F]', cardBar: 'bg-[#B7791F]',
-      pill: 'bg-[#B7791F]/30 text-[#F5C26B]', pillBar: 'bg-[#F5C26B]',
+      card: 'bg-[#6C4C09]/10 text-[color:var(--accent-ink)]', cardBar: 'bg-[color:var(--accent-ink)]',
+      pill: 'bg-[#6C4C09]/30 text-[color:var(--accent)]', pillBar: 'bg-[color:var(--accent)]',
       icon: '<path d="M12 4 2.5 20h19z"/><path d="M12 10v4M12 17v.5"/>'
     },
     info: {
       title: 'Heads up',
-      card: 'bg-[#006D6F]/10 text-[#006D6F]', cardBar: 'bg-[#006D6F]',
-      pill: 'bg-[#0B8C8E]/30 text-[#7FD1D3]', pillBar: 'bg-[#7FD1D3]',
+      card: 'bg-[#16604B]/10 text-[color:var(--brand)]', cardBar: 'bg-[color:var(--brand)]',
+      pill: 'bg-[#16604B]/30 text-[color:var(--border-strong)]', pillBar: 'bg-[color:var(--border-strong)]',
       icon: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.5"/>'
     },
     reminder: {
       title: 'Reminder',
-      card: 'bg-[#C9A24E]/15 text-[#8A6A1F]', cardBar: 'bg-[#C9A24E]',
-      pill: 'bg-[#C9A24E]/25 text-[#E6C67A]', pillBar: 'bg-[#E6C67A]',
+      card: 'bg-[#E0B84C]/15 text-[color:var(--accent-ink)]', cardBar: 'bg-[color:var(--accent)]',
+      pill: 'bg-[#E0B84C]/25 text-[color:var(--accent)]', pillBar: 'bg-[color:var(--accent)]',
       icon: '<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/>'
     }
   };
@@ -102,7 +102,7 @@ const LMToast = (function () {
     title.className = 'm-0 font-semibold leading-snug ' + TITLE_FONT + (onPill ? ' text-[15px]' : ' text-[1.05rem]');
     title.textContent = opts.title || type.title;
     const text = document.createElement('p');
-    text.className = 'm-0 mt-0.5 break-words text-sm leading-snug ' + (onPill ? 'text-[#c9d6d4]' : 'text-[#5B6472]');
+    text.className = 'm-0 mt-0.5 break-words text-sm leading-snug ' + (onPill ? 'text-[color:var(--border-strong)]' : 'text-[color:var(--muted)]');
     text.textContent = opts.message || '';
     body.append(title, text);
 
@@ -110,7 +110,7 @@ const LMToast = (function () {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'mt-2 rounded-full border-0 px-3.5 py-1.5 text-xs font-semibold ' +
-        (onPill ? 'bg-[#E8DCC8] text-[#06464A]' : 'bg-[#006D6F] text-[#FFFDF9] hover:bg-[#06464A]');
+        (onPill ? 'bg-[color:var(--border)] text-[color:var(--brand-dark)]' : 'bg-[color:var(--brand)] text-[color:var(--card)] hover:bg-[color:var(--brand-dark)]');
       btn.textContent = opts.action.label;
       btn.addEventListener('click', function () {
         if (typeof opts.action.onClick === 'function') opts.action.onClick();
@@ -138,7 +138,7 @@ const LMToast = (function () {
     }
 
     const card = document.createElement('div');
-    card.className = 'pointer-events-auto relative flex gap-3 overflow-hidden rounded-2xl border border-[#E4D7C0] bg-[#FFFDF9] p-4 pr-12 text-[#1F2937] opacity-0 translate-y-3 shadow-[0_20px_40px_-20px_rgba(0,0,0,.45)] transition duration-300 ease-out motion-reduce:transition-none';
+    card.className = 'pointer-events-auto relative flex gap-3 overflow-hidden rounded-2xl border border-[color:var(--border)] bg-[color:var(--card)] p-4 pr-12 text-[color:var(--text)] opacity-0 translate-y-3 shadow-[0_20px_40px_-20px_rgba(0,0,0,.45)] transition duration-300 ease-out motion-reduce:transition-none';
 
     function dismiss() {
       if (!card.isConnected || card.dataset.leaving) return;
@@ -155,7 +155,7 @@ const LMToast = (function () {
     const close = document.createElement('button');
     close.type = 'button';
     // 44px tap target (the portals' CSS also forces buttons to 2.75rem tall).
-    close.className = 'absolute right-1.5 top-1.5 grid h-11 w-11 place-items-center rounded-full border-0 bg-transparent p-0 text-[#5B6472] transition hover:bg-[#F6F0E6] hover:text-[#006D6F]';
+    close.className = 'absolute right-1.5 top-1.5 grid h-11 w-11 place-items-center rounded-full border-0 bg-transparent p-0 text-[color:var(--muted)] transition hover:bg-[color:var(--bg)] hover:text-[color:var(--brand)]';
     close.setAttribute('aria-label', 'Dismiss notification');
     close.innerHTML = icon('<path d="M6 6l12 12M18 6 6 18"/>', 16);
     close.addEventListener('click', dismiss);
@@ -180,7 +180,7 @@ const LMToast = (function () {
     if (!island) {
       const wrap = layer('pointer-events-none fixed inset-x-0 top-[max(8px,env(safe-area-inset-top))] bottom-auto z-[9999] mx-auto my-0 h-auto w-full max-w-md overflow-visible border-0 bg-transparent px-2.5 py-0');
       wrap.innerHTML =
-        '<div class="group pointer-events-auto relative mx-auto h-8 w-28 overflow-hidden rounded-full bg-[#0f1f20] text-[#FFFDF9] opacity-0 shadow-2xl ring-1 ring-white/10 transition-[width,height,border-radius,opacity] duration-[450ms] ease-[cubic-bezier(.2,.9,.2,1)] motion-reduce:transition-none [&.open]:h-[var(--h)] [&.open]:w-full [&.open]:rounded-[26px] [&.show]:opacity-100">' +
+        '<div class="group pointer-events-auto relative mx-auto h-8 w-28 overflow-hidden rounded-full bg-[color:var(--text)] text-[color:var(--card)] opacity-0 shadow-2xl ring-1 ring-white/10 transition-[width,height,border-radius,opacity] duration-[450ms] ease-[cubic-bezier(.2,.9,.2,1)] motion-reduce:transition-none [&.open]:h-[var(--h)] [&.open]:w-full [&.open]:rounded-[26px] [&.show]:opacity-100">' +
           '<span class="absolute inset-0 m-auto h-1.5 w-10 rounded-full bg-white/15 transition-opacity group-[.open]:opacity-0"></span>' +
           '<div class="absolute left-1/2 top-0 flex -translate-x-1/2 items-start gap-3 p-4 pb-5 opacity-0 transition-opacity duration-200 motion-reduce:transition-none group-[.open]:opacity-100 group-[.open]:delay-200"></div>' +
         '</div>';

@@ -31,6 +31,7 @@ if ($register_limiter->isExceeded()) {
 
 $errors = [];
 $first_name = trim($_POST['first_name'] ?? '');
+$middle_name = !empty($_POST['middle_name_na']) ? '' : trim($_POST['middle_name'] ?? '');
 $last_name = trim($_POST['last_name'] ?? '');
 $email = trim($_POST['email'] ?? '');
 $contact_number = trim($_POST['contact_number'] ?? ''); // Assuming 'contact_number' from the form
@@ -40,6 +41,11 @@ $notify_sms = !empty($_POST['notify_sms']) ? 1 : 0; // Unticked checkboxes are n
 
 if (empty($first_name)) $errors[] = 'First name is required.';
 if (empty($last_name)) $errors[] = 'Last name is required.';
+$validName = static fn (string $v): bool => mb_strlen($v) <= 100 && preg_match("/^[\p{L}\p{M} .\x{2019}'\-]+$/u", $v) && preg_match('/\p{L}/u', $v);
+if ($first_name !== '' && !$validName($first_name)) $errors[] = 'First name can only use letters, spaces, apostrophes, periods or hyphens.';
+if ($middle_name !== '' && !$validName($middle_name)) $errors[] = 'Middle name can only use letters, spaces, apostrophes, periods or hyphens.';
+if ($last_name !== '' && !$validName($last_name)) $errors[] = 'Last name can only use letters, spaces, apostrophes, periods or hyphens.';
+$middle_name = $middle_name !== '' ? $middle_name : null;
 
 if (empty($email)) {
     $errors[] = 'Email is required.';
@@ -114,10 +120,10 @@ try {
     $new_user_id = $pdo->lastInsertId();
 
     $sql_customer = $number_owner
-        ? "INSERT INTO guest_account_claims (user_id, first_name, last_name, phone_number, notify_sms) VALUES (?, ?, ?, ?, ?)"
-        : "INSERT INTO customers (user_id, first_name, last_name, phone_number, notify_sms) VALUES (?, ?, ?, ?, ?)";
+        ? "INSERT INTO guest_account_claims (user_id, first_name, middle_name, last_name, phone_number, notify_sms) VALUES (?, ?, ?, ?, ?, ?)"
+        : "INSERT INTO customers (user_id, first_name, middle_name, last_name, phone_number, notify_sms) VALUES (?, ?, ?, ?, ?, ?)";
     $stmt_customer = $pdo->prepare($sql_customer);
-    $stmt_customer->execute([$new_user_id, $first_name, $last_name, $contact_number, $notify_sms]);
+    $stmt_customer->execute([$new_user_id, $first_name, $middle_name, $last_name, $contact_number, $notify_sms]);
 
     $pdo->commit();
     $register_limiter->record();

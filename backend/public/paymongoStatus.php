@@ -50,6 +50,7 @@ function depositResult(PDO $pdo, PDOStatement $select, string $reference, bool $
         'success' => true,
         'type' => $homeService ? 'home_service' : 'appointment',
         'reference' => $row['reference_code'],
+        'registered' => !empty($row['customer_id']),
         'paid' => $paid,
         'state' => $paid ? 'paid' : $sync['state'],
         'reason' => $paid ? null : $sync['reason'],

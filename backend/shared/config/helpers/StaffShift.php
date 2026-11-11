@@ -16,6 +16,54 @@ final class StaffShift
 {
     public const DAY_NAMES = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday', 7 => 'Sunday'];
 
+    /** The four live statuses every panel shows (Admin, Cashier, public roster). */
+    public const STATUS_ON = 'On Shift';
+    public const STATUS_OFF = 'Off Shift';
+    public const STATUS_BREAK = 'On Break';
+    public const STATUS_BUSY = 'Busy';
+
+    /**
+     * The one live-status rule, as a SQL expression for the employees row
+     * aliased $e. Every panel uses this instead of its own copy, so they
+     * can't disagree:
+     *   no open attendance row (any day, like openShift())  -> Off Shift
+     *   open shift with a running attendance_breaks row     -> On Break
+     *   with a client now: an In Progress booking, or a
+     *   Confirmed one whose time window covers NOW(), as the
+     *   main stylist or on a per-service part               -> Busy
+     *   otherwise                                           -> On Shift
+     * Everything is MySQL's NOW() (session time zone +08:00, Asia/Manila).
+     */
+    public static function liveStatusSql(string $e): string
+    {
+        $worksOn = "(ls_ap.employee_id = {$e}.id OR EXISTS (SELECT 1 FROM appointment_services ls_x WHERE ls_x.appointment_id = ls_ap.id AND ls_x.employee_id = {$e}.id))";
+        return "(CASE
+            WHEN NOT EXISTS (SELECT 1 FROM attendance ls_a WHERE ls_a.employee_id = {$e}.id AND ls_a.clock_out_time IS NULL)
+                THEN '" . self::STATUS_OFF . "'
+            WHEN EXISTS (SELECT 1 FROM attendance ls_a JOIN attendance_breaks ls_b ON ls_b.attendance_id = ls_a.id AND ls_b.break_end IS NULL
+                         WHERE ls_a.employee_id = {$e}.id AND ls_a.clock_out_time IS NULL)
+                THEN '" . self::STATUS_BREAK . "'
+            WHEN EXISTS (SELECT 1 FROM appointments ls_ap WHERE {$worksOn} AND (
+                    (ls_ap.status = 'In Progress' AND ls_ap.appointment_datetime >= CURDATE() - INTERVAL 1 DAY)
+                    OR (ls_ap.status = 'Confirmed' AND NOW() >= ls_ap.appointment_datetime
+                        AND NOW() < ls_ap.appointment_datetime + INTERVAL (
+                            SELECT COALESCE(NULLIF(SUM(ls_s.duration_minutes), 0), 30)
+                            FROM appointment_services ls_aps JOIN services ls_s ON ls_s.id = ls_aps.service_id
+                            WHERE ls_aps.appointment_id = ls_ap.id
+                        ) MINUTE)))
+                THEN '" . self::STATUS_BUSY . "'
+            ELSE '" . self::STATUS_ON . "'
+        END)";
+    }
+
+    /** Live status of one employee (same rule as liveStatusSql()). */
+    public static function liveStatus(PDO $pdo, int $employeeId): string
+    {
+        $stmt = $pdo->prepare('SELECT ' . self::liveStatusSql('e') . ' FROM employees e WHERE e.id = ?');
+        $stmt->execute([$employeeId]);
+        return (string) ($stmt->fetchColumn() ?: self::STATUS_OFF);
+    }
+
     /**
      * The logged-in Staff account's employee row (with branch and account
      * status), or stops the request with 401/404 JSON.

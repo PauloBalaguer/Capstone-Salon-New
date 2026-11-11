@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="stylesheet" href="../shared/theme-tokens.css">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0E3B2F">
@@ -12,9 +13,11 @@
   <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.14.1/dist/cdn.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.14.1/dist/cdn.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
-  <link rel="stylesheet" href="../../frontend/staff/staff-portal.css?v=20261106">
+  <link rel="stylesheet" href="../../frontend/staff/staff-portal.css?v=20261110">
+  <link rel="stylesheet" href="../../frontend/shared/portal-unify.css?v=20261110b">
   <script src="../../function/shared/toast.js"></script>
   <script src="../../function/shared/confirm-dialog.js"></script>
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
 </head>
 <body class="sp-body" x-data="staffPortal()">
 
@@ -22,8 +25,11 @@
 
   <div class="sp-shell">
 
-    <!-- ===================== Sidebar (tablet rail + desktop) ===================== -->
-    <aside class="sp-sidebar" aria-label="Staff navigation">
+    <!-- ===================== Sidebar: desktop column, Menu drawer below 1024px ===================== -->
+    <aside id="sp-sidebar" class="sp-sidebar" aria-label="Staff navigation" :inert="compact && !menuOpen">
+      <button type="button" class="sp-drawer-close" x-ref="drawerClose" @click="closeMenu(true)" aria-label="Close menu">
+        <span x-html="$icon('x')"></span>
+      </button>
       <div class="sp-brand">
         <img src="../shared/icon/salon-logo.png" alt="" class="sp-brand-logo">
         <div class="sp-brand-text">
@@ -32,13 +38,13 @@
         </div>
       </div>
 
-      <nav class="sp-nav">
+      <p class="sp-side-heading" id="sp-side-heading">STAFF NAVIGATION</p>
+      <nav class="sp-nav" aria-labelledby="sp-side-heading">
         <template x-for="item in navItems" :key="item.key">
           <a :href="'#' + item.key" class="sp-nav-link" :class="view === item.key && 'is-active'"
              :aria-current="view === item.key ? 'page' : null">
             <span x-html="$icon(item.icon)"></span>
             <span class="sp-nav-label" x-text="item.label"></span>
-            <span class="sp-nav-short" x-text="item.short"></span>
           </a>
         </template>
       </nav>
@@ -51,7 +57,8 @@
             <p class="sp-muted-light" x-text="$store.staff.shift.status === 'off' ? $store.staff.scheduleTodayLabel() : ('Since ' + $store.staff.timeLabel($store.staff.shift.clockIn))"></p>
           </div>
         </div>
-        <button type="button" class="sp-nav-link sp-side-signout" @click="openSignOut()">
+        <p class="sp-side-heading sp-side-heading-sm">STAFF ACCESS</p>
+        <button type="button" class="sp-nav-link sp-side-signout" @click="closeMenu(); openSignOut()">
           <span x-html="$icon('logout')"></span>
           <span>Sign Out</span>
         </button>
@@ -61,19 +68,22 @@
     <!-- ===================== Main column ===================== -->
     <div class="sp-column">
 
-      <!-- Top bar: tablet and desktop -->
-      <header class="sp-topbar">
-        <div class="sp-topbar-title">
-          <h1 id="sp-page-title" tabindex="-1" x-text="pageTitle()">Dashboard</h1>
+      <!-- Header: brand on phones/tablets, breadcrumb on desktop -->
+      <header class="sp-header">
+        <a href="#dashboard" class="sp-header-brand" aria-label="Leo Mejillano Staff Portal, Dashboard">
+          <img src="../shared/icon/salon-logo.png" alt="">
+          <span>LEO MEJILLANO</span>
+        </a>
+        <p class="sp-header-title"><span>STAFF PORTAL</span><b aria-hidden="true">/</b><strong x-text="pageTitle()">Dashboard</strong></p>
+        <div class="sp-header-actions">
           <span class="sp-branch-chip" x-show="$store.staff.profile.branchName" x-cloak>
             <span x-html="$icon('pin')"></span><span x-text="$store.staff.profile.branchName"></span>
           </span>
-        </div>
-        <div class="sp-topbar-actions">
           <div class="sp-notif-wrap">
-            <button type="button" class="sp-icon-btn" @click="toggleNotifications()" :aria-expanded="notificationsOpen" aria-label="Notifications">
+            <button type="button" class="sp-icon-btn" @click="toggleNotifications()" :aria-expanded="notificationsOpen"
+                    :aria-label="$store.staff.unreadNotificationCount() ? 'Notifications, ' + $store.staff.unreadNotificationCount() + ' unread' : 'Notifications'">
               <span x-html="$icon('bell')"></span>
-              <span class="sp-badge-count" x-show="$store.staff.unreadNotificationCount()" x-text="$store.staff.unreadNotificationCount()" x-cloak></span>
+              <span class="sp-badge-count" x-show="$store.staff.unreadNotificationCount()" x-text="$store.staff.unreadNotificationCount() > 9 ? '9+' : $store.staff.unreadNotificationCount()" x-cloak></span>
             </button>
             <template x-teleport="body">
               <div class="sp-notif-layer" x-show="notificationsOpen" x-cloak @click.self="notificationsOpen = false">
@@ -95,39 +105,20 @@
               </div>
             </template>
           </div>
+          <!-- Phones/tablets only: on desktop Sign Out lives in the sidebar. -->
+          <button type="button" class="sp-icon-btn sp-header-signout" @click="openSignOut()" aria-label="Sign out" title="Sign out">
+            <span x-html="$icon('logout')"></span>
+          </button>
           <button type="button" class="sp-user-btn" :class="view === 'profile' && 'is-active'" @click="openProfile()" aria-label="Open My Profile">
             <span class="sp-avatar sp-avatar-sm">
               <img x-show="$store.staff.profile.profilePicture" :src="$store.staff.profile.profilePicture" alt="" x-cloak>
               <span x-show="!$store.staff.profile.profilePicture" x-text="$store.staff.initials()"></span>
+              <span class="sp-avatar-dot" :class="'is-' + $store.staff.shift.status"></span>
             </span>
             <span class="sp-user-text">
               <span class="sp-user-name" x-text="$store.staff.profile.name || 'Staff member'"></span>
-              <span class="sp-user-role" x-text="$store.staff.profile.position"></span>
+              <span class="sp-user-role" x-text="$store.staff.profile.position || 'Staff account'"></span>
             </span>
-          </button>
-        </div>
-      </header>
-
-      <!-- Mobile header -->
-      <header class="sp-mobilebar">
-        <button type="button" class="sp-mobile-user" @click="openProfile()" aria-label="Open My Profile">
-          <span class="sp-avatar sp-avatar-md">
-            <img x-show="$store.staff.profile.profilePicture" :src="$store.staff.profile.profilePicture" alt="" x-cloak>
-            <span x-show="!$store.staff.profile.profilePicture" x-text="$store.staff.initials()"></span>
-            <span class="sp-avatar-dot" :class="'is-' + $store.staff.shift.status"></span>
-          </span>
-          <span class="sp-mobile-user-text">
-            <span class="sp-user-name" x-text="$store.staff.profile.name || 'Staff member'"></span>
-            <span class="sp-mobile-branch"><span x-html="$icon('pin')"></span><span x-text="$store.staff.profile.branchName || 'Staff Portal'"></span></span>
-          </span>
-        </button>
-        <div class="sp-mobile-actions">
-          <button type="button" class="sp-icon-btn sp-icon-btn-dark" @click="toggleNotifications()" aria-label="Notifications">
-            <span x-html="$icon('bell')"></span>
-            <span class="sp-badge-count" x-show="$store.staff.unreadNotificationCount()" x-text="$store.staff.unreadNotificationCount()" x-cloak></span>
-          </button>
-          <button type="button" class="sp-icon-btn sp-icon-btn-dark" @click="openSignOut()" aria-label="Sign out">
-            <span x-html="$icon('logout')"></span>
           </button>
         </div>
       </header>
@@ -141,14 +132,17 @@
           <button type="button" class="sp-btn sp-btn-secondary sp-btn-sm" @click="$store.staff.refresh()">Try again</button>
         </div>
 
-        <h2 class="sp-mobile-title" x-text="pageTitle()" x-show="view !== 'dashboard'"></h2>
+        <!-- Page heading: eyebrow + serif title, as on Customer Portal pages -->
+        <div class="sp-intro" :class="view === 'dashboard' && 'sp-intro-tight'">
+          <span class="sp-eyebrow" x-text="$store.staff.profile.branchName ? 'Staff Portal · ' + $store.staff.profile.branchName : 'Staff Portal'">Staff Portal</span>
+          <h1 id="sp-page-title" tabindex="-1" x-text="view === 'dashboard' && $store.staff.firstName() ? $store.staff.greeting() + ', ' + $store.staff.firstName() : pageTitle()">Dashboard</h1>
+        </div>
 
         <!-- ===================== DASHBOARD ===================== -->
         <section x-show="view === 'dashboard'" class="sp-view" aria-labelledby="sp-page-title">
 
           <div class="sp-welcome">
             <div>
-              <p class="sp-welcome-hello"><span x-text="$store.staff.greeting()"></span>, <span x-text="$store.staff.firstName()"></span></p>
               <p class="sp-welcome-meta">
                 <span x-text="$store.staff.longDateLabel()"></span>
                 <span class="sp-sep" aria-hidden="true">·</span>
@@ -730,15 +724,23 @@
     </div>
   </div>
 
-  <!-- ===================== Mobile bottom navigation ===================== -->
-  <nav class="sp-bottomnav" aria-label="Staff navigation">
-    <template x-for="item in navItems" :key="item.key">
+  <!-- ===================== Bottom navigation (below 1024px) ===================== -->
+  <!-- First four items with the same labels as the sidebar; the rest (My Profile, Sign Out) live in the Menu drawer. -->
+  <nav class="sp-bottomnav" aria-label="Staff quick navigation">
+    <template x-for="item in navItems.slice(0, 4)" :key="item.key">
       <a :href="'#' + item.key" class="sp-bottomnav-link" :class="view === item.key && 'is-active'" :aria-current="view === item.key ? 'page' : null">
         <span x-html="$icon(item.icon)"></span>
-        <span x-text="item.short"></span>
+        <span x-text="item.label"></span>
       </a>
     </template>
+    <button type="button" class="sp-bottomnav-link" x-ref="menuButton"
+            :class="(menuOpen || !navItems.slice(0, 4).some(i => i.key === view)) && 'is-active'"
+            @click="toggleMenu()" aria-controls="sp-sidebar" :aria-expanded="menuOpen.toString()">
+      <span x-html="$icon('menu')"></span>
+      <span>Menu</span>
+    </button>
   </nav>
+  <div class="sp-drawer-backdrop" @click="closeMenu(true)" aria-hidden="true"></div>
 
   <!-- ===================== Shift Out modal ===================== -->
   <div class="sp-modal" x-show="shiftOutOpen" x-cloak x-transition.opacity @click.self="shiftOutOpen = false">
@@ -794,7 +796,8 @@
   </div>
 
   <script src="../../function/shared/appointment-arrival.js"></script>
-  <script src="../../function/staff/shared-data.js?v=20261106"></script>
-  <script src="../../function/staff/portal.js?v=20261106"></script>
+  <script src="../../function/shared/live-sync.js?v=20261110"></script>
+  <script src="../../function/staff/shared-data.js?v=20261110"></script>
+  <script src="../../function/staff/portal.js?v=20261110"></script>
 </body>
 </html>

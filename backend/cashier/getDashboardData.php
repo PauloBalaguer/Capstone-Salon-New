@@ -24,6 +24,7 @@ require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/booking/Scheduling.php';
 require_once '../../backend/shared/config/booking/ArrivalRequest.php';
 require_once '../../backend/shared/config/helpers/StaffMetrics.php';
+require_once '../../backend/shared/config/helpers/StaffShift.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -152,12 +153,9 @@ try {
                 WHERE ap3.employee_id = e.id AND p.status = 'Paid') AS totalTips,
             (SELECT GROUP_CONCAT(sv.service_name ORDER BY sv.id SEPARATOR ', ') FROM staff_services ss
                 JOIN services sv ON sv.id = ss.service_id WHERE ss.employee_id = e.id) AS specialties,
-            EXISTS (
-                SELECT 1 FROM attendance att WHERE att.employee_id = e.id
-                AND DATE(att.clock_in_time) = CURDATE() AND att.clock_out_time IS NULL
-            ) AS onShift,
+            " . StaffShift::liveStatusSql('e') . " AS liveStatus,
             (SELECT DATE_FORMAT(MAX(att2.clock_in_time), '%h:%i %p') FROM attendance att2 WHERE att2.employee_id = e.id
-                AND DATE(att2.clock_in_time) = CURDATE() AND att2.clock_out_time IS NULL) AS clockInTime
+                AND att2.clock_out_time IS NULL) AS clockInTime
         FROM employees e
         LEFT JOIN branches br ON br.id = e.branch_id
         WHERE e.is_active = 1 AND e.branch_id = ?
@@ -181,7 +179,7 @@ try {
         $byStaff[$b['staffId']][] = $b;
     }
 
-    $staffList = array_map(function ($row) use ($byStaff, $today, $now) {
+    $staffList = array_map(function ($row) use ($byStaff, $today, $now, $pdo) {
         $staffId = (string) $row['id'];
         $theirBookings = $byStaff[$staffId] ?? [];
         $todaysWorkload = 0;
@@ -206,8 +204,17 @@ try {
             }
         }
 
-        $onShift = (bool) $row['onShift'];
-        $availability = !$onShift ? 'Off Shift' : ($busyUntil ? "Busy until {$busyUntil}" : 'Available');
+        // Status is the shared rule (StaffShift::liveStatusSql), same as the
+        // Admin panel and public roster; "until" comes from the same busy
+        // windows that block bookings (per-service parts + cleaning buffer).
+        $status = $row['liveStatus'];
+        $onShift = $status !== StaffShift::STATUS_OFF;
+        if ($status === StaffShift::STATUS_BUSY) {
+            $until = Scheduling::staffBusyUntilNow($pdo, (int) $row['id']);
+            $availability = $until ? 'Busy until ' . $until->format('h:i A') : ($busyUntil ? "Busy until {$busyUntil}" : 'Busy');
+        } else {
+            $availability = $status;
+        }
 
         return [
             'id' => $staffId,
@@ -215,6 +222,7 @@ try {
             'branchId' => $row['branchId'],
             'role' => $row['role'],
             'onShift' => $onShift,
+            'status' => $status,
             'clockInTime' => $row['clockInTime'],
             'availability' => $availability,
             'todaysWorkload' => $todaysWorkload,

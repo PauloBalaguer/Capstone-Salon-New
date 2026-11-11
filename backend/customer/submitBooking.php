@@ -197,7 +197,8 @@ try {
 
     $employee = null;
     foreach ($candidates as $candidate) {
-        if (!Scheduling::staffHasConflict($pdo, (int) $candidate['id'], $appointmentDateTime, $durationMinutes)) {
+        if (Scheduling::staffCanTakeBooking($pdo, (int) $candidate['id'], $appointmentDateTime, $durationMinutes)
+            && !Scheduling::staffHasConflict($pdo, (int) $candidate['id'], $appointmentDateTime, $durationMinutes)) {
             $employee = $candidate;
             break;
         }

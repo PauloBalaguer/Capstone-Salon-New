@@ -103,8 +103,8 @@ final class GuestAccountClaim
 
         if ($record) {
             // The account's email takes over from any email typed for a guest booking.
-            $pdo->prepare('UPDATE customers SET user_id = ?, first_name = ?, last_name = ?, notify_sms = ?, email = NULL WHERE id = ?')
-                ->execute([$claim['user_id'], $claim['first_name'], $claim['last_name'], $claim['notify_sms'], $record['id']]);
+            $pdo->prepare('UPDATE customers SET user_id = ?, first_name = ?, middle_name = ?, last_name = ?, notify_sms = ?, email = NULL WHERE id = ?')
+                ->execute([$claim['user_id'], $claim['first_name'], $claim['middle_name'] ?? null, $claim['last_name'], $claim['notify_sms'], $record['id']]);
         } else {
             self::createCustomer($pdo, $claim, $claim['phone_number']);
         }
@@ -124,8 +124,8 @@ final class GuestAccountClaim
 
     private static function createCustomer(PDO $pdo, array $claim, string $phone): void
     {
-        $pdo->prepare('INSERT INTO customers (user_id, first_name, last_name, phone_number, notify_sms) VALUES (?, ?, ?, ?, ?)')
-            ->execute([$claim['user_id'], $claim['first_name'], $claim['last_name'], $phone, $claim['notify_sms']]);
+        $pdo->prepare('INSERT INTO customers (user_id, first_name, middle_name, last_name, phone_number, notify_sms) VALUES (?, ?, ?, ?, ?, ?)')
+            ->execute([$claim['user_id'], $claim['first_name'], $claim['middle_name'] ?? null, $claim['last_name'], $phone, $claim['notify_sms']]);
     }
 
     private static function activate(PDO $pdo, array $claim): void

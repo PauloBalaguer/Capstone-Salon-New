@@ -1,0 +1,53 @@
+/* Shared color theme for every role (Admin, Cashier, Staff, Customer, Landing/Guest, Auth).
+   Load this first on every page. Role files alias their own variables to these tokens. */
+:root {
+  --brand: #16604B;          /* primary buttons, links, active states */
+  --brand-dark: #0E3B2F;     /* hover, top bar, dark accents */
+  --brand-deep: #0A2E24;     /* sidebar / drawer */
+  --brand-soft: #DDF0E6;     /* selected rows, badges, hover bg */
+  --brand-softer: #EEF7F2;   /* subtle tints */
+  --accent: #E0B84C;         /* gold: one highlight per screen; text on gold is always dark */
+  --accent-soft: #FAF2DC;
+  --accent-ink: #6C4C09;     /* gold used as text, 7.03:1 on --bg */
+  --bg: #F6F8F7;
+  --card: #FFFFFF;
+  --border: #E2E7E3;
+  --border-strong: #CDD6D0;
+  --text: #18261F;
+  --text-body-color: #38443E; /* 9.54:1 on --bg */
+  --muted: #4A5751;          /* AAA: 7.10:1 on --bg, 7.57:1 on --card */
+  --danger: #9C1E15;   --danger-soft: #FDECEA;
+  --success: #115C39;  --success-soft: #E6F4EC;
+  --warn: #774800;     --warn-soft: #FFF3D6;
+  --info: #1A547A;     --info-soft: #E6F0F8;
+  /* Text on green fills (--brand, --brand-dark, --brand-deep). --on-brand-muted only on --brand-dark/--brand-deep. */
+  --on-brand: #FFFFFF;       /* 7.48:1 on --brand, 12.46:1 on --brand-dark */
+  --on-brand-muted: #DCEBE2; /* 10.1:1 on --brand-dark, 11.9:1 on --brand-deep */
+}
+
+/* Dark mode (landing page toggles .dark on <html>). Same token names, dark values.
+   --brand is a light green here (text, icons, focus rings, selected chips with dark text);
+   --brand-dark is the green used for primary button fills with white text (7.17:1). */
+.dark {
+  --brand: #7DD3A6;          /* 9.10:1 on --card */
+  --brand-dark: #17634D;     /* primary fills, white text 7.17:1 */
+  --brand-deep: #0A2E24;     /* dark text on light-green / gold fills */
+  --brand-soft: #173A2D;     /* selected rows, badges, hover bg */
+  --brand-softer: #11261E;   /* input surface, subtle tints */
+  --accent: #E0B84C;         /* gold stays; dark text on gold fills */
+  --accent-soft: #3A3018;
+  --accent-ink: #ECD18F;     /* gold used as text */
+  --bg: #07130E;             /* deep green-black, darker than light --brand-deep */
+  --card: #10241B;
+  --border: #24392F;
+  --border-strong: #5B7A69;  /* input borders, 3.44:1 on --card */
+  --text: #E8F0EB;
+  --text-body-color: #C5D3CA;
+  --muted: #A3B6AB;          /* 7.62:1 on --card, 7.45:1 on --brand-softer */
+  --danger: #F4A097;   --danger-soft: #3A1A17;
+  --success: #86D7AE;  --success-soft: #12301F;
+  --warn: #F2C46B;     --warn-soft: #3A2C10;
+  --info: #93C5EC;     --info-soft: #12293A;
+  --on-brand: #FFFFFF;
+  --on-brand-muted: #DCEBE2;
+}

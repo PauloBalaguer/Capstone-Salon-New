@@ -63,14 +63,14 @@ async function renderMyPayments() {
           <span class="block text-xs text-slate-500 truncate">${escapeHtml(r.type === 'Checkout' ? (r.invoiceId || 'Checkout') : 'Reservation')} · ${escapeHtml(methodLabel(r.method))}</span>
         </span>
         <span class="font-bold text-slate-900 whitespace-nowrap">${CashierApp.formatCurrency(r.amount)}</span>
-      </div>`).join('') + (mine.length > 8 ? `<a href="payment.html" class="block px-5 py-3 text-sm font-bold text-[#06464A] hover:underline">See all ${mine.length}</a>` : '')
+      </div>`).join('') + (mine.length > 8 ? `<a href="payment.html" class="block px-5 py-3 text-sm font-bold text-teal-700 hover:underline">See all ${mine.length}</a>` : '')
       : `<div class="py-10 text-center px-4">
           <i class="fa-solid fa-receipt text-3xl text-gray-300 mb-2 block"></i>
           <p class="text-sm text-slate-500">You have not taken any payments today.</p>
         </div>`;
   } catch (e) {
     console.error(e);
-    list.innerHTML = '<p class="py-8 text-center text-sm text-rose-700">Could not load your payments. Refresh to try again.</p>';
+    list.innerHTML = '<p class="py-8 text-center text-sm text-[color:var(--danger)]">Could not load your payments. Refresh to try again.</p>';
   }
 }
 

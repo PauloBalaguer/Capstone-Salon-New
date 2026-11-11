@@ -1,51 +1,117 @@
 @import url("../../frontend/shared/brand-palette.css?v=20261103b");
 /* Public booking, payment and landing pages share theme-aware readable text. */
-:root { --public-muted: 71 85 105; --public-control-border: #8B8174; }
-.dark { --public-muted: 199 211 209; --public-control-border: #819A96; }
+:root { --public-muted: 74 87 81; /* --muted (#4A5751) */ --public-control-border: var(--muted); }
+.dark { --public-muted: 163 182 171; --public-control-border: var(--border-strong); } /* --muted (dark) */
 :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) { border-color: var(--public-control-border); }
-:is(input,textarea)::placeholder { color: rgb(var(--public-muted)); opacity: 1; }
+html :is(input,textarea)::placeholder { color: rgb(var(--public-muted)); opacity: 1; }
 :focus-visible { outline: 3px solid rgb(var(--c-plum)); outline-offset: 3px; }
-::selection { color: #222222; background: #E0B84C; }
+::selection { color: var(--text); background: var(--accent); }
 .text-copper { color: rgb(var(--c-copper-dark)); }
-.bg-copper { color: #222222; }
+.bg-copper { color: var(--text); }
 .bg-copper :is(.text-white, .text-ink) { color: inherit; }
-.bg-plum { background-color: #006D6F; color: #FFFDF9; }
-.bg-plum :is(.text-copper, .text-copper-dark) { color: #FAF2DC; }
-.hover\:bg-plum:hover { background-color: #006D6F; color: #FFFDF9; }
-.svc-grp.on .svc-grp-sub { color: #FFFDF9; }
-.branch-card.on .branch-card-note { color: #FFFDF9; }
+.bg-plum { background-color: var(--brand); color: var(--card); }
+html .bg-plum :is(.text-copper, .text-copper-dark) { color: var(--on-brand); } /* pale gold was 6.7:1 on --brand */
+.hover\:bg-plum:hover { background-color: var(--brand); color: var(--card); }
+.svc-grp.on .svc-grp-sub { color: var(--card); }
+.branch-card.on .branch-card-note { color: var(--card); }
 .staff-status-badge { color: rgb(var(--public-muted)); }
-.dark :is(.text-emerald-600,.text-emerald-700,.text-green-600,.text-green-700) { color: #86EFAC; }
-.dark :is(.text-rose-600,.text-rose-700,.text-red-600,.text-red-700) { color: #FDA4AF; }
-.dark :is(.text-amber-600,.text-amber-700) { color: #FCD34D; }
-.dark :is([class~="text-[#15803D]"],[class~="text-[#166534]"]) { color: #86EFAC; }
-.dark :is([class~="text-[#9F1239]"],[class~="text-[#881337]"]) { color: #FDA4AF; }
-.dark .branch-card.on :is(.branch-card-note,.branch-card-flag) { color: #0D1616; }
-[class~="text-ink/20"] { color: rgb(var(--public-muted)); }
-[class~="text-ink/25"] { color: rgb(var(--public-muted)); }
-[class~="text-ink/30"] { color: rgb(var(--public-muted)); }
-[class~="text-ink/35"] { color: rgb(var(--public-muted)); }
-[class~="text-ink/40"] { color: rgb(var(--public-muted)); }
-[class~="text-ink/45"] { color: rgb(var(--public-muted)); }
-[class~="text-ink/50"] { color: rgb(var(--public-muted)); }
-[class~="text-ink/55"] { color: rgb(var(--public-muted)); }
-[class~="text-ink/60"] { color: rgb(var(--public-muted)); }
-[class~="text-ink/65"] { color: rgb(var(--public-muted)); }
-[class~="text-white/30"] { color: #FFFDF9; }
-[class~="text-white/40"] { color: #FFFDF9; }
-[class~="text-white/50"] { color: #FFFDF9; }
-[class~="text-white/55"] { color: #FFFDF9; }
-[class~="text-white/60"] { color: #FFFDF9; }
-[class~="text-white/65"] { color: #FFFDF9; }
-[class~="text-white/70"] { color: #FFFDF9; }
-[class~="text-white/75"] { color: #FFFDF9; }
-[class~="text-white/80"] { color: #FFFDF9; }
-[class~="text-white/85"] { color: #FFFDF9; }
+.dark :is(.text-emerald-600,.text-emerald-700,.text-green-600,.text-green-700) { color: var(--success); }
+.dark :is(.text-rose-600,.text-rose-700,.text-red-600,.text-red-700) { color: var(--danger); }
+.dark :is(.text-amber-600,.text-amber-700) { color: var(--warn); }
+.dark :is([class~="text-[color:var(--success)]"]) { color: var(--success); }
+.dark :is([class~="text-[color:var(--danger)]"]) { color: var(--danger); }
+.dark .branch-card.on :is(.branch-card-note,.branch-card-flag) { color: var(--brand-deep); }
+html [class~="text-ink/20"] { color: rgb(var(--public-muted)); }
+html [class~="text-ink/25"] { color: rgb(var(--public-muted)); }
+html [class~="text-ink/30"] { color: rgb(var(--public-muted)); }
+html [class~="text-ink/35"] { color: rgb(var(--public-muted)); }
+html [class~="text-ink/40"] { color: rgb(var(--public-muted)); }
+html [class~="text-ink/45"] { color: rgb(var(--public-muted)); }
+html [class~="text-ink/50"] { color: rgb(var(--public-muted)); }
+html [class~="text-ink/55"] { color: rgb(var(--public-muted)); }
+html [class~="text-ink/60"] { color: rgb(var(--public-muted)); }
+html [class~="text-ink/65"] { color: rgb(var(--public-muted)); }
+[class~="text-white/30"] { color: var(--card); }
+[class~="text-white/40"] { color: var(--card); }
+[class~="text-white/50"] { color: var(--card); }
+[class~="text-white/55"] { color: var(--card); }
+[class~="text-white/60"] { color: var(--card); }
+[class~="text-white/65"] { color: var(--card); }
+[class~="text-white/70"] { color: var(--card); }
+[class~="text-white/75"] { color: var(--card); }
+[class~="text-white/80"] { color: var(--card); }
+[class~="text-white/85"] { color: var(--card); }
 
-:where(.bg-copper).text-white { color: #222222; }
-:where(.bg-plum) :is([class~="text-ink/50"],[class~="text-ink/60"]) { color: #FFFDF9; }
+:where(.bg-copper).text-white { color: var(--text); }
+html .bg-plum :is([class*="text-ink/"], [class*="text-white/"]) { color: var(--on-brand); }
 :is(button,input,select,textarea):disabled {
   background-color: rgb(var(--c-sand-200)); color: rgb(var(--public-muted));
   border-color: var(--public-control-border); opacity: 1; cursor: not-allowed;
 }
 :focus-visible { outline: 3px solid rgb(var(--c-plum)) !important; outline-offset: 3px; }
+
+/* ---- Dark mode: form controls, focus, faint text (colors only) ---- */
+/* Inputs: dark green surface, light text, visible border (3.36:1), placeholder --muted (7.45:1). */
+.dark :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]), select, textarea) {
+  background-color: var(--brand-softer) !important; color: var(--text) !important; border-color: var(--border-strong);
+}
+.dark :is(input, textarea)::placeholder { color: var(--muted) !important; opacity: 1; }
+.dark :is(input, select, textarea):focus { border-color: var(--brand) !important; }
+.dark :is(input, select, textarea, button, a, [tabindex]):focus-visible { outline-color: var(--brand); --tw-ring-color: rgb(125 211 166 / .6); }
+.dark :is(input[type="checkbox"], input[type="radio"]) { accent-color: var(--brand); }
+.dark :is(input, select, textarea, button):disabled { color: var(--muted) !important; }
+/* Faint helper text: text-ink/20..55 already map to --public-muted above (dark: --muted, 7.62:1 on --card). */
+.dark :is([class~="text-bronze/40"], [class~="text-bronze/50"], [class~="text-bronze/60"], [class~="text-bronze"]) { color: var(--muted); }
+.dark :is(.bk-sum-row dt, .bk-sum-row dd.is-empty, .bk-sum-hint, .bk-aside-note, .bk-service-meta, .bk-branch-meta, .bk-btn-back) { color: var(--text-body-color); }
+/* Gold fills keep dark text in dark mode (--brand-deep on --accent 7.79:1). */
+.dark :is(.bg-copper, .bg-copper.text-white, .ba-chip-after, .ba-tab.on) { color: var(--brand-deep); }
+.dark ::selection { color: var(--brand-deep); background: var(--accent); }
+
+/* ---- AAA text: no alpha on text; solid tiers only (--text > --text-body-color > --muted) ---- */
+html :is([class~="text-ink/80"], [class~="text-ink/85"], [class~="text-ink/90"]) { color: var(--text); }
+html :is([class~="text-ink/60"], [class~="text-ink/65"], [class~="text-ink/70"], [class~="text-ink/75"]) { color: var(--text-body-color); }
+html [class*="text-bronze/"] { color: var(--muted); }
+html :is([class*="text-white/"]) { color: var(--on-brand); }
+html [class*="placeholder:text-ink/"]::placeholder { color: var(--muted); opacity: 1; }
+html [class*="disabled:text-ink/"]:disabled { color: var(--muted); }
+/* Text never fades through opacity; disabled controls rely on --muted text + filled surface instead. */
+html [class*="disabled:opacity-"]:disabled { opacity: 1; }
+html :is(.opacity-70, .opacity-80):not(img):not(svg) { opacity: 1; }
+
+/* Public contrast: keep text above AAA on tinted and image-backed surfaces.
+   These local tokens leave authenticated portals and the type scale unchanged. */
+html body.gw-site {
+  --brand: #104B39;
+  --c-plum: 16 75 57;
+  --muted: #35463C;
+  --public-muted: 53 70 60;
+  --text-body-color: #2B3A31;
+  --danger: #84180F;
+  --accent-ink: #513804;
+  --c-copper-dark: 81 56 4;
+}
+html.dark body.gw-site {
+  --brand: #7DD3A6;
+  --c-plum: 125 211 166;
+  --brand-dark: #104B39;
+  --muted: #C3D5C9;
+  --public-muted: 195 213 201;
+  --text-body-color: #C5D3CA;
+  --danger: #F4A097;
+  --accent-ink: #FFF1CA;
+  --c-copper-dark: 255 241 202;
+}
+html body.gw-site .shimmer-text {
+  background-image: none;
+  color: rgb(var(--c-plum));
+  -webkit-text-fill-color: currentColor;
+}
+html body.gw-site :is(.text-copper, .testi-stars) { color: var(--accent-ink); }
+html body.gw-site .bg-plum :is(.text-copper, .text-copper-dark) { color: #FFFFFF; }
+html body.gw-site footer.bg-plum :is(.text-copper, .text-copper-dark) { color: #F5DFA8 !important; }
+/* opacity-7 has no generated utility; keep the decorative white dots faint. */
+html body.gw-site .opacity-7[aria-hidden="true"] { opacity: .07; }
+html body.gw-site .ba-chip { background: #18261F; color: #FFFFFF; }
+html body.gw-site .ba-chip-after { background: #E0B84C; color: #18261F; }
+html body.gw-site .hero-visual > .bg-copper { color: #07130E; }
+html.dark body.gw-site .mobile-nav-item.is-active { color: #B5E9CE; }

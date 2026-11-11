@@ -109,7 +109,8 @@ try {
         if ($available && $singleStaff) {
             $available = false;
             foreach ($singleCandidates as $employeeId) {
-                if (!Scheduling::staffHasConflict($pdo, (int) $employeeId, $slotDateTime, $durationMinutes)) { $available = true; break; }
+                if (Scheduling::staffCanTakeBooking($pdo, (int) $employeeId, $slotDateTime, $durationMinutes)
+                    && !Scheduling::staffHasConflict($pdo, (int) $employeeId, $slotDateTime, $durationMinutes)) { $available = true; break; }
             }
         }
         // Each service needs a qualified free stylist for its own segment,
@@ -122,7 +123,8 @@ try {
             $staff->execute([$serviceId, $branchId]);
             $free = false;
             foreach ($staff->fetchAll() as $employee) {
-                if (!Scheduling::staffHasConflict($pdo, (int) $employee['id'], $cursor->format('Y-m-d H:i:s'), $minutes)) {
+                if (Scheduling::staffCanTakeBooking($pdo, (int) $employee['id'], $cursor->format('Y-m-d H:i:s'), $minutes)
+                    && !Scheduling::staffHasConflict($pdo, (int) $employee['id'], $cursor->format('Y-m-d H:i:s'), $minutes)) {
                     $free = true;
                     break;
                 }

@@ -1,31 +1,25 @@
 /* Booking modal fixes, loaded after clean-theme.css. */
 
-/* Selected time slot and stylist: teal fill with white text. The id keeps
-   these above hover utilities, which stay active after a tap on phones. */
-#bookSlotGrid .slot-btn.is-selected,
-#bookStaffList .staff-btn.is-selected {
+/* Selected time slot: teal fill with white text. The id keeps this above
+   hover utilities, which stay active after a tap on phones. */
+#bookSlotGrid .slot-btn.is-selected {
   background-color: var(--brand-teal);
   border-color: var(--brand-teal);
   color: #fff;
 }
-#bookStaffList .staff-btn.is-selected :is(span, [class*="text-"]) { color: #fff; }
-#bookStaffList .staff-btn.is-selected [class*="bg-[#16A34A]"] { background-color: #BBF7D0; }
-.dark #bookSlotGrid .slot-btn.is-selected,
-.dark #bookStaffList .staff-btn.is-selected { background-color: rgb(var(--c-plum)); border-color: rgb(var(--c-plum)); color: #0D1616; }
-.dark #bookStaffList .staff-btn.is-selected :is(span, [class*="text-"]) { color: #0D1616; }
+.dark #bookSlotGrid .slot-btn.is-selected { background-color: rgb(var(--c-plum)); border-color: rgb(var(--c-plum)); color: var(--brand-deep); }
 /* Hover tints only on devices that can hover, so a tap does not stick. */
 @media (hover: none) {
   #bookSlotGrid .slot-btn:not(.is-selected):hover,
   #bookStaffList .staff-btn:not(.is-selected):hover { color: rgb(var(--c-ink)); border-color: rgb(var(--c-bronze) / .4); }
 }
-.dark #bookStaffList .staff-btn:not(.is-selected):not([disabled]) { background-color: rgb(var(--c-panel)); }
 
 /* Text-only buttons keep a clear background while disabled (countdowns,
    sending states) instead of the beige fill used for form fields. */
 #bookingModalBox button.btn-text:disabled {
   background-color: transparent;
   border-color: transparent;
-  color: rgb(var(--c-ink) / .5);
+  color: var(--muted);
   text-decoration: none;
 }
 
@@ -56,3 +50,141 @@
 
 /* Code boxes: one teal ring on focus instead of a ring plus outline. */
 #bookingOtpForm .book-otp-digit:focus-visible { outline: none !important; }
+
+/* ================= Guest booking wizard ================= */
+:root { --bk-teal: var(--brand-teal, var(--brand)); }
+.bk-visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; margin: -1px !important; padding: 0 !important; overflow: hidden !important; clip: rect(0 0 0 0) !important; white-space: nowrap !important; border: 0 !important; }
+.bk-invisible { visibility: hidden; }
+
+/* ---------- Single-page layout ----------
+   The modal box is the only scroll container (no nested scrollbars). Phones:
+   full-screen sheet, sections stacked, sticky bottom bar. >=1024px: wide
+   modal, two columns, summary sticky in the right column. */
+#bookingModalBox { overflow-x: hidden; }
+#bookingModalBox.bk-is-form { max-width: 72rem; }
+@media (min-width: 640px) and (max-width: 1023px) { #bookingModalBox { max-width: 44rem; } }
+@media (max-width: 639px) {
+  #bookingModalOverlay { padding: 0; align-items: stretch; }
+  #bookingModalBox { max-width: none; height: 100%; max-height: none; border-radius: 0; padding: 1rem 1rem 0; }
+  #bookingAccessPanel, #bookingReviewPanel, #bookingOtpPanel, #bookingConfirmPanel { padding-bottom: 1rem; }
+}
+
+/* Keep the header's Guest badge clear of the close button. */
+#bookingFormPanel > div:first-child { padding-right: 2.5rem; }
+.bk-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
+.bk-main { display: flex; flex-direction: column; gap: .875rem; min-width: 0; }
+.bk-main > * , .bk-aside { min-width: 0; }
+@media (min-width: 1024px) {
+  .bk-layout { grid-template-columns: minmax(0, 1fr) 21rem; gap: 1.75rem; align-items: start; }
+  .bk-aside { position: sticky; top: 0; }
+}
+
+/* Sections */
+.bk-sec { border: 1px solid rgb(var(--c-bronze) / .35); border-radius: 1rem; padding: 1rem; background: rgb(var(--c-panel)); scroll-margin-top: 1rem; }
+@media (min-width: 640px) { .bk-sec { padding: 1.125rem 1.25rem; } }
+.bk-sec.has-error { border-color: var(--danger); box-shadow: 0 0 0 1px rgb(156 30 21 / .35); }
+.bk-sec-title { display: flex; align-items: center; gap: .625rem; margin: 0 0 .75rem; font-family: var(--font-display, inherit); font-size: 1.125rem; line-height: 1.3; color: rgb(var(--c-ink)); }
+.bk-sec-num { flex: none; width: 1.625rem; height: 1.625rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-family: inherit; font-size: .8rem; font-weight: 700; background: rgb(var(--c-bronze) / .2); color: var(--text-body-color); }
+.bk-sec-done { display: none; margin-left: auto; font-size: .75rem; font-weight: 700; color: var(--bk-teal); }
+.bk-sec.is-complete .bk-sec-num { background: var(--bk-teal); color: #fff; }
+.bk-sec.is-complete .bk-sec-done { display: inline; }
+.dark .bk-sec.is-complete .bk-sec-num { color: var(--brand-deep); }
+.bk-sec-schedule > div + div { margin-top: 1rem; }
+
+/* Summary */
+.bk-aside-card { border: 1px solid rgb(var(--c-bronze) / .4); border-radius: 1rem; padding: 1.125rem; background: rgb(var(--c-sand-100, var(--c-panel))); }
+.bk-aside-title { font-family: var(--font-display, inherit); font-size: 1.125rem; margin: 0 0 .75rem; color: rgb(var(--c-ink)); }
+.bk-sum-list { margin: 0; display: grid; gap: .5rem; font-size: .85rem; }
+.bk-sum-row { display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); gap: .5rem; }
+.bk-sum-row dt { color: var(--muted); }
+.bk-sum-row dd { margin: 0; color: rgb(var(--c-ink)); font-weight: 600; overflow-wrap: anywhere; }
+.bk-sum-row dd.is-empty { color: var(--muted); font-weight: 400; font-style: italic; }
+.bk-sum-services { list-style: none; margin: 0; padding: 0; display: grid; gap: .2rem; }
+.bk-sum-services li { display: flex; justify-content: space-between; gap: .5rem; }
+.bk-sum-services li span:last-child { white-space: nowrap; font-weight: 400; }
+.bk-sum-money { margin: .875rem 0 0; padding-top: .75rem; border-top: 1px dashed rgb(var(--c-bronze) / .5); display: grid; gap: .3rem; font-size: .875rem; }
+.bk-sum-money div { display: flex; justify-content: space-between; gap: .75rem; }
+.bk-sum-money dt { color: var(--text-body-color); }
+.bk-sum-money dd { margin: 0; font-weight: 700; color: rgb(var(--c-ink)); white-space: nowrap; }
+.bk-sum-money .is-paynow dt, .bk-sum-money .is-paynow dd { color: var(--bk-teal); font-size: 1rem; }
+.bk-sum-hint { margin-top: .5rem; font-size: .75rem; color: var(--muted); }
+.bk-btn-block { display: block; width: 100%; margin-top: 1rem; }
+.bk-aside-note { margin-top: .5rem; font-size: .72rem; line-height: 1.4; text-align: center; color: var(--muted); }
+
+/* Mobile/tablet sticky bar: total + submit. Hidden on desktop where the aside is sticky. */
+.bk-mobilebar {
+  position: sticky; bottom: 0; z-index: 5; margin: 0 -1rem; padding: .75rem 1rem calc(.75rem + env(safe-area-inset-bottom));
+  background: rgb(var(--c-panel)); border-top: 1px solid rgb(var(--c-bronze) / .3); box-shadow: 0 -6px 16px -10px rgb(0 0 0 / .25);
+  display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+}
+@media (min-width: 640px) { .bk-mobilebar { bottom: -2.25rem; margin: 0 -2.25rem -2.25rem; padding: 1rem 2.25rem; border-radius: 0 0 1.5rem 1.5rem; } }
+@media (min-width: 1024px) { .bk-mobilebar { display: none; } }
+.bk-mobilebar-total { min-width: 0; font-size: .8rem; line-height: 1.3; color: var(--text-body-color); }
+.bk-mobilebar-total b { display: block; font-size: 1rem; color: var(--bk-teal); }
+.bk-mobilebar .bk-btn-next { flex: none; }
+/* Below desktop the aside's own button is redundant with the sticky bar. */
+@media (max-width: 1023px) { .bk-aside #bookSubmitBtn, .bk-aside-note { display: none; } }
+
+/* Waitlist stylist chips (replace the native dropdown, which stays for main.js) */
+.bk-wait-chips { display: flex; flex-wrap: wrap; gap: .375rem; }
+
+/* Shared selectable-card look */
+.bk-branch-card, .bk-service-card, #bookStaffList .bk-staff-card {
+  position: relative; border: 1.5px solid rgb(var(--c-bronze) / .45); background: rgb(var(--c-panel));
+  border-radius: .875rem; transition: border-color .15s, box-shadow .15s, background-color .15s; text-align: left;
+}
+.bk-branch-card:hover:not([disabled]), .bk-service-card:hover, #bookStaffList .bk-staff-card.is-available:hover { border-color: var(--bk-teal); }
+.bk-branch-card.is-selected, .bk-service-card:has(input:checked), #bookStaffList .bk-staff-card.is-selected {
+  border-color: var(--bk-teal); box-shadow: 0 0 0 1px var(--bk-teal); background: color-mix(in srgb, var(--bk-teal) 7%, rgb(var(--c-panel)));
+}
+.bk-card-check, .bk-staff-check {
+  position: absolute; top: .5rem; right: .5rem; width: 1.25rem; height: 1.25rem; border-radius: 999px;
+  background: var(--bk-teal); color: #fff; font-size: .7rem; font-weight: 700; display: none; align-items: center; justify-content: center;
+}
+.bk-branch-card.is-selected .bk-card-check, #bookStaffList .bk-staff-card.is-selected .bk-staff-check { display: flex; }
+
+/* Branch */
+.bk-branch-grid { display: grid; gap: .5rem; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); }
+.bk-branch-card { padding: .875rem 2rem .875rem 1rem; cursor: pointer; }
+.bk-branch-card[disabled] { opacity: .45; cursor: not-allowed; }
+.bk-branch-name { display: block; font-weight: 700; color: rgb(var(--c-ink)); }
+.bk-branch-meta { display: block; font-size: .75rem; color: var(--text-body-color); margin-top: .125rem; }
+
+/* Services */
+.bk-search { width: 100%; padding: .55rem .875rem; border: 1px solid rgb(var(--c-bronze) / .5); background: rgb(var(--c-panel)); border-radius: .75rem; font-size: .9rem; margin-bottom: .5rem; }
+.bk-search:focus { outline: none; border-color: var(--bk-teal); }
+.bk-chips { display: flex; flex-wrap: wrap; gap: .375rem; margin-bottom: .625rem; }
+.bk-chip { border: 1px solid rgb(var(--c-bronze) / .5); border-radius: 999px; padding: .3rem .75rem; font-size: .75rem; font-weight: 600; color: var(--text-body-color); background: transparent; }
+.bk-chip.is-on { background: var(--bk-teal); border-color: var(--bk-teal); color: #fff; }
+.bk-cat-mobile { display: block; cursor: pointer; }
+.bk-cat-desktop { display: none; }
+.bk-service-grid { display: grid; gap: .5rem; grid-template-columns: 1fr; }
+@media (min-width: 640px) { .bk-service-grid { grid-template-columns: 1fr 1fr; } }
+.bk-service-card { display: flex; align-items: center; gap: .625rem; padding: .5rem .75rem; cursor: pointer; }
+.bk-service-card.hidden { display: none; }
+.bk-service-card:has(input:focus-visible) { outline: 2px solid var(--bk-teal); outline-offset: 2px; }
+.bk-service-tick { flex: none; width: 1.125rem; height: 1.125rem; border-radius: .3rem; border: 1.5px solid rgb(var(--c-bronze) / .7); display: flex; align-items: center; justify-content: center; font-size: .7rem; color: #fff; }
+.bk-service-card:has(input:checked) .bk-service-tick { background: var(--bk-teal); border-color: var(--bk-teal); }
+.bk-service-card:has(input:checked) .bk-service-tick::after { content: "\2713"; font-weight: 700; }
+.bk-service-text { flex: 1; min-width: 0; }
+.bk-service-name { display: block; font-size: .875rem; font-weight: 600; color: rgb(var(--c-ink)); line-height: 1.25; }
+.bk-service-meta { display: block; font-size: .7rem; color: var(--muted); }
+.bk-service-price { font-size: .875rem; font-weight: 700; color: rgb(var(--c-ink)); white-space: nowrap; }
+.bk-more { display: block; width: 100%; margin-top: .5rem; padding: .5rem; border-radius: .75rem; border: 1px dashed rgb(var(--c-bronze) / .6); font-size: .8rem; font-weight: 700; color: var(--bk-teal); background: transparent; }
+.bk-more.hidden { display: none; }
+
+/* Staff: green = available, red = busy (disabled), teal border + check = selected */
+#bookStaffList .bk-staff-card { padding: .75rem .625rem .625rem; font-size: .8rem; text-align: center; color: rgb(var(--c-ink)); display: flex; flex-direction: column; align-items: center; }
+#bookStaffList .bk-staff-card.is-available { border-color: rgb(17 92 57 / .45); cursor: pointer; }
+#bookStaffList .bk-staff-card.is-busy { border-color: rgb(156 30 21 / .35); background: var(--danger-soft); color: var(--danger); cursor: not-allowed; opacity: .85; }
+#bookStaffList .bk-staff-card.is-selected { border-color: var(--bk-teal); }
+.bk-staff-avatar { width: 2.25rem; height: 2.25rem; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .75rem; margin-bottom: .375rem; background: rgb(var(--c-bronze) / .2); color: rgb(var(--c-ink)); }
+.bk-staff-card.is-selected .bk-staff-avatar { background: var(--bk-teal); color: #fff; }
+.dark #bookStaffList .bk-staff-card.is-busy { background: var(--danger-soft); color: var(--danger); }
+
+.bk-btn-back { border-radius: 999px; padding: .7rem 1.1rem; font-weight: 700; font-size: .9rem; color: var(--text-body-color); border: 1px solid rgb(var(--c-ink) / .2); background: transparent; }
+.bk-btn-next { border-radius: 999px; padding: .7rem 1.6rem; font-weight: 700; font-size: .95rem; color: #fff; background: rgb(var(--c-plum)); }
+.bk-btn-next:hover { filter: brightness(1.1); }
+.dark .bk-btn-next { background: var(--brand-dark); color: #FFFFFF; }
+.dark .bk-chip.is-on, .dark .bk-card-check, .dark .bk-staff-check, .dark .bk-staff-card.is-selected .bk-staff-avatar { color: var(--brand-deep); }
+.dark .bk-service-card:has(input:checked) .bk-service-tick { color: var(--brand-deep); }

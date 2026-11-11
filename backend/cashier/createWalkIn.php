@@ -157,6 +157,12 @@ try {
         echo json_encode(['success' => false, 'message' => 'Selected stylist already has an overlapping booking right now. Choose another stylist.']);
         exit();
     }
+    if (!Scheduling::staffCanTakeBooking($pdo, $stylistId, $now, $durationMinutes)) {
+        $pdo->rollBack();
+        http_response_code(409);
+        echo json_encode(['success' => false, 'message' => 'Selected stylist is not on shift right now (off shift or on a break). Choose another stylist.']);
+        exit();
+    }
 
     $stmt = $pdo->prepare('SELECT id FROM customers WHERE phone_number = ?');
     $stmt->execute([$clientPhone]);

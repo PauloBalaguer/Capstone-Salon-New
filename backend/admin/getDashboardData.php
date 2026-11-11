@@ -16,12 +16,14 @@
 
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
+require_once '../../backend/shared/config/booking/ServiceGroup.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/helpers/LoyaltyTier.php';
 require_once '../../backend/shared/config/helpers/StaffMetrics.php';
 require_once '../../backend/shared/config/payments/RevenueReport.php';
 require_once '../../backend/shared/config/booking/Scheduling.php';
 require_once '../../backend/shared/config/helpers/StaffShift.php';
+require_once __DIR__ . '/../../backend/shared/config/helpers/Schema.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -48,6 +50,12 @@ try {
         Scheduling::autoCloseBranchAttendance($pdo, (int) $branchIdToSettle);
     }
     $revenueTotals = RevenueReport::totals($pdo);
+    // Migration 062 columns are optional: safe defaults until it is applied.
+    $offersSql = Schema::select($pdo, 'branches', 'offers_home_service', 'br.offers_home_service', 'offersHomeService', '1');
+    $apFollowSql = Schema::select($pdo, 'appointments', 'needs_followup', 'a.needs_followup', 'needsFollowup');
+    $hsFollowSql = Schema::select($pdo, 'home_service_requests', 'needs_followup', 'h.needs_followup', 'needsFollowup');
+    $wpReturnSql = Schema::select($pdo, 'wedding_packages', 'return_travel_minutes', 'return_travel_minutes', 'return_travel_minutes');
+    $edReturnSql = Schema::select($pdo, 'event_type_durations', 'return_travel_minutes', 'return_travel_minutes', 'return_travel_minutes');
     $stmt = $pdo->query("
         SELECT
             br.id, br.branch_key AS branchKey, br.branch_name AS name,
@@ -55,6 +63,7 @@ try {
             br.opening_time AS openingTime, br.closing_time AS closingTime,
             br.sunday_opening_time AS sundayOpeningTime, br.sunday_closing_time AS sundayClosingTime,
             br.slot_limit AS slotLimit,
+            {$offersSql},
             0 AS revenue,
             (SELECT ROUND(AVG(f.rating), 1) FROM feedback f
                 JOIN appointments ap2 ON ap2.id = f.appointment_id
@@ -76,6 +85,7 @@ try {
             'rating' => $row['rating'] !== null ? (float) $row['rating'] : 0,
             'ratingCount' => (int) $row['ratingCount'],
             'slotLimit' => (int) $row['slotLimit'],
+            'offersHomeService' => (bool) $row['offersHomeService'],
             'openingTime' => substr($row['openingTime'], 0, 5),
             'closingTime' => substr($row['closingTime'], 0, 5),
             'sundayOpeningTime' => $row['sundayOpeningTime'] ? substr($row['sundayOpeningTime'], 0, 5) : '',
@@ -102,6 +112,7 @@ try {
             a.appointment_datetime AS startDateTime,
             COALESCE(SUM(s.duration_minutes), 0) AS durationMinutes,
             a.status AS status,
+            {$apFollowSql},
             a.payment_status AS paymentStatus,
             EXISTS (SELECT 1 FROM payments p WHERE p.appointment_id = a.id AND p.status = 'Paid') AS checkoutPaid,
             (SELECT COALESCE(SUM(p.amount), 0) FROM payments p WHERE p.appointment_id = a.id AND p.status = 'Paid')
@@ -179,6 +190,9 @@ try {
             DATE_FORMAT(h.preferred_date, '%Y-%m-%d') AS date,
             DATE_FORMAT(h.preferred_time, '%h:%i %p') AS time,
             h.status AS status,
+            {$hsFollowSql},
+            hb.branch_key AS homeBranchKey,
+            hb.branch_name AS homeBranchName,
             h.payment_status AS paymentStatus,
             h.deposit_amount AS depositAmount,
             h.deposit_method AS paymentMethod,
@@ -187,6 +201,7 @@ try {
         FROM home_service_requests h
         JOIN customers c ON c.id = h.customer_id
         LEFT JOIN employees e ON e.id = h.employee_id
+        LEFT JOIN branches hb ON hb.id = h.branch_id
         $homeServiceWhere
         ORDER BY h.submitted_at DESC, h.reference_code DESC
     ");
@@ -203,6 +218,13 @@ try {
             'customerId' => (string) $row['customerId'],
             'customerType' => $row['isRegistered'] ? 'Registered' : 'Guest',
             'branchId' => null,
+            // Responsible branch (migration 062). Older rows: "Branch not set" for Admin to fix.
+            'homeBranchKey' => $row['homeBranchKey'],
+            'homeBranchName' => $row['homeBranchName'] ?: 'Branch not set',
+            'needsFollowup' => $row['needsFollowup'],
+            // No stylist yet: shown as "Pending assignment"; it reserves nobody.
+            'assignmentLabel' => $row['staffId'] === null && !$row['teamIds'] ? 'Pending assignment'
+                : (in_array($row['status'], ['Confirmed', 'Staff Assigned', 'Service in Progress', 'Completed'], true) ? 'Assigned' : 'Pre-assigned (not reserved until Confirmed)'),
             'clientName' => $row['clientName'],
             'clientPhone' => $row['clientPhone'],
             'serviceName' => $row['eventType'],
@@ -254,6 +276,7 @@ try {
         SELECT
             e.id,
             CONCAT(e.first_name, ' ', e.last_name) AS name,
+            e.first_name AS firstName, e.middle_name AS middleName, e.last_name AS lastName,
             br.branch_key AS branchId,
             e.position AS role, ue.email AS email,
             (SELECT COUNT(*) FROM appointments ap WHERE " . StaffMetrics::worksOnSql('ap', 'e.id') . " AND ap.status IN " . StaffMetrics::FINISHED_STATUSES_SQL . ") AS completedCount,
@@ -274,20 +297,25 @@ try {
         WHERE e.is_active = 1
         ORDER BY e.id
     ");
-    // Live status: the shared rule in StaffShift::liveStatusSql() (On Shift /
-    // On Break / Busy / Off Shift), the same one the Cashier panel and the
-    // public roster use.
+    // Live status: the shared rule in StaffShift::liveStatusSql() -- a stable
+    // key (available / busy / busy_home_service / on_break / off_shift) plus
+    // its label and dot colour -- the same one every other panel uses.
     $staffList = array_map(function ($row) {
         $status = $row['liveStatus'];
         return [
             'id' => (string) $row['id'],
             'name' => $row['name'],
+            'firstName' => $row['firstName'],
+            'middleName' => $row['middleName'] ?? '',
+            'lastName' => $row['lastName'],
             'branchId' => $row['branchId'],
             'role' => $row['role'],
             'email' => $row['email'],
             'completedCount' => (int) $row['completedCount'],
             'rating' => $row['avgRating'] !== null ? (float) $row['avgRating'] : 0,
             'status' => $status,
+            'statusLabel' => StaffShift::statusLabel($status),
+            'statusColor' => StaffShift::statusColor($status),
             'attendance' => StaffMetrics::attendanceRate((int) $row['attendanceDays'], (int) $row['branchOpenDays']),
             'missedSignOuts' => (int) $row['missedSignOuts'],
             'serviceIds' => $row['serviceIdsRaw'] ? explode(',', $row['serviceIdsRaw']) : [],
@@ -371,7 +399,7 @@ try {
     $stmt = $pdo->query("
         SELECT id, package_name AS packageName, price, reservation_fee AS reservationFee,
                features, style, display_order AS displayOrder, is_active AS active,
-               travel_minutes, setup_minutes, service_minutes, durations_confirmed
+               travel_minutes, setup_minutes, service_minutes, {$wpReturnSql}, durations_confirmed
         FROM wedding_packages
         ORDER BY display_order, id
     ");
@@ -380,6 +408,8 @@ try {
         'travelMinutes' => $row['travel_minutes'] !== null ? (int) $row['travel_minutes'] : null,
         'setupMinutes' => $row['setup_minutes'] !== null ? (int) $row['setup_minutes'] : null,
         'serviceMinutes' => $row['service_minutes'] !== null ? (int) $row['service_minutes'] : null,
+        // Blank = same as travel (Scheduling::homeServiceDurations).
+        'returnTravelMinutes' => $row['return_travel_minutes'] !== null ? (int) $row['return_travel_minutes'] : null,
         'durationsConfirmed' => (bool) $row['durations_confirmed'],
     ];
     $weddingPackages = array_map(function ($row) use ($durationFields) {
@@ -395,10 +425,10 @@ try {
         ] + $durationFields($row);
     }, $stmt->fetchAll());
 
-    $stmt = $pdo->query('
-        SELECT event_type, travel_minutes, setup_minutes, service_minutes, durations_confirmed
+    $stmt = $pdo->query("
+        SELECT event_type, travel_minutes, setup_minutes, service_minutes, {$edReturnSql}, durations_confirmed
         FROM event_type_durations ORDER BY display_order, event_type
-    ');
+    ");
     $eventDurations = array_map(fn($row) => ['eventType' => $row['event_type']] + $durationFields($row), $stmt->fetchAll());
 
     $stmt = $pdo->query("
@@ -454,7 +484,8 @@ try {
             (SELECT COUNT(*) FROM loyalty_stamps ls WHERE ls.customer_id = c.id) AS loyaltyStamps,
             (SELECT COUNT(*) FROM loyalty_rewards lr WHERE lr.customer_id = c.id AND lr.redeemed_at IS NULL) AS availableRewards,
             GROUP_CONCAT(DISTINCT br.branch_key) AS branchKeys,
-            COUNT(a.id) AS visits,
+            SUM(CASE WHEN a.status = 'Completed' THEN 1 ELSE 0 END) AS visits,
+            COUNT(a.id) AS bookings,
             SUM(CASE WHEN " . LoyaltyTier::VISIT_CONDITION . " THEN 1 ELSE 0 END) AS recentVisits,
             COALESCE(SUM(CASE WHEN a.status = 'Completed' THEN a.total_price ELSE 0 END), 0) AS totalSpent,
             MAX(a.appointment_datetime) AS lastVisitRaw
@@ -462,7 +493,7 @@ try {
         JOIN appointments a ON a.customer_id = c.id
         LEFT JOIN branches br ON br.id = a.branch_id
         GROUP BY c.id
-        ORDER BY visits DESC
+        ORDER BY lastVisitRaw DESC
     ");
     $customerDirectory = array_map(function ($row) {
         return [
@@ -476,7 +507,10 @@ try {
             // guess or a label applied to everyone alike.
             'accountType' => $row['isRegistered'] ? 'Registered' : 'Guest',
             'branchIds' => $row['branchKeys'] ? explode(',', $row['branchKeys']) : [],
+            // Completed visits (the same bookings Total spending counts);
+            // bookings = every booking, including pending and cancelled.
             'visits' => (int) $row['visits'],
+            'bookings' => (int) $row['bookings'],
             'loyaltyPoints' => (int) $row['loyaltyPoints'],
             'loyaltyStamps' => (int) $row['loyaltyStamps'] % 10,
             'availableRewards' => (int) $row['availableRewards'],
@@ -511,7 +545,7 @@ try {
     ];
 
     $stmt = $pdo->query("
-        SELECT br.branch_key, sv.id, sv.service_name AS name, sv.price
+        SELECT br.branch_key, sv.id, sv.service_name AS name, sv.price, sv.category
         FROM services sv
         JOIN branches br ON br.id = sv.branch_id
         WHERE sv.is_active = 1
@@ -524,6 +558,7 @@ try {
             'id' => (string) $row['id'],
             'name' => $row['name'],
             'price' => (float) $row['price'],
+            'group' => serviceDisplayGroup((string) $row['category'], (string) $row['name']),
         ];
     }
 
@@ -544,6 +579,8 @@ try {
             'name' => $row['name'],
             'description' => $row['description'],
             'category' => $row['category'],
+            // Simple group (Hair Services, Nails & Spa...), same as the guest page.
+            'group' => serviceDisplayGroup((string) $row['category'], (string) $row['name']),
             'durationMinutes' => (int) $row['durationMinutes'],
             'durationLabel' => $row['durationLabel'],
             'price' => (float) $row['price'],

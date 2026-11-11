@@ -2,8 +2,7 @@
 
 /**
  * Shared by saveStaff.php and saveCashier.php: issues an account-setup
- * token for a newly-created user and emails the link, in place of the old
- * generate-and-return-a-temp-password flow. See migration 037 for the
+ * token for a newly-created user and emails the link. See migration 037 for the
  * `account_setup_tokens` table this reads and writes.
  */
 final class AccountSetup

@@ -1,0 +1,19 @@
+/* Scoped additions using the Customer Portal's existing tokens. */
+.cp-tracking-panel { background: var(--card); color: var(--text); border: 1px solid var(--border); border-radius: 16px; padding: clamp(16px, 3vw, 24px); display: grid; gap: 16px; scroll-margin-top: 90px; }
+.cp-tracking-panel h2 { font-size: 1.25rem; font-weight: 700; }
+.cp-tracking-panel h3 { font-weight: 700; }
+.cp-tracking-panel p, .cp-tracking-panel dt { color: var(--muted); font-size: .875rem; }
+.cp-tracking-search { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end; }
+.cp-tracking-search label { display: block; font-size: .875rem; font-weight: 600; margin-bottom: 6px; }
+.cp-tracking-search input { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); }
+.cp-tracking-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 24px; }
+.cp-tracking-fields dd { margin-top: 4px; overflow-wrap: anywhere; font-size: .875rem; font-weight: 600; }
+.cp-tracking-steps { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 8px; padding: 0; }
+.cp-tracking-steps li { padding: 12px; border-top: 3px solid var(--border); border-radius: 8px; font-size: .8rem; display: grid; gap: 6px; color: var(--muted); }
+.cp-tracking-steps li.is-current { border-color: var(--brand); background: var(--brand-softer); color: var(--brand); }
+.cp-tracking-dot { width: 12px; height: 12px; border: 2px solid currentColor; border-radius: 50%; }
+.cp-tracking-steps .is-current .cp-tracking-dot { background: currentColor; }
+.cp-tracking-panel :focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+.cp-tracking-panel [role="alert"] { color: var(--danger); }
+@media (max-width: 640px) { .cp-tracking-search, .cp-tracking-fields { grid-template-columns: 1fr; } .cp-tracking-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (prefers-reduced-motion: reduce) { .stagger-item { animation: none; } }

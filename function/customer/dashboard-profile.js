@@ -58,7 +58,9 @@ function customerProfileMixin() {
     saveProfile() {
       const formData = new FormData();
       if (!AddressForms.prepare('profile-address', formData)) return;
-      formData.append('name', this.customerProfile.name);
+      for (const field of ['firstName', 'middleName', 'lastName']) {
+        formData.append(field, (this.customerProfile[field] || '').trim());
+      }
       formData.append('email', this.customerProfile.email);
       formData.append('phone', this.customerProfile.phone);
       formData.append('notifyEmail', this.customerProfile.notificationPrefs.email ? '1' : '0');
@@ -73,6 +75,7 @@ function customerProfileMixin() {
             this.pushToast('error', body.message || 'Could not save your profile.');
             return;
           }
+          if (body.nameProfile) Object.assign(this.customerProfile, body.nameProfile);
           if (body.addressProfile) {
             Object.assign(this.customerProfile, body.addressProfile);
             AddressForms.setSaved(this.customerProfile);

@@ -37,20 +37,27 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $staffId = (int) ($_POST['id'] ?? 0);
-$name = trim($_POST['name'] ?? '');
+// First / middle (optional, empty = N/A) / last, like the guest and customer
+// forms. An older client may still send one "name"; split it as before.
+$firstName = trim(preg_replace('/\s+/', ' ', $_POST['firstName'] ?? ''));
+$middleName = trim(preg_replace('/\s+/', ' ', $_POST['middleName'] ?? ''));
+$lastName = trim(preg_replace('/\s+/', ' ', $_POST['lastName'] ?? ''));
+if ($firstName === '' && $lastName === '' && trim($_POST['name'] ?? '') !== '') {
+    [$firstName, $lastName] = array_pad(explode(' ', trim($_POST['name']), 2), 2, '');
+}
+$name = trim($firstName . ' ' . $lastName);
 $branchKey = trim($_POST['branchId'] ?? '');
 $role = trim($_POST['role'] ?? '');
 $email = trim($_POST['email'] ?? '');
 $phone = trim($_POST['phone'] ?? '');
 $serviceIds = array_values(array_unique(array_filter(array_map('intval', (array) ($_POST['services'] ?? [])))));
 
-if ($name === '' || $branchKey === '' || $role === '') {
+if ($firstName === '' || $lastName === '' || $branchKey === '' || $role === '') {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Name, branch, and role are required.']);
+    echo json_encode(['success' => false, 'message' => 'First name, last name, branch, and role are required.']);
     exit();
 }
-
-[$firstName, $lastName] = array_pad(explode(' ', $name, 2), 2, '');
+$middleName = $middleName !== '' ? $middleName : null;
 
 try {
     $pdo = Database::getInstance();
@@ -87,8 +94,8 @@ try {
 
         $pdo->beginTransaction();
 
-        $pdo->prepare('UPDATE employees SET first_name = ?, last_name = ?, position = ?, branch_id = ? WHERE id = ?')
-            ->execute([$firstName, $lastName, $role, $branchId, $staffId]);
+        $pdo->prepare('UPDATE employees SET first_name = ?, middle_name = ?, last_name = ?, position = ?, branch_id = ? WHERE id = ?')
+            ->execute([$firstName, $middleName, $lastName, $role, $branchId, $staffId]);
 
         $pdo->prepare('DELETE FROM staff_services WHERE employee_id = ?')->execute([$staffId]);
         if (!empty($serviceIds)) {
@@ -149,8 +156,8 @@ try {
         ->execute([$roleId, $email, $unusablePassword]);
     $newUserId = $pdo->lastInsertId();
 
-    $pdo->prepare('INSERT INTO employees (user_id, first_name, last_name, phone_number, position, branch_id, hire_date) VALUES (?, ?, ?, ?, ?, ?, CURDATE())')
-        ->execute([$newUserId, $firstName, $lastName, $phone, $role, $branchId]);
+    $pdo->prepare('INSERT INTO employees (user_id, first_name, middle_name, last_name, phone_number, position, branch_id, hire_date) VALUES (?, ?, ?, ?, ?, ?, ?, CURDATE())')
+        ->execute([$newUserId, $firstName, $middleName, $lastName, $phone, $role, $branchId]);
     $newEmployeeId = $pdo->lastInsertId();
 
     if (!empty($serviceIds)) {

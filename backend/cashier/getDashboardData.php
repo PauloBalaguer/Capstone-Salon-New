@@ -8,8 +8,7 @@
  * database/migrations/007_cashier_branch_lock.sql). This
  * endpoint enforces that lock server-side: a Cashier only ever receives
  * their own branch's bookings/staff/inventory/services/EOD snapshot, never
- * the other branches', regardless of what the old client-side branch
- * switcher used to let them view. Admin accounts have no branch_id
+ * the other branches'. Admin accounts have no branch_id
  * and default to viewing the first active branch (Daraga) -- they have
  * their own cross-branch view in frontend/admin/*, so this page doesn't need
  * to support switching for them either.
@@ -25,6 +24,7 @@ require_once '../../backend/shared/config/booking/Scheduling.php';
 require_once '../../backend/shared/config/booking/ArrivalRequest.php';
 require_once '../../backend/shared/config/helpers/StaffMetrics.php';
 require_once '../../backend/shared/config/helpers/StaffShift.php';
+require_once '../../backend/shared/config/booking/ServiceGroup.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -130,8 +130,9 @@ try {
     }, $stmt->fetchAll());
 
     // --- Staff (rating/completedCount/attendance computed like the admin
-    // panel; tips are cashier-specific). Availability ("On Shift"/"Busy
-    // until"/"Off Shift") is derived from real attendance + today's
+    // panel; tips are cashier-specific). Availability ("Available now" /
+    // "Busy until" / "Busy · Home service until" / "On break" / "Off shift")
+    // is derived from real attendance, confirmed home visits + today's
     // appointments, not a cashier-editable status field -- see
     // backend/cashier/updateStaffStatus.php (now Admin-only) and
     // Scheduling::autoCloseAttendance for why shift_status is no longer the
@@ -208,12 +209,14 @@ try {
         // Admin panel and public roster; "until" comes from the same busy
         // windows that block bookings (per-service parts + cleaning buffer).
         $status = $row['liveStatus'];
-        $onShift = $status !== StaffShift::STATUS_OFF;
-        if ($status === StaffShift::STATUS_BUSY) {
+        // Clocked in at the salon (available, with a client or on a break).
+        $onShift = in_array($status, StaffShift::CLOCKED_IN_STATUSES, true);
+        if ($status === StaffShift::STATUS_BUSY || $status === StaffShift::STATUS_BUSY_HOME) {
             $until = Scheduling::staffBusyUntilNow($pdo, (int) $row['id']);
-            $availability = $until ? 'Busy until ' . $until->format('h:i A') : ($busyUntil ? "Busy until {$busyUntil}" : 'Busy');
+            $label = StaffShift::statusLabel($status);
+            $availability = $until ? $label . ' until ' . $until->format('h:i A') : ($busyUntil ? "{$label} until {$busyUntil}" : $label);
         } else {
-            $availability = $status;
+            $availability = StaffShift::statusLabel($status);
         }
 
         return [
@@ -223,6 +226,8 @@ try {
             'role' => $row['role'],
             'onShift' => $onShift,
             'status' => $status,
+            'statusLabel' => StaffShift::statusLabel($status),
+            'statusColor' => StaffShift::statusColor($status),
             'clockInTime' => $row['clockInTime'],
             'availability' => $availability,
             'todaysWorkload' => $todaysWorkload,
@@ -254,7 +259,10 @@ try {
     }, $stmt->fetchAll());
 
     $stmt = $pdo->prepare("
-        SELECT sv.id, sv.service_name AS name, sv.price
+        SELECT sv.id, sv.service_name AS name, sv.price, sv.category,
+               sv.duration_minutes AS durationMinutes,
+               (SELECT COUNT(*) FROM appointment_services aps JOIN appointments ap ON ap.id = aps.appointment_id
+                WHERE aps.service_id = sv.id AND ap.status <> 'Cancelled') AS bookingCount
         FROM services sv
         WHERE sv.is_active = 1 AND sv.branch_id = ?
         ORDER BY sv.id
@@ -264,6 +272,10 @@ try {
         $myBranchKey => array_map(function ($row) {
             $row['id'] = (string) $row['id'];
             $row['price'] = (float) $row['price'];
+            $row['durationMinutes'] = (int) $row['durationMinutes'];
+            $row['bookingCount'] = (int) $row['bookingCount'];
+            $row['bestSeller'] = (bool) preg_match('/best ?sell/i', (string) $row['category']);
+            $row['group'] = serviceDisplayGroup((string) $row['category'], (string) $row['name']);
             return $row;
         }, $stmt->fetchAll()),
     ];

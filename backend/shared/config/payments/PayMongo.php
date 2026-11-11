@@ -597,6 +597,8 @@ final class PayMongo
                 "Your {$peso} reservation fee for home service {$reference} was received{$via}. Status: Reservation Payment Received.");
             CustomerNotifier::notify($pdo, (int) $request['customer_id'], 'CONFIRMED',
                 "Your home service request {$reference} is now Confirmed. We'll let you know once a stylist is assigned.");
+            // A team pre-assigned before payment hears about the visit now (and only once).
+            HomeServiceRequest::notifyTeamConfirmed($pdo, array_replace($request, ['status' => 'Confirmed']));
         }
         if (!$canConfirm && !$cancelled) CustomerNotifier::notify($pdo, (int) $request['customer_id'], 'PAYMENT_VERIFIED', "Your {$peso} payment for {$reference} was received{$via}. Your schedule needs staff review; your payment is preserved and your request has not been moved.");
         $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "PAYMENT", ?)')

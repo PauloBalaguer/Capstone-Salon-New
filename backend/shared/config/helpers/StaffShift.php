@@ -16,28 +16,107 @@ final class StaffShift
 {
     public const DAY_NAMES = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday', 7 => 'Sunday'];
 
-    /** The four live statuses every panel shows (Admin, Cashier, public roster). */
-    public const STATUS_ON = 'On Shift';
-    public const STATUS_OFF = 'Off Shift';
-    public const STATUS_BREAK = 'On Break';
-    public const STATUS_BUSY = 'Busy';
+    /**
+     * The five live statuses every panel shows (Admin, Staff, Cashier, Guest,
+     * Customer). Compare on these stable keys; show statusLabel() to people.
+     */
+    public const STATUS_AVAILABLE = 'available';
+    public const STATUS_BUSY = 'busy';
+    public const STATUS_BUSY_HOME = 'busy_home_service';
+    public const STATUS_BREAK = 'on_break';
+    public const STATUS_OFF = 'off_shift';
+
+    /** key => [label, dot colour]. */
+    public const STATUS_META = [
+        self::STATUS_AVAILABLE => ['Available now', 'green'],
+        self::STATUS_BUSY => ['Busy', 'blue'],
+        self::STATUS_BUSY_HOME => ['Busy · Home service', 'blue'],
+        self::STATUS_BREAK => ['On break', 'amber'],
+        self::STATUS_OFF => ['Off shift', 'gray'],
+    ];
+
+    /** Statuses of someone clocked in at the salon (available, with a client, or on a break). */
+    public const CLOCKED_IN_STATUSES = [self::STATUS_AVAILABLE, self::STATUS_BUSY, self::STATUS_BREAK];
+
+    public static function statusLabel(?string $key): string
+    {
+        return self::STATUS_META[$key][0] ?? self::STATUS_META[self::STATUS_OFF][0];
+    }
+
+    public static function statusColor(?string $key): string
+    {
+        return self::STATUS_META[$key][1] ?? 'gray';
+    }
+
+    /** ['status' => key, 'statusLabel' => ..., 'statusColor' => ...] for JSON responses. */
+    public static function statusPayload(?string $key): array
+    {
+        $key = isset(self::STATUS_META[$key]) ? $key : self::STATUS_OFF;
+        return ['status' => $key, 'statusLabel' => self::statusLabel($key), 'statusColor' => self::statusColor($key)];
+    }
+
+    /**
+     * SQL for one of a home service request's duration values (aliased $h):
+     * its wedding package's row, else its event type's (or 'Other') row --
+     * the same lookup as Scheduling::homeServiceDurations(). $expr uses "x."
+     * for the duration row's columns.
+     */
+    private static function homeDurationSql(string $h, string $expr, int $default): string
+    {
+        $wp = str_replace('x.', 'ls_wp.', $expr);
+        $ed = str_replace('x.', 'ls_ed.', $expr);
+        return "COALESCE(CASE WHEN {$h}.event_type = 'Wedding'
+                THEN (SELECT {$wp} FROM wedding_packages ls_wp WHERE ls_wp.package_name = CONCAT('Package ', {$h}.wedding_package) LIMIT 1)
+                ELSE (SELECT {$ed} FROM event_type_durations ls_ed WHERE ls_ed.event_type IN ({$h}.event_type, 'Other') ORDER BY ls_ed.event_type = 'Other' LIMIT 1)
+            END, {$default})";
+    }
+
+    /**
+     * SQL condition: employee $e is away on a confirmed home visit right now
+     * -- from leaving the salon (travel + setup before the start) until back
+     * (service + return travel after it). A visit later today does not match
+     * until its outbound travel starts; an unconfirmed or pre-assigned
+     * request never matches.
+     */
+    public static function onHomeVisitSql(string $e): string
+    {
+        $start = "TIMESTAMP(ls_h.preferred_date, COALESCE(ls_h.preferred_time, '09:00:00'))";
+        $lead = self::homeDurationSql('ls_h', 'COALESCE(x.travel_minutes, 0) + COALESCE(x.setup_minutes, 0)', 0);
+        $default = Scheduling::HOME_SERVICE_DURATION_MINUTES;
+        // return_travel_minutes (migration 062) is optional: before it, return = outbound travel.
+        require_once __DIR__ . '/Schema.php';
+        $return = Schema::hasColumn(Database::getInstance(), 'wedding_packages', 'return_travel_minutes')
+            && Schema::hasColumn(Database::getInstance(), 'event_type_durations', 'return_travel_minutes')
+            ? 'COALESCE(x.return_travel_minutes, x.travel_minutes, 0)' : 'COALESCE(x.travel_minutes, 0)';
+        $tail = self::homeDurationSql('ls_h', "COALESCE(NULLIF(x.service_minutes, 0), {$default}) + {$return}", $default);
+        return "EXISTS (SELECT 1 FROM home_service_requests ls_h
+                WHERE (ls_h.employee_id = {$e}.id OR EXISTS (SELECT 1 FROM home_service_staff ls_t WHERE ls_t.home_service_request_id = ls_h.id AND ls_t.employee_id = {$e}.id))
+                  AND ls_h.preferred_date BETWEEN CURDATE() - INTERVAL 1 DAY AND CURDATE() + INTERVAL 1 DAY
+                  AND (ls_h.status = 'Service in Progress'
+                       OR (ls_h.status IN ('Confirmed', 'Staff Assigned')
+                           AND NOW() >= {$start} - INTERVAL ({$lead}) MINUTE
+                           AND NOW() < {$start} + INTERVAL ({$tail}) MINUTE)))";
+    }
 
     /**
      * The one live-status rule, as a SQL expression for the employees row
-     * aliased $e. Every panel uses this instead of its own copy, so they
-     * can't disagree:
-     *   no open attendance row (any day, like openShift())  -> Off Shift
-     *   open shift with a running attendance_breaks row     -> On Break
+     * aliased $e, returning a STATUS_* key. Every panel uses this instead of
+     * its own copy, so they can't disagree:
+     *   away on a confirmed home visit (incl. travel)       -> busy_home_service
+     *   no open attendance row (any day, like openShift())  -> off_shift
+     *   open shift with a running attendance_breaks row     -> on_break
      *   with a client now: an In Progress booking, or a
      *   Confirmed one whose time window covers NOW(), as the
-     *   main stylist or on a per-service part               -> Busy
-     *   otherwise                                           -> On Shift
+     *   main stylist or on a per-service part               -> busy
+     *   otherwise                                           -> available
      * Everything is MySQL's NOW() (session time zone +08:00, Asia/Manila).
      */
     public static function liveStatusSql(string $e): string
     {
         $worksOn = "(ls_ap.employee_id = {$e}.id OR EXISTS (SELECT 1 FROM appointment_services ls_x WHERE ls_x.appointment_id = ls_ap.id AND ls_x.employee_id = {$e}.id))";
         return "(CASE
+            WHEN " . self::onHomeVisitSql($e) . "
+                THEN '" . self::STATUS_BUSY_HOME . "'
             WHEN NOT EXISTS (SELECT 1 FROM attendance ls_a WHERE ls_a.employee_id = {$e}.id AND ls_a.clock_out_time IS NULL)
                 THEN '" . self::STATUS_OFF . "'
             WHEN EXISTS (SELECT 1 FROM attendance ls_a JOIN attendance_breaks ls_b ON ls_b.attendance_id = ls_a.id AND ls_b.break_end IS NULL
@@ -52,11 +131,11 @@ final class StaffShift
                             WHERE ls_aps.appointment_id = ls_ap.id
                         ) MINUTE)))
                 THEN '" . self::STATUS_BUSY . "'
-            ELSE '" . self::STATUS_ON . "'
+            ELSE '" . self::STATUS_AVAILABLE . "'
         END)";
     }
 
-    /** Live status of one employee (same rule as liveStatusSql()). */
+    /** Live status key of one employee (same rule as liveStatusSql()). */
     public static function liveStatus(PDO $pdo, int $employeeId): string
     {
         $stmt = $pdo->prepare('SELECT ' . self::liveStatusSql('e') . ' FROM employees e WHERE e.id = ?');
@@ -76,7 +155,7 @@ final class StaffShift
             exit();
         }
         $stmt = $pdo->prepare('
-            SELECT e.id, e.user_id, e.first_name, e.last_name, e.phone_number, e.position, e.hire_date,
+            SELECT e.id, e.user_id, e.first_name, e.middle_name, e.last_name, e.phone_number, e.position, e.hire_date,
                    e.profile_picture, e.is_active, e.branch_id,
                    u.email, u.is_active AS user_active,
                    br.branch_name, br.branch_key, br.is_active AS branch_active

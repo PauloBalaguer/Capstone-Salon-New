@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="../shared/theme-tokens.css">
+    <link rel="stylesheet" href="../shared/theme-tokens.css?v=20261111-card-tones">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leo Mejillano Salon - Staff Assignments</title>
@@ -90,9 +90,9 @@
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
   <!-- Cashier Panel redesign: loaded last, scoped to body.cp-cashier. -->
-  <link rel="stylesheet" href="../../frontend/cashier/cashier-panel.css?v=20261110d">
+  <link rel="stylesheet" href="../../frontend/cashier/cashier-panel.css?v=20261111-mobile-shared">
   <link rel="stylesheet" href="../../frontend/shared/portal-unify.css?v=20261110b">
-  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
 </head>
 <body class="salon-portal bg-gray-100 font-sans antialiased flex h-screen overflow-hidden">
 
@@ -136,10 +136,6 @@
                     <i class="fa-solid fa-users-gear w-5 text-center text-slate-400"></i>
                     <span class="text-base">Staff Assignments</span>
                 </a>
-                <a href="profile.html" data-nav-page="profile.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
-                    <i class="fa-solid fa-user-shield w-5 text-center text-slate-400"></i>
-                    <span class="text-base">Profile &amp; Security</span>
-                </a>
             </nav>
         </div>
 
@@ -162,22 +158,22 @@
         <section class="flex-1 p-4 sm:p-6 overflow-y-auto space-y-5">
             <!-- Who is free right now. Each card filters the staff list. -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <button type="button" data-status="available" class="stat-card text-justify">
+                <button data-card-tone="success" type="button" data-status="available" class="stat-card text-justify">
                     <span class="stat-label">Available now</span>
                     <span class="stat-value text-[color:var(--success)]" id="statAvailable">0</span>
                     <span class="stat-hint">Free to take a client</span>
                 </button>
-                <button type="button" data-status="busy" class="stat-card text-justify">
+                <button data-card-tone="info" type="button" data-status="busy" class="stat-card text-justify">
                     <span class="stat-label">Busy</span>
                     <span class="stat-value text-[color:var(--warn)]" id="statBusy">0</span>
                     <span class="stat-hint">With a client right now</span>
                 </button>
-                <button type="button" data-status="off" class="stat-card text-justify">
+                <button data-card-tone="info" type="button" data-status="off" class="stat-card text-justify">
                     <span class="stat-label">Off shift</span>
                     <span class="stat-value text-slate-500" id="statOff">0</span>
                     <span class="stat-hint">Not clocked in today</span>
                 </button>
-                <a href="#assignCard" class="stat-card stat-card-gold text-justify">
+                <a data-card-tone="warning" href="#assignCard" class="stat-card stat-card-gold text-justify">
                     <span class="stat-label">Bookings to assign</span>
                     <span class="stat-value" id="statToAssign">0</span>
                     <span class="stat-hint" id="statToAssignHint">Confirmed, from today on</span>
@@ -208,10 +204,11 @@
                         <div class="skeleton-row border border-gray-100 rounded-xl"><div class="skeleton skeleton-avatar"></div><div class="flex-1 space-y-2"><div class="skeleton skeleton-line w-1/3"></div><div class="skeleton skeleton-line w-1/2"></div></div></div>
                         <div class="skeleton-row border border-gray-100 rounded-xl"><div class="skeleton skeleton-avatar"></div><div class="flex-1 space-y-2"><div class="skeleton skeleton-line w-2/5"></div><div class="skeleton skeleton-line w-1/3"></div></div></div>
                     </div>
+                    <nav id="staffPager" aria-label="Staff pages"></nav>
                 </div>
 
                 <!-- Assign a stylist -->
-                <div id="assignCard" class="card order-first xl:order-none xl:sticky xl:top-0 scroll-mt-4">
+                <div id="assignCard" class="card order-first xl:order-none scroll-mt-4">
                     <div class="card-head">
                         <div>
                             <h3 class="card-title">Assign a stylist</h3>
@@ -242,7 +239,7 @@
         <div class="modal-panel max-w-lg transform scale-95 transition-transform duration-300">
             <div class="modal-head">
                 <h4 id="staffDetailsTitle" class="font-bold text-lg">Staff details</h4>
-                <button id="btnCloseStaffDetails" type="button" class="modal-close" aria-label="Close">&times;</button>
+                <button id="btnCloseStaffDetails" type="button" class="ui-close-icon modal-close" aria-label="Close">&times;</button>
             </div>
             <div class="p-5 overflow-y-auto" id="staffDetailsBody"></div>
         </div>
@@ -252,7 +249,7 @@
         <div class="modal-panel max-w-sm transform scale-95 transition-transform duration-300">
             <div class="modal-head">
                 <h4 id="clockOutTitle" class="font-bold text-lg">Clock out staff</h4>
-                <button id="btnCloseClockOutModal" type="button" class="modal-close" aria-label="Close">&times;</button>
+                <button id="btnCloseClockOutModal" type="button" class="ui-close-icon modal-close" aria-label="Close">&times;</button>
             </div>
             <div class="p-5 space-y-4 overflow-y-auto">
                 <div class="rounded-xl bg-[color:var(--card)] border border-[color:var(--border)] p-3">
@@ -274,8 +271,11 @@
     </div>
 
     <script src="../../function/shared/live-sync.js?v=20261110"></script>
-    <script src="../../function/cashier/cashier-shell.js?v=20261110c"></script>
+    <script src="../../function/shared/sign-out.js?v=20261111"></script>
+    <script src="../../function/cashier/cashier-shell.js?v=20261111a"></script>
     <script src="../../function/cashier/cashier-common.js?v=20261110"></script>
-    <script src="../../function/cashier/staff.js?v=20261110"></script>
+    <script src="../../function/shared/list-pager.js?v=20261111"></script>
+    <script src="../../function/cashier/staff.js?v=20261111r"></script>
+<script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

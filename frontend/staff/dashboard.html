@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="../shared/theme-tokens.css">
+  <link rel="stylesheet" href="../shared/theme-tokens.css?v=20261111-card-tones">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0E3B2F">
@@ -13,11 +13,13 @@
   <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.14.1/dist/cdn.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.14.1/dist/cdn.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
-  <link rel="stylesheet" href="../../frontend/staff/staff-portal.css?v=20261110">
+  <link rel="stylesheet" href="../../frontend/staff/staff-portal.css?v=20261111-notif">
   <link rel="stylesheet" href="../../frontend/shared/portal-unify.css?v=20261110b">
   <script src="../../function/shared/toast.js"></script>
+  <script src="../../function/shared/notification-panel.js?v=20261111"></script>
   <script src="../../function/shared/confirm-dialog.js"></script>
-  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
+  <link rel="stylesheet" href="../shared/notification-panel.css?v=20261111">
 </head>
 <body class="sp-body" x-data="staffPortal()">
 
@@ -87,20 +89,28 @@
             </button>
             <template x-teleport="body">
               <div class="sp-notif-layer" x-show="notificationsOpen" x-cloak @click.self="notificationsOpen = false">
-              <div class="sp-notif-panel" x-transition.opacity role="dialog" aria-label="Notifications">
-                <div class="sp-notif-head">
-                  <p>Notifications</p>
-                  <button type="button" class="sp-link-btn" @click="$store.staff.markAllNotificationsAsRead()" x-show="$store.staff.unreadNotificationCount()">Mark all as read</button>
+              <div class="sp-notif-panel np-panel" x-transition.opacity role="dialog" aria-label="Notifications">
+                <div class="np-head">
+                  <h3 class="np-title">Notifications</h3>
+                  <button type="button" class="np-readall" @click="$store.staff.markAllNotificationsAsRead()" x-show="$store.staff.notifications.length" :disabled="!$store.staff.unreadNotificationCount()">Mark all as read</button>
+                  <button type="button" class="np-close" @click="notificationsOpen = false" aria-label="Close notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
                 </div>
-                <div class="sp-notif-list">
+                <div class="np-list">
                   <template x-for="n in $store.staff.notifications" :key="n.id">
-                    <div class="sp-notif-item" :class="!n.isRead && 'is-unread'">
-                      <p x-text="n.message"></p>
-                      <p class="sp-muted sp-small" x-text="n.time"></p>
-                    </div>
+                    <article class="np-card" :class="{ 'np-unread': !n.isRead }" role="link" tabindex="0"
+                         :aria-label="$store.staff.notificationTitle(n) + (n.isRead ? '' : ', unread')"
+                         @click="openNotification(n)" @keydown.enter.prevent="openNotification(n)" @keydown.space.prevent="openNotification(n)">
+                      <span class="np-icon" :class="{ 'np-icon--bad': NotifUI.isBad(n.type, n.message) }" aria-hidden="true" x-html="NotifUI.icon(NotifUI.isBad(n.type, n.message))"></span>
+                      <div class="np-copy">
+                        <div class="np-row"><p class="np-card-title" x-text="$store.staff.notificationTitle(n)"></p><span x-show="!n.isRead" class="np-dot" aria-hidden="true"></span><time class="np-time" :title="n.time" x-text="NotifUI.ago(n.time)"></time></div>
+                        <p class="np-summary" x-text="n.message"></p>
+                        <button type="button" class="np-action" tabindex="-1" @click.stop="openNotification(n)" x-text="$store.staff.notificationReference(n) ? 'View appointment' : 'View details'"></button>
+                      </div>
+                    </article>
                   </template>
-                  <p class="sp-empty-inline" x-show="!$store.staff.notifications.length">You're all caught up.</p>
+                  <p class="np-empty" x-show="!$store.staff.notifications.length">You're all caught up. New assignments and updates will appear here.</p>
                 </div>
+                <button type="button" class="np-footer" @click="notificationsOpen = false; go('appointments')">My appointments <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
               </div>
               </div>
             </template>
@@ -160,8 +170,8 @@
                   <h3 id="shift-title" class="sp-card-title">Today's Shift</h3>
                   <p class="sp-muted sp-small">Scheduled <span x-text="$store.staff.scheduleTodayLabel()"></span></p>
                 </div>
-                <span class="sp-status-pill" :class="'is-' + $store.staff.shift.status" role="status">
-                  <span class="sp-dot" :class="'is-' + $store.staff.shift.status"></span>
+                <span class="live-status" :class="'live-status--' + $store.staff.shiftStatusColor()" role="status">
+                  <span class="live-status-dot" aria-hidden="true"></span>
                   <span x-text="$store.staff.shiftStatusLabel()"></span>
                 </span>
               </div>
@@ -255,7 +265,6 @@
             <article class="sp-card sp-upcoming-card" aria-labelledby="upcoming-title">
               <div class="sp-card-head">
                 <h3 id="upcoming-title" class="sp-card-title">Upcoming Appointments</h3>
-                <a href="#appointments" class="sp-link-btn">View all <span x-html="$icon('chevronRight')"></span></a>
               </div>
 
               <div class="sp-skeleton-list" x-show="$store.staff.loading">
@@ -297,6 +306,39 @@
 
         <!-- ===================== MY APPOINTMENTS ===================== -->
         <section x-show="view === 'appointments'" x-cloak class="sp-view" aria-label="My Appointments">
+
+          <!-- Confirmed home service visits assigned to me (backend/staff/getDashboardData.php homeVisits). -->
+          <div class="sp-mb" x-show="($store.staff.homeVisits || []).length" x-cloak>
+            <h3 class="sp-card-title sp-mb">Home service visits</h3>
+            <div class="sp-appt-grid">
+              <template x-for="visit in ($store.staff.homeVisits || [])" :key="visit.id">
+                <article class="sp-card sp-appt-card">
+                  <div class="sp-appt-card-head">
+                    <div class="sp-appt-card-when">
+                      <p class="sp-appt-card-time" x-text="visit.time.replace(/^0/, '')"></p>
+                      <p class="sp-muted sp-small" x-text="$store.staff.formatDate(visit.date, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })"></p>
+                    </div>
+                    <div class="sp-chip-row sp-chip-row-end">
+                      <span class="sp-badge" :class="'tone-' + $store.staff.statusTone(visit.status)" x-text="visit.status"></span>
+                    </div>
+                  </div>
+                  <div class="sp-appt-card-body">
+                    <p class="sp-appt-client" x-text="visit.clientName"></p>
+                    <p class="sp-appt-service"><span x-html="$icon('scissors')"></span><span x-text="visit.service"></span></p>
+                    <p class="sp-muted sp-small">Leave the salon by <strong x-text="visit.leaveBy.replace(/^0/, '')"></strong> · back by <strong x-text="visit.backBy.replace(/^0/, '')"></strong></p>
+                    <p class="sp-muted sp-small sp-appt-meta">
+                      <span><span x-html="$icon('pin')"></span><span x-text="visit.branchName"></span></span>
+                      <span x-text="visit.id"></span>
+                    </p>
+                    <p class="sp-small" x-text="visit.address"></p>
+                    <p class="sp-muted sp-small" x-show="visit.clientPhone"><span>Contact: </span><span x-text="visit.clientPhone"></span> · <span x-text="visit.clients + ' client(s)'"></span></p>
+                    <p class="sp-muted sp-small" x-show="visit.team">Team: <span x-text="visit.team"></span></p>
+                    <p class="sp-muted sp-small" style="white-space: pre-line" x-show="visit.notes" x-text="visit.notes"></p>
+                  </div>
+                </article>
+              </template>
+            </div>
+          </div>
 
           <div class="sp-toolbar">
             <div class="sp-tabs" role="tablist" aria-label="Filter appointments">
@@ -433,16 +475,16 @@
             <div class="sp-card sp-summary">
               <p class="sp-summary-label">Status now</p>
               <p class="sp-summary-value sp-summary-status">
-                <span class="sp-dot" :class="'is-' + $store.staff.shift.status"></span><span x-text="$store.staff.shiftStatusLabel()"></span>
+                <span class="live-status-dot" :class="'live-status-dot--' + $store.staff.shiftStatusColor()" aria-hidden="true"></span> <span x-text="$store.staff.shiftStatusLabel()"></span>
               </p>
             </div>
           </div>
 
           <div class="sp-card sp-filter-card">
             <div class="sp-tabs" role="group" aria-label="Date range">
+              <button type="button" class="sp-tab" :class="attRange === 'all' && 'is-active'" @click="setAttRange('all')">All</button>
               <button type="button" class="sp-tab" :class="attRange === 'week' && 'is-active'" @click="setAttRange('week')">This week</button>
               <button type="button" class="sp-tab" :class="attRange === 'month' && 'is-active'" @click="setAttRange('month')">This month</button>
-              <button type="button" class="sp-tab" :class="attRange === 'all' && 'is-active'" @click="setAttRange('all')">All</button>
             </div>
             <div class="sp-date-range">
               <label><span class="sp-label">From</span><input type="date" class="sp-input" x-model="attFrom" @change="customAttRange()"></label>
@@ -572,34 +614,34 @@
         <!-- ===================== MY PROFILE ===================== -->
         <section x-show="view === 'profile'" x-cloak class="sp-view sp-profile" aria-label="My Profile">
 
-          <article class="sp-card sp-profile-summary">
-            <div class="sp-profile-avatar-wrap">
-              <span class="sp-avatar sp-avatar-xl">
-                <img x-show="avatarSrc()" :src="avatarSrc()" alt="" x-cloak>
-                <span x-show="!avatarSrc()" x-text="$store.staff.initials()"></span>
-              </span>
-              <label class="sp-avatar-edit" title="Change photo">
-                <span x-html="$icon('camera')"></span><span class="sp-sr">Change photo</span>
-                <input type="file" accept="image/png,image/jpeg,image/webp" class="sp-sr" @change="pickPhoto($event)">
-              </label>
+          <div class="sp-profile-layout">
+          <aside class="sp-card sp-profile-summary" aria-label="Your account">
+            <div class="sp-profile-cover" aria-hidden="true"></div>
+            <span class="sp-profile-photo">
+              <img x-show="avatarSrc()" :src="avatarSrc()" alt="Your profile photo" x-cloak>
+              <span x-show="!avatarSrc()" x-text="$store.staff.initials()"></span>
+            </span>
+            <p class="sp-profile-name" x-text="$store.staff.profile.name"></p>
+            <p class="sp-muted" x-text="$store.staff.profile.position || 'Staff account'"></p>
+            <div class="sp-chip-row">
+              <span class="sp-badge" :class="$store.staff.profile.accountStatus === 'Active' ? 'tone-green' : 'tone-red'" x-text="$store.staff.profile.accountStatus"></span>
+              <span class="sp-badge tone-slate" x-text="$store.staff.profile.role"></span>
             </div>
-            <div class="sp-profile-id">
-              <p class="sp-profile-name" x-text="$store.staff.profile.name"></p>
-              <p class="sp-muted" x-text="$store.staff.profile.position"></p>
-              <div class="sp-chip-row">
-                <span class="sp-badge" :class="$store.staff.profile.accountStatus === 'Active' ? 'tone-green' : 'tone-red'" x-text="$store.staff.profile.accountStatus"></span>
-                <span class="sp-badge tone-slate" x-text="$store.staff.profile.role"></span>
-              </div>
-            </div>
+            <label class="sp-btn sp-btn-secondary sp-photo-btn">
+              <span x-html="$icon('camera')"></span>
+              <span x-text="avatarSrc() ? 'Change Profile Photo' : 'Add Profile Photo'"></span>
+              <input type="file" accept="image/png,image/jpeg,image/webp" class="sp-sr" @change="pickPhoto($event)">
+            </label>
+            <p class="sp-muted sp-small sp-photo-note">PNG, JPG or WebP · Saved with your details</p>
             <dl class="sp-profile-facts">
               <div><dt>Employee ID</dt><dd x-text="$store.staff.profile.employeeCode"></dd></div>
-              <div><dt>Position</dt><dd x-text="$store.staff.profile.position"></dd></div>
-              <div><dt>Assigned Branch</dt><dd x-text="$store.staff.profile.branchName"></dd></div>
+              <div><dt>Assigned Branch</dt><dd x-text="$store.staff.profile.branchName || 'Not assigned'"></dd></div>
               <div><dt>Account Status</dt><dd x-text="$store.staff.profile.accountStatus"></dd></div>
               <div><dt>User Role</dt><dd x-text="$store.staff.profile.role"></dd></div>
             </dl>
-          </article>
+          </aside>
 
+          <div class="sp-profile-forms">
           <!-- Personal Information -->
           <article class="sp-card" aria-labelledby="pi-title">
             <div class="sp-card-head">
@@ -616,8 +658,16 @@
             <form class="sp-form" @submit.prevent="saveProfile()" novalidate>
               <div class="sp-form-grid">
                 <div class="sp-field">
-                  <span class="sp-label">Full Name</span>
-                  <p class="sp-readonly" x-text="$store.staff.profile.name"></p>
+                  <span class="sp-label">First Name</span>
+                  <p class="sp-readonly" x-text="$store.staff.profile.firstName"></p>
+                </div>
+                <div class="sp-field">
+                  <span class="sp-label">Middle Name</span>
+                  <p class="sp-readonly" x-text="$store.staff.profile.middleName || 'Not provided'"></p>
+                </div>
+                <div class="sp-field">
+                  <span class="sp-label">Last Name</span>
+                  <p class="sp-readonly" x-text="$store.staff.profile.lastName"></p>
                 </div>
                 <div class="sp-field">
                   <span class="sp-label">Position</span>
@@ -719,18 +769,20 @@
               </div>
             </form>
           </article>
+          </div>
+          </div>
         </section>
       </main>
     </div>
   </div>
 
   <!-- ===================== Bottom navigation (below 1024px) ===================== -->
-  <!-- First four items with the same labels as the sidebar; the rest (My Profile, Sign Out) live in the Menu drawer. -->
+  <!-- Compact labels for mobile; full navigation names remain available to assistive technology. -->
   <nav class="sp-bottomnav" aria-label="Staff quick navigation">
     <template x-for="item in navItems.slice(0, 4)" :key="item.key">
-      <a :href="'#' + item.key" class="sp-bottomnav-link" :class="view === item.key && 'is-active'" :aria-current="view === item.key ? 'page' : null">
+      <a :href="'#' + item.key" class="sp-bottomnav-link" :class="view === item.key && 'is-active'" :aria-label="item.label" :aria-current="view === item.key ? 'page' : null">
         <span x-html="$icon(item.icon)"></span>
-        <span x-text="item.label"></span>
+        <span x-text="item.short"></span>
       </a>
     </template>
     <button type="button" class="sp-bottomnav-link" x-ref="menuButton"
@@ -795,9 +847,11 @@
     </div>
   </div>
 
-  <script src="../../function/shared/appointment-arrival.js"></script>
+  <script src="../../function/shared/appointment-arrival.js?v=20261111-mobile"></script>
   <script src="../../function/shared/live-sync.js?v=20261110"></script>
-  <script src="../../function/staff/shared-data.js?v=20261110"></script>
-  <script src="../../function/staff/portal.js?v=20261110"></script>
+  <script src="../../function/staff/shared-data.js?v=20261111"></script>
+  <script src="../../function/shared/sign-out.js?v=20261111"></script>
+  <script src="../../function/staff/portal.js?v=20261111c"></script>
+<script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

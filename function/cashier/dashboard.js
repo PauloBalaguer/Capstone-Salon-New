@@ -59,6 +59,18 @@ function findBooking(ref) {
   return state.data ? state.data.bookings.find(b => b.id === ref) : null;
 }
 
+/* True when the booking's start time has arrived (Asia/Manila): it is served
+   now, so only stylists on duty can take it (server: assignStaff.php). */
+function bookingStartsNow(b) {
+  const m = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec((b.time || '').trim());
+  if (!b.date || !m) return false;
+  let h = Number(m[1]) % 12;
+  if (m[3].toUpperCase() === 'PM') h += 12;
+  const start = new Date(b.date + 'T' + String(h).padStart(2, '0') + ':' + m[2] + ':00+08:00');
+  return start.getTime() <= Date.now();
+}
+const ON_DUTY_STATUSES = ['available', 'busy'];
+
 function todayISO() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -253,13 +265,20 @@ function openConfirm(ref) {
   document.getElementById('cfTotal').textContent = CashierApp.formatCurrency(b.price);
   document.getElementById('cfConflict').classList.toggle('hidden', !b.hasConflict);
 
-  const onShift = state.data.staffList.filter(s => s.onShift && s.status !== 'On Break');
+  // Advance booking: any active stylist can be chosen (the server checks their
+  // schedule, leave and conflicts at the booking time). A booking whose start
+  // has arrived is served now, so only on-duty stylists are offered.
+  // Available-now stylists are listed first; live status shown for context.
+  const startsNow = bookingStartsNow(b);
+  const onShift = state.data.staffList
+    .filter(s => !startsNow || ON_DUTY_STATUSES.includes(s.status))
+    .sort((a, c) => (a.status === 'available' ? 0 : 1) - (c.status === 'available' ? 0 : 1));
   const options = [];
   if (!b.staffId) options.push('<option value="">Choose for me (first free stylist)</option>');
   else if (!onShift.some(s => String(s.id) === String(b.staffId))) {
     options.push(`<option value="${escapeHtml(b.staffId)}" selected>${escapeHtml(titleCase(b.staffName || 'Current stylist'))} (booked)</option>`);
   }
-  onShift.forEach(s => options.push(`<option value="${escapeHtml(s.id)}" ${String(s.id) === String(b.staffId) ? 'selected' : ''}>${escapeHtml(titleCase(s.name))} (${escapeHtml(s.role || 'Staff')})</option>`));
+  onShift.forEach(s => options.push(`<option value="${escapeHtml(s.id)}" ${String(s.id) === String(b.staffId) ? 'selected' : ''}>${escapeHtml(titleCase(s.name))} (${escapeHtml(s.role || 'Staff')}) – now: ${escapeHtml(s.statusLabel || 'Off shift')}</option>`));
   document.getElementById('cfStaff').innerHTML = options.join('') || '<option value="">No stylist on shift</option>';
 
   showConfirmStep(1);
@@ -377,8 +396,14 @@ async function submitConfirm() {
       if (!r.success) return confirmError(r.message || 'That stylist cannot take this booking. Pick another one.');
       stylistName = state.data.staffList.find(s => String(s.id) === String(chosen))?.name || stylistName;
     } else if (!verifyOnly && !chosen && !b.staffId) {
-      let assigned = null, lastError = 'No stylist on shift can take this booking.';
-      for (const s of state.data.staffList.filter(x => x.onShift && x.status !== 'On Break')) {
+      // "Choose for me": a booking starting now only tries stylists on duty
+      // now (immediate); an advance booking may also try scheduled stylists
+      // who are off shift at the moment. The server re-checks either way.
+      const startsNow = bookingStartsNow(b);
+      let assigned = null, lastError = startsNow ? 'No stylist on duty right now can take this booking.' : 'No scheduled stylist is free for this booking.';
+      for (const s of state.data.staffList
+        .filter(x => !startsNow || ON_DUTY_STATUSES.includes(x.status))
+        .sort((a, c) => (a.status === 'available' ? 0 : 1) - (c.status === 'available' ? 0 : 1))) {
         const r = await CashierApp.post('assignStaff.php', { id: b.id, staffId: s.id });
         if (r.success) { assigned = s; break; }
         lastError = r.message || lastError;
@@ -437,46 +462,166 @@ function openCheckout(ref) {
 function openWalkInModal() {
   if (!state.data) return;
   const services = state.data.servicesByBranch[state.branch] || [];
-  const staff = state.data.staffList;
   document.getElementById('servicesCheckboxContainer').innerHTML = services.length
-    ? services.map(sv => `
-      <label class="flex items-center justify-between gap-3 text-sm cursor-pointer hover:bg-white rounded-lg px-2 py-2">
-        <span class="flex items-center gap-2">
-          <input type="checkbox" class="walkin-service-checkbox rounded" value="${escapeHtml(sv.id)}">
-          <span>${escapeHtml(sv.name)}</span>
+    ? services.map((sv, i) => {
+      const meta = [formatSvcDuration(sv.durationMinutes), svcSubCategory(sv.category)].filter(Boolean).join(' · ');
+      return `
+      <label class="wi-svc" data-search="${escapeHtml((sv.name + ' ' + (sv.category || '')).toLowerCase())}" data-cat="${escapeHtml(svcGroup(sv))}" data-popular="${isPopularSvc(sv) ? '1' : ''}" data-pop="${Number(sv.bookingCount) || 0}" data-idx="${i}">
+        <input type="checkbox" class="walkin-service-checkbox" value="${escapeHtml(sv.id)}">
+        <span class="wi-svc-check" aria-hidden="true"><i class="fa-solid fa-check"></i></span>
+        <span class="wi-svc-text">
+          <span class="wi-svc-name">${escapeHtml(sv.name)}</span>
+          ${meta ? `<span class="wi-svc-meta">${escapeHtml(meta)}</span>` : ''}
         </span>
-        <span class="text-gray-500 font-semibold">${CashierApp.formatCurrency(sv.price)}</span>
-      </label>`).join('')
+        <span class="wi-svc-price">₱${Number(sv.price || 0).toLocaleString('en-PH')}</span>
+      </label>`;
+    }).join('')
     : '<p class="text-gray-400">No services set up for this branch.</p>';
-  // On-shift staff first; off-shift staff are listed but cannot be picked
-  // (createWalkIn.php refuses them anyway).
-  const available = staff.filter(s => s.onShift && s.status !== 'On Break');
-  const unavailable = staff.filter(s => !available.includes(s));
-  const option = (s, ok) => `<option value="${escapeHtml(s.id)}"${ok ? '' : ' disabled'}>${escapeHtml(titleCase(s.name))} (${escapeHtml(s.role || 'Staff')})${ok ? '' : ' - ' + (s.onShift ? 'on break' : 'off shift')}</option>`;
-  document.getElementById('selectStylist').innerHTML = available.length
-    ? available.map(s => option(s, true)).join('') + unavailable.map(s => option(s, false)).join('')
-    : '<option value="">No staff on shift right now</option>' + unavailable.map(s => option(s, false)).join('');
+  document.getElementById('wiSvcSearch').value = '';
+  // Same filters as guest booking: Popular / All Services / category groups.
+  const GROUP_ORDER = ['Hair Services', 'Nails & Spa', 'Lashes & Brows', 'Facial & Skin Care', 'Waxing & Laser',
+    'Aesthetic Treatments', 'Massage & Body Care', 'Make-Up Services', 'Promos & Packages'];
+  const present = new Set(services.map(svcGroup));
+  const groups = [...GROUP_ORDER.filter(g => present.has(g)), ...[...present].filter(g => !GROUP_ORDER.includes(g))];
+  const filters = [...(services.some(isPopularSvc) ? [['popular', 'Popular']] : []), ['all', 'All Services'], ...groups.map(g => [g, g])];
+  const catSel = document.getElementById('wiSvcSort');
+  catSel.innerHTML = filters.map(([k, label]) => `<option value="${escapeHtml(k)}">${escapeHtml(label)}</option>`).join('');
+  catSel.value = filters[0][0];
+  applyWalkInServiceView();
   document.getElementById('walkInForm').reset();
+  document.getElementById('inputMiddleName').disabled = false;
+  renderWalkInStaff();
   updateWalkInSummary();
   CashierApp.showModal('walkInModal');
+}
+
+function renderWalkInStaff() {
+  const staff = state.data.staffList;
+  // On-shift staff first; off-shift staff are listed but cannot be picked
+  // (createWalkIn.php refuses them anyway).
+  // Walk-ins start now: only stylists on duty (available, or busy at the
+  // salon -- the server rejects an overlap) can be picked.
+  const available = staff.filter(s => s.status === 'available' || s.status === 'busy');
+  const unavailable = staff.filter(s => !available.includes(s));
+  const offList = unavailable.filter(s => !/cashier/i.test(s.role || ''));
+  const card = (s, ok) => `
+    <label class="wi-staff${ok ? '' : ' is-off'}">
+      <input type="radio" name="wiStylist" value="${escapeHtml(s.id)}"${ok ? '' : ' disabled'}>
+      <span class="wi-staff-avatar" aria-hidden="true">${escapeHtml(initialsOf(s.name))}</span>
+      <span class="wi-staff-text">
+        <span class="wi-staff-name">${escapeHtml(titleCase(s.name))}</span>
+        <span class="wi-staff-role">${escapeHtml(s.role || 'Staff')}</span>
+      </span>
+      <span class="wi-staff-badge ${ok ? (s.status === 'busy' ? 'is-busy' : 'is-on') : ''}">${ok ? (s.status === 'busy' ? 'Busy' : 'On shift') : escapeHtml(s.statusLabel || 'Off shift')}</span>
+    </label>`;
+  document.getElementById('selectStylist').innerHTML = available.length
+    ? available.map(s => card(s, true)).join('')
+    : `<div class="wi-staff-empty">
+        <div class="wi-staff-empty-head">
+          <strong>No staff on shift right now</strong>
+          <button type="button" class="wi-staff-refresh" aria-label="Refresh staff list" title="Refresh staff list"><i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i></button>
+        </div>
+        <span>Ask the stylist to log in to their Staff Portal. That clocks them in; then tap refresh to see them here. For a later time, use the regular booking flow instead.</span>
+      </div>`;
+  const offBox = document.getElementById('wiStaffOff');
+  const moreBtn = document.getElementById('wiStaffMore');
+  offBox.innerHTML = offList.map(s => card(s, false)).join('');
+  offBox.classList.add('hidden');
+  moreBtn.classList.toggle('hidden', !offList.length);
+  moreBtn.textContent = `Show off-shift staff (${offList.length})`;
+  // Pre-select the only on-shift stylist, if there is just one.
+  const radios = document.querySelectorAll('#selectStylist input[name="wiStylist"]');
+  if (radios.length === 1) radios[0].checked = true;
+}
+
+function formatSvcDuration(min) {
+  min = Number(min) || 0;
+  if (!min) return '';
+  const h = Math.floor(min / 60), m = min % 60;
+  return [h ? `${h} hour${h > 1 ? 's' : ''}` : '', m ? `${m} minutes` : ''].filter(Boolean).join(' ');
+}
+
+function svcSubCategory(cat) {
+  const parts = String(cat || '').split(' / ');
+  return parts.slice(1).join(' / ') || parts[0] || '';
+}
+
+// Same guest-facing groups as public booking (server computes sv.group).
+function svcGroup(sv) { return sv.group || String(sv.category || 'Other').split(' / ')[0]; }
+function isPopularSvc(sv) { return Number(sv.bookingCount) > 0 || !!sv.bestSeller; }
+
+// Filter the walk-in service cards like guest booking: a search looks across
+// every service; otherwise show the chosen category. Most-booked first.
+function applyWalkInServiceView() {
+  const box = document.getElementById('servicesCheckboxContainer');
+  const q = document.getElementById('wiSvcSearch').value.trim().toLowerCase();
+  const cat = document.getElementById('wiSvcSort').value || 'all';
+  const cards = Array.from(box.querySelectorAll('.wi-svc'));
+  if (!cards.length) return;
+  cards.sort((a, b) => b.dataset.pop - a.dataset.pop || a.dataset.idx - b.dataset.idx).forEach(c => box.appendChild(c));
+  const inCat = c => cat === 'all' || (cat === 'popular' ? c.dataset.popular === '1' : c.dataset.cat === cat);
+  let shown = 0;
+  cards.forEach(c => {
+    const ok = (q ? c.dataset.search.includes(q) : inCat(c)) || c.querySelector('input').checked;
+    c.classList.toggle('hidden', !ok);
+    if (ok) shown++;
+  });
+  document.getElementById('wiSvcNoMatch').classList.toggle('hidden', shown > 0);
 }
 
 function updateWalkInSummary() {
   const services = (state.data && state.data.servicesByBranch[state.branch]) || [];
   const ids = Array.from(document.querySelectorAll('.walkin-service-checkbox:checked')).map(cb => cb.value);
-  const total = services.filter(sv => ids.includes(String(sv.id))).reduce((sum, sv) => sum + Number(sv.price || 0), 0);
-  document.getElementById('walkInTotal').textContent = CashierApp.formatCurrency(total);
+  const chosen = services.filter(sv => ids.includes(String(sv.id)));
+  const total = chosen.reduce((sum, sv) => sum + Number(sv.price || 0), 0);
+  const minutes = chosen.reduce((sum, sv) => sum + (Number(sv.durationMinutes) || 0), 0);
+  const $ = id => document.getElementById(id);
+  const notSet = t => `<em>${t}</em>`;
+  $('walkInTotal').textContent = CashierApp.formatCurrency(total);
   let now = '';
   try { now = new Date().toLocaleTimeString('en-US', { timeZone: 'Asia/Manila', hour: '2-digit', minute: '2-digit' }); } catch (e) { /* older browsers */ }
-  document.getElementById('walkInSchedule').textContent = now ? `Today, now (${now})` : 'Today, now';
+  $('walkInSchedule').textContent = now ? `Today, now (${now})` : 'Today, now';
+
+  const branch = state.data && state.data.myBranch;
+  $('wiSumBranch').textContent = (branch && branch.name) || '—';
+  $('wiSumServices').innerHTML = chosen.length
+    ? chosen.map(sv => `<span class="wi-sum-svc"><span>${escapeHtml(sv.name)}</span><span>₱${Number(sv.price || 0).toLocaleString('en-PH')}</span></span>`).join('')
+    : notSet('Not selected');
+  $('wiSumDuration').innerHTML = minutes ? escapeHtml(formatSvcDuration(minutes)) : notSet('Not selected');
+  $('wiSvcHint').innerHTML = chosen.length
+    ? `<strong>${chosen.length} selected</strong> · Estimated duration: ${escapeHtml(formatSvcDuration(minutes) || '—')} · ₱${total.toLocaleString('en-PH')}`
+    : 'Select one or more services.';
+
+  const picked = document.querySelector('#selectStylist input[name="wiStylist"]:checked');
+  const pickedName = picked ? picked.closest('.wi-staff').querySelector('.wi-staff-name').textContent : '';
+  $('wiSumStylist').innerHTML = pickedName ? escapeHtml(pickedName) : notSet('Not selected');
+
+  const noMid = $('inputNoMiddle').checked;
+  const name = [$('inputFirstName').value, noMid ? '' : $('inputMiddleName').value, $('inputLastName').value]
+    .map(v => v.trim()).filter(Boolean).join(' ');
+  const phone = $('inputClientPhone').value.trim();
+  $('wiSumCustomer').innerHTML = name || phone
+    ? `${escapeHtml(name || '—')}${phone ? `<span class="wi-sum-sub">${escapeHtml(phone)}</span>` : ''}`
+    : notSet('Not entered');
+
+  $('wiDone1').classList.toggle('is-on', !!($('inputFirstName').value.trim() && $('inputLastName').value.trim() && /^09\d{9}$/.test(phone)));
+  $('wiDone2').classList.toggle('is-on', chosen.length > 0);
+  $('wiDone3').classList.toggle('is-on', !!picked);
 }
 
 async function submitWalkIn(e) {
   e.preventDefault();
-  if (!BookingFormValidation.fields([['#inputClientName', 'text'], ['#inputClientPhone', 'mobile']])) return;
-  const clientName = document.getElementById('inputClientName').value.trim();
+  if (!BookingFormValidation.fields([['#inputFirstName', 'text'], ['#inputLastName', 'text'], ['#inputClientPhone', 'mobile']])) return;
+  const val = id => document.getElementById(id).value.trim().replace(/\s+/g, ' ');
+  const middle = document.getElementById('inputNoMiddle').checked ? '' : val('inputMiddleName');
+  const clientName = [val('inputFirstName'), middle, val('inputLastName')].filter(Boolean).join(' ');
   const clientPhone = document.getElementById('inputClientPhone').value.trim();
-  const stylistId = document.getElementById('selectStylist').value;
+  const picked = document.querySelector('#selectStylist input[name="wiStylist"]:checked');
+  const stylistId = picked ? picked.value : '';
+  if (!stylistId) {
+    CashierApp.toast('Please pick an available staff member.', 'error');
+    return;
+  }
   const serviceIds = Array.from(document.querySelectorAll('.walkin-service-checkbox:checked')).map(cb => cb.value);
   if (!/^09[0-9]{9}$/.test(clientPhone)) {
     CashierApp.toast('Please enter a valid mobile number (09XXXXXXXXX).', 'error');
@@ -532,7 +677,31 @@ function wireStaticEvents() {
   document.getElementById('btnCloseModal').addEventListener('click', () => CashierApp.hideModal('walkInModal'));
   document.getElementById('btnCancelModal').addEventListener('click', () => CashierApp.hideModal('walkInModal'));
   document.getElementById('walkInForm').addEventListener('submit', submitWalkIn);
-  document.getElementById('servicesCheckboxContainer').addEventListener('change', updateWalkInSummary);
+  // Keep the booking summary live as the cashier fills in the form.
+  document.getElementById('walkInForm').addEventListener('input', updateWalkInSummary);
+  document.getElementById('walkInForm').addEventListener('change', updateWalkInSummary);
+  document.getElementById('inputNoMiddle').addEventListener('change', function () {
+    const mid = document.getElementById('inputMiddleName');
+    mid.disabled = this.checked;
+    if (this.checked) mid.value = '';
+  });
+  // "Refresh the list": re-fetch shift status without clearing the form.
+  document.getElementById('selectStylist').addEventListener('click', async (e) => {
+    const btn = e.target.closest('.wi-staff-refresh');
+    if (!btn) return;
+    btn.disabled = true;
+    btn.classList.add('is-spinning');
+    await refreshData();
+    renderWalkInStaff();
+    updateWalkInSummary();
+  });
+  document.getElementById('wiStaffMore').addEventListener('click', function () {
+    const off = document.getElementById('wiStaffOff');
+    const open = off.classList.toggle('hidden') === false;
+    this.textContent = open ? 'Hide off-shift staff' : `Show off-shift staff (${off.children.length})`;
+  });
+  document.getElementById('wiSvcSearch').addEventListener('input', applyWalkInServiceView);
+  document.getElementById('wiSvcSort').addEventListener('change', applyWalkInServiceView);
 
   const phoneInput = document.getElementById('inputClientPhone');
   phoneInput.addEventListener('keypress', (e) => {

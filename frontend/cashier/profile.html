@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="../shared/theme-tokens.css">
+    <link rel="stylesheet" href="../shared/theme-tokens.css?v=20261111-card-tones">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leo Mejillano Salon - Cashier Profile &amp; Security</title>
@@ -65,9 +65,9 @@
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
   <!-- Cashier Panel redesign: loaded last, scoped to body.cp-cashier. -->
-  <link rel="stylesheet" href="../../frontend/cashier/cashier-panel.css?v=20261110d">
+  <link rel="stylesheet" href="../../frontend/cashier/cashier-panel.css?v=20261111-mobile-shared">
   <link rel="stylesheet" href="../../frontend/shared/portal-unify.css?v=20261110b">
-  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
 </head>
 <body class="salon-portal bg-gray-100 font-sans antialiased flex h-screen overflow-hidden">
 
@@ -111,10 +111,6 @@
                     <i class="fa-solid fa-users-gear w-5 text-center text-slate-400"></i>
                     <span class="text-base">Staff Assignments</span>
                 </a>
-                <a href="profile.html" data-nav-page="profile.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
-                    <i class="fa-solid fa-user-shield w-5 text-center text-amber-400"></i>
-                    <span class="text-base">Profile &amp; Security</span>
-                </a>
             </nav>
         </div>
 
@@ -135,72 +131,33 @@
         </header>
 
         <section class="flex-1 p-4 sm:p-6 overflow-y-auto">
-          <div class="w-full max-w-5xl mx-auto space-y-5">
-            <!-- Account -->
-            <div class="card p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
-                <span id="profileInitials" aria-hidden="true" class="w-16 h-16 shrink-0 rounded-full bg-teal-500 text-white flex items-center justify-center text-2xl font-black">··</span>
-                <div class="flex-1 min-w-0">
-                    <p id="profileName" class="text-2xl font-black text-slate-900 capitalize truncate">Loading…</p>
-                    <p id="profileEmail" class="text-slate-600 truncate"></p>
-                    <div class="mt-2 flex flex-wrap gap-2 text-xs font-bold">
-                        <span id="profileRole" class="rounded-full bg-teal-100 text-teal-700 px-3 py-1">Cashier</span>
-                        <span id="profileTerminal" class="rounded-full bg-[color:var(--bg)] text-slate-700 px-3 py-1">Terminal</span>
-                        <span class="rounded-full bg-emerald-50 text-[color:var(--success)] px-3 py-1"><i class="fa-solid fa-circle text-[0.5rem] align-middle mr-1"></i>Signed in</span>
+          <div class="w-full max-w-6xl mx-auto space-y-5">
+            <div class="grid grid-cols-1 gap-5 items-start">
+            <!-- Account summary: one wide card (logo, name, details, sign out). -->
+            <section class="cp-account-wide card min-w-0 overflow-hidden" aria-label="Your account">
+                <div class="cp-aw-banner" aria-hidden="true"></div>
+                <div class="cp-aw-body">
+                    <img class="cp-aw-logo" src="../shared/icon/salon-logo.png" alt="Leo Mejillano Salon logo">
+                    <div class="cp-aw-who">
+                        <p id="profileName" class="cp-aw-name">Loading…</p>
+                        <p id="profileEmail" class="cp-aw-email"></p>
+                        <div class="cp-aw-badges">
+                            <span id="profileRole" class="rounded-full bg-teal-100 text-teal-700 px-3 py-1">Cashier</span>
+                            <span id="profileTerminal" class="rounded-full bg-[color:var(--bg)] text-slate-700 px-3 py-1">Terminal</span>
+                            <span class="rounded-full bg-emerald-50 text-[color:var(--success)] px-3 py-1"><i class="fa-solid fa-check mr-1" aria-hidden="true"></i>Signed in</span>
+                        </div>
                     </div>
+                    <a href="../../backend/auth/logout.php?portal=cashier" class="cp-aw-signout btn-secondary text-[color:var(--danger)] border-[#9C1E15]/30 hover:bg-rose-50"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>Sign out</a>
                 </div>
-                <a href="../../backend/auth/logout.php?portal=cashier" class="btn-secondary text-[color:var(--danger)] border-[#9C1E15]/30 hover:bg-rose-50"><i class="fa-solid fa-right-from-bracket"></i>Sign out</a>
-            </div>
-
-            <!-- Today at your desk -->
-            <div>
-                <h3 class="text-base font-bold text-slate-800 mb-3">Today at your desk</h3>
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                    <a href="payment.html" class="stat-card stat-card-gold">
-                        <span class="stat-label">You collected</span>
-                        <span class="stat-value text-2xl sm:text-3xl" id="meCollected">₱0.00</span>
-                        <span class="stat-hint" id="meCollectedHint">0 payments today</span>
-                    </a>
-                    <a href="payment.html" class="stat-card">
-                        <span class="stat-label">Checkouts by you</span>
-                        <span class="stat-value" id="meCheckouts">0</span>
-                        <span class="stat-hint" id="meCheckoutsHint">Receipts issued</span>
-                    </a>
-                    <a href="payment.html" class="stat-card">
-                        <span class="stat-label">Reservations verified</span>
-                        <span class="stat-value" id="meReservations">0</span>
-                        <span class="stat-hint">Deposits you checked</span>
-                    </a>
-                    <a href="appointments.html" class="stat-card">
-                        <span class="stat-label">Branch visits today</span>
-                        <span class="stat-value" id="branchToday">0</span>
-                        <span class="stat-hint" id="branchTodayHint">0 staff on shift</span>
-                    </a>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-5 items-start">
-                <!-- Your recent payments -->
-                <div class="card lg:row-span-2">
-                    <div class="card-head">
-                        <h3 class="card-title">Your payments today</h3>
-                        <a href="payment.html" class="text-sm font-bold text-teal-700 hover:underline">All records</a>
-                    </div>
-                    <div id="myPaymentsList" class="divide-y divide-gray-100">
-                        <div class="p-4 space-y-2"><div class="skeleton h-3.5 w-1/2"></div><div class="skeleton h-3.5 w-1/3"></div></div>
-                    </div>
-                </div>
-
-                <!-- Branch -->
-                <div class="card">
-                    <div class="card-head"><h3 class="card-title">Your branch</h3></div>
-                    <dl class="p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                        <div class="sm:col-span-2"><dt class="info-label">Branch</dt><dd id="profileAssignedBranch" class="info-value">Loading…</dd></div>
-                        <div><dt class="info-label">Location</dt><dd id="profileBranchLocation" class="info-value">-</dd></div>
-                        <div><dt class="info-label">Terminal</dt><dd id="profileBranchTerminal" class="info-value">-</dd></div>
-                    </dl>
-                    <p class="px-4 sm:px-5 pb-4 text-xs text-slate-500">Your role and branch are set by an administrator. Ask them if you need to move to another branch.</p>
-                </div>
-
+                <dl class="cp-aw-details">
+                    <div><dt class="info-label">Branch</dt><dd id="profileAssignedBranch" class="info-value">Loading…</dd></div>
+                    <div><dt class="info-label">Location</dt><dd id="profileBranchLocation" class="info-value">-</dd></div>
+                    <div><dt class="info-label">Terminal</dt><dd id="profileBranchTerminal" class="info-value">-</dd></div>
+                </dl>
+                <p class="cp-aw-note">Your role and branch are set by an administrator.</p>
+            </section>
+            <div class="min-w-0 space-y-5">
+            <div class="grid grid-cols-1 gap-5 items-start">
                 <!-- Security -->
                 <div class="card">
                     <div class="card-head"><h3 class="card-title">Security</h3></div>
@@ -209,8 +166,7 @@
                             <span class="w-9 h-9 shrink-0 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center"><i class="fa-solid fa-key"></i></span>
                             <div class="flex-1">
                                 <p class="font-bold text-slate-900">Password</p>
-                                <p class="text-slate-600">Cashier passwords are managed by the administrator. If you forgot yours, or think someone else knows it, reset it by email.</p>
-                                <a href="../auth/forgot-password.html" class="btn-row mt-2 border border-bronze text-slate-700 hover:bg-[color:var(--bg)]"><i class="fa-solid fa-envelope"></i>Reset password by email</a>
+                                <p class="text-slate-600">Only an administrator can change or reset a cashier password. Ask your admin if you need a new one.</p>
                             </div>
                         </div>
                         <div class="flex items-start gap-3">
@@ -227,13 +183,17 @@
                     </div>
                 </div>
             </div>
+            </div>
+            </div>
           </div>
         </section>
     </main>
 
     <script src="../../function/shared/live-sync.js?v=20261110"></script>
-    <script src="../../function/cashier/cashier-shell.js?v=20261110c"></script>
+    <script src="../../function/shared/sign-out.js?v=20261111"></script>
+    <script src="../../function/cashier/cashier-shell.js?v=20261111a"></script>
     <script src="../../function/cashier/cashier-common.js?v=20261110"></script>
-    <script src="../../function/cashier/profile.js"></script>
+    <script src="../../function/cashier/profile.js?v=20261111c"></script>
+<script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="../shared/theme-tokens.css">
+  <link rel="stylesheet" href="../shared/theme-tokens.css?v=20261111-card-tones">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reports · Leo Mejillano Admin</title>
@@ -11,12 +11,15 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="../../function/admin/theme-config.js"></script>
   <script>tailwind.config.corePlugins = { preflight: false };</script>
+  <script src="../../function/shared/list-pager.js?v=20261111"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <link rel="stylesheet" href="admin-panel.css?v=20261110c">
+  <link rel="stylesheet" href="../shared/notification-panel.css?v=20261111">
+  <link rel="stylesheet" href="admin-panel.css?v=20261111-access">
   <link rel="stylesheet" href="../shared/portal-unify.css?v=20261110b">
   <script src="../../function/shared/toast.js"></script>
+  <script src="../../function/shared/notification-panel.js?v=20261111"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
-  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
 </head>
 <body class="lm-admin" x-data="adminReportsApp()" x-init="init()">
 <div class="lm-shell">
@@ -70,10 +73,10 @@
       <div x-show="collectionsError" x-cloak class="lm-alert lm-alert--error" role="alert"><p x-text="collectionsError"></p><button type="button" class="lm-btn lm-btn--sm" @click="loadCollections()">Retry</button></div>
 
       <section class="lm-stats" aria-label="Report totals">
-        <div class="lm-stat"><span class="lm-stat-label">Completed bookings</span><span class="lm-stat-value" x-text="getBookingStatusCounts().Completed || 0"></span><span class="lm-stat-note">Selected branch and appointment dates</span></div>
-        <div class="lm-stat"><span class="lm-stat-label">Total collections</span><span class="lm-stat-value" x-text="$store.admin.formatCurrency(getReportTotalRevenue())"></span><span class="lm-stat-note">Verified payments by payment date, less refunds</span></div>
-        <div class="lm-stat"><span class="lm-stat-label">Unique customers</span><span class="lm-stat-value" x-text="getUniqueGuestCount()"></span><span class="lm-stat-note">With a booking in the selected range</span></div>
-        <div class="lm-stat"><span class="lm-stat-label">Average guest rating</span><span class="lm-stat-value" x-text="getReportAverageRating()"></span><span class="lm-stat-note">Reviews in the selected range</span></div>
+        <div data-card-tone="success" class="lm-stat"><span class="lm-stat-label">Completed bookings</span><span class="lm-stat-value" x-text="getBookingStatusCounts().Completed || 0"></span><span class="lm-stat-note">Selected branch and appointment dates</span></div>
+        <div data-card-tone="gold" class="lm-stat"><span class="lm-stat-label">Total collections</span><span class="lm-stat-value" x-text="$store.admin.formatCurrency(getReportTotalRevenue())"></span><span class="lm-stat-note">Verified payments by payment date, less refunds</span></div>
+        <div data-card-tone="info" class="lm-stat"><span class="lm-stat-label">Unique customers</span><span class="lm-stat-value" x-text="getUniqueGuestCount()"></span><span class="lm-stat-note">With a booking in the selected range</span></div>
+        <div data-card-tone="gold" class="lm-stat"><span class="lm-stat-label">Average guest rating</span><span class="lm-stat-value" x-text="getReportAverageRating()"></span><span class="lm-stat-note">Reviews in the selected range</span></div>
       </section>
 
       <!-- Bookings overview -->
@@ -133,7 +136,7 @@
           <table class="lm-table lm-table--stack">
             <thead><tr><th scope="col">Reference</th><th scope="col">Branch</th><th scope="col">Collection date</th><th scope="col">Transaction</th><th scope="col">Method</th><th scope="col" class="num">Amount</th></tr></thead>
             <tbody>
-              <template x-for="row in collections" :key="row.id">
+              <template x-for="row in $store.pager.slice('rep-collections', collections)" :key="row.id">
                 <tr>
                   <td data-label="Reference" class="lm-ref" x-text="row.reference"></td>
                   <td data-label="Branch" x-text="row.branchName"></td>
@@ -147,6 +150,7 @@
             </tbody>
           </table>
         </div>
+        <nav x-lm-pager="'rep-collections'" aria-label="Collection pages"></nav>
       </section>
 
       <!-- Staff -->
@@ -156,13 +160,14 @@
           <table class="lm-table lm-table--stack">
             <thead><tr><th scope="col">Staff</th><th scope="col">Branch</th><th scope="col" class="center">Completed services</th><th scope="col" class="center">Rating</th><th scope="col" class="center">Attendance</th></tr></thead>
             <tbody>
-              <template x-for="staff in getReportStaff()" :key="staff.id">
+              <template x-for="staff in $store.pager.slice('rep-staff', getReportStaff())" :key="staff.id">
                 <tr><td data-label="Staff"><strong x-text="staff.name"></strong></td><td data-label="Branch" x-text="$store.admin.getBranchName(staff.branchId)"></td><td data-label="Completed" class="center" x-text="staff.completedCount"></td><td data-label="Rating" class="center lm-text-gold" x-text="staff.rating || '—'"></td><td data-label="Attendance" class="center" x-text="staff.attendance + '%'"></td></tr>
               </template>
               <tr x-show="getReportStaff().length === 0" class="lm-empty-row"><td colspan="5" class="lm-empty-cell"><div class="lm-empty"><h3>No staff match these filters</h3></div></td></tr>
             </tbody>
           </table>
         </div>
+        <nav x-lm-pager="'rep-staff'" aria-label="Staff report pages"></nav>
       </section>
 
       <!-- Inventory -->
@@ -172,13 +177,14 @@
           <table class="lm-table lm-table--stack">
             <thead><tr><th scope="col">Item</th><th scope="col">Branch</th><th scope="col" class="center">Stock</th><th scope="col" class="center">Minimum</th><th scope="col">Status</th></tr></thead>
             <tbody>
-              <template x-for="item in getReportInventory()" :key="item.id">
+              <template x-for="item in $store.pager.slice('rep-inventory', getReportInventory())" :key="item.id">
                 <tr><td data-label="Item"><strong x-text="item.name"></strong></td><td data-label="Branch" x-text="$store.admin.getBranchName(item.branchId)"></td><td data-label="Stock" class="center" x-text="item.stock"></td><td data-label="Minimum" class="center" x-text="item.minQty"></td><td data-label="Status"><span :class="item.stock <= item.minQty ? 'lm-badge lm-badge--danger' : 'lm-badge lm-badge--success'" x-text="item.stock <= item.minQty ? 'Low stock' : 'In stock'"></span></td></tr>
               </template>
               <tr x-show="getReportInventory().length === 0" class="lm-empty-row"><td colspan="5" class="lm-empty-cell"><div class="lm-empty"><h3>No inventory items match these filters</h3></div></td></tr>
             </tbody>
           </table>
         </div>
+        <nav x-lm-pager="'rep-inventory'" aria-label="Inventory report pages"></nav>
       </section>
 
       <!-- Feedback -->
@@ -188,13 +194,14 @@
           <table class="lm-table lm-table--stack">
             <thead><tr><th scope="col">Customer</th><th scope="col">Booking</th><th scope="col">Branch</th><th scope="col">Date</th><th scope="col" class="center">Rating</th></tr></thead>
             <tbody>
-              <template x-for="review in getReportFeedback()" :key="review.id">
+              <template x-for="review in $store.pager.slice('rep-feedback', getReportFeedback())" :key="review.id">
                 <tr><td data-label="Customer"><strong x-text="review.clientName"></strong></td><td data-label="Booking" class="lm-ref" x-text="review.bookingReference || '—'"></td><td data-label="Branch" x-text="review.branchId ? $store.admin.getBranchName(review.branchId) : 'Off-site'"></td><td data-label="Date" x-text="AdminUI.date(review.date)"></td><td data-label="Rating" class="center lm-text-gold" x-text="review.rating + ' / 5'"></td></tr>
               </template>
               <tr x-show="getReportFeedback().length === 0" class="lm-empty-row"><td colspan="5" class="lm-empty-cell"><div class="lm-empty"><h3>No reviews match these filters</h3></div></td></tr>
             </tbody>
           </table>
         </div>
+        <nav x-lm-pager="'rep-feedback'" aria-label="Feedback report pages"></nav>
       </section>
 
       <!-- Online payment log -->
@@ -209,7 +216,7 @@
           <table class="lm-table lm-table--stack">
             <thead><tr><th scope="col">Time</th><th scope="col">Booking</th><th scope="col">Event</th><th scope="col" class="num">Amount</th><th scope="col">Status</th><th scope="col">PayMongo ID</th><th scope="col">Details</th></tr></thead>
             <tbody>
-              <template x-for="e in getFilteredPaymentLog()" :key="e.id">
+              <template x-for="e in $store.pager.slice('rep-paylog', getFilteredPaymentLog())" :key="e.id">
                 <tr>
                   <td data-label="Time" x-text="e.createdAt"></td>
                   <td data-label="Booking" class="lm-ref" x-text="e.reference || '—'"></td>
@@ -224,6 +231,7 @@
             </tbody>
           </table>
         </div>
+        <nav x-lm-pager="'rep-paylog'" aria-label="Payment log pages"></nav>
       </section>
 
       <!-- PayMongo reconciliation -->
@@ -237,12 +245,12 @@
         <template x-if="reconciliation">
           <div>
             <div class="lm-stats" style="padding:0 20px 16px">
-              <div class="lm-stat"><span class="lm-stat-label">Payments</span><span class="lm-stat-value" x-text="reconciliation.totals.count"></span></div>
-              <div class="lm-stat"><span class="lm-stat-label">Gross</span><span class="lm-stat-value" style="font-size:22px" x-text="$store.admin.formatCurrency(reconciliation.totals.gross)"></span></div>
-              <div class="lm-stat"><span class="lm-stat-label">PayMongo fees</span><span class="lm-stat-value" style="font-size:22px" x-text="$store.admin.formatCurrency(reconciliation.totals.fees)"></span></div>
-              <div class="lm-stat"><span class="lm-stat-label">Net to salon</span><span class="lm-stat-value" style="font-size:22px" x-text="$store.admin.formatCurrency(reconciliation.totals.net)"></span></div>
-              <div class="lm-stat"><span class="lm-stat-label">Refunded</span><span class="lm-stat-value" style="font-size:22px" x-text="$store.admin.formatCurrency(reconciliation.totals.refunded)"></span></div>
-              <div class="lm-stat"><span class="lm-stat-label">Needs attention</span><span class="lm-stat-value" :class="reconciliation.totals.issues ? 'lm-text-danger' : ''" x-text="reconciliation.totals.issues"></span></div>
+              <div data-card-tone="info" class="lm-stat"><span class="lm-stat-label">Payments</span><span class="lm-stat-value" x-text="reconciliation.totals.count"></span></div>
+              <div data-card-tone="gold" class="lm-stat"><span class="lm-stat-label">Gross</span><span class="lm-stat-value" style="font-size:22px" x-text="$store.admin.formatCurrency(reconciliation.totals.gross)"></span></div>
+              <div data-card-tone="info" class="lm-stat"><span class="lm-stat-label">PayMongo fees</span><span class="lm-stat-value" style="font-size:22px" x-text="$store.admin.formatCurrency(reconciliation.totals.fees)"></span></div>
+              <div data-card-tone="gold" class="lm-stat"><span class="lm-stat-label">Net to salon</span><span class="lm-stat-value" style="font-size:22px" x-text="$store.admin.formatCurrency(reconciliation.totals.net)"></span></div>
+              <div data-card-tone="danger" class="lm-stat"><span class="lm-stat-label">Refunded</span><span class="lm-stat-value" style="font-size:22px" x-text="$store.admin.formatCurrency(reconciliation.totals.refunded)"></span></div>
+              <div data-card-tone="warning" class="lm-stat"><span class="lm-stat-label">Needs attention</span><span class="lm-stat-value" :class="reconciliation.totals.issues ? 'lm-text-danger' : ''" x-text="reconciliation.totals.issues"></span></div>
             </div>
             <p class="lm-hint" style="padding:0 20px 8px" x-text="'Period: ' + reconciliation.from + ' to ' + reconciliation.to"></p>
             <div class="lm-alert lm-alert--warn" style="margin:0 20px 12px" x-show="reconciliation.truncated"><p>This period has more payments than one check can read; narrow the dates to see them all.</p></div>
@@ -250,7 +258,7 @@
               <table class="lm-table lm-table--stack">
                 <thead><tr><th scope="col">Paid</th><th scope="col">Booking</th><th scope="col">Result</th><th scope="col" class="num">PayMongo amount</th><th scope="col" class="num">Fee</th><th scope="col" class="num">Refunded</th><th scope="col">In system</th><th scope="col">Payment ID</th><th scope="col" class="num"></th></tr></thead>
                 <tbody>
-                  <template x-for="r in reconcileRows()" :key="r.paymentId + r.reference">
+                  <template x-for="r in $store.pager.slice('rep-reconcile', reconcileRows())" :key="r.paymentId + r.reference">
                     <tr>
                       <td data-label="Paid" x-text="r.paidAt"></td>
                       <td data-label="Booking" class="lm-ref" x-text="r.reference || '—'"></td>
@@ -267,6 +275,7 @@
                 </tbody>
               </table>
             </div>
+            <nav x-lm-pager="'rep-reconcile'" aria-label="Reconciliation pages"></nav>
           </div>
         </template>
       </section>
@@ -287,7 +296,7 @@
           <table class="lm-table lm-table--stack">
             <thead><tr><th scope="col">Time</th><th scope="col">Who</th><th scope="col">Action</th><th scope="col">Record</th><th scope="col">Result</th><th scope="col" class="num"></th></tr></thead>
             <tbody>
-              <template x-for="entry in activityLog" :key="entry.id">
+              <template x-for="entry in $store.pager.slice('rep-activity', activityLog)" :key="entry.id">
                 <tr>
                   <td data-label="Time" x-text="entry.createdAt"></td>
                   <td data-label="Who"><strong x-text="entry.actor || '—'"></strong><span class="lm-cell-sub" x-text="entry.role || 'Guest'"></span></td>
@@ -301,14 +310,17 @@
             </tbody>
           </table>
         </div>
+        <nav x-lm-pager="'rep-activity'" aria-label="Activity log pages"></nav>
       </section>
     </main>
   </div>
 </div>
 
-<script src="../../function/admin/admin-shell.js?v=20261110c"></script>
+<script src="../../function/shared/sign-out.js?v=20261111"></script>
+<script src="../../function/admin/admin-shell.js?v=20261111-np"></script>
 <script src="../../function/shared/live-sync.js?v=20261110"></script>
-<script src="../../function/admin/shared-data.js?v=20261110"></script>
+<script src="../../function/admin/shared-data.js?v=20261111"></script>
 <script src="../../function/admin/reports.js?v=20261110"></script>
+<script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

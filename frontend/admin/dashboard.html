@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="../shared/theme-tokens.css">
+  <link rel="stylesheet" href="../shared/theme-tokens.css?v=20261111-card-tones">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard · Leo Mejillano Admin</title>
@@ -12,11 +12,13 @@
   <script src="../../function/admin/theme-config.js"></script>
   <script>tailwind.config.corePlugins = { preflight: false };</script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <link rel="stylesheet" href="admin-panel.css?v=20261110c">
+  <link rel="stylesheet" href="../shared/notification-panel.css?v=20261111">
+  <link rel="stylesheet" href="admin-panel.css?v=20261111-access">
   <link rel="stylesheet" href="../shared/portal-unify.css?v=20261110b">
   <script src="../../function/shared/toast.js"></script>
+  <script src="../../function/shared/notification-panel.js?v=20261111"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
-  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
 </head>
 <body class="lm-admin" x-data="adminDashboardApp()" x-init="init()">
 <div class="lm-shell">
@@ -48,42 +50,36 @@
 
       <section class="lm-stats" aria-label="Key figures" x-show="!$store.admin.loading" x-cloak>
         <a class="lm-stat" :href="link('appointments.html', { from: today, to: today })">
-          <div class="lm-stat-top"><span class="lm-stat-label">Today's appointments</span><span class="lm-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 3v4M16 3v4M4 9h16M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"/></svg></span></div>
+          <div data-card-tone="info" class="lm-stat-top"><span class="lm-stat-label">Today's appointments</span><span class="lm-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 3v4M16 3v4M4 9h16M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"/></svg></span></div>
           <span class="lm-stat-value" x-text="todaysAppointments().length"></span>
-          <span class="lm-stat-note">Scheduled today, excluding cancelled and no-shows</span>
-          <span class="lm-stat-cta">View bookings →</span>
+          <span class="lm-stat-note">Scheduled today, excluding cancellations and no-shows</span>
         </a>
-        <a class="lm-stat" :href="link('appointments.html', { status: 'Pending' })">
-          <div class="lm-stat-top"><span class="lm-stat-label">Pending bookings</span><span class="lm-stat-icon lm-stat-icon--gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 7v5l3 2M12 21a9 9 0 100-18 9 9 0 000 18z"/></svg></span></div>
+        <a class="lm-stat" data-card-tone="warning" :href="link('appointments.html', { status: 'Pending' })">
+          <div data-card-tone="warning" class="lm-stat-top"><span class="lm-stat-label">Bookings awaiting confirmation</span><span class="lm-stat-icon lm-stat-icon--gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 7v5l3 2M12 21a9 9 0 100-18 9 9 0 000 18z"/></svg></span></div>
           <span class="lm-stat-value" x-text="pendingBookings().length"></span>
-          <span class="lm-stat-note">Waiting for confirmation</span>
-          <span class="lm-stat-cta">Review pending →</span>
+          <span class="lm-stat-note">Waiting for approval</span>
         </a>
         <a class="lm-stat" :href="link('employees.html', { shift: 'on' })">
-          <div class="lm-stat-top"><span class="lm-stat-label">Staff on shift</span><span class="lm-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M16 19v-1a4 4 0 00-4-4H7a4 4 0 00-4 4v1M9.5 10a3 3 0 100-6 3 3 0 000 6z"/></svg></span></div>
-          <span class="lm-stat-value" x-text="staffOnShift().length + ' / ' + branchStaff().length"></span>
+          <div data-card-tone="success" class="lm-stat-top"><span class="lm-stat-label">Staff on duty</span><span class="lm-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M16 19v-1a4 4 0 00-4-4H7a4 4 0 00-4 4v1M9.5 10a3 3 0 100-6 3 3 0 000 6z"/></svg></span></div>
+          <span class="lm-stat-value" x-text="staffOnShift().length + ' of ' + branchStaff().length + ' staff'"></span>
           <span class="lm-stat-note" x-text="staffSummary()"></span>
-          <span class="lm-stat-cta">View staff →</span>
         </a>
         <a class="lm-stat" :href="link('reports.html', { type: 'revenue' })">
-          <div class="lm-stat-top"><span class="lm-stat-label">Collections</span><span class="lm-stat-icon lm-stat-icon--gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 7h18v10H3zM12 15a3 3 0 100-6 3 3 0 000 6zM6 7V5M18 19v-2"/></svg></span></div>
+          <div data-card-tone="gold" class="lm-stat-top"><span class="lm-stat-label">Total collections</span><span class="lm-stat-icon lm-stat-icon--gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 7h18v10H3zM12 15a3 3 0 100-6 3 3 0 000 6zM6 7V5M18 19v-2"/></svg></span></div>
           <span class="lm-stat-value" x-text="$store.admin.formatCurrency(collections())"></span>
-          <span class="lm-stat-note">All-time verified payments, less refunds</span>
-          <span class="lm-stat-cta">Open revenue report →</span>
+          <span class="lm-stat-note">All-time verified payments minus refunds</span>
         </a>
         <a class="lm-stat" :href="link('inventory.html', { stock: 'low' })">
-          <div class="lm-stat-top"><span class="lm-stat-label">Low-stock alerts</span><span class="lm-stat-icon lm-stat-icon--danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 9v4M12 17h.01M10.3 3.9L2.4 18a2 2 0 001.7 3h15.8a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg></span></div>
+          <div data-card-tone="info" class="lm-stat-top"><span class="lm-stat-label">Items needing restock</span><span class="lm-stat-icon lm-stat-icon--danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 9v4M12 17h.01M10.3 3.9L2.4 18a2 2 0 001.7 3h15.8a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg></span></div>
           <span class="lm-stat-value" :class="lowStock().length ? 'lm-text-danger' : ''" x-text="lowStock().length"></span>
-          <span class="lm-stat-note">Items at or below minimum stock</span>
-          <span class="lm-stat-cta">View inventory →</span>
+          <span class="lm-stat-note">At or below minimum stock level</span>
         </a>
       </section>
 
-      <div class="lm-grid lm-grid--main-side" x-show="!$store.admin.loading" x-cloak>
+      <div class="lm-grid lm-grid--main-side" x-ref="branchResults" style="scroll-margin-top:90px" x-show="!$store.admin.loading" x-cloak>
         <section class="lm-card lm-card--flush" aria-labelledby="recentTitle">
           <div class="lm-card-head">
             <div><h2 id="recentTitle">Latest bookings</h2><p>Newest submissions first.</p></div>
-            <a class="lm-btn lm-btn--sm" :href="link('appointments.html', {})">All bookings</a>
           </div>
           <div class="lm-table-wrap">
             <table class="lm-table lm-table--stack">
@@ -92,7 +88,7 @@
               <tbody>
                 <template x-for="booking in recentBookings()" :key="booking.id">
                   <tr>
-                    <td data-label="Reference"><a class="lm-ref" :href="'appointments.html?search=' + encodeURIComponent(booking.id)" x-text="booking.id"></a></td>
+                    <td data-label="Reference"><span class="lm-ref-text" x-text="booking.id"></span></td>
                     <td data-label="Customer"><span class="lm-cell-main" x-text="booking.clientName"></span><span class="lm-cell-sub" x-text="booking.isHomeService ? 'Home service' : $store.admin.getBranchName(booking.branchId)"></span></td>
                     <td data-label="Service" x-text="booking.eventType || booking.serviceName || 'Not specified'"></td>
                     <td data-label="Schedule"><span x-text="AdminUI.date(booking.date) || 'Not scheduled'"></span><span class="lm-cell-sub" x-text="booking.time"></span></td>
@@ -128,7 +124,7 @@
         </div>
         <div class="lm-grid lm-grid--3">
           <template x-for="branch in $store.admin.branches" :key="branch.id">
-            <button type="button" class="lm-stat" @click="branchSel = branch.id" :aria-pressed="(branchSel === branch.id).toString()" :style="branchSel === branch.id ? 'border-color:var(--lm-teal)' : ''">
+            <button type="button" class="lm-stat" @click="selectBranch(branch.id)" :aria-pressed="(branchSel === branch.id).toString()" :title="branchSel === branch.id ? 'Click again to show all branches' : 'Show only this branch on the dashboard'" :style="branchSel === branch.id ? 'border-color:var(--lm-teal)' : ''">
               <div class="lm-stat-top"><span class="lm-cell-main" x-text="branch.name"></span><span class="lm-badge lm-badge--neutral" x-text="branch.type || 'Branch'"></span></div>
               <span class="lm-cell-sub" x-text="branch.location"></span>
               <span class="lm-stat-value" style="font-size:22px" x-text="$store.admin.formatCurrency(branch.revenue)"></span>
@@ -142,9 +138,11 @@
   </div>
 </div>
 
-<script src="../../function/admin/admin-shell.js?v=20261110c"></script>
+<script src="../../function/shared/sign-out.js?v=20261111"></script>
+<script src="../../function/admin/admin-shell.js?v=20261111-np"></script>
 <script src="../../function/shared/live-sync.js?v=20261110"></script>
-<script src="../../function/admin/shared-data.js?v=20261110"></script>
-<script src="../../function/admin/dashboard.js?v=20261110"></script>
+<script src="../../function/admin/shared-data.js?v=20261111"></script>
+<script src="../../function/admin/dashboard.js?v=20261111"></script>
+<script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

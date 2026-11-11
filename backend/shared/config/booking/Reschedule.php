@@ -246,6 +246,12 @@ final class Reschedule
             $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "BOOKING", ?)')
                 ->execute(["Booking {$ref} rescheduled " . ($byCustomer ? 'by the customer ' : '') . "to {$newDateTime}{$withStylist}."]);
 
+            // Stylists: one message each with the old and new time; a main
+            // stylist replaced by the move is told they're off it.
+            Scheduling::notifyStaffOfReschedule($pdo, array_replace($appointment, [
+                'appointment_datetime' => $newDateTime, 'employee_id' => $employeeId, 'status' => $status,
+            ]), $appointment['appointment_datetime'], $appointment['employee_id'] !== null ? (int) $appointment['employee_id'] : null);
+
             $pdo->commit();
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();

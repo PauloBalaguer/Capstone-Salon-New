@@ -36,7 +36,7 @@ function customerApp() {
       // pop-ups -- just the server's current bookings, notifications and
       // staff, plus a fresh check of an open booking form's times/stylists.
       async liveRefresh() {
-        if (this.isBooting) return;
+        if (this.isBooting || this.isGuestTracking) return;
         try {
           const response = await fetch('../../backend/customer/getDashboardData.php', { cache: 'no-store' });
           if (response.status === 401) return;
@@ -65,7 +65,7 @@ function customerApp() {
         this.isSignOutConfirmOpen = false;
       },
 
-      // Sidebar badge on My Bookings: upcoming active bookings.
+      // Sidebar badge on Track Booking: upcoming active bookings.
       upcomingBookingCount() {
         const active = ['Pending', 'Confirmed', 'In Progress', 'Reschedule Requested', 'Reschedule Required'];
         const today = getLocalISODate();
@@ -111,6 +111,11 @@ function customerApp() {
           .then(response => response.json().then(body => ({ status: response.status, body })))
           .then(({ status, body }) => {
             if (status === 401) {
+              if (document.getElementById('find-booking')) {
+                this.isGuestTracking = true;
+                this.isBooting = false;
+                return;
+              }
               window.location.href = '../../frontend/auth/login.html?error=unauthenticated';
               return;
             }
@@ -121,6 +126,7 @@ function customerApp() {
               return;
             }
 
+            if (this.isGuestTracking !== undefined) this.isGuestTracking = false;
             this.customerProfile = body.profile;
             this.csrfToken = body.csrfToken || '';
             if (window.AddressForms) AddressForms.setSaved(body.profile);
@@ -135,6 +141,23 @@ function customerApp() {
             this.allBookings = body.allBookings;
             this.myReviews = body.reviews;
             this.homeServiceRequests = body.homeServiceRequests;
+            if (notificationReference && this.viewTracking && document.getElementById('find-booking')) {
+              const linked = this.appointments.find(a => a.id === notificationReference) || this.homeServiceRequests.find(a => a.id === notificationReference);
+              if (linked) {
+                const home = linked.preferredDate !== undefined;
+                this.appointmentView = this.isPastBooking({ ...linked, date: linked.date || linked.preferredDate }) ? 'past' : 'upcoming';
+                if (new URLSearchParams(window.location.search).get('manage') !== '1') this.viewTracking(linked, home ? 'home_service' : 'appointment');
+              }
+            }
+            // My Feedback, opened from a "Service completed" notification: offer
+            // the review for that booking. openReviewModal only accepts
+            // Completed (or already Reviewed, to edit) appointments.
+            if (notificationReference && document.body.dataset.customerPage === 'reviews' && this.openReviewModal) {
+              const reviewed = this.appointments.find(a => a.id === notificationReference);
+              this.appointmentSearchQuery = '';
+              if (reviewed) this.$nextTick(() => this.openReviewModal(reviewed));
+              else this.pushToast('error', 'That appointment could not be found in your account.');
+            }
             this.lateArrivalRule = body.lateArrivalRule || null;
             if (notificationReference?.startsWith('LM-HOM-')) {
               this.$nextTick(() => document.getElementById('request-' + notificationReference)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
@@ -148,7 +171,7 @@ function customerApp() {
             if (this.prefillBookingForm) this.prefillBookingForm();
             this.checkForReminders();
             // Sidebar "Track Booking" from another page lands on appointments.html?track=1.
-            if (this.openTrackModal && new URLSearchParams(window.location.search).get('track') === '1') this.openTrackModal();
+            if (this.openTrackModal && !notificationReference && new URLSearchParams(window.location.search).get('track') === '1') this.openTrackModal();
 
             this.animateCount('displayServiceCount', countCompletedServices(this.appointments));
             setTimeout(() => { this.isBooting = false; }, 450);

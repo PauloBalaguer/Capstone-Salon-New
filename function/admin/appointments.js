@@ -67,8 +67,15 @@ function adminBookingsApp() {
       if (booking.checkoutPaid) return Number(booking.checkoutRevenue || 0);
       return booking.depositPaid && booking.depositVerified ? Number(booking.depositAmount || 0) : 0;
     },
+    async setHomeBranch(booking, branchKey) {
+      if (!branchKey) return;
+      const store = Alpine.store('admin');
+      const r = await store.post('setHomeServiceBranch.php', { id: booking.id, branchKey });
+      LMToast.show(r.message || (r.success ? 'Branch saved.' : 'Could not save the branch.'), r.success ? 'success' : 'error');
+      if (r.success) await store.refresh();
+    },
     staffBadge(status) {
-      return { 'On Shift': 'lm-badge lm-badge--success', 'Busy': 'lm-badge lm-badge--info', 'On Break': 'lm-badge lm-badge--pending' }[status] || 'lm-badge lm-badge--neutral';
+      return liveStatusClass(status);
     },
 
     getFilteredBookings() {
@@ -106,6 +113,31 @@ function adminBookingsApp() {
         store.bookingQuery = {...query, bookingPage: data.bookingPagination.page};
       } catch (error) { if (request === this.bookingRequest) this.bookingError = error.message || 'Could not load bookings. Please retry.'; }
       finally { if (request === this.bookingRequest) this.bookingLoading = false; }
+    },
+    /* How many filters are set (search counts as one). */
+    activeFilterCount() {
+      return [this.bookingSearch.trim(), this.bookingFilterBranch !== 'all', this.bookingFilterStatus !== 'all',
+        this.bookingFilterPayment !== 'all', this.bookingDateFrom || this.bookingDateTo].filter(Boolean).length;
+    },
+    /* Quick date buttons: Today / This week (Mon–Sun) / This month. */
+    quickRange(key) {
+      const ymd = d => [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
+      const now = new Date();
+      if (key === 'today') return [ymd(now), ymd(now)];
+      if (key === 'week') {
+        const start = new Date(now); start.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+        const end = new Date(start); end.setDate(start.getDate() + 6);
+        return [ymd(start), ymd(end)];
+      }
+      return [ymd(new Date(now.getFullYear(), now.getMonth(), 1)), ymd(new Date(now.getFullYear(), now.getMonth() + 1, 0))];
+    },
+    dateRangeKey() {
+      return ['today', 'week', 'month'].find(k => { const [f, to] = this.quickRange(k); return this.bookingDateFrom === f && this.bookingDateTo === to; }) || '';
+    },
+    setDateRange(key) {
+      if (this.dateRangeKey() === key) { this.bookingDateFrom = ''; this.bookingDateTo = ''; return; }
+      const [from, to] = this.quickRange(key);
+      this.bookingDateFrom = from; this.bookingDateTo = to;
     },
     resetFilters() {
       this.bookingSearch = ''; this.bookingFilterBranch = 'all'; this.bookingFilterStatus = 'all';

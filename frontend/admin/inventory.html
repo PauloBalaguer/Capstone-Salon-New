@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="../shared/theme-tokens.css">
+  <link rel="stylesheet" href="../shared/theme-tokens.css?v=20261111-card-tones">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inventory · Leo Mejillano Admin</title>
@@ -11,13 +11,16 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="../../function/admin/theme-config.js"></script>
   <script>tailwind.config.corePlugins = { preflight: false };</script>
+  <script src="../../function/shared/list-pager.js?v=20261111"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <link rel="stylesheet" href="admin-panel.css?v=20261110c">
+  <link rel="stylesheet" href="../shared/notification-panel.css?v=20261111">
+  <link rel="stylesheet" href="admin-panel.css?v=20261111-access">
   <link rel="stylesheet" href="../shared/portal-unify.css?v=20261110b">
   <script src="../../function/shared/toast.js"></script>
   <script src="../../function/shared/confirm-dialog.js"></script>
+  <script src="../../function/shared/notification-panel.js?v=20261111"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
-  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
 </head>
 <body class="lm-admin" x-data="adminInventoryApp()" x-init="init()" x-effect="AdminUI.lockScroll(openItemModal || !!itemHistoryFor || !!adjustItem)">
 <div class="lm-shell">
@@ -38,10 +41,10 @@
       <div x-show="$store.admin.error" x-cloak class="lm-alert lm-alert--error" role="alert"><p x-text="$store.admin.error"></p><button type="button" class="lm-btn lm-btn--sm" @click="$store.admin.refresh()">Retry</button></div>
 
       <section class="lm-stats" aria-label="Inventory figures">
-        <button type="button" class="lm-stat" @click="inventoryView = 'active'; stockFilter = 'all'"><span class="lm-stat-label">Active items</span><span class="lm-stat-value" x-text="branchItems().filter(i => i.isActive).length"></span><span class="lm-stat-note" x-text="inventoryFilterBranch === 'all' ? 'All branches' : $store.admin.getBranchName(inventoryFilterBranch)"></span></button>
-        <button type="button" class="lm-stat" @click="inventoryView = 'active'; stockFilter = 'low'"><span class="lm-stat-label">Low stock</span><span class="lm-stat-value lm-text-danger" x-text="branchItems().filter(i => i.isActive && stockStatus(i) !== 'ok').length"></span><span class="lm-stat-note">At or below minimum (incl. out of stock)</span></button>
-        <button type="button" class="lm-stat" @click="inventoryView = 'active'; stockFilter = 'out'"><span class="lm-stat-label">Out of stock</span><span class="lm-stat-value" x-text="branchItems().filter(i => i.isActive && stockStatus(i) === 'out').length"></span><span class="lm-stat-note">Zero units on hand</span></button>
-        <button type="button" class="lm-stat" @click="setInventoryView('archived')"><span class="lm-stat-label">Archived</span><span class="lm-stat-value" x-text="archivedCount()"></span><span class="lm-stat-note">Hidden from staff and checkout</span></button>
+        <button data-card-tone="info" type="button" class="lm-stat" @click="inventoryView = 'active'; stockFilter = 'all'"><span class="lm-stat-label">Active items</span><span class="lm-stat-value" x-text="branchItems().filter(i => i.isActive).length"></span><span class="lm-stat-note" x-text="inventoryFilterBranch === 'all' ? 'All branches' : $store.admin.getBranchName(inventoryFilterBranch)"></span></button>
+        <button data-card-tone="info" type="button" class="lm-stat" @click="inventoryView = 'active'; stockFilter = 'low'"><span class="lm-stat-label">Low stock</span><span class="lm-stat-value lm-text-danger" x-text="branchItems().filter(i => i.isActive && stockStatus(i) !== 'ok').length"></span><span class="lm-stat-note">At or below minimum (incl. out of stock)</span></button>
+        <button data-card-tone="info" type="button" class="lm-stat" @click="inventoryView = 'active'; stockFilter = 'out'"><span class="lm-stat-label">Out of stock</span><span class="lm-stat-value" x-text="branchItems().filter(i => i.isActive && stockStatus(i) === 'out').length"></span><span class="lm-stat-note">Zero units on hand</span></button>
+        <button data-card-tone="info" type="button" class="lm-stat" @click="setInventoryView('archived')"><span class="lm-stat-label">Archived</span><span class="lm-stat-value" x-text="archivedCount()"></span><span class="lm-stat-note">Hidden from staff and checkout</span></button>
       </section>
 
       <section class="lm-card" aria-label="Inventory filters">
@@ -50,15 +53,23 @@
             <div class="lm-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 21l-5-5m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
               <input class="lm-input" type="search" x-model.debounce.200ms="productSearch" placeholder="Search product, category or supplier"></div>
           </label>
-          <label class="lm-field"><span>Branch</span>
-            <select class="lm-select" x-model="inventoryFilterBranch"><option value="all">All branches</option><template x-for="branch in $store.admin.branches" :key="branch.id"><option :value="branch.id" x-text="branch.name"></option></template></select>
-          </label>
           <label class="lm-field" x-show="inventoryView === 'active'"><span>Stock status</span>
             <select class="lm-select" x-model="stockFilter"><option value="all">All stock levels</option><option value="low">Low stock (incl. out)</option><option value="out">Out of stock</option><option value="ok">In stock</option></select>
           </label>
           <div class="lm-actions"><button type="button" class="lm-btn" @click="productSearch = ''; inventoryFilterBranch = 'all'; stockFilter = 'all'">Clear</button></div>
         </div>
       </section>
+
+      <div class="lm-branch-pick" role="radiogroup" aria-label="Show inventory for">
+        <template x-for="card in branchCards()" :key="card.id">
+          <button type="button" class="lm-branch-card" role="radio" :aria-checked="(inventoryFilterBranch === card.id).toString()" :class="{ 'is-on': inventoryFilterBranch === card.id }" @click="inventoryFilterBranch = card.id">
+            <span class="lm-branch-check" aria-hidden="true">✓</span>
+            <strong x-text="card.title"></strong>
+            <span class="lm-branch-sub" x-text="card.sub"></span>
+            <span class="lm-branch-count" x-text="card.count + (card.count === 1 ? ' item' : ' items') + (card.low ? ' · ' + card.low + ' low' : '')"></span>
+          </button>
+        </template>
+      </div>
 
       <div class="lm-tabs" role="tablist" aria-label="Inventory views">
         <button type="button" class="lm-tab" role="tab" :aria-selected="(inventoryView === 'active').toString()" @click="setInventoryView('active')">Stock</button>
@@ -73,31 +84,36 @@
         <div class="lm-result-bar"><p x-text="getFilteredInventory().length + ' item' + (getFilteredInventory().length === 1 ? '' : 's')"></p></div>
         <div class="lm-table-wrap">
           <table class="lm-table lm-table--stack">
-            <thead><tr><th scope="col">Product</th><th scope="col">Category</th><th scope="col">Branch</th><th scope="col" class="center">Available</th><th scope="col" class="center">Minimum</th><th scope="col">Stock status</th><th scope="col" class="num">Actions</th></tr></thead>
+            <thead><tr><th scope="col">Product</th><th scope="col">Category</th><th scope="col" x-show="inventoryFilterBranch === 'all'">Branch</th><th scope="col">Stock</th><th scope="col">Status</th><th scope="col" class="num">Action</th></tr></thead>
             <tbody>
-              <template x-for="item in getFilteredInventory()" :key="item.id">
+              <template x-for="item in $store.pager.slice('inventory', getFilteredInventory())" :key="item.id">
                 <tr :class="!item.isActive ? 'lm-row-muted' : ''">
-                  <td data-label="Product"><span class="lm-cell-main" x-text="item.name"></span><span class="lm-cell-sub" x-show="item.supplier" x-text="'Supplier: ' + item.supplier"></span></td>
+                  <td data-label="Product"><button type="button" class="lm-item-name" @click="openItemHistory(item)" :title="'View history for ' + item.name" x-text="item.name"></button><span class="lm-cell-sub" x-show="item.supplier" x-text="'Supplier: ' + item.supplier"></span></td>
                   <td data-label="Category" x-text="item.category || '—'"></td>
-                  <td data-label="Branch" x-text="$store.admin.getBranchName(item.branchId)"></td>
-                  <td data-label="Available" class="center"><strong :class="stockStatus(item) !== 'ok' ? 'lm-text-danger' : ''" x-text="item.stock"></strong></td>
-                  <td data-label="Minimum" class="center" x-text="item.minQty"></td>
+                  <td data-label="Branch" x-show="inventoryFilterBranch === 'all'" x-text="shortBranch(item.branchId)"></td>
+                  <td data-label="Stock">
+                    <div class="lm-stockcell" :class="'is-' + stockStatus(item)">
+                      <strong x-text="item.stock"></strong>
+                      <span class="lm-stockbar" aria-hidden="true"><span :style="'width:' + stockBarPct(item) + '%'"></span></span>
+                      <small x-text="'min ' + item.minQty"></small>
+                    </div>
+                  </td>
                   <td data-label="Status">
                     <span x-show="!item.isActive" class="lm-badge lm-badge--neutral">Archived</span>
                     <span x-show="item.isActive" :class="{ out: 'lm-badge lm-badge--danger', low: 'lm-badge lm-badge--pending', ok: 'lm-badge lm-badge--success' }[stockStatus(item)]" x-text="{ out: 'Out of stock', low: 'Low stock', ok: 'In stock' }[stockStatus(item)]"></span>
                   </td>
                   <td class="lm-actions-cell"><div class="lm-actions">
                     <button type="button" class="lm-btn lm-btn--primary lm-btn--sm" x-show="item.isActive" @click="openAdjust(item)">Adjust stock</button>
-                    <button type="button" class="lm-btn lm-btn--sm" x-show="item.isActive" @click="openEditItem(item)">Edit</button>
-                    <button type="button" class="lm-btn lm-btn--sm" @click="openItemHistory(item)">History</button>
-                    <button type="button" class="lm-btn lm-btn--sm" :class="item.isActive ? 'lm-btn--danger' : ''" @click="toggleItemActive(item)" x-text="item.isActive ? 'Archive' : 'Restore'"></button>
+                    <button type="button" class="lm-btn lm-btn--sm" x-show="item.isActive" @click="openEditItem(item)" :aria-label="'Edit ' + item.name">Edit</button>
+                    <button type="button" class="lm-btn lm-btn--sm" x-show="!item.isActive" @click="toggleItemActive(item)">Restore</button>
                   </div></td>
                 </tr>
               </template>
-              <tr x-show="getFilteredInventory().length === 0" class="lm-empty-row"><td colspan="7" class="lm-empty-cell"><div class="lm-empty"><h3 x-text="inventoryView === 'archived' ? 'No archived items' : 'No items match these filters'"></h3><p>Try another product name, branch or stock status.</p></div></td></tr>
+              <tr x-show="getFilteredInventory().length === 0" class="lm-empty-row"><td colspan="6" class="lm-empty-cell"><div class="lm-empty"><h3 x-text="inventoryView === 'archived' ? 'No archived items' : 'No items match these filters'"></h3><p>Try another product name, branch or stock status.</p></div></td></tr>
             </tbody>
           </table>
         </div>
+        <nav x-lm-pager="'inventory'" aria-label="Inventory pages"></nav>
       </section>
 
       <!-- Usage & history -->
@@ -116,7 +132,7 @@
           <table class="lm-table lm-table--stack">
             <thead><tr><th scope="col">When</th><th scope="col">Item</th><th scope="col">Branch</th><th scope="col">Type</th><th scope="col" class="center">Change</th><th scope="col" class="center">Stock</th><th scope="col">By</th><th scope="col">Booking / reason</th></tr></thead>
             <tbody>
-              <template x-for="row in historyRows" :key="row.id">
+              <template x-for="row in $store.pager.slice('inventory-history', historyRows)" :key="row.id">
                 <tr>
                   <td data-label="When" x-text="row.happenedAt"></td>
                   <td data-label="Item"><span class="lm-cell-main" x-text="row.itemName"></span><span class="lm-cell-sub" x-show="!row.itemActive">archived</span></td>
@@ -132,6 +148,7 @@
             </tbody>
           </table>
         </div>
+        <nav x-lm-pager="'inventory-history'" aria-label="History pages"></nav>
       </section>
     </main>
   </div>
@@ -142,7 +159,7 @@
   <div class="lm-modal-box" @click.outside="adjustItem = null">
     <template x-if="adjustItem">
       <form style="display:contents" @submit.prevent="saveAdjustment()">
-        <div class="lm-modal-head"><div><h2 id="adjustTitle">Adjust stock</h2><p x-text="$store.admin.getBranchName(adjustItem.branchId)"></p></div><button type="button" class="lm-close" @click="adjustItem = null" aria-label="Close">&times;</button></div>
+        <div class="lm-modal-head"><div><h2 id="adjustTitle">Adjust stock</h2><p x-text="$store.admin.getBranchName(adjustItem.branchId)"></p></div><button type="button" class="ui-close-icon lm-close" @click="adjustItem = null" aria-label="Close">&times;</button></div>
         <div class="lm-modal-body lm-form">
           <dl class="lm-dl">
             <div class="full"><dt>Product</dt><dd x-text="adjustItem.name"></dd></div>
@@ -177,7 +194,7 @@
 <!-- Add / edit item -->
 <div class="lm-modal" x-show="openItemModal" x-cloak @keydown.escape.window="openItemModal = false" role="dialog" aria-modal="true" aria-labelledby="itemTitle">
   <div class="lm-modal-box" @click.outside="openItemModal = false">
-    <div class="lm-modal-head"><div><h2 id="itemTitle" x-text="editingItemId ? 'Edit item' : 'New item'"></h2><p>Product details for one branch.</p></div><button type="button" class="lm-close" @click="openItemModal = false" aria-label="Close">&times;</button></div>
+    <div class="lm-modal-head"><div><h2 id="itemTitle" x-text="editingItemId ? 'Edit item' : 'New item'"></h2><p>Product details for one branch.</p></div><button type="button" class="ui-close-icon lm-close" @click="openItemModal = false" aria-label="Close">&times;</button></div>
     <form class="lm-modal-body lm-form" @submit.prevent="saveItem()">
       <label class="lm-field"><span>Item name</span><input class="lm-input" type="text" x-model="itemForm.name" required></label>
       <label class="lm-field"><span>Branch</span><select class="lm-select" x-model="itemForm.branchId" required><option value="" disabled>Select…</option><template x-for="branch in $store.admin.branches" :key="branch.id"><option :value="branch.id" x-text="branch.name"></option></template></select></label>
@@ -191,6 +208,10 @@
       </div>
       <label class="lm-field"><span>Supplier (optional)</span><input class="lm-input" type="text" x-model="itemForm.supplier" placeholder="e.g. Beauty Trade Corp."></label>
       <button type="submit" class="lm-btn lm-btn--primary lm-btn--block" x-text="editingItemId ? 'Save changes' : 'Add item'"></button>
+      <div class="lm-danger-zone" x-show="editingItemId">
+        <div><strong>Archive item</strong><p>Hides it from staff, checkout and stock alerts. Its history is kept and you can restore it from the Archived tab.</p></div>
+        <button type="button" class="lm-btn lm-btn--danger" @click="archiveFromEdit()">Archive</button>
+      </div>
     </form>
   </div>
 </div>
@@ -198,7 +219,7 @@
 <!-- One item's history -->
 <div class="lm-modal" x-show="itemHistoryFor" x-cloak @keydown.escape.window="itemHistoryFor = null" role="dialog" aria-modal="true" aria-labelledby="itemHistoryTitle">
   <div class="lm-modal-box lm-modal-box--xl" @click.outside="itemHistoryFor = null">
-    <div class="lm-modal-head"><div><h2 id="itemHistoryTitle" x-text="(itemHistoryFor?.name || '') + ' history'"></h2><p x-text="itemHistoryFor ? $store.admin.getBranchName(itemHistoryFor.branchId) + ' · now ' + itemHistoryFor.stock + ' units' + (itemHistoryFor.isActive ? '' : ' · archived') : ''"></p></div><button type="button" class="lm-close" @click="itemHistoryFor = null" aria-label="Close">&times;</button></div>
+    <div class="lm-modal-head"><div><h2 id="itemHistoryTitle" x-text="(itemHistoryFor?.name || '') + ' history'"></h2><p x-text="itemHistoryFor ? $store.admin.getBranchName(itemHistoryFor.branchId) + ' · now ' + itemHistoryFor.stock + ' units' + (itemHistoryFor.isActive ? '' : ' · archived') : ''"></p></div><button type="button" class="ui-close-icon lm-close" @click="itemHistoryFor = null" aria-label="Close">&times;</button></div>
     <div class="lm-modal-body" style="padding:0">
       <div x-show="itemHistoryLoading" class="lm-loading" role="status"><span class="lm-spinner"></span>Loading history…</div>
       <div class="lm-table-wrap" x-show="!itemHistoryLoading">
@@ -223,9 +244,11 @@
   </div>
 </div>
 
-<script src="../../function/admin/admin-shell.js?v=20261110c"></script>
+<script src="../../function/shared/sign-out.js?v=20261111"></script>
+<script src="../../function/admin/admin-shell.js?v=20261111-np"></script>
 <script src="../../function/shared/live-sync.js?v=20261110"></script>
-<script src="../../function/admin/shared-data.js?v=20261110"></script>
-<script src="../../function/admin/inventory.js?v=20261110"></script>
+<script src="../../function/admin/shared-data.js?v=20261111"></script>
+<script src="../../function/admin/inventory.js?v=20261111-inv"></script>
+<script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="../shared/theme-tokens.css">
+  <link rel="stylesheet" href="../shared/theme-tokens.css?v=20261111-card-tones">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bookings · Leo Mejillano Admin</title>
@@ -12,13 +12,15 @@
   <script src="../../function/admin/theme-config.js"></script>
   <script>tailwind.config.corePlugins = { preflight: false };</script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <link rel="stylesheet" href="admin-panel.css?v=20261110c">
+  <link rel="stylesheet" href="../shared/notification-panel.css?v=20261111">
+  <link rel="stylesheet" href="admin-panel.css?v=20261111-access">
   <link rel="stylesheet" href="../shared/portal-unify.css?v=20261110b">
   <script src="../../function/shared/booking-validation.js"></script>
   <script src="../../function/shared/toast.js"></script>
   <script src="../../function/shared/confirm-dialog.js"></script>
+  <script src="../../function/shared/notification-panel.js?v=20261111"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
-  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
 </head>
 <body class="lm-admin" x-data="adminBookingsApp()" x-init="init()"
       x-effect="AdminUI.lockScroll(openStaffAssignModal || openHomeServiceQuoteModal || openDepositModal || openCheckoutModalFlag || !!collectBalanceBooking)">
@@ -48,8 +50,8 @@
           </label>
           <label class="lm-field"><span>Branch</span>
             <select class="lm-select" x-model="bookingFilterBranch">
-              <option value="all">All branches & off-site</option>
-              <option value="off-site">Off-site / Home Service</option>
+              <option value="all">All locations</option>
+              <option value="off-site">Home service (off-site)</option>
               <template x-for="branch in $store.admin.branches" :key="branch.id"><option :value="branch.id" x-text="branch.name"></option></template>
             </select>
           </label>
@@ -80,9 +82,24 @@
               <template x-for="status in ['Payment Required','Awaiting Verification','Down Payment Verified','Fully Paid','Rejected','Refund Due','Refund Processing','Refunded','Forfeited']" :key="status"><option :value="status" x-text="PortalPresentation.paymentStatus(status)"></option></template>
             </select>
           </label>
-          <label class="lm-field"><span>Appointment from</span><input class="lm-input" type="date" x-model="bookingDateFrom" :max="bookingDateTo || null"></label>
-          <label class="lm-field"><span>Appointment to</span><input class="lm-input" type="date" x-model="bookingDateTo" :min="bookingDateFrom || null"></label>
-          <div class="lm-actions"><button type="button" class="lm-btn" @click="resetFilters()">Clear filters</button></div>
+        </div>
+        <div class="lm-daterow">
+          <div class="lm-field lm-daterange" role="group" aria-labelledby="apptDateLabel"><span id="apptDateLabel">Appointment date</span>
+            <div class="lm-daterange-inputs">
+              <input class="lm-input" type="date" x-model="bookingDateFrom" :max="bookingDateTo || null" aria-label="From date">
+              <span class="lm-daterange-sep" aria-hidden="true">–</span>
+              <input class="lm-input" type="date" x-model="bookingDateTo" :min="bookingDateFrom || null" aria-label="To date">
+            </div>
+          </div>
+          <div class="lm-quickdates" role="group" aria-label="Quick dates">
+            <template x-for="r in [['today','Today'],['week','This week'],['month','This month']]" :key="r[0]">
+              <button type="button" class="lm-chip" :class="{ 'is-on': dateRangeKey() === r[0] }" :aria-pressed="(dateRangeKey() === r[0]).toString()" @click="setDateRange(r[0])" x-text="r[1]"></button>
+            </template>
+          </div>
+          <div class="lm-filter-reset">
+            <span class="lm-filter-count" x-show="activeFilterCount()" x-text="activeFilterCount() + (activeFilterCount() === 1 ? ' filter on' : ' filters on')"></span>
+            <button type="button" class="lm-btn" @click="resetFilters()" :disabled="!activeFilterCount()">Clear filters</button>
+          </div>
         </div>
       </section>
 
@@ -99,16 +116,16 @@
         </div>
 
         <div class="lm-table-wrap" x-show="!bookingLoading && !$store.admin.loading && !bookingError && !$store.admin.error" x-cloak>
-          <table class="lm-table lm-table--stack">
+          <table class="lm-table lm-table--stack lm-booking-table">
             <caption class="lm-sr-only">Bookings sorted by newest submission</caption>
             <thead><tr><th scope="col">Booking ref</th><th scope="col">Customer</th><th scope="col">Service</th><th scope="col">Branch</th><th scope="col">Appointment</th><th scope="col">Status</th><th scope="col" class="num">Details</th></tr></thead>
             <tbody>
               <template x-for="booking in getFilteredBookings()" :key="booking.id">
                 <tr>
-                  <td data-label="Booking ref"><span class="lm-ref" x-text="booking.id"></span><span class="lm-cell-sub" x-text="'Submitted ' + AdminUI.dateTime(booking.createdAt)"></span></td>
+                  <td data-label="Booking ref"><span class="lm-ref-text" x-text="booking.id"></span><span class="lm-cell-sub" x-text="'Submitted ' + AdminUI.dateTime(booking.createdAt)"></span></td>
                   <td data-label="Customer"><span class="lm-cell-main" x-text="booking.clientName"></span><span class="lm-cell-sub" x-text="booking.clientPhone"></span></td>
                   <td data-label="Service"><span x-text="booking.eventType || booking.serviceName || 'Not specified'"></span><span class="lm-cell-sub" x-text="booking.bookingType"></span></td>
-                  <td data-label="Branch" x-text="booking.isHomeService ? 'Off-site' : $store.admin.getBranchName(booking.branchId)"></td>
+                  <td data-label="Branch" x-text="booking.isHomeService ? 'Off-site · ' + booking.homeBranchName : $store.admin.getBranchName(booking.branchId)"></td>
                   <td data-label="Appointment"><span x-text="AdminUI.date(booking.date) || 'Not scheduled'"></span><span class="lm-cell-sub" x-text="booking.time || 'Time not set'"></span></td>
                   <td data-label="Status"><span :class="$store.admin.getStatusBadgeClass(booking.status)" x-text="booking.status"></span></td>
                   <td class="lm-actions-cell"><div class="lm-actions"><button type="button" class="lm-btn lm-btn--primary lm-btn--sm" @click="openBookingDetails(booking)" :aria-label="'View details for ' + booking.id">Details</button></div></td>
@@ -135,7 +152,7 @@
 
 <!-- Booking details + actions. Any action button closes this dialog first
      (the follow-up modal opens on top of the page). -->
-<dialog x-ref="bookingDetails" class="lm-dialog" aria-labelledby="bookingDetailsTitle"
+<dialog x-ref="bookingDetails" class="lm-dialog lm-booking-details" aria-labelledby="bookingDetailsTitle"
         @click.capture="if ($event.target.closest('button') && !$event.target.closest('[data-details-close]')) $refs.bookingDetails.close()"
         @click.self="$refs.bookingDetails.close()">
   <template x-for="booking in detailsBooking ? [detailsBooking] : []" :key="booking.id">
@@ -143,41 +160,66 @@
       <div class="lm-modal-head">
         <div>
           <h2 id="bookingDetailsTitle">Booking details</h2>
-          <p><span class="lm-ref" x-text="booking.id"></span> · submitted <span x-text="AdminUI.dateTime(booking.createdAt)"></span></p>
+          <p class="lm-booking-meta"><span class="lm-ref-text" x-text="booking.id"></span><span>Booked on <span x-text="AdminUI.dateTime(booking.createdAt)"></span></span></p>
         </div>
-        <button type="button" class="lm-close" data-details-close @click="$refs.bookingDetails.close()" aria-label="Close booking details" autofocus>&times;</button>
+        <button type="button" class="ui-close-icon lm-close" data-details-close @click="$refs.bookingDetails.close()" aria-label="Close booking details" autofocus>&times;</button>
       </div>
 
       <div class="lm-modal-body">
         <div class="lm-actions"><span :class="$store.admin.getStatusBadgeClass(booking.status)" x-text="booking.status"></span><span class="lm-badge lm-badge--neutral" x-text="booking.bookingType"></span></div>
         <div x-show="!booking.isHomeService && booking.status === 'Pending' && booking.hasConflict" class="lm-alert lm-alert--error" role="alert"><p>⚠ Conflicts with a confirmed booking for this stylist and time.</p></div>
+        <!-- Set by a staff leave or branch holiday saved after this booking was confirmed. The booking itself is unchanged. -->
+        <div x-show="booking.needsFollowup" class="lm-alert lm-alert--error" role="alert"><p><strong>Needs follow-up:</strong> <span x-text="booking.needsFollowup"></span>. Arrange any change with the customer; the original details are kept.</p></div>
 
-        <dl class="lm-dl">
-          <div><dt>Booking reference</dt><dd class="lm-ref" x-text="booking.id"></dd></div>
-          <div><dt>Customer type</dt><dd x-text="booking.customerType || 'Not recorded'"></dd></div>
-          <div><dt>Customer</dt><dd x-text="booking.clientName"></dd></div>
-          <div><dt>Contact</dt><dd><span x-text="booking.clientPhone || '—'"></span><span class="lm-cell-sub" x-show="booking.clientEmail" x-text="booking.clientEmail"></span></dd></div>
-          <div class="full"><dt x-text="booking.isHomeService ? 'Event' : 'Service(s)'"></dt><dd x-text="booking.eventType || booking.serviceName || 'Not specified'"></dd></div>
-          <div><dt>Branch</dt><dd x-text="booking.isHomeService ? 'Off-site / Home Service' : $store.admin.getBranchName(booking.branchId)"></dd></div>
-          <div><dt>Assigned staff</dt><dd><span x-text="booking.staffName || 'Not assigned'"></span> <button type="button" class="lm-link" @click="openStaffAssign(booking)">Change</button></dd></div>
-          <div><dt>Appointment date</dt><dd x-text="AdminUI.date(booking.date) || 'Not scheduled'"></dd></div>
-          <div><dt>Appointment time</dt><dd x-text="(booking.time || 'Not set') + (booking.endTime ? ' – ' + booking.endTime : '')"></dd></div>
-          <div x-show="!booking.isHomeService"><dt>Estimated duration</dt><dd x-text="ServiceDuration.format(booking.durationMinutes)"></dd></div>
-          <div><dt>Booking status</dt><dd x-text="booking.status"></dd></div>
-        </dl>
+        <!-- Customer -->
+        <section class="lm-bd-section" aria-label="Customer">
+          <h3 class="lm-bd-heading">Customer</h3>
+          <div class="lm-bd-person">
+            <span class="lm-avatar" aria-hidden="true" x-text="AdminUI.initials(booking.clientName)"></span>
+            <div>
+              <p class="lm-bd-strong lm-capitalize" x-text="booking.clientName"></p>
+              <p class="lm-bd-sub" x-text="[booking.customerType ? booking.customerType + ' customer' : '', booking.clientPhone || 'No phone number', booking.clientEmail].filter(Boolean).join(' · ')"></p>
+            </div>
+          </div>
+        </section>
 
-        <hr class="lm-divider">
-        <dl class="lm-dl">
-          <div><dt>Total amount</dt><dd x-text="totalAmount(booking) === null ? 'Quote not set' : $store.admin.formatCurrency(totalAmount(booking))"></dd></div>
-          <div><dt>Amount paid</dt><dd class="lm-text-success" x-text="$store.admin.formatCurrency(amountPaid(booking))"></dd></div>
-          <div><dt>Remaining balance</dt><dd class="lm-text-gold" x-text="booking.remainingBalance === null ? '—' : $store.admin.formatCurrency(booking.remainingBalance)"></dd></div>
-          <div><dt>Payment status</dt><dd x-text="PortalPresentation.paymentStatus(booking.paymentStatus) || 'Not recorded'"></dd></div>
-          <div><dt>Payment method</dt><dd x-text="PortalPresentation.methodLabel(booking.depositMethod || booking.paymentMethod) || 'Not selected'"></dd></div>
-          <div><dt>Payment reference</dt><dd x-text="booking.depositReference || 'Not recorded'"></dd></div>
-        </dl>
+        <!-- Appointment -->
+        <section class="lm-bd-section" aria-label="Appointment">
+          <h3 class="lm-bd-heading">Appointment</h3>
+          <dl class="lm-bd-rows">
+            <div><dt x-text="booking.isHomeService ? 'Event' : 'Service'"></dt><dd x-text="booking.eventType || booking.serviceName || 'Not specified'"></dd></div>
+            <div><dt>When</dt><dd><span x-text="AdminUI.date(booking.date) || 'Not scheduled'"></span><span class="lm-bd-sub" x-text="(booking.time || 'Time not set') + (booking.endTime ? ' – ' + booking.endTime : '') + (!booking.isHomeService && booking.durationMinutes ? ' (' + ServiceDuration.format(booking.durationMinutes) + ')' : '')"></span></dd></div>
+            <div x-show="!booking.isHomeService"><dt>Branch</dt><dd x-text="$store.admin.getBranchName(booking.branchId)"></dd></div>
+            <!-- Home service: responsible branch (its hours/holidays apply). Older requests show "Branch not set". -->
+            <div x-show="booking.isHomeService"><dt>Responsible branch</dt><dd>
+              <span :class="booking.homeBranchKey ? '' : 'lm-badge lm-badge--pending'" x-text="booking.homeBranchName"></span>
+              <select class="lm-select" style="margin-top:6px;max-width:220px" aria-label="Set responsible branch" @change="setHomeBranch(booking, $event.target.value); $event.target.value = ''">
+                <option value="">Change branch...</option>
+                <template x-for="b in $store.admin.branches" :key="b.id"><option :value="b.id" x-text="b.name"></option></template>
+              </select>
+            </dd></div>
+            <div><dt>Staff</dt><dd class="lm-bd-staff"><span><span x-text="booking.staffName || (booking.isHomeService ? 'Pending assignment' : 'Not assigned')"></span><span class="lm-bd-sub" x-show="booking.isHomeService && booking.assignmentLabel && booking.assignmentLabel !== 'Pending assignment'" x-text="booking.assignmentLabel"></span></span><button type="button" class="lm-btn lm-btn--sm" @click="openStaffAssign(booking)">Change</button></dd></div>
+          </dl>
+        </section>
+
+        <!-- Payment -->
+        <section class="lm-bd-section" aria-label="Payment">
+          <h3 class="lm-bd-heading">Payment <span class="lm-bd-paystate" :class="booking.remainingBalance > 0 ? 'is-due' : 'is-paid'" x-text="PortalPresentation.paymentStatus(booking.paymentStatus) || 'Not recorded'"></span></h3>
+          <div class="lm-bd-money">
+            <div><span>Total</span><strong x-text="totalAmount(booking) === null ? 'Quote not set' : $store.admin.formatCurrency(totalAmount(booking))"></strong></div>
+            <div><span>Paid</span><strong class="lm-text-success" x-text="$store.admin.formatCurrency(amountPaid(booking))"></strong></div>
+            <div><span>Balance</span><strong :class="booking.remainingBalance > 0 ? 'lm-text-gold' : ''" x-text="booking.remainingBalance === null ? '—' : $store.admin.formatCurrency(booking.remainingBalance)"></strong></div>
+          </div>
+          <p class="lm-bd-sub" x-text="'Paid via ' + (PortalPresentation.methodLabel(booking.depositMethod || booking.paymentMethod) || 'method not selected') + (booking.depositReference ? ' · Ref ' + booking.depositReference : '')"></p>
+        </section>
         <button type="button" class="lm-btn lm-btn--warn" x-show="booking.paymentStatus === 'Refund Due' || booking.paymentStatus === 'Refund Processing'" @click="refundDeposit(booking)" x-text="refundButtonLabel(booking)"></button>
 
-        <p x-show="booking.notes" class="lm-panel" style="white-space:pre-line;margin:0;text-align:left" x-text="booking.notes"></p>
+        <section x-show="/^Booked for: [^\r\n]+, Phone: [\d+ ()-]+$/.test(booking.notes || '')" class="lm-booking-contact" aria-label="Booking contact details">
+          <span><strong>Name:</strong> <span x-text="booking.clientName || 'Not recorded'"></span></span>
+          <span><strong>Mobile:</strong> <span x-text="booking.clientPhone || 'Not recorded'"></span></span>
+          <span><strong>Email:</strong> <span x-text="booking.clientEmail || 'Not recorded'"></span></span>
+        </section>
+        <p x-show="booking.notes && !/^Booked for: [^\r\n]+, Phone: [\d+ ()-]+$/.test(booking.notes)" class="lm-panel" style="white-space:pre-line;margin:0;text-align:left" x-text="booking.notes"></p>
 
         <!-- Home service specifics -->
         <template x-if="booking.isHomeService">
@@ -209,12 +251,12 @@
       <div class="lm-modal-foot">
         <template x-if="!booking.isHomeService">
           <div class="lm-actions lm-actions--end" style="width:100%">
-            <button type="button" class="lm-btn" x-show="['Pending','Confirmed','Reschedule Requested','Reschedule Required'].includes(booking.status) || (booking.status === 'Cancelled' && ['Forfeited','Refund Due'].includes(booking.paymentStatus) && booking.depositAmount > 0)" @click="updateBookingStatus(booking.id, 'In Progress')">Reschedule / review availability</button>
+            <button type="button" class="lm-btn" x-show="['Pending','Confirmed','Reschedule Requested','Reschedule Required'].includes(booking.status) || (booking.status === 'Cancelled' && ['Forfeited','Refund Due'].includes(booking.paymentStatus) && booking.depositAmount > 0)" @click="updateBookingStatus(booking.id, 'In Progress')">Review schedule</button>
             <button type="button" class="lm-btn lm-btn--danger" x-show="['Pending','Confirmed','Reschedule Requested','Reschedule Required'].includes(booking.status)" @click="updateBookingStatus(booking.id, 'Cancelled')">Cancel booking</button>
-            <button type="button" class="lm-btn lm-btn--danger" x-show="booking.status === 'Confirmed'" @click="updateBookingStatus(booking.id, 'No-Show')">Mark no-show</button>
-            <button type="button" class="lm-btn lm-btn--primary" x-show="booking.status === 'Pending'" @click="openConfirmDeposit(booking)">Confirm slot / verify payment</button>
-            <button type="button" class="lm-btn lm-btn--primary" x-show="booking.status === 'Confirmed'" @click="updateBookingStatus(booking.id, 'In Progress')">Check in / review arrival</button>
-            <button type="button" class="lm-btn lm-btn--success" x-show="!booking.checkoutPaid && ['In Progress', 'Completed'].includes(booking.status)" @click="openCheckoutModal(booking)">Complete &amp; pay</button>
+            <button type="button" class="lm-btn lm-btn--danger" x-show="booking.status === 'Confirmed' && (booking.date || '') <= AdminUI.today()" @click="updateBookingStatus(booking.id, 'No-Show')">Mark as no-show</button>
+            <button type="button" class="lm-btn lm-btn--primary" x-show="booking.status === 'Pending'" @click="openConfirmDeposit(booking)">Review payment &amp; confirm</button>
+            <button type="button" class="lm-btn lm-btn--primary" x-show="booking.status === 'Confirmed' && (booking.date || '') <= AdminUI.today()" @click="updateBookingStatus(booking.id, 'In Progress')">Review check-in</button>
+            <button type="button" class="lm-btn lm-btn--success" x-show="!booking.checkoutPaid && ['In Progress', 'Completed'].includes(booking.status)" @click="openCheckoutModal(booking)">Checkout</button>
             <span class="lm-badge lm-badge--success" x-show="booking.checkoutPaid && booking.status === 'Completed'">✓ Transaction complete</span>
           </div>
         </template>
@@ -243,7 +285,7 @@
 <!-- Collect a home service's remaining balance -->
 <div class="lm-modal" x-show="collectBalanceBooking" x-cloak @keydown.escape.window="collectBalanceBooking = null" role="dialog" aria-modal="true" aria-labelledby="collectTitle">
   <div class="lm-modal-box" @click.outside="collectBalanceBooking = null">
-    <div class="lm-modal-head"><div><h2 id="collectTitle">Collect remaining balance</h2><p x-text="collectBalanceBooking ? collectBalanceBooking.id : ''"></p></div><button type="button" class="lm-close" @click="collectBalanceBooking = null" aria-label="Close">&times;</button></div>
+    <div class="lm-modal-head"><div><h2 id="collectTitle">Collect remaining balance</h2><p x-text="collectBalanceBooking ? collectBalanceBooking.id : ''"></p></div><button type="button" class="ui-close-icon lm-close" @click="collectBalanceBooking = null" aria-label="Close">&times;</button></div>
     <template x-if="collectBalanceBooking">
       <form class="lm-modal-body lm-form" @submit.prevent="submitCollectBalance()">
         <dl class="lm-dl" style="grid-template-columns:repeat(3,minmax(0,1fr))">
@@ -263,7 +305,7 @@
 <!-- Assign staff (server rejects overlapping assignments) -->
 <div class="lm-modal" x-show="openStaffAssignModal" x-cloak @keydown.escape.window="openStaffAssignModal = false" role="dialog" aria-modal="true" aria-labelledby="assignTitle">
   <div class="lm-modal-box" @click.outside="openStaffAssignModal = false">
-    <div class="lm-modal-head"><div><h2 id="assignTitle">Assign staff</h2><p x-text="staffAssignBooking ? staffAssignBooking.id + ' · ' + (staffAssignBooking.eventType || staffAssignBooking.serviceName || '') : ''"></p></div><button type="button" class="lm-close" @click="openStaffAssignModal = false" aria-label="Close">&times;</button></div>
+    <div class="lm-modal-head"><div><h2 id="assignTitle">Assign staff</h2><p x-text="staffAssignBooking ? staffAssignBooking.id + ' · ' + (staffAssignBooking.eventType || staffAssignBooking.serviceName || '') : ''"></p></div><button type="button" class="ui-close-icon lm-close" @click="openStaffAssignModal = false" aria-label="Close">&times;</button></div>
     <div class="lm-modal-body">
       <div x-show="staffAssignBooking?.isHomeService" class="lm-alert lm-alert--info"><p x-text="'Select one or more stylists' + (homeServiceClientCount(staffAssignBooking) ? ' for ' + homeServiceClientCount(staffAssignBooking) + ' client' + (homeServiceClientCount(staffAssignBooking) === 1 ? '' : 's') : '') + '. The first one ticked is the team lead.'"></p><strong x-text="selectedStaffIds.length + ' selected'"></strong></div>
       <p class="lm-hint">Shift status is today's status only. Schedule conflicts are checked when you confirm, and overlapping assignments are refused.</p>
@@ -275,7 +317,7 @@
               <input x-show="staffAssignBooking?.isHomeService" type="checkbox" :value="String(staff.id)" x-model="selectedStaffIds">
               <span><span class="lm-cell-main" x-text="staff.name"></span><span class="lm-cell-sub" x-text="staff.role"></span></span>
             </span>
-            <span :class="staffBadge(staff.status)" x-text="staff.status"></span>
+            <span :class="staffBadge(staff.status)"><span class="live-status-dot" aria-hidden="true"></span><span x-text="liveStatusLabel(staff.status)"></span></span>
           </label></li>
         </template>
       </ul>
@@ -291,7 +333,7 @@
 <!-- Home service quote -->
 <div class="lm-modal" x-show="openHomeServiceQuoteModal" x-cloak @keydown.escape.window="openHomeServiceQuoteModal = false" role="dialog" aria-modal="true" aria-labelledby="quoteTitle">
   <div class="lm-modal-box" @click.outside="openHomeServiceQuoteModal = false">
-    <div class="lm-modal-head"><div><h2 id="quoteTitle">Set final quote</h2><p x-text="quoteBooking ? quoteBooking.id + ' · ' + (quoteBooking.eventType || '') : ''"></p></div><button type="button" class="lm-close" @click="openHomeServiceQuoteModal = false" aria-label="Close">&times;</button></div>
+    <div class="lm-modal-head"><div><h2 id="quoteTitle">Set final quote</h2><p x-text="quoteBooking ? quoteBooking.id + ' · ' + (quoteBooking.eventType || '') : ''"></p></div><button type="button" class="ui-close-icon lm-close" @click="openHomeServiceQuoteModal = false" aria-label="Close">&times;</button></div>
     <form class="lm-modal-body lm-form" @submit.prevent="submitHomeServiceQuote()">
       <div class="lm-alert lm-alert--info" x-show="quoteBooking && quoteBooking.weddingPackage"><p>Wedding Package <strong x-text="quoteBooking?.weddingPackage"></strong> selected. Check Services &amp; Promos for its configured price and reservation fee.</p></div>
       <label class="lm-field"><span>Final quote price (PHP)</span><input class="lm-input" type="number" step="0.01" min="0.01" x-model="quotePrice" required></label>
@@ -304,7 +346,7 @@
 <!-- Payment details / verify deposit -->
 <div class="lm-modal" x-show="openDepositModal" x-cloak @keydown.escape.window="openDepositModal = false" role="dialog" aria-modal="true" aria-labelledby="depositTitle">
   <div class="lm-modal-box" @click.outside="openDepositModal = false">
-    <div class="lm-modal-head"><div><h2 id="depositTitle" x-text="depositBooking && depositBooking.isHomeService ? 'Record reservation payment' : 'Payment details'"></h2><p x-text="depositBooking ? depositBooking.id + ' · ' + depositBooking.clientName : ''"></p></div><button type="button" class="lm-close" @click="openDepositModal = false" aria-label="Close">&times;</button></div>
+    <div class="lm-modal-head"><div><h2 id="depositTitle" x-text="depositBooking && depositBooking.isHomeService ? 'Record reservation payment' : 'Payment details'"></h2><p x-text="depositBooking ? depositBooking.id + ' · ' + depositBooking.clientName : ''"></p></div><button type="button" class="ui-close-icon lm-close" @click="openDepositModal = false" aria-label="Close">&times;</button></div>
     <form class="lm-modal-body lm-form" @submit.prevent="confirmWithDeposit()">
       <p class="lm-hint" x-show="!depositBooking || !depositBooking.isHomeService">Viewing these details does not verify the payment. Check the cash or wallet transaction first; <strong>Verify payment</strong> then records it and confirms the booking. A verified deposit locks this reservation and gives it priority over any conflicting unpaid booking for the same stylist and time.</p>
       <p class="lm-hint" x-show="depositBooking && depositBooking.isHomeService">Record the reservation payment the customer reported. This moves the request to Payment Being Verified; use <strong>Verify payment</strong> afterwards once checked.</p>
@@ -335,7 +377,7 @@
 <!-- Checkout -->
 <div class="lm-modal" x-show="openCheckoutModalFlag" x-cloak @keydown.escape.window="openCheckoutModalFlag = false" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
   <div class="lm-modal-box" @click.outside="openCheckoutModalFlag = false">
-    <div class="lm-modal-head"><div><h2 id="checkoutTitle">Complete &amp; pay</h2><p x-text="checkoutBooking ? checkoutBooking.id : ''"></p></div><button type="button" class="lm-close" @click="openCheckoutModalFlag = false" aria-label="Close">&times;</button></div>
+    <div class="lm-modal-head"><div><h2 id="checkoutTitle">Checkout</h2><p x-text="checkoutBooking ? checkoutBooking.id : ''"></p></div><button type="button" class="ui-close-icon lm-close" @click="openCheckoutModalFlag = false" aria-label="Close">&times;</button></div>
     <template x-if="checkoutBooking">
       <div class="lm-modal-body">
         <dl class="lm-dl">
@@ -353,11 +395,13 @@
   </div>
 </div>
 
-<script src="../../function/admin/admin-shell.js?v=20261110c"></script>
+<script src="../../function/shared/sign-out.js?v=20261111"></script>
+<script src="../../function/admin/admin-shell.js?v=20261111-np"></script>
 <script src="../../function/shared/live-sync.js?v=20261110"></script>
-<script src="../../function/admin/shared-data.js?v=20261110"></script>
+<script src="../../function/admin/shared-data.js?v=20261111"></script>
 <script src="../../function/shared/service-duration.js"></script>
-<script src="../../function/shared/appointment-arrival.js"></script>
-<script src="../../function/admin/appointments.js?v=20261110"></script>
+<script src="../../function/shared/appointment-arrival.js?v=20261111-mobile"></script>
+<script src="../../function/admin/appointments.js?v=20261111-filters"></script>
+<script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

@@ -19,9 +19,7 @@ require_once __DIR__ . '/url.php';
 /**
  * Each portal (admin / cashier / staff / customer) gets its own session
  * cookie, so logging into a second account in another tab of the same
- * browser no longer overwrites the first one. Previously there was a single
- * PHPSESSID shared by every page: log in as a Customer in one tab and the
- * Admin tab would be bounced back to the login page on its next refresh.
+ * browser does not overwrite the first one.
  *
  * The portal is worked out from the endpoint's own folder where that is
  * unambiguous, otherwise from the page that made the request (Referer),

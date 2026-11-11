@@ -39,6 +39,7 @@ function adminDefaultPackageForm() {
     travelMinutes: '',
     setupMinutes: '',
     serviceMinutes: '',
+    returnTravelMinutes: '',
     durationsConfirmed: false
   };
 }
@@ -76,28 +77,29 @@ function adminPromotionsApp() {
       return Alpine.store('admin').services.filter(s => s.branchId === this.serviceFilterBranch);
     },
 
-    // Only the categories this branch actually offers; the five core salon
-    // categories are listed first, any other category after them.
+    // Simple groups (Hair Services, Nails & Spa...), the same 9 the guest,
+    // walk-in and staff pages use, instead of every raw "Menu / Section"
+    // category. Only groups this branch actually offers, in the usual order.
     branchCategories() {
-      const order = ['hair', 'nails', 'facial', 'lashes', 'brows'];
+      const ORDER = ['Hair Services', 'Nails & Spa', 'Lashes & Brows', 'Facial & Skin Care', 'Waxing & Laser',
+        'Aesthetic Treatments', 'Massage & Body Care', 'Make-Up Services', 'Promos & Packages'];
       const counts = new Map();
       this.branchServices().forEach(s => {
-        const name = (s.category || '').trim() || 'Uncategorized';
+        const name = s.group || 'Other';
         counts.set(name, (counts.get(name) || 0) + 1);
       });
-      const rank = (name) => { const i = order.indexOf(name.toLowerCase()); return i === -1 ? order.length : i; };
+      const rank = (name) => { const i = ORDER.indexOf(name); return i === -1 ? ORDER.length : i; };
       return [...counts].map(([name, count]) => ({ name, count }))
         .sort((a, b) => rank(a.name) - rank(b.name) || a.name.localeCompare(b.name));
     },
 
-    // Branch + category + search, most frequently booked first (bookingCount
+    // Branch + group + search, most frequently booked first (bookingCount
     // = rows in appointment_services for that service).
     getFilteredServices() {
       const q = this.serviceSearch.trim().toLowerCase();
       return this.branchServices().filter(s => {
-        const cat = (s.category || '').trim() || 'Uncategorized';
-        if (this.serviceCategory !== 'all' && cat !== this.serviceCategory) return false;
-        return !q || [s.name, s.description].some(v => String(v || '').toLowerCase().includes(q));
+        if (this.serviceCategory !== 'all' && (s.group || 'Other') !== this.serviceCategory) return false;
+        return !q || [s.name, s.description, s.category].some(v => String(v || '').toLowerCase().includes(q));
       }).sort((a, b) => (b.bookingCount || 0) - (a.bookingCount || 0) || a.name.localeCompare(b.name));
     },
 
@@ -160,6 +162,57 @@ function adminPromotionsApp() {
       }
       await store.refresh();
       this.openServiceModal = false;
+    },
+
+    /* Row look: one colour + letter per category group. */
+    groupKey(group) {
+      return ({ 'Hair Services': 'hair', 'Nails & Spa': 'nails', 'Lashes & Brows': 'lash', 'Facial & Skin Care': 'facial',
+        'Waxing & Laser': 'wax', 'Aesthetic Treatments': 'aesth', 'Massage & Body Care': 'body', 'Make-Up Services': 'makeup',
+        'Promos & Packages': 'promo' })[group] || 'other';
+    },
+    groupIcon(group) {
+      return ({ hair: '✂', nails: '💅', lash: '👁', facial: '✿', wax: '✦', aesth: '✚', body: '❋', makeup: '💄', promo: '%', other: '•' })[this.groupKey(group)];
+    },
+    /* Top 3 most-booked services of this branch (at least 3 bookings). */
+    isPopular(service) {
+      const top = [...this.branchServices()].sort((a, b) => (b.bookingCount || 0) - (a.bookingCount || 0)).slice(0, 3);
+      return (service.bookingCount || 0) >= 3 && top.some(x => x.id === service.id);
+    },
+
+    /* Table helpers: short, one-line labels. */
+    sectionOf(category) {
+      const parts = String(category || '').split(' / ');
+      return parts.length > 1 ? parts.slice(1).join(' / ') : (parts[0] || '');
+    },
+    paymentShort(rule) {
+      return ({ '50% Down Payment': '50% down', 'Full Payment': 'Full payment', 'No Online Reservation': 'Pay at salon' })[rule] || rule || '';
+    },
+    durationShort(minutes) {
+      const m = Number(minutes) || 0;
+      if (!m) return '—';
+      const h = Math.floor(m / 60), r = m % 60;
+      return [h ? h + ' hr' : '', r ? r + ' min' : ''].filter(Boolean).join(' ');
+    },
+    /* Disable / Delete now live in the Edit dialog. */
+    editingService() {
+      return (Alpine.store('admin').services || []).find(s => s.id === this.editingServiceId) || null;
+    },
+    serviceIsActive() {
+      const s = this.editingService();
+      return s ? !!s.active : true;
+    },
+    async toggleFromEdit() {
+      const s = this.editingService();
+      if (!s) return;
+      if (s.active && !(await LMConfirm({ title: `Disable "${s.name}"?`, message: 'It will be hidden from booking until you enable it again.', confirmLabel: 'Disable' }))) return;
+      this.openServiceModal = false;
+      await this.toggleServiceActive(s.id);
+    },
+    async deleteFromEdit() {
+      const s = this.editingService();
+      if (!s) return;
+      this.openServiceModal = false;
+      await this.removeService(s);
     },
 
     async toggleServiceActive(serviceId) {
@@ -273,6 +326,7 @@ function adminPromotionsApp() {
         travelMinutes: pkg.travelMinutes ?? '',
         setupMinutes: pkg.setupMinutes ?? '',
         serviceMinutes: pkg.serviceMinutes ?? '',
+        returnTravelMinutes: pkg.returnTravelMinutes ?? '',
         durationsConfirmed: pkg.durationsConfirmed
       };
       this.openPackageModal = true;
@@ -292,6 +346,7 @@ function adminPromotionsApp() {
         travelMinutes: this.packageForm.travelMinutes,
         setupMinutes: this.packageForm.setupMinutes,
         serviceMinutes: this.packageForm.serviceMinutes,
+        returnTravelMinutes: this.packageForm.returnTravelMinutes,
         durationsConfirmed: this.packageForm.durationsConfirmed
       });
       if (!result.success) {

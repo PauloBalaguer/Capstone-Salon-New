@@ -68,7 +68,6 @@ function staffPortal() {
       { key: 'appointments', label: 'My Appointments', short: 'Bookings', icon: 'calendar' },
       { key: 'attendance', label: 'My Attendance', short: 'Attendance', icon: 'clock' },
       { key: 'schedule', label: 'My Schedule', short: 'Schedule', icon: 'schedule' },
-      { key: 'profile', label: 'My Profile', short: 'Profile', icon: 'user' },
     ],
     notificationsOpen: false,
 
@@ -180,6 +179,21 @@ function staffPortal() {
       this.notificationsOpen = !this.notificationsOpen;
     },
 
+    // Opens the booking a notification is about (My Appointments, searched to
+    // its reference), or My Schedule for schedule-only updates.
+    openNotification(n) {
+      this.store.markNotificationRead(n);
+      const reference = this.store.notificationReference(n);
+      this.notificationsOpen = false;
+      if (reference) {
+        this.apptSearch = reference;
+        this.expandedId = (this.store.appointments.find(a => a.id === reference) || {}).id || null;
+        this.go('appointments');
+      } else {
+        this.go(/SCHEDULE|SHIFT/.test(n.type || '') ? 'schedule' : 'dashboard');
+      }
+    },
+
     /* ---------- Shift ---------- */
 
     shiftIn() { return this.store.shiftAction('shift_in'); },
@@ -230,10 +244,10 @@ function staffPortal() {
       const store = this.store;
       const today = store.todayISO();
       return [
+        { key: 'all', label: 'All', count: store.appointments.length },
         { key: 'today', label: 'Today', count: store.appointments.filter(a => a.date === today).length },
         { key: 'upcoming', label: 'Upcoming', count: store.appointments.filter(a => a.date > today && !store.isInactiveAppointment(a) && !store.isFinished(a)).length },
         { key: 'completed', label: 'Completed', count: store.appointments.filter(a => store.isFinished(a)).length },
-        { key: 'all', label: 'All', count: store.appointments.length },
       ];
     },
 
@@ -370,7 +384,7 @@ function staffPortal() {
     },
 
     attStatusTone(status) {
-      return { 'On Shift': 'green', 'On Break': 'amber', Completed: 'teal', 'Auto clock-out': 'orange', 'Closed at end of day': 'orange', 'Clocked out by cashier': 'blue' }[status] || 'slate';
+      return { 'On shift': 'green', 'On break': 'amber', Completed: 'teal', 'Auto clock-out': 'orange', 'Closed at end of day': 'orange', 'Clocked out by cashier': 'blue' }[status] || 'slate';
     },
 
     pageLabel(page, size, total) {

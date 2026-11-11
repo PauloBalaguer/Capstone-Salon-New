@@ -6,7 +6,7 @@
  * Cashier accounts are plain `users` rows (role Cashier) locked to a single
  * branch via users.branch_id -- unlike staff they have no `employees` row,
  * since a cashier is a front-desk login rather than a roster member tracked
- * for attendance/performance. Editing only touches name/branch; email is
+ * for attendance/performance. Editing supports name/branch and an optional password change; email is
  * fixed after creation. Creating a new cashier needs a login account, so
  * it starts with an unusable random password and an emailed setup link
  * (see AccountSetup.php) instead of a temp password relayed by the admin.
@@ -19,6 +19,7 @@ require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/setup/url.php';
 require_once '../../backend/shared/config/setup/mail.php';
 require_once '../../backend/shared/config/security/AccountSetup.php';
+require_once '../../backend/shared/config/security/PasswordPolicy.php';
 
 sendCorsHeaders();
 AuditLog::captureRequest();
@@ -40,6 +41,16 @@ $cashierId = (int) ($_POST['id'] ?? 0);
 $name = trim($_POST['name'] ?? '');
 $branchKey = trim($_POST['branchId'] ?? '');
 $email = trim($_POST['email'] ?? '');
+$newPassword = $_POST['newPassword'] ?? '';
+$confirmPassword = $_POST['confirmPassword'] ?? '';
+if (!is_string($newPassword) || !is_string($confirmPassword)
+    || (($newPassword !== '' || $confirmPassword !== '')
+        && ($cashierId <= 0 || $newPassword !== $confirmPassword
+            || strlen($newPassword) > 72 || !PasswordPolicy::isValid($newPassword)))) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'Passwords must match and contain no more than 72 bytes. ' . PasswordPolicy::MESSAGE]);
+    exit();
+}
 
 if ($name === '' || $branchKey === '') {
     http_response_code(400);
@@ -61,23 +72,33 @@ try {
 
     if ($cashierId > 0) {
         $stmt = $pdo->prepare("
-            SELECT u.id FROM users u JOIN roles r ON u.role_id = r.id
+            SELECT u.id, u.email FROM users u JOIN roles r ON u.role_id = r.id
             WHERE u.id = ? AND r.role_name = 'Cashier' AND u.is_active = 1
         ");
         $stmt->execute([$cashierId]);
-        if (!$stmt->fetchColumn()) {
+        $cashier = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$cashier) {
             http_response_code(404);
             echo json_encode(['success' => false, 'message' => 'Cashier account not found.']);
             exit();
         }
 
+        $pdo->beginTransaction();
+        if ($newPassword !== '') {
+            $pdo->prepare('UPDATE users SET password = ? WHERE id = ?')
+                ->execute([password_hash($newPassword, PASSWORD_DEFAULT), $cashierId]);
+            $pdo->prepare('DELETE FROM password_resets WHERE email = ?')->execute([$cashier['email']]);
+            $pdo->prepare('DELETE FROM account_setup_tokens WHERE user_id = ?')->execute([$cashierId]);
+            $pdo->prepare('DELETE FROM password_change_verifications WHERE user_id = ?')->execute([$cashierId]);
+        }
         $pdo->prepare('UPDATE users SET display_name = ?, branch_id = ? WHERE id = ?')
             ->execute([$name, $branchId, $cashierId]);
 
         $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "STAFF", ?)')
             ->execute(["Cashier account updated for {$name}."]);
 
-        echo json_encode(['success' => true, 'message' => 'Cashier account updated.']);
+        $pdo->commit();
+        echo json_encode(['success' => true, 'message' => $newPassword !== '' ? 'Cashier account and password updated.' : 'Cashier account updated.']);
         exit();
     }
 
@@ -118,10 +139,12 @@ try {
         'message' => "Cashier account created. An account setup email has been sent to {$email}.",
     ]);
 } catch (PDOException $e) {
+    if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
     http_response_code(500);
     error_log('admin saveCashier error: ' . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'A server error occurred while saving the cashier account.']);
 } catch (Exception $e) {
+    if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'A server configuration error occurred.']);
 }

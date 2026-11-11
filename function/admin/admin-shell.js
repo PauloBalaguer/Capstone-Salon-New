@@ -98,21 +98,28 @@
     bell.innerHTML = `
       <button type="button" class="lm-btn lm-btn--icon" @click="open = !open" :aria-expanded="open.toString()" :aria-label="$store.admin.unreadNotifications() > 0 ? 'Notifications, ' + $store.admin.unreadNotifications() + ' unread' : 'Notifications'">${icon('bell')}
         <span class="lm-bell-dot" x-show="$store.admin.unreadNotifications() > 0" x-cloak></span></button>
-      <div class="lm-bell-panel" x-show="open" @click.outside="open = false" x-cloak role="region" aria-label="Admin notifications">
-        <div class="lm-bell-head"><strong>Notifications</strong>
-          <button type="button" class="lm-btn lm-btn--ghost lm-btn--sm" x-show="$store.admin.notifications.length > 0" @click="$store.admin.markAllNotificationsAsRead()" :disabled="$store.admin.notificationsReadBusy || !$store.admin.unreadNotifications()" x-text="$store.admin.notificationsReadBusy ? 'Saving…' : 'Mark all read'"></button>
-          <button type="button" class="lm-close" @click="open = false" aria-label="Close notifications">&times;</button></div>
-        <div class="lm-bell-list">
-          <p class="lm-empty" x-show="$store.admin.notifications.length === 0">No updates yet.</p>
+      <div class="lm-bell-panel np-panel" x-show="open" @click.outside="open = false" x-cloak role="region" aria-label="Admin notifications">
+        <div class="np-head"><h3 class="np-title">Notifications</h3>
+          <button type="button" class="np-readall" x-show="$store.admin.notifications.length > 0" @click="$store.admin.markAllNotificationsAsRead()" :disabled="$store.admin.notificationsReadBusy || !$store.admin.unreadNotifications()" x-text="$store.admin.notificationsReadBusy ? 'Saving…' : 'Mark all as read'"></button>
+          <button type="button" class="np-close" @click="open = false" aria-label="Close notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+        <div class="np-list">
+          <p class="np-empty" x-show="$store.admin.notifications.length === 0">You're all caught up. New bookings and updates will appear here.</p>
           <template x-for="item in $store.admin.notifications" :key="item.id">
-            <article class="lm-bell-item" :class="{ 'is-unread': !item.isRead }">
-              <div class="lm-notif-title"><strong x-text="PortalPresentation.adminNotice(item).title"></strong><span x-show="!item.isRead" class="lm-notif-dot" role="img" aria-label="Unread"></span><time class="lm-notif-time" x-text="PortalPresentation.shortTime(item)"></time></div>
-              <p x-text="PortalPresentation.noticeLine([PortalPresentation.adminNotice(item).reference, PortalPresentation.adminNotice(item).customer, PortalPresentation.adminNotice(item).branch, PortalPresentation.adminNotice(item).schedule, PortalPresentation.adminNotice(item).payment])"></p>
-              <p x-show="PortalPresentation.adminNotice(item).summary" x-text="PortalPresentation.adminNotice(item).summary"></p>
+            <article class="np-card" :class="{ 'np-unread': !item.isRead }" role="link" tabindex="0"
+              :aria-label="PortalPresentation.adminNotice(item).title + (item.isRead ? '' : ', unread')"
+              @click="$store.admin.openNotification(item)" @keydown.enter.prevent="$store.admin.openNotification(item)" @keydown.space.prevent="$store.admin.openNotification(item)">
+              <span class="np-icon" :class="{ 'np-icon--bad': NotifUI.isBad(item.type, PortalPresentation.adminNotice(item).title) }" aria-hidden="true" x-html="NotifUI.icon(NotifUI.isBad(item.type, PortalPresentation.adminNotice(item).title))"></span>
+              <div class="np-copy">
+                <div class="np-row"><p class="np-card-title" x-text="PortalPresentation.adminNotice(item).title"></p><span x-show="!item.isRead" class="np-dot" aria-hidden="true"></span><time class="np-time" :title="item.time" x-text="NotifUI.ago(item.createdAt || item.time)"></time></div>
+                <p class="np-summary" x-show="PortalPresentation.adminNotice(item).summary" x-text="PortalPresentation.adminNotice(item).summary"></p>
+                <p class="np-details" x-text="PortalPresentation.noticeLine([PortalPresentation.adminNotice(item).reference, PortalPresentation.adminNotice(item).customer, PortalPresentation.adminNotice(item).branch, PortalPresentation.adminNotice(item).schedule, PortalPresentation.adminNotice(item).payment])"></p>
+                <button type="button" class="np-action" tabindex="-1" @click.stop="$store.admin.openNotification(item)">View details</button>
+              </div>
             </article>
           </template>
         </div>
         <p class="lm-alert lm-alert--error" style="margin:10px" role="alert" x-show="$store.admin.notificationReadError" x-text="$store.admin.notificationReadError"></p>
+        <a href="appointments.html" class="np-footer">View all bookings <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       </div>`;
     actions.appendChild(bell);
     // Phones/tablets only: on desktop Sign out lives in the sidebar.

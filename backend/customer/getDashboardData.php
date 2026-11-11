@@ -33,7 +33,7 @@ try {
     $userId = $_SESSION['user_id'];
 
     $stmt = $pdo->prepare('
-        SELECT c.id AS customer_id, c.first_name, c.last_name, c.phone_number,
+        SELECT c.id AS customer_id, c.first_name, c.middle_name, c.last_name, c.phone_number,
                c.loyalty_points, c.notify_email, c.notify_sms, c.profile_picture, c.created_at, c.address, c.structured_address,
                u.email
         FROM customers c
@@ -55,7 +55,10 @@ try {
     $profile = [
         'address' => $customer['address'],
         'structuredAddress' => json_decode($customer['structured_address'] ?? 'null', true),
-        'name' => trim($customer['first_name'] . ' ' . $customer['last_name']),
+        'name' => implode(' ', array_filter([$customer['first_name'], $customer['middle_name'] ?? '', $customer['last_name']], fn($part) => $part !== '')),
+        'firstName' => $customer['first_name'],
+        'middleName' => $customer['middle_name'] ?? '',
+        'lastName' => $customer['last_name'],
         'email' => $customer['email'],
         'phone' => $customer['phone_number'],
         'memberSince' => date('Y-m-d', strtotime($customer['created_at'])),
@@ -89,6 +92,7 @@ try {
             DATE_FORMAT(a.appointment_datetime, '%Y-%m-%d') AS date,
             DATE_FORMAT(a.appointment_datetime, '%h:%i %p') AS time,
             a.status AS status,
+            a.updated_at AS updatedAt,
             a.payment_status AS paymentStatus,
             EXISTS (SELECT 1 FROM payment_transactions pt WHERE pt.appointment_id = a.id AND pt.event = 'checkout_expired' AND pt.created_at >= COALESCE(a.cancelled_at, a.created_at)) AS paymentExpired,
             a.reminder_sent AS reminderSent,
@@ -174,6 +178,9 @@ try {
     $stmt = $pdo->prepare("
         SELECT
             reference_code AS id,
+            (SELECT branch_name FROM branches WHERE id = home_service_requests.branch_id) AS branchName,
+            COALESCE((SELECT GROUP_CONCAT(CONCAT(e.first_name, ' ', e.last_name) ORDER BY t.id SEPARATOR ', ') FROM home_service_staff t JOIN employees e ON e.id = t.employee_id WHERE t.home_service_request_id = home_service_requests.id),
+                (SELECT CONCAT(e.first_name, ' ', e.last_name) FROM employees e WHERE e.id = home_service_requests.employee_id)) AS staffName,
             address,
             event_type AS eventType,
             wedding_package AS weddingPackage,
@@ -259,7 +266,7 @@ try {
                sv.duration_label AS duration, sv.service_name AS serviceName
         FROM promotions p
         JOIN branches br ON br.id = p.branch_id
-        LEFT JOIN services sv ON sv.id = p.service_id
+        JOIN services sv ON sv.id = p.service_id AND sv.is_active = 1
         WHERE p.is_active = 1
         ORDER BY br.branch_key, p.id
     ");

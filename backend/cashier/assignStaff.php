@@ -69,6 +69,13 @@ try {
     $pdo->beginTransaction();
     $appointment = Scheduling::lockAppointment($pdo, (int) $appointment['id']);
     Scheduling::validateAppointmentStaff($pdo, $appointment, $appointment['appointment_datetime'], $staffId);
+    // A booking whose start has arrived (walk-in style, served now) needs the
+    // stylist on duty right now; an advance booking only needs them scheduled
+    // then (checked above), even if they are off shift at the moment.
+    $immediate = (bool) $pdo->query('SELECT ' . $pdo->quote($appointment['appointment_datetime']) . ' <= NOW()')->fetchColumn();
+    if ($immediate && !Scheduling::staffCanTakeBooking($pdo, $staffId, $appointment['appointment_datetime'], 1, true)) {
+        throw new RuntimeException('This booking starts now, and the selected stylist is not on duty (off shift, on a break, on leave or on a home visit). Choose a stylist who is on duty.');
+    }
     $stmt = $pdo->prepare('SELECT first_name, last_name FROM employees WHERE id = ?');
     $stmt->execute([$staffId]);
     $staff = $stmt->fetch();
@@ -78,7 +85,10 @@ try {
     $staffName = trim($staff['first_name'] . ' ' . $staff['last_name']);
     $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "BOOKING", ?)')
         ->execute(["{$staffName} assigned to booking {$referenceCode}."]);
-    StaffNotifier::notify($pdo, $staffId, 'APPOINTMENT_ASSIGNED', "You've been assigned to a new appointment: {$referenceCode}.");
+    // Same as Admin: one message to the new stylist, one to the replaced one.
+    $oldStaffId = $appointment['employee_id'] !== null ? (int) $appointment['employee_id'] : null;
+    $appointment['employee_id'] = $staffId;
+    Scheduling::notifyStaffOfReassignment($pdo, $appointment, $oldStaffId, $staffId);
 
     $pdo->commit();
 

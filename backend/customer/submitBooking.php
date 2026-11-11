@@ -61,7 +61,6 @@ $customerName = trim($_POST['customerName'] ?? '');
 $customerPhone = trim($_POST['customerPhone'] ?? '');
 $paymentMethod = trim($_POST['paymentMethod'] ?? '');
 // Payment amounts are always calculated from the database, never POST data.
-$useLoyaltyPoints = false; // Legacy points redemption is retired; use loyalty card rewards.
 $paymentPlan = ($_POST['paymentPlan'] ?? 'deposit') === 'full' ? 'full' : 'deposit';
 $agreedToTerms = filter_var($_POST['agreedToTerms'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
@@ -217,7 +216,7 @@ try {
     $pointsStmt = $pdo->prepare('SELECT loyalty_points FROM customers WHERE id = ? FOR UPDATE');
     $pointsStmt->execute([$customerId]);
     $customer['loyalty_points'] = (int) $pointsStmt->fetchColumn();
-    $quote = ReservationPayment::quote($services, $customer['loyalty_points'], $useLoyaltyPoints, $paymentPlan);
+    $quote = ReservationPayment::quote($services, $customer['loyalty_points'], false, $paymentPlan);
     $pointsUsed = $quote['pointsUsed'];
     $finalPrice = $quote['serviceTotal'];
     $depositAmount = $quote['amountDue'];

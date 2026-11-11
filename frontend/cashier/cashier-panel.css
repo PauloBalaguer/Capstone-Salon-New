@@ -78,13 +78,14 @@ html body.cp-cashier .cp-close {
 
 html body.cp-cashier .cp-branch-card {
   text-align: left !important;
-  margin: 18px 0 0; padding: 12px 14px; border-radius: 12px;
-  background: rgba(255, 255, 255, .07) !important; border: 1px solid rgba(224, 184, 76, .25) !important;
+  margin: 18px 0 0; padding: 16px; border-radius: 14px;
+  background: rgba(255, 255, 255, .045) !important; border: 1px solid rgba(255, 255, 255, .12) !important;
 }
-html body.cp-cashier aside .cp-branch-kicker { margin: 0; display: flex; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: rgba(238,247,242,.65) !important; }
-html body.cp-cashier .cp-live-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--success); box-shadow: 0 0 0 3px rgba(17, 92, 57, .2); }
-html body.cp-cashier aside .cp-branch-name { margin: 6px 0 2px; font-size: 14px; font-weight: 700; line-height: 1.3; color: #FFFFFF !important; }
-html body.cp-cashier aside .cp-branch-meta { margin: 0; font-size: 12px; color: rgba(238,247,242,.72) !important; overflow-wrap: anywhere; }
+html body.cp-cashier aside .cp-branch-kicker { --type-body: 10px; margin: 0; display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: rgba(238,247,242,.6) !important; }
+html body.cp-cashier .cp-live-dot { width: 8px; height: 8px; flex-shrink: 0; border-radius: 999px; background: var(--success); box-shadow: 0 0 0 3px rgba(17, 92, 57, .2); }
+html body.cp-cashier aside .cp-branch-name { --type-body: 14px; margin: 10px 0 0; font-size: 14px; font-weight: 600; line-height: 1.5; text-wrap: balance; color: #FFFFFF !important; }
+html body.cp-cashier aside .cp-branch-meta { --type-body: 11px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin: 14px 0 0; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.1); font-size: 11px; line-height: 1.4; color: rgba(238,247,242,.72) !important; overflow-wrap: anywhere; }
+html body.cp-cashier aside .cp-branch-meta #sidebarTerminalId { white-space: nowrap; padding: 3px 6px; border-radius: 5px; background: rgba(255,255,255,.07); font-size: 10px; font-variant-numeric: tabular-nums; }
 
 html body.cp-cashier aside .cp-side-heading { margin: 26px 12px 12px; font-size: 11px; font-weight: 800; letter-spacing: .2em; color: rgba(238,247,242,.55) !important; }
 html body.cp-cashier aside .cp-side-heading-sm { margin: 0 0 10px 11px; font-size: 10px; }
@@ -118,13 +119,13 @@ html body.cp-cashier .cp-avatar {
   background: var(--cp-gold) !important; color: var(--cp-teal-900) !important;
 }
 html body.cp-cashier .cp-avatar--sm { width: 40px; height: 40px; }
-html body.cp-cashier aside .cp-signout {
+html body.cp-cashier aside a.cp-signout {
   display: flex; align-items: center; gap: 13px; min-height: 44px; padding: 11px 13px;
-  border: 1px solid rgba(255, 255, 255, .14); border-radius: 11px;
+  border: 2px solid #f87171 !important; border-radius: 11px;
   color: var(--brand-softer) !important; text-decoration: none; font-size: 14px; font-weight: 700; background: transparent !important;
 }
 html body.cp-cashier aside .cp-signout i { width: 19px; text-align: center; }
-html body.cp-cashier aside .cp-signout:hover { background: rgba(255, 255, 255, .07) !important; border-color: rgba(224, 184, 76, .5); color: #FFFFFF !important; }
+html body.cp-cashier aside a.cp-signout:is(:hover, :focus-visible) { background: rgba(248, 113, 113, .12) !important; border-color: #fca5a5 !important; color: #FFFFFF !important; }
 
 html body.cp-cashier .cp-backdrop { display: none; }
 html body.cp-cashier .cp-bottom-nav { display: none; }
@@ -158,10 +159,10 @@ html body.cp-cashier .cp-header-title b { color: var(--cp-border-strong); font-w
 html body.cp-cashier .cp-header-title strong { color: var(--cp-teal-800); letter-spacing: .03em; overflow: hidden; text-overflow: ellipsis; }
 html body.cp-cashier .cp-topbar-actions { display: flex; align-items: center; gap: 12px; flex-wrap: nowrap !important; justify-content: flex-end; flex-shrink: 0; min-width: 0; }
 html body.cp-cashier .cp-branch-chip {
-  display: inline-flex; align-items: center; gap: 6px; max-width: 240px;
+  display: inline-flex; align-items: center; gap: 6px; max-width: none; flex-shrink: 0;
   padding: 5px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
   background: var(--cp-teal-soft) !important; color: var(--cp-teal-800) !important; border: 1px solid var(--border-strong) !important;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: none !important;
+  white-space: nowrap; overflow: visible; box-shadow: none !important;
 }
 html body.cp-cashier .cp-clock { margin: 0; font-size: 13px; font-weight: 600; color: var(--cp-muted) !important; white-space: nowrap; }
 html body.cp-cashier .cp-page-action { min-height: 44px; border-radius: 10px !important; white-space: nowrap; }
@@ -222,26 +223,50 @@ html body.cp-cashier main section .card {
 }
 
 /* Summary cards */
+/* Checkout keeps its title and payment action outside the scrolling bill. */
+html body.cp-cashier #checkoutModal { padding: 12px; align-items: center; }
+html body.cp-cashier #checkoutModal .modal-panel {
+  display: flex; flex-direction: column; overflow: hidden;
+  max-height: calc(100dvh - 24px); border-radius: 18px !important;
+}
+html body.cp-cashier #checkoutModal .modal-head { flex: none; }
+html body.cp-cashier #checkoutModal .modal-panel > .overflow-y-auto {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+}
+html body.cp-cashier #checkoutModal .checkout-footer {
+  flex: none; padding: 12px 20px max(12px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--cp-border); background: var(--cp-card);
+}
+html body.cp-cashier #checkoutModal:has(#paymentForm.hidden) .checkout-footer { display: none; }
+@media (max-width: 767.98px) {
+  html body.cp-cashier #checkoutModal .modal-head,
+  html body.cp-cashier #checkoutModal .checkout-footer { padding-left: 16px; padding-right: 16px; }
+  html body.cp-cashier #checkoutModal .grid > .p-5 { padding: 16px; min-width: 0; }
+  html body.cp-cashier #checkoutModal #tipSection .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 html body.cp-cashier .stat-card {
   position: relative; display: flex; flex-direction: column; gap: 2px; text-align: left !important;
   padding: 16px 18px !important; border-radius: var(--cp-radius) !important;
-  background: var(--cp-card) !important; border: 1px solid var(--cp-border) !important; box-shadow: var(--cp-shadow) !important;
+  background: var(--cp-card) !important; border: 2px solid var(--card-outline, var(--card-border, #CDD6D0)) !important; box-shadow: var(--cp-shadow) !important;
   text-decoration: none; transition: border-color .15s, transform .15s, box-shadow .15s;
 }
 html body.cp-cashier button.stat-card, html body.cp-cashier a.stat-card { cursor: pointer; }
 html body.cp-cashier button.stat-card:hover, html body.cp-cashier a.stat-card:hover { border-color: var(--cp-teal) !important; transform: translateY(-1px); }
 html body.cp-cashier .stat-card.is-active { border-color: var(--cp-teal) !important; box-shadow: 0 0 0 2px var(--cp-teal) inset, var(--cp-shadow) !important; }
-html body.cp-cashier .stat-card-gold { background: var(--cp-gold-soft) !important; border-color: var(--accent) !important; }
+html body.cp-cashier .stat-card-warning { --card-outline: var(--card-border-warn); }
+html body.cp-cashier .stat-card-success { --card-outline: #4A9270; }
+html body.cp-cashier .stat-card-info { --card-outline: #548BAD; }
+html body.cp-cashier .stat-card-gold { --card-outline: var(--accent); background: var(--cp-card) !important; border-color: var(--accent) !important; }
 html body.cp-cashier .stat-label { font-size: 13px !important; font-weight: 600 !important; color: var(--cp-muted) !important; }
 html body.cp-cashier .stat-value { font-size: clamp(22px, 2.1vw, 30px) !important; font-weight: 800 !important; color: var(--cp-ink) !important; line-height: 1.15; overflow-wrap: normal !important; word-break: keep-all; }
 html body.cp-cashier .stat-hint { font-size: 12.5px !important; color: var(--cp-muted) !important; }
-html body.cp-cashier #statCardsContainer .stat-card::after {
-  content: "View"; position: absolute; top: 14px; right: 14px; font-size: 11px; font-weight: 700;
-  color: var(--cp-teal); opacity: 0; transition: opacity .15s;
-}
-html body.cp-cashier #statCardsContainer .stat-card:hover::after,
-html body.cp-cashier #statCardsContainer .stat-card.is-active::after { opacity: 1; }
-html body.cp-cashier #statCardsContainer .stat-card.is-active::after { content: "Filtered"; }
+/* removed: html body.cp-cashier #statCardsContainer .stat-card::after { */
+/* removed:   content: "View"; position: absolute; top: 14px; right: 14px; font-size: 11px; font-weight: 700; */
+/* removed:   color: var(--cp-teal); opacity: 0; transition: opacity .15s; */
+/* removed: } */
+/* removed: html body.cp-cashier #statCardsContainer .stat-card:hover::after, */
+/* removed: html body.cp-cashier #statCardsContainer .stat-card.is-active::after { opacity: 1; } */
+/* removed: html body.cp-cashier #statCardsContainer .stat-card.is-active::after { content: "Filtered"; } */
 
 /* Filter pills */
 html body.cp-cashier .queue-tab {
@@ -310,7 +335,7 @@ html body.cp-cashier .cp-q-section.is-late { background: var(--warn-soft); color
 html body.cp-cashier .cp-q-section.is-upcoming { background: var(--cp-teal-soft); color: var(--cp-teal-800); }
 html body.cp-cashier .cp-q-row {
   display: grid; align-items: center; gap: 14px;
-  grid-template-columns: 84px minmax(0, 1.6fr) minmax(0, 1.4fr) auto;
+  grid-template-columns: 84px minmax(0, 1.6fr) minmax(0, 1.4fr) 254px;
   padding: 14px 20px; border-top: 1px solid var(--border);
 }
 html body.cp-cashier .cp-q-row:hover { background: var(--cp-card-soft); }
@@ -324,11 +349,17 @@ html body.cp-cashier .cp-q-who-text p { margin: 0; overflow: hidden; text-overfl
 html body.cp-cashier .cp-q-name { font-weight: 700; color: var(--cp-ink); font-size: 15px; }
 html body.cp-cashier .cp-q-service { font-size: 13.5px; color: var(--cp-text); }
 html body.cp-cashier .cp-q-meta { font-size: 12px; color: var(--cp-muted); }
-html body.cp-cashier .cp-q-facts { margin: 0; display: grid; grid-template-columns: repeat(3, auto); gap: 4px 14px; justify-content: start; }
+html body.cp-cashier .cp-q-facts { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.45fr) minmax(0, 1fr); gap: 4px 14px; }
+html body.cp-cashier .cp-q-facts > div { min-width: 0; }
+html body.cp-cashier .cp-q-facts .cp-badge { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
 html body.cp-cashier .cp-q-facts dt { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--cp-muted); }
 html body.cp-cashier .cp-q-facts dd { margin: 2px 0 0; }
 html body.cp-cashier .cp-q-balance dd { font-weight: 800; color: var(--cp-ink); white-space: nowrap; }
 html body.cp-cashier .cp-q-actions { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+@media (min-width: 1024px) {
+  html body.cp-cashier .cp-q-actions > button { flex: 1 1 0; min-width: 0; }
+  html body.cp-cashier .cp-q-actions > a { flex: 0 0 80px; }
+}
 
 /* Walk-in summary */
 html body.cp-cashier .cp-walkin-summary {
@@ -338,6 +369,9 @@ html body.cp-cashier .cp-walkin-summary {
 html body.cp-cashier .cp-walkin-summary strong { display: block; color: var(--cp-ink); font-size: 15px; }
 
 /* ---------- Appointments & Payment Records lists ---------- */
+html body.cp-cashier .cp-payment-date {
+  font-size: 16px; font-weight: 600; color: #000; line-height: 1.4;
+}
 html body.cp-cashier .cp-appt-head,
 html body.cp-cashier .cp-appt-row {
   display: grid; gap: 12px; align-items: center;
@@ -346,13 +380,25 @@ html body.cp-cashier .cp-appt-row {
 html body.cp-cashier .cp-pay-head,
 html body.cp-cashier .cp-pay-row {
   display: grid; gap: 12px; align-items: center;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1.4fr) 92px 92px 100px minmax(0, 1fr) 150px;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1.5fr) 80px 80px 88px minmax(0, 1.2fr) 170px;
 }
+/* Keep long payment statuses and actions inside their own grid columns. */
+html body.cp-cashier .cp-pay-row .cp-badge {
+  max-width: 100%; white-space: normal; overflow-wrap: anywhere;
+}
+html body.cp-cashier .cp-pay-row .cp-cell-action .btn-row {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; min-width: 0; max-width: 100%; padding: 10px 12px;
+  white-space: normal; text-align: center; overflow-wrap: anywhere;
+}
+html body.cp-cashier .cp-pay-row .cp-cell-action .btn-row i { flex-shrink: 0; }
 html body.cp-cashier .cp-appt-head,
 html body.cp-cashier .cp-pay-head {
   padding: 10px 20px; background: var(--cp-cream-2); color: var(--cp-muted);
   font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
 }
+html body.cp-cashier .cp-appt-head > span,
+html body.cp-cashier .cp-appt-row .cp-cell[data-label]::before { font-weight: 800; color: #000; }
 html body.cp-cashier .cp-appt-row,
 html body.cp-cashier .cp-pay-row {
   width: 100%; padding: 13px 20px; border-top: 1px solid var(--border); background: transparent; text-align: left !important; font-size: 14px; color: var(--cp-text);
@@ -365,6 +411,19 @@ html body.cp-cashier .cp-cell-action { align-items: flex-end; }
 html body.cp-cashier .cp-sort-note { margin: 0; padding: 8px 20px; font-size: 12.5px; color: var(--cp-muted); border-top: 1px solid var(--border); }
 
 /* ---------- Inventory ---------- */
+html body.cp-cashier .cp-inventory-tools {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px; width: 100%;
+}
+html body.cp-cashier .cp-inventory-filters { flex: 0 1 auto; flex-wrap: wrap; gap: 6px; }
+html body.cp-cashier .cp-inventory-filters button { min-height: 44px; padding: 10px 14px; white-space: nowrap; }
+html body.cp-cashier .cp-inventory-search { position: relative; flex: 1 1 240px; min-width: 0; }
+html body.cp-cashier .cp-inventory-search > i {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  pointer-events: none; font-size: 16px;
+}
+html body.cp-cashier .cp-inventory-search input {
+  width: 100%; min-width: 0; min-height: 46px; padding: 10px 14px 10px 42px;
+}
 html body.cp-cashier .cp-table thead { background: var(--cp-cream-2) !important; }
 html body.cp-cashier .cp-table th { font-size: 11.5px; letter-spacing: .06em; color: var(--cp-muted) !important; }
 html body.cp-cashier .cp-table td { font-size: 14px; }
@@ -482,7 +541,10 @@ html body.cp-cashier .cp-staff-actions > * { flex: 1 1 auto; }
   html body.cp-cashier .cp-q-time { order: 2; }
   html body.cp-cashier .cp-q-who { order: 1; }
   html body.cp-cashier .cp-q-who-text p { white-space: normal; }
-  html body.cp-cashier .cp-q-facts { order: 3; grid-column: auto; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  html body.cp-cashier .cp-q-facts { order: 3; grid-column: auto; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; }
+  html body.cp-cashier .cp-q-facts > div { min-width: 0; }
+  html body.cp-cashier .cp-q-facts .cp-badge { display: inline-block; max-width: 100%; white-space: normal; overflow-wrap: anywhere; line-height: 1.3; }
+  html body.cp-cashier .cp-q-balance { grid-column: 1 / -1; }
   html body.cp-cashier .cp-q-actions { order: 4; grid-column: auto; grid-row: auto; flex-direction: row; }
   html body.cp-cashier .cp-q-actions > * { flex: 1 1 0; min-height: 44px; }
   html body.cp-cashier .cp-q-section { padding: 10px 16px; }
@@ -544,13 +606,26 @@ html body.cp-cashier .cp-staff-actions > * { flex: 1 1 auto; }
   html body.cp-cashier .cp-avatar--sm { width: 38px; height: 38px; }
   html body.cp-cashier .cp-bottom-link span { font-size: 9.5px !important; letter-spacing: -.01em; }
   html body.cp-cashier > main section .cp-intro h2.cp-page-title { font-size: 28px !important; }
-  html body.cp-cashier .cp-q-facts { grid-template-columns: 1fr 1fr; }
+  html body.cp-cashier .cp-q-facts { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   html body.cp-cashier .cp-appt-row, html body.cp-cashier .cp-pay-row { grid-template-columns: minmax(0, 1fr); }
   html body.cp-cashier .grid.grid-cols-2:has(> .stat-card) { grid-template-columns: minmax(0, 1fr) !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   html body.cp-cashier aside.cp-sidebar, html body.cp-cashier .cp-backdrop, html body.cp-cashier .stat-card { transition: none; }
+}
+
+/* Account summary is a light card, separate from the dark navigation sidebar. */
+html body.cp-cashier .cp-account-card { color: var(--cp-ink); align-self: start; }
+html body.cp-cashier .cp-account-card .cp-account-logo {
+  position: relative; display: block; width: 140px; height: 140px;
+  margin: -70px auto 12px; object-fit: contain; border-radius: 50%;
+  border: 4px solid #fff; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.1);
+}
+html body.cp-cashier .cp-account-card #profileName { color: var(--cp-ink) !important; }
+html body.cp-cashier .cp-account-card #profileEmail { color: var(--cp-muted) !important; }
+html body.cp-cashier .cp-account-card .btn-secondary {
+  color: var(--danger, #9C1E15) !important; border-color: currentColor !important;
 }
 
 /* Keep full names and record subtitles readable without changing type sizes. */
@@ -566,4 +641,267 @@ html body.cp-cashier :is(#checkoutModal, #confirmModal) .modal-close { flex-shri
 
 @media print {
   html body.cp-cashier aside.cp-sidebar, html body.cp-cashier .cp-backdrop, html body.cp-cashier .cp-bottom-nav { display: none !important; }
+}
+
+/* Walk-in service picker: clean selectable cards (matches guest service cards). */
+html body.cp-cashier .wi-name-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 560px) { html body.cp-cashier .wi-name-grid { grid-template-columns: 1fr; } }
+html body.cp-cashier .wi-optional { text-transform: none; font-weight: 400; letter-spacing: 0; }
+html body.cp-cashier .wi-na { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; color: var(--cp-muted, #6b7280); cursor: pointer; }
+html body.cp-cashier #inputMiddleName:disabled { background: #f3f4f6; cursor: not-allowed; }
+html body.cp-cashier .wi-phone { max-width: calc((100% - 24px) / 3 * 1.5 + 12px); }
+@media (max-width: 560px) { html body.cp-cashier .wi-phone { max-width: none; } }
+html body.cp-cashier .wi-svc-search { margin-bottom: 8px; }
+/* Walk-in staff picker: radio cards instead of a long native dropdown. */
+html body.cp-cashier .wi-staff-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+html body.cp-cashier .wi-staff-list.hidden, html body.cp-cashier .wi-staff-more.hidden { display: none; }
+@media (max-width: 420px) { html body.cp-cashier .wi-staff-list { grid-template-columns: 1fr; } }
+html body.cp-cashier .wi-staff-off { margin-top: 8px; max-height: 220px; overflow-y: auto; padding: 2px; }
+html body.cp-cashier .wi-staff { position: relative; display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--cp-border, #e5e7eb); border-radius: 14px; background: #fff; cursor: pointer; transition: border-color .15s, background .15s; }
+html body.cp-cashier .wi-staff:hover { border-color: var(--cp-teal, #1b5e4b); }
+html body.cp-cashier .wi-staff input { position: absolute; opacity: 0; pointer-events: none; }
+html body.cp-cashier .wi-staff-avatar { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: var(--cp-teal-soft, #eaf4ef); color: var(--cp-teal-800, #1b5e4b); }
+html body.cp-cashier .wi-staff-text { display: flex; flex-direction: column; min-width: 0; }
+html body.cp-cashier .wi-staff-name { font-size: 14px; font-weight: 700; color: var(--cp-ink, #1f2a26); overflow-wrap: anywhere; }
+html body.cp-cashier .wi-staff-role { font-size: 12px; color: var(--cp-muted, #6b7280); }
+html body.cp-cashier .wi-staff-badge { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: #f3f4f6; color: #6b7280; white-space: nowrap; }
+html body.cp-cashier .wi-staff-badge.is-on { background: #e7f6ee; color: #1b7a4b; }
+html body.cp-cashier .wi-staff-badge.is-busy { background: #fff4e0; color: #a1620b; }
+html body.cp-cashier .wi-staff:has(input:checked) { border-color: var(--cp-teal, #1b5e4b); background: var(--cp-teal-soft, #eaf4ef); box-shadow: 0 0 0 1px var(--cp-teal, #1b5e4b) inset; }
+html body.cp-cashier .wi-staff:has(input:focus-visible) { outline: 2px solid var(--cp-teal, #1b5e4b); outline-offset: 2px; }
+html body.cp-cashier .wi-staff.is-off { opacity: .55; cursor: not-allowed; }
+html body.cp-cashier .wi-staff.is-off:hover { border-color: var(--cp-border, #e5e7eb); }
+html body.cp-cashier .wi-staff-more { margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--cp-teal-800, #1b5e4b); background: none; border: 0; padding: 4px 0; cursor: pointer; }
+html body.cp-cashier .wi-staff-more:hover { text-decoration: underline; }
+html body.cp-cashier .wi-svc-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; max-height: 300px; overflow-y: auto; padding: 2px; margin-top: 6px; }
+@media (max-width: 420px) { html body.cp-cashier .wi-svc-list { grid-template-columns: 1fr; } }
+html body.cp-cashier .wi-svc.hidden { display: none; }
+html body.cp-cashier .wi-svc-text { display: flex; flex-direction: column; min-width: 0; }
+html body.cp-cashier .wi-svc-meta { font-size: 12px; color: var(--cp-muted, #6b7280); line-height: 1.35; margin-top: 2px; }
+html body.cp-cashier .wi-svc { position: relative; display: grid; grid-template-columns: 22px 1fr auto; column-gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--cp-border, #e5e7eb); border-radius: 14px; background: #fff; cursor: pointer; transition: border-color .15s, background .15s, box-shadow .15s; }
+html body.cp-cashier .wi-svc:hover { border-color: var(--cp-teal, #1b5e4b); }
+html body.cp-cashier .wi-svc input { position: absolute; opacity: 0; pointer-events: none; }
+html body.cp-cashier .wi-svc-check { width: 22px; height: 22px; border-radius: 7px; border: 1.5px solid var(--cp-border-strong, #cbd5d1); display: grid; place-items: center; color: transparent; font-size: 11px; transition: all .15s; }
+html body.cp-cashier .wi-svc-name { font-size: 14px; font-weight: 700; color: var(--cp-ink, #1f2a26); line-height: 1.3; overflow-wrap: anywhere; }
+html body.cp-cashier .wi-svc-price { font-size: 14px; font-weight: 700; white-space: nowrap; color: var(--cp-teal-800, #1b5e4b); }
+html body.cp-cashier .wi-svc:has(input:checked) { border-color: var(--cp-teal, #1b5e4b); background: var(--cp-teal-soft, #eaf4ef); box-shadow: 0 0 0 1px var(--cp-teal, #1b5e4b) inset; }
+html body.cp-cashier .wi-svc:has(input:checked) .wi-svc-check { background: var(--cp-teal, #1b5e4b); border-color: var(--cp-teal, #1b5e4b); color: #fff; }
+html body.cp-cashier .wi-svc:has(input:focus-visible) { outline: 2px solid var(--cp-teal, #1b5e4b); outline-offset: 2px; }
+
+/* ---------- New walk-in: booking-style layout (steps + summary) ---------- */
+html body.cp-cashier .wi-panel { max-width: 1120px; background: #fff; }
+html body.cp-cashier .wi-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 28px 32px 18px; flex-shrink: 0; }
+html body.cp-cashier .wi-title { font-family: var(--cp-font-display); font-size: 30px; font-weight: 500; color: var(--cp-ink, #1f2a26); line-height: 1.15; margin: 0; }
+html body.cp-cashier .wi-sub { margin-top: 6px; font-size: 14px; color: var(--cp-muted, #6b7280); }
+html body.cp-cashier .wi-head-right { display: flex; align-items: center; gap: 14px; }
+html body.cp-cashier .wi-pill { padding: 6px 16px; border-radius: 999px; background: #fbf3e2; border: 1px solid #efdcb4; color: #6b4a12; font-size: 13px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+html body.cp-cashier .wi-close { width: 40px; height: 40px; border-radius: 50%; font-size: 28px; line-height: 1; color: var(--cp-ink, #1f2a26); background: none; border: 0; cursor: pointer; }
+html body.cp-cashier .wi-close:hover { background: #f3f4f6; }
+html body.cp-cashier .wi-body { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: start; padding: 0 32px 28px; }
+html body.cp-cashier .wi-steps { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+html body.cp-cashier .wi-step { border: 1px solid var(--cp-border, #e5e7eb); border-radius: 18px; padding: 20px 22px; background: #fff; }
+html body.cp-cashier .wi-step-title { display: flex; align-items: center; gap: 12px; margin: 0 0 16px; font-size: 22px; font-weight: 400; color: var(--cp-ink, #1f2a26); }
+html body.cp-cashier .wi-num { width: 30px; height: 30px; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center; background: var(--cp-teal-800, #1b5e4b); color: #fff; font-size: 14px; font-weight: 700; }
+html body.cp-cashier .wi-done { margin-left: auto; color: var(--cp-teal, #1b5e4b); font-size: 16px; visibility: hidden; }
+html body.cp-cashier .wi-done::before { content: "\2713"; }
+html body.cp-cashier .wi-done.is-on { visibility: visible; }
+html body.cp-cashier .wi-phone { margin-top: 14px; }
+html body.cp-cashier #wiSvcHint strong { color: var(--cp-teal-800, #1b5e4b); }
+html body.cp-cashier .wi-svc-list { max-height: 340px; }
+
+html body.cp-cashier .wi-summary { position: sticky; top: 0; background: #f6f7f6; border: 1px solid var(--cp-border, #e5e7eb); border-radius: 18px; padding: 22px; }
+html body.cp-cashier .wi-sum-title { font-size: 22px; font-weight: 400; color: var(--cp-ink, #1f2a26); margin: 0 0 14px; }
+html body.cp-cashier .wi-sum-rows { margin: 0; display: flex; flex-direction: column; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid var(--cp-border, #e5e7eb); }
+html body.cp-cashier .wi-sum-rows > div { display: grid; grid-template-columns: 96px 1fr; gap: 8px; font-size: 14px; }
+html body.cp-cashier .wi-sum-rows dt { color: var(--cp-muted, #6b7280); }
+html body.cp-cashier .wi-sum-rows dd { margin: 0; font-weight: 600; color: var(--cp-ink, #1f2a26); min-width: 0; overflow-wrap: anywhere; }
+html body.cp-cashier .wi-sum-rows dd em { font-weight: 400; color: var(--cp-muted, #6b7280); }
+html body.cp-cashier .wi-sum-svc { display: flex; justify-content: space-between; gap: 8px; }
+html body.cp-cashier .wi-sum-svc + .wi-sum-svc { margin-top: 4px; }
+html body.cp-cashier .wi-sum-svc span:last-child { font-weight: 400; color: var(--cp-muted, #6b7280); white-space: nowrap; }
+html body.cp-cashier .wi-sum-sub { display: block; font-weight: 400; color: var(--cp-muted, #6b7280); font-size: 13px; }
+html body.cp-cashier .wi-sum-total { display: flex; justify-content: space-between; align-items: baseline; padding-top: 16px; font-size: 15px; color: var(--cp-ink, #1f2a26); }
+html body.cp-cashier .wi-sum-total strong { font-size: 20px; color: var(--cp-teal-800, #1b5e4b); }
+html body.cp-cashier .wi-sum-note { margin: 6px 0 18px; font-size: 13px; color: var(--cp-muted, #6b7280); }
+html body.cp-cashier .wi-submit { width: 100%; min-height: 54px; border-radius: 999px; background: var(--cp-teal-800, #1b5e4b); color: #fff; font-size: 17px; font-weight: 700; border: 0; cursor: pointer; }
+html body.cp-cashier .wi-submit:hover { background: var(--cp-teal-hover, #164c3d); }
+html body.cp-cashier .wi-cancel { width: 100%; margin-top: 10px; min-height: 44px; border-radius: 999px; background: transparent; border: 1px solid var(--cp-border, #e5e7eb); color: var(--cp-ink, #1f2a26); font-weight: 600; cursor: pointer; }
+html body.cp-cashier .wi-cancel:hover { background: #fff; }
+
+@media (max-width: 900px) {
+  html body.cp-cashier .wi-body { grid-template-columns: 1fr; padding: 0 16px 20px; }
+  html body.cp-cashier .wi-head { padding: 20px 16px 14px; }
+  html body.cp-cashier .wi-title { font-size: 24px; }
+  html body.cp-cashier .wi-summary { position: static; }
+  html body.cp-cashier .wi-step { padding: 16px; }
+  html body.cp-cashier .wi-step-title { font-size: 19px; }
+}
+@media (max-width: 480px) { html body.cp-cashier .wi-pill { display: none; } }
+/* Walk-in modal must sit above the fixed sidebar (z-index 60). */
+html body.cp-cashier #walkInModal { z-index: 70 !important; }
+/* Staff picker: hide the native radio even against global input styles. */
+html body.cp-cashier .wi-staff input[type="radio"] { position: absolute !important; opacity: 0 !important; width: 1px !important; height: 1px !important; margin: 0 !important; pointer-events: none !important; -webkit-appearance: none !important; appearance: none !important; border: 0 !important; }
+html body.cp-cashier .wi-staff-empty { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border-radius: 14px; background: #fff7e8; border: 1px solid #f1dcae; font-size: 13.5px; line-height: 1.5; color: #6b4a12; }
+html body.cp-cashier .wi-staff-empty strong { font-size: 14.5px; color: #5a3d0c; }
+html body.cp-cashier .wi-staff-empty-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+html body.cp-cashier .wi-staff-refresh { flex-shrink: 0; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; border: 1px solid #e7cf9a; background: #fff; color: var(--cp-teal-800, #1b5e4b); font-size: 16px; cursor: pointer; transition: background .15s, border-color .15s; }
+html body.cp-cashier .wi-staff-refresh:hover { background: var(--cp-teal-soft, #eaf4ef); border-color: var(--cp-teal, #1b5e4b); }
+html body.cp-cashier .wi-staff-refresh:disabled { cursor: wait; }
+html body.cp-cashier .wi-staff-refresh.is-spinning i { animation: wi-spin .8s linear infinite; }
+@keyframes wi-spin { to { transform: rotate(360deg); } }
+/* Shared phone dialog layout, independent of each page's Tailwind declarations. */
+@media (max-width: 767.98px) {
+  html body.cp-cashier [role="dialog"]:has(> .modal-panel) {
+    box-sizing: border-box;
+    padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    align-items: center; justify-content: center; overflow: hidden;
+  }
+  html body.cp-cashier [role="dialog"] > .modal-panel {
+    display: flex; flex-direction: column; width: 100%; min-width: 0;
+    max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    overflow: hidden; border-radius: 18px !important;
+  }
+  html body.cp-cashier [role="dialog"] .modal-head {
+    display: flex; align-items: center; justify-content: space-between;
+    flex: 0 0 auto; gap: 12px; padding: 14px 16px;
+  }
+  html body.cp-cashier [role="dialog"] .modal-head > div { min-width: 0; }
+  html body.cp-cashier [role="dialog"] .modal-head :is(h2, h3, h4, p) { overflow-wrap: anywhere; }
+  html body.cp-cashier [role="dialog"] .modal-close { flex: none; }
+  html body.cp-cashier [role="dialog"] > .modal-panel > .overflow-y-auto {
+    flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden;
+    overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+  }
+  html body.cp-cashier [role="dialog"] :is(input, select, textarea) {
+    box-sizing: border-box; min-width: 0; max-width: 100%;
+  }
+  html body.cp-cashier [role="dialog"] :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+    font-size: 16px !important; min-height: 44px;
+  }
+  html body.cp-cashier [role="dialog"] :is(.grid, .flex) > * { min-width: 0; }
+  html body.cp-cashier [role="dialog"] :is(.btn-primary, .btn-secondary, .btn-row, .chip-btn, .pay-method-card) {
+    min-height: 44px; white-space: normal; overflow-wrap: anywhere;
+  }
+  html body.cp-cashier #checkoutModal .checkout-footer { padding: 12px 16px; }
+  html body.cp-cashier #checkoutModal #payHint:empty { display: none; }
+  html body.cp-cashier #checkoutModal #cartItemsContainer > .flex { flex-wrap: wrap; gap: 8px; }
+  html body.cp-cashier #checkoutModal [data-cart-product] > .flex { flex-wrap: wrap; flex-shrink: 1; }
+  html body.cp-cashier #checkoutModal :is(.cart-qty-btn, .cart-remove-btn) { min-width: 44px; min-height: 44px; }
+  html body.cp-cashier #checkoutModal :is(#reservationReceivedRow, #productsChargeRow, #productsTotalRow, #loyaltyDiscountRow, #tipRow) { gap: 12px; flex-wrap: wrap; }
+  html body.cp-cashier #checkoutModal :is(#totalDisplay, #changeDueDisplay) { white-space: nowrap; }
+  html body.cp-cashier:has([role="dialog"].flex:not(.hidden)) > main { overflow: hidden !important; }
+}
+
+/* Phones/tablets: the page's raw <aside> renders before cashier-shell.js turns
+   it into the off-canvas drawer, flashing the full sidebar on every page
+   load. Keep it hidden until the shell has taken it over. */
+@media (max-width: 1023.98px) {
+  body > aside:not(.cp-sidebar) { display: none !important; }
+}
+/* Appointments list: fixed column widths so the header and every row share
+   one grid (auto-sized badge columns made each row's columns shift). */
+@media (min-width: 1024px) {
+  html body.cp-cashier .cp-appt-head,
+  html body.cp-cashier .cp-appt-row {
+    grid-template-columns: minmax(170px, 1.3fr) minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, 1.1fr) minmax(140px, 1.3fr) 118px 178px 84px;
+    justify-items: start; text-align: left !important; align-items: center;
+  }
+  html body.cp-cashier .cp-appt-row > .cp-cell { width: 100%; align-items: flex-start; text-align: left; }
+  html body.cp-cashier .cp-appt-row > .cp-cell-action { align-items: flex-end; }
+  html body.cp-cashier .cp-appt-head > span:last-child { justify-self: end; }
+  html body.cp-cashier .cp-appt-row .cp-badge { white-space: nowrap; }
+}
+/* Appointments list: secondary details (Booked on…, time range) in muted grey. */
+html body.cp-cashier .cp-appt-row .cp-sub { color: var(--cp-muted, #6b7280) !important; font-size: 13px; font-weight: 400; }
+html body.cp-cashier .cp-appt-row .cp-booked { white-space: normal; overflow-wrap: normal; word-break: normal; }
+html body.cp-cashier .cp-appt-row .cp-booked .cp-nowrap,
+html body.cp-cashier .cp-appt-row .cp-when { white-space: nowrap; }
+html body.cp-cashier .cp-appt-row > .cp-cell { overflow: hidden; }
+/* Appointments pagination */
+html body.cp-cashier .cp-pager { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+html body.cp-cashier .cp-page-btn { min-width: 38px; height: 38px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--cp-border, #e5e7eb); background: #fff; color: var(--cp-ink, #1f2a26); font-size: 14px; font-weight: 600; cursor: pointer; display: inline-grid; place-items: center; }
+html body.cp-cashier .cp-page-btn:hover:not(:disabled):not(.is-current) { border-color: var(--cp-teal, #1b5e4b); background: var(--cp-teal-soft, #eaf4ef); }
+html body.cp-cashier .cp-page-btn.is-current { background: var(--cp-teal-800, #1b5e4b); border-color: var(--cp-teal-800, #1b5e4b); color: #fff; cursor: default; }
+html body.cp-cashier .cp-page-btn:disabled { opacity: .4; cursor: not-allowed; }
+html body.cp-cashier .cp-page-gap { padding: 0 2px; color: var(--cp-muted, #6b7280); }
+/* Payment Records: "Payment breakdown" card as aligned label / amount rows. */
+html body.cp-cashier .cp-breakdown { gap: 0; }
+html body.cp-cashier .cp-bd-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 13px; line-height: 1.5; color: var(--cp-text); }
+html body.cp-cashier .cp-bd-row > :last-child { white-space: nowrap; font-variant-numeric: tabular-nums; text-align: right; }
+html body.cp-cashier .cp-bd-main { margin-top: 6px; font-size: 14px; font-weight: 600; color: var(--cp-ink); }
+html body.cp-cashier .cp-bd-main small { display: block; font-size: 11.5px; font-weight: 400; color: var(--cp-muted); line-height: 1.3; }
+html body.cp-cashier .cp-bd-main strong { font-size: 15px; font-weight: 700; color: var(--cp-ink); }
+html body.cp-cashier .cp-bd-methods { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--cp-border, #e5e7eb); color: var(--cp-muted); }
+html body.cp-cashier .cp-bd-methods .cp-bd-row { color: var(--cp-muted); }
+html body.cp-cashier .cp-bd-tips { margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--cp-border, #e5e7eb); color: var(--cp-muted); }
+/* Payment Records "Open balances": read-only, no action column. */
+@media (min-width: 1024px) {
+  html body.cp-cashier .cp-bal-head,
+  html body.cp-cashier .cp-bal-row { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1.5fr) 100px 100px 110px 190px; }
+}
+html body.cp-cashier .cp-bal-row { cursor: default; }
+
+/* Staff Assignments cards: round avatar, name with role right under it. */
+html body.cp-cashier .cp-staff-head { display: flex; align-items: center; gap: 12px; }
+html body.cp-cashier .cp-staff-avatar { width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center; font-size: 14px; font-weight: 700; letter-spacing: .02em; }
+html body.cp-cashier .cp-staff-who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+html body.cp-cashier .cp-staff-name { all: unset; display: block; font-size: 15.5px; font-weight: 700; color: var(--cp-ink); line-height: 1.25; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html body.cp-cashier .cp-staff-name:hover { text-decoration: underline; }
+html body.cp-cashier .cp-staff-name:focus-visible { outline: 3px solid var(--cp-gold); outline-offset: 2px; border-radius: 4px; }
+html body.cp-cashier .cp-staff-role { font-size: 13px; color: var(--cp-muted); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Staff cards: same readable colours as the rest of the cashier panel
+   (dark ink for values, muted for labels; no faded off-shift cards). */
+html body.cp-cashier .cp-staff-card { opacity: 1 !important; color: var(--cp-ink); }
+html body.cp-cashier .cp-staff-card dt { color: var(--cp-muted) !important; font-size: 12.5px; }
+html body.cp-cashier .cp-staff-card dd { color: var(--cp-ink) !important; font-weight: 600; }
+html body.cp-cashier .cp-staff-card .text-slate-500,
+html body.cp-cashier .cp-staff-card .text-slate-600 { color: var(--cp-muted) !important; }
+html body.cp-cashier .cp-staff-card .font-semibold.text-slate-600 { color: var(--cp-ink) !important; }
+html body.cp-cashier .cp-staff-name { color: var(--cp-ink) !important; }
+html body.cp-cashier .cp-staff-role { color: var(--cp-muted) !important; }
+
+/* Profile & Security: account card as one wide rectangle. */
+html body.cp-cashier .cp-aw-banner { height: 72px; background: linear-gradient(130deg, var(--brand-dark, #0A2E24), var(--brand, #16604B)); }
+html body.cp-cashier .cp-aw-body { display: flex; align-items: flex-end; gap: 20px; padding: 0 24px; margin-top: -40px; flex-wrap: wrap; }
+html body.cp-cashier .cp-aw-logo { width: 104px; height: 104px; flex-shrink: 0; border-radius: 50%; border: 4px solid #fff; background: #fff; object-fit: cover; box-shadow: 0 6px 18px rgba(0,0,0,.12); }
+html body.cp-cashier .cp-aw-who { flex: 1; min-width: 220px; padding-bottom: 4px; }
+html body.cp-cashier .cp-aw-name { margin: 0; font-size: 22px; font-weight: 800; color: var(--cp-ink); text-transform: capitalize; overflow-wrap: anywhere; }
+html body.cp-cashier .cp-aw-email { margin: 2px 0 0; font-size: 14px; color: var(--cp-muted); overflow-wrap: anywhere; }
+html body.cp-cashier .cp-aw-badges { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; font-weight: 700; }
+html body.cp-cashier .cp-aw-signout { flex-shrink: 0; margin-bottom: 6px; padding-left: 22px; padding-right: 22px; }
+html body.cp-cashier .cp-aw-details { margin: 20px 24px 0; padding-top: 18px; border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+html body.cp-cashier .cp-aw-details > div { border: 1px solid var(--border); background: var(--bg); border-radius: 12px; padding: 10px 14px; min-width: 0; }
+html body.cp-cashier .cp-aw-note { margin: 12px 24px 20px; font-size: 12px; color: var(--cp-muted); }
+@media (max-width: 767.98px) {
+  html body.cp-cashier .cp-aw-body { padding: 0 16px; gap: 12px; }
+  html body.cp-cashier .cp-aw-logo { width: 84px; height: 84px; }
+  html body.cp-cashier .cp-aw-signout { width: 100%; justify-content: center; }
+  html body.cp-cashier .cp-aw-details { grid-template-columns: 1fr; margin: 16px 16px 0; }
+  html body.cp-cashier .cp-aw-note { margin: 10px 16px 16px; }
+}
+/* Only the logo overlaps the banner; name/email start below it. */
+html body.cp-cashier .cp-aw-body { margin-top: 0; padding-top: 16px; align-items: flex-start; }
+html body.cp-cashier .cp-aw-logo { margin-top: -64px; }
+html body.cp-cashier .cp-aw-who { padding-bottom: 0; }
+html body.cp-cashier .cp-aw-signout { align-self: center; margin-bottom: 0; }
+@media (max-width: 767.98px) {
+  html body.cp-cashier .cp-aw-logo { margin-top: -54px; }
+}
+/* Profile account card on phones: stacked and centred. */
+@media (max-width: 767.98px) {
+  html body.cp-cashier .cp-aw-banner { height: 64px; }
+  html body.cp-cashier .cp-aw-body { flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 12px 16px 0; }
+  html body.cp-cashier .cp-aw-logo { width: 88px; height: 88px; margin-top: -56px; }
+  html body.cp-cashier .cp-aw-who { min-width: 0; width: 100%; }
+  html body.cp-cashier .cp-aw-name { font-size: 20px; }
+  html body.cp-cashier .cp-aw-email { font-size: 13.5px; }
+  html body.cp-cashier .cp-aw-badges { justify-content: center; }
+  html body.cp-cashier .cp-aw-signout { align-self: stretch; width: 100%; justify-content: center; margin-top: 4px; }
+  html body.cp-cashier .cp-aw-details { grid-template-columns: 1fr; gap: 8px; margin: 16px 16px 0; padding-top: 14px; }
+  html body.cp-cashier .cp-aw-note { text-align: center; margin: 10px 16px 16px; }
+}
+@media (max-width: 767.98px) {
+  html body.cp-cashier .cp-account-wide p.cp-aw-name,
+  html body.cp-cashier .cp-account-wide p.cp-aw-email,
+  html body.cp-cashier .cp-account-wide p.cp-aw-note { text-align: center; }
 }

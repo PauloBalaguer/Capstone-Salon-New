@@ -133,6 +133,7 @@ function customerBookingMixin() {
       if (!quiet) {
         this.slotsReady = false;
         this.slotsError = '';
+        this.slotsClosedMessage = '';
         this.slotAvailabilityMap = {};
       }
       if (!this.bookingForm.date || !this.selectedBranchForServices || !this.selectedServicesForBooking.length) {
@@ -151,6 +152,8 @@ function customerBookingMixin() {
         body.slots.forEach(s => { map[s.time] = s.available === true; });
         this.availableTimeSlots = body.slots.map(s => s.time);
         this.slotAvailabilityMap = map;
+        // Branch holiday: shown instead of an empty grid.
+        this.slotsClosedMessage = body.closed ? (body.message || 'The branch is closed on this date.') : '';
         this.slotsReady = true;
         this.slotsError = '';
         return true;
@@ -439,6 +442,7 @@ function customerBookingMixin() {
     // the schedule they just chose.
     liveAvailableStaff: [],
     liveBusyStaff: [],
+    staffNotice: '',
     staffAvailabilityLoading: false,
     staffAvailabilityError: '',
     staffAvailabilityRequest: 0,
@@ -460,6 +464,7 @@ function customerBookingMixin() {
         if (response.ok === false || !body.success || !Array.isArray(body.staff)) throw new Error('Unavailable');
         this.liveAvailableStaff = body.staff;
         this.liveBusyStaff = body.busy || [];
+        this.staffNotice = body.notice || '';
         this.staffAvailabilityError = '';
         if (this.bookingForm.staffId && !body.staff.some(s => String(s.id) === String(this.bookingForm.staffId))) this.bookingForm.staffId = '';
         return true;
@@ -476,6 +481,7 @@ function customerBookingMixin() {
       this.waitlistStaffId = '';
       this.liveAvailableStaff = [];
       this.liveBusyStaff = [];
+      this.staffNotice = '';
       this.staffAvailabilityLoading = false;
       this.staffAvailabilityError = '';
     },

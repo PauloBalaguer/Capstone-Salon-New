@@ -3,13 +3,11 @@
 /**
  * Admin-only: Set Shifting Status
  *
- * Previously also reachable by Cashier from the Staff Assignments tab's
- * "Update Shifting Parameters" action -- removed from the Cashier UI.
- * Attendance/shift status is now automatic (see Scheduling::autoCloseAttendance
+ * Attendance/shift status is automatic (see Scheduling::autoCloseAttendance
  * and the Staff Portal's login/logout-driven clock in/out); a Cashier
  * manually flipping "On Duty"/"Off Shift" here would fight that system by
  * writing directly to the same attendance table. Kept for Admin in case of
- * a genuine manual override need, out of scope for this patch.
+ * a genuine manual override need.
  */
 
 require_once '../../backend/shared/config/setup/cors.php';
@@ -37,8 +35,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $staffId = (int) ($_POST['id'] ?? 0);
 $status = trim($_POST['status'] ?? '');
 // Only the attendance itself can be overridden; Busy / On Break are derived
-// (StaffShift::liveStatusSql). 'On Duty' is accepted as the old name of On Shift.
-$allowedStatuses = ['On Shift', 'On Duty', 'Off Shift'];
+// (StaffShift::liveStatusSql). Accepts the status keys ('available' = clock
+// in, 'off_shift' = clock out) and the older names 'On Shift' / 'On Duty' /
+// 'Off Shift' from cached pages.
+$status = ['On Shift' => 'available', 'On Duty' => 'available', 'Off Shift' => 'off_shift'][$status] ?? $status;
+$allowedStatuses = [StaffShift::STATUS_AVAILABLE, StaffShift::STATUS_OFF];
 
 if ($staffId <= 0 || !in_array($status, $allowedStatuses, true)) {
     http_response_code(400);
@@ -77,7 +78,7 @@ try {
     // so this override can't open a second shift or leave a break running.
     $pdo->prepare('SELECT id FROM employees WHERE id = ? FOR UPDATE')->execute([$staffId]);
     $openShift = StaffShift::openShift($pdo, $staffId, true);
-    if ($status === 'Off Shift') {
+    if ($status === StaffShift::STATUS_OFF) {
         if ($openShift) {
             $pdo->prepare('UPDATE attendance_breaks SET break_end = GREATEST(break_start, NOW()) WHERE attendance_id = ? AND break_end IS NULL')
                 ->execute([$openShift['id']]);
@@ -86,10 +87,10 @@ try {
     } elseif (!$openShift) {
         $pdo->prepare('INSERT INTO attendance (employee_id, clock_in_time) VALUES (?, NOW())')->execute([$staffId]);
     }
-    $status = $status === 'Off Shift' ? StaffShift::STATUS_OFF : StaffShift::STATUS_ON;
+    $label = $status === StaffShift::STATUS_OFF ? 'off shift' : 'on shift';
 
     $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "ATTENDANCE", ?)')
-        ->execute(["{$employee['name']} at {$employee['branch_name']} is now {$status}."]);
+        ->execute(["{$employee['name']} at {$employee['branch_name']} is now {$label}."]);
 
     $pdo->commit();
 

@@ -65,7 +65,7 @@ $offered = function (string $date, string $time) use ($get, $serviceId, $find) {
 $today = substr($now, 0, 10);
 
 // ---- Off Shift -----------------------------------------------------------------
-check('before Shift In: Admin, Cashier and roster all say Off Shift', $sameEverywhere('Off Shift'));
+check('before Shift In: Admin, Cashier and roster all say Off Shift', $sameEverywhere('off_shift'));
 check('off shift: not offered for an immediate booking', !$offered($today, $soon));
 check('off shift: not offered for a future booking either', !$offered($future, '10:00'));
 
@@ -73,7 +73,7 @@ check('off shift: not offered for a future booking either', !$offered($future, '
 $v = $version();
 check('Shift In succeeds', ($shift('shift_in')['success'] ?? false) === true);
 check('Shift In moves the live-sync version (every panel reloads)', $version() !== $v);
-check('after Shift In: all panels say On Shift', $sameEverywhere('On Shift'));
+check('after Shift In: all panels say On Shift', $sameEverywhere('available'));
 check('on shift: offered for an immediate booking', $offered($today, $soon));
 check('on shift: offered for a future booking', $offered($future, '10:00'));
 
@@ -81,15 +81,15 @@ check('on shift: offered for a future booking', $offered($future, '10:00'));
 $v = $version();
 check('Start Break succeeds', ($shift('break_start')['success'] ?? false) === true);
 check('Start Break moves the live-sync version', $version() !== $v);
-check('on break: all panels say On Break (was "Available" before)', $sameEverywhere('On Break'));
-check('on break: Cashier availability reads On Break', $statuses()[2] === 'On Break');
+check('on break: all panels say On Break (was "Available" before)', $sameEverywhere('on_break'));
+check('on break: Cashier availability reads On Break', $statuses()[2] === 'On break');
 check('on break: not offered for an immediate booking', !$offered($today, $soon));
 check('on break: not offered for a future booking either', !$offered($future, '10:00'));
 
 $v = $version();
 check('End Break succeeds', ($shift('break_end')['success'] ?? false) === true);
 check('End Break moves the live-sync version', $version() !== $v);
-check('back from break: all panels say On Shift', $sameEverywhere('On Shift'));
+check('back from break: all panels say On Shift', $sameEverywhere('available'));
 
 // ---- With a client (per-service part of someone else's booking) ----------------
 $appointment = $pdo->query("SELECT a.id FROM appointments a JOIN appointment_services s ON s.appointment_id = a.id
@@ -106,13 +106,13 @@ check('Cashier shows how long they are busy', str_starts_with((string) $statuses
 $v = $version();
 $pdo->exec("UPDATE appointments SET status = 'Cancelled' WHERE id = {$appointment}");
 check('a cancellation moves the live-sync version', $version() !== $v);
-check('after the cancellation: back to On Shift everywhere', $sameEverywhere('On Shift'));
+check('after the cancellation: back to On Shift everywhere', $sameEverywhere('available'));
 
 // ---- Shift Out --------------------------------------------------------------------
 $v = $version();
 check('Shift Out succeeds', ($shift('shift_out')['success'] ?? false) === true);
 check('Shift Out moves the live-sync version', $version() !== $v);
-check('after Shift Out: all panels say Off Shift', $sameEverywhere('Off Shift'));
+check('after Shift Out: all panels say Off Shift', $sameEverywhere('off_shift'));
 
 // ---- Cashier clock-out during a break ends the break too -------------------------
 $shift('shift_in');
@@ -122,13 +122,13 @@ $r = run_endpoint(['script' => 'backend/cashier/clockOutStaff.php', 'session' =>
 $openBreaks = (int) $pdo->query("SELECT COUNT(*) FROM attendance_breaks b JOIN attendance a ON a.id = b.attendance_id
     WHERE a.employee_id = {$staffId} AND b.break_end IS NULL")->fetchColumn();
 check('cashier clock-out during a break closes the break as well', ($r['success'] ?? false) === true && $openBreaks === 0);
-check('after cashier clock-out: all panels say Off Shift', $sameEverywhere('Off Shift'));
+check('after cashier clock-out: all panels say Off Shift', $sameEverywhere('off_shift'));
 
 // ---- A shift that started yesterday still counts (crossed midnight) -------------
 $pdo->exec("INSERT INTO attendance (employee_id, clock_in_time) VALUES ({$staffId}, NOW() - INTERVAL 1 DAY)");
 $pdo->exec("UPDATE branches SET closing_time = '23:59:59' WHERE id = 1");
 $statusNow = $pdo->query("SELECT " . (function () { require_once dirname(__DIR__) . '/backend/shared/config/helpers/StaffShift.php'; return StaffShift::liveStatusSql('e'); })() . " FROM employees e WHERE e.id = {$staffId}")->fetchColumn();
-check('an open shift from yesterday counts as On Shift (not only today\'s)', $statusNow === 'On Shift');
+check('an open shift from yesterday counts as On Shift (not only today\'s)', $statusNow === 'available');
 
 // ---- Responses can't be cached ----------------------------------------------------
 $cors = file_get_contents(dirname(__DIR__) . '/backend/shared/config/setup/cors.php');

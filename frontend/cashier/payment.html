@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="../shared/theme-tokens.css">
+    <link rel="stylesheet" href="../shared/theme-tokens.css?v=20261111-card-tones">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leo Mejillano Salon - Payment Records</title>
@@ -74,9 +74,9 @@
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
   <!-- Cashier Panel redesign: loaded last, scoped to body.cp-cashier. -->
-  <link rel="stylesheet" href="../../frontend/cashier/cashier-panel.css?v=20261110d">
+  <link rel="stylesheet" href="../../frontend/cashier/cashier-panel.css?v=20261111-mobile-shared">
   <link rel="stylesheet" href="../../frontend/shared/portal-unify.css?v=20261110b">
-  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
 </head>
 <body class="salon-portal bg-gray-100 font-sans antialiased flex h-screen overflow-hidden text-slate-800">
 
@@ -120,10 +120,6 @@
                     <i class="fa-solid fa-users-gear w-5 text-center text-slate-400"></i>
                     <span class="text-base">Staff Assignments</span>
                 </a>
-                <a href="profile.html" data-nav-page="profile.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
-                    <i class="fa-solid fa-user-shield w-5 text-center text-amber-400"></i>
-                    <span class="text-base">Profile &amp; Security</span>
-                </a>
             </nav>
         </div>
 
@@ -147,36 +143,39 @@
         </header>
 
         <section class="flex-1 p-4 sm:p-6 overflow-y-auto space-y-5">
-            <p class="text-sm text-slate-600 max-w-3xl">Every payment this branch received. To take a payment, open the visit from the <a href="dashboard.html" class="font-bold text-teal-700 underline">Cashier Panel</a>.</p>
-
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <div class="stat-card stat-card-gold"><span class="stat-label">Total recorded collections</span><span class="stat-value" id="sumTotal">₱0.00</span><span class="stat-hint"><span id="sumCount">0 payments</span> in the selected dates</span></div>
-                <div class="stat-card"><span class="stat-label">Outstanding balances</span><span class="stat-value" id="sumOutstanding">₱0.00</span><span class="stat-hint" id="sumOutstandingCount">0 bookings ready to pay</span></div>
-                <div class="stat-card"><span class="stat-label">Payments requiring review</span><span class="stat-value" id="sumReview">0</span><span class="stat-hint" id="sumReviewHint">Nothing to check</span></div>
-                <div class="stat-card"><span class="stat-label">Breakdown</span>
-                    <span class="text-sm font-semibold text-slate-800 leading-6 mt-1">Checkout <span id="sumCheckout">₱0.00</span> <span class="stat-hint">(<span id="sumCheckoutCount">0 receipts</span>)</span></span>
-                    <span class="text-sm font-semibold text-slate-800 leading-6">Reservation <span id="sumReservation">₱0.00</span> <span class="stat-hint">(<span id="sumReservationCount">0 verified</span>)</span></span>
-                    <span class="text-xs text-slate-600 leading-5 mt-1" id="sumByMethod">-</span><span class="stat-hint" id="sumTips">₱0.00 in tips</span></div>
+            <!-- Your shift today: only what this cashier recorded today (always today,
+                 whatever date range is chosen for the records below). -->
+            <div>
+                <h3 class="text-base font-bold text-slate-800 mb-3">Your shift today</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                    <div data-card-tone="gold" class="stat-card stat-card-gold">
+                        <span class="stat-label">You collected</span>
+                        <span class="stat-value" id="meCollected">₱0.00</span>
+                        <span class="stat-hint" id="meCollectedHint">0 payments</span>
+                    </div>
+                    <div data-card-tone="success" class="stat-card">
+                        <span class="stat-label">Paid at counter</span>
+                        <span class="stat-value" id="meCheckouts">0</span>
+                        <span class="stat-hint" id="meCheckoutsHint">0 receipts issued</span>
+                    </div>
+                    <div data-card-tone="success" class="stat-card">
+                        <span class="stat-label">Online deposits verified</span>
+                        <span class="stat-value" id="meReservations">0</span>
+                        <span class="stat-hint" id="meReservationsHint">0 deposits</span>
+                    </div>
+                </div>
             </div>
 
-            <!-- Booking balances: what each open visit still owes. Collecting and
-                 verifying happen in the existing Cashier Panel popups. -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                <div class="px-4 sm:px-5 py-4 border-b border-gray-200 flex flex-col lg:flex-row lg:items-center gap-3 lg:justify-between">
-                    <div>
-                        <h3 class="font-bold text-slate-800 text-lg">Balances to collect or review</h3>
-                        <p class="text-sm text-slate-500">Open bookings with a remaining balance or a payment waiting for verification.</p>
-                    </div>
-                    <div class="flex gap-2 overflow-x-auto" id="balTabs" role="tablist" aria-label="Balance filter">
-                        <button type="button" role="tab" aria-selected="true" class="queue-tab is-active" data-bal="all">All <span data-bal-count="all">0</span></button>
-                        <button type="button" role="tab" aria-selected="false" class="queue-tab" data-bal="pay">Ready to pay <span data-bal-count="pay">0</span></button>
-                        <button type="button" role="tab" aria-selected="false" class="queue-tab" data-bal="review">Needs review <span data-bal-count="review">0</span></button>
-                    </div>
-                </div>
-                <div class="cp-pay-head" aria-hidden="true">
-                    <span>Reference</span><span>Customer</span><span>Service</span><span>Total</span><span>Paid</span><span>Balance</span><span>Payment status</span><span></span>
-                </div>
-                <div id="balanceList"><p class="py-10 text-center text-sm text-slate-500">Loading balances…</p></div>
+            <h3 class="text-base font-bold text-slate-800 -mb-2">Branch totals</h3>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div data-card-tone="gold" class="stat-card stat-card-gold"><span class="stat-label">Total recorded collections</span><span class="stat-value" id="sumTotal">₱0.00</span><span class="stat-hint"><span id="sumCount">0 payments</span> in the selected dates</span></div>
+                <div data-card-tone="gold" class="stat-card"><span class="stat-label">Outstanding balances</span><span class="stat-value" id="sumOutstanding">₱0.00</span><span class="stat-hint" id="sumOutstandingCount">0 bookings ready to pay</span></div>
+                <div data-card-tone="warning" class="stat-card"><span class="stat-label">Payments requiring review</span><span class="stat-value" id="sumReview">0</span><span class="stat-hint" id="sumReviewHint">Nothing to check</span></div>
+                <div data-card-tone="info" class="stat-card cp-breakdown"><span class="stat-label">Payment breakdown</span>
+                    <div class="cp-bd-row cp-bd-main"><span>Paid at counter <small id="sumCheckoutCount">0 payments</small></span><strong id="sumCheckout">₱0.00</strong></div>
+                    <div class="cp-bd-row cp-bd-main"><span>Online deposits <small id="sumReservationCount">0 payments</small></span><strong id="sumReservation">₱0.00</strong></div>
+                    <div class="cp-bd-methods" id="sumByMethod">-</div>
+                    <div class="cp-bd-row cp-bd-tips"><span>Tips</span><span id="sumTips">₱0.00</span></div></div>
             </div>
 
             <h3 class="font-bold text-slate-800 text-lg pt-2">Recorded payments</h3>
@@ -201,8 +200,8 @@
                         <label for="payType" class="field-label">Type</label>
                         <select id="payType" class="field-input lg:w-40">
                             <option value="">All types</option>
-                            <option value="Checkout">Checkout</option>
-                            <option value="Reservation">Reservation</option>
+                            <option value="Checkout">Paid at counter</option>
+                            <option value="Reservation">Online deposit</option>
                         </select>
                     </div>
                     <div>
@@ -219,7 +218,7 @@
                     <button type="button" class="queue-tab" data-range="month">This month</button>
                 </div>
 
-                <div class="hidden xl:grid grid-cols-[6rem_1.3fr_1.4fr_8rem_7rem_8rem_7.5rem] gap-4 px-5 py-2.5 bg-[color:var(--bg)] text-xs font-bold uppercase tracking-wider text-slate-600">
+                <div class="cp-records-head hidden xl:grid grid-cols-[6rem_1.3fr_1.4fr_8rem_7rem_8rem_7.5rem] gap-4 px-5 py-2.5 bg-[color:var(--bg)] text-xs font-bold uppercase tracking-wider text-slate-600">
                     <span>Time</span><span>Customer</span><span>Services</span><span>Type</span><span>Method</span><span class="text-right">Amount</span><span class="text-right">Receipt</span>
                 </div>
                 <div id="paymentList">
@@ -228,15 +227,17 @@
                 </div>
                 <div class="px-4 sm:px-5 py-3 border-t border-gray-200 flex flex-wrap items-center justify-between gap-3">
                     <p id="payCountLabel" class="text-sm text-slate-500"></p>
-                    <button type="button" id="btnPayShowMore" class="hidden btn-secondary py-2 text-sm">Show more</button>
+                    <nav id="payPager" class="cp-pager" aria-label="Payment pages"></nav>
                 </div>
             </div>
         </section>
     </main>
 
     <script src="../../function/shared/live-sync.js?v=20261110"></script>
-    <script src="../../function/cashier/cashier-shell.js?v=20261110c"></script>
+    <script src="../../function/shared/sign-out.js?v=20261111"></script>
+    <script src="../../function/cashier/cashier-shell.js?v=20261111a"></script>
     <script src="../../function/cashier/cashier-common.js?v=20261110"></script>
-    <script src="../../function/cashier/payment.js?v=20261110c"></script>
+    <script src="../../function/cashier/payment.js?v=20261111g"></script>
+<script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

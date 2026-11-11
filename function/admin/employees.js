@@ -1,6 +1,9 @@
 function adminDefaultStaffForm() {
   return {
-    name: '',
+    firstName: '',
+    middleName: '',
+    noMiddleName: false,
+    lastName: '',
     branchId: '',
     role: '',
     email: '',
@@ -32,7 +35,75 @@ function adminStaffApp() {
       });
     },
 
-    openDetails(staff) { this.detailStaff = staff; },
+    openDetails(staff) { this.detailStaff = staff; this.loadSchedule(staff.id); },
+
+    /* ---------- Weekly days off and date-specific leave (backend/admin/staffSchedule.php) ---------- */
+    scheduleDays: [],
+    leaveList: [],
+    leaveForm: { startDate: '', endDate: '', reason: '' },
+    leaveAffected: null, // null = not previewed yet; [] = nothing affected
+    scheduleLoading: false,
+    leaveReady: true, // false until migration 062 (staff_leave) is applied
+    async loadSchedule(employeeId) {
+      this.scheduleLoading = true;
+      this.scheduleDays = [];
+      this.leaveList = [];
+      this.leaveAffected = null;
+      this.leaveForm = { startDate: '', endDate: '', reason: '' };
+      this.weekAffected = null;
+      try {
+        const r = await Alpine.store('admin').get('staffSchedule.php', { employeeId });
+        if (!r.success) { LMToast.show(r.message || 'Could not load the schedule.', 'error'); return; }
+        if (!this.detailStaff || String(this.detailStaff.id) !== String(employeeId)) return;
+        this.scheduleDays = r.days;
+        this.leaveList = r.leave;
+        this.leaveReady = r.leaveReady !== false;
+      } finally { this.scheduleLoading = false; }
+    },
+    // Like leave: check affected confirmed bookings first, then save and flag them.
+    weekAffected: null, // null = not checked since the last edit; [] = nothing affected
+    async previewWeek() {
+      const r = await Alpine.store('admin').post('staffSchedule.php', { action: 'previewWeek', employeeId: this.detailStaff.id, days: JSON.stringify(this.scheduleDays) });
+      if (!r.success) { LMToast.show(r.message || 'Could not check affected bookings.', 'error'); return; }
+      this.weekAffected = r.affected;
+    },
+    async saveWeek() {
+      const r = await Alpine.store('admin').post('staffSchedule.php', { action: 'saveWeek', employeeId: this.detailStaff.id, days: JSON.stringify(this.scheduleDays), confirmed: 1 });
+      if (!r.success) {
+        if (r.affected) this.weekAffected = r.affected;
+        LMToast.show(r.message || 'Could not save the schedule.', 'error');
+        return;
+      }
+      LMToast.show(r.message, 'success');
+      this.weekAffected = null;
+      Alpine.store('admin').refresh();
+    },
+    async previewLeave() {
+      const f = this.leaveForm;
+      if (!f.startDate) { LMToast.show('Choose the first day of leave.', 'error'); return; }
+      if (!f.endDate) f.endDate = f.startDate;
+      const r = await Alpine.store('admin').post('staffSchedule.php', { action: 'previewLeave', employeeId: this.detailStaff.id, startDate: f.startDate, endDate: f.endDate });
+      if (!r.success) { LMToast.show(r.message || 'Could not check affected bookings.', 'error'); return; }
+      this.leaveAffected = r.affected;
+    },
+    async addLeave() {
+      const f = this.leaveForm;
+      const r = await Alpine.store('admin').post('staffSchedule.php', { action: 'addLeave', employeeId: this.detailStaff.id, startDate: f.startDate, endDate: f.endDate || f.startDate, reason: f.reason, confirmed: 1 });
+      if (!r.success) {
+        if (r.affected) this.leaveAffected = r.affected;
+        LMToast.show(r.message || 'Could not save the leave.', 'error');
+        return;
+      }
+      LMToast.show(r.message, 'success');
+      await this.loadSchedule(this.detailStaff.id);
+      Alpine.store('admin').refresh();
+    },
+    async deleteLeave(leave) {
+      if (!confirm('Remove this leave? Bookings already flagged for follow-up stay flagged.')) return;
+      const r = await Alpine.store('admin').post('staffSchedule.php', { action: 'deleteLeave', leaveId: leave.id });
+      LMToast.show(r.message || (r.success ? 'Removed.' : 'Could not remove the leave.'), r.success ? 'success' : 'error');
+      if (r.success) this.loadSchedule(this.detailStaff.id);
+    },
 
     // Position in the current Performance ranking (same metric as that tab).
     rankLabel(staff) {
@@ -61,17 +132,12 @@ function adminStaffApp() {
     },
 
     getStaffStatusLabel(status) {
-      // Same four statuses as the Cashier panel (StaffShift::liveStatusSql).
-      return status || 'Off Shift';
+      // Same five statuses as every panel (StaffShift::liveStatusSql).
+      return liveStatusLabel(status);
     },
 
     getStaffStatusBadgeClass(status) {
-      switch (status) {
-        case 'On Shift': return 'admin-badge admin-badge--success';
-        case 'Busy': return 'admin-badge admin-badge--info';
-        case 'On Break': return 'admin-badge admin-badge--pending';
-        default: return 'admin-badge admin-badge--neutral';
-      }
+      return liveStatusClass(status);
     },
 
     // "Assigned Tasks" = this staff member's active, not-yet-finished
@@ -94,13 +160,34 @@ function adminStaffApp() {
       const store = Alpine.store('admin');
       let list = store.staffList;
       if (this.staffFilterBranch !== 'all') list = list.filter(s => s.branchId === this.staffFilterBranch);
-      if (this.staffFilterShift === 'on') list = list.filter(s => ['On Shift', 'Busy', 'On Break'].includes(s.status));
-      else if (this.staffFilterShift !== 'all') list = list.filter(s => (s.status || 'Off Shift') === this.staffFilterShift);
+      if (this.staffFilterShift === 'on') list = list.filter(s => LIVE_STATUS_CLOCKED_IN.includes(s.status));
+      else if (this.staffFilterShift !== 'all') list = list.filter(s => (s.status || 'off_shift') === this.staffFilterShift);
       if (this.staffSearchQuery.trim()) {
         const q = this.staffSearchQuery.trim().toLowerCase();
         list = list.filter(s => [s.name, s.role, s.email].some(v => String(v || '').toLowerCase().includes(q)));
       }
       return list;
+    },
+
+    /* Branch picker cards (same names as the guest booking page). */
+    branchCards() {
+      const store = Alpine.store('admin');
+      const LABELS = {
+        daraga: ['Daraga Main', 'Salon & Make-Up'],
+        yashano: ['Yashano Mall', 'Skin & Brows'],
+        cabangan: ['Cabangan', 'Lash & Brows'],
+      };
+      const staff = store.staffList || [];
+      const count = id => staff.filter(x => id === 'all' || x.branchId === id).length;
+      return [
+        { id: 'all', title: 'All branches', sub: 'Every location', count: count('all') },
+        ...(store.branches || []).map(b => ({
+          id: b.id,
+          title: (LABELS[b.id] || [b.name])[0],
+          sub: (LABELS[b.id] || [, b.type || b.location || ''])[1],
+          count: count(b.id),
+        })),
+      ];
     },
 
     getDirectoryStaff() {
@@ -122,13 +209,51 @@ function adminStaffApp() {
     openAddStaffModal() {
       this.editingStaffId = null;
       this.staffForm = adminDefaultStaffForm();
+      this.svcSearch = ''; this.svcGroup = 'all';
       this.openStaffModal = true;
     },
 
     openEditStaff(staff) {
       this.editingStaffId = staff.id;
-      this.staffForm = { name: staff.name, branchId: staff.branchId, role: staff.role, email: '', phone: '', serviceIds: staff.serviceIds || [] };
+      // Older rows only have the full name: split it if the parts are missing.
+      const [first = '', ...rest] = String(staff.name || '').split(' ');
+      const firstName = staff.firstName || first;
+      const lastName = staff.lastName || rest.join(' ');
+      const middleName = staff.middleName || '';
+      this.staffForm = { firstName, middleName, noMiddleName: !middleName, lastName, branchId: staff.branchId, role: staff.role, email: '', phone: '', serviceIds: [...(staff.serviceIds || [])] };
+      this.svcSearch = ''; this.svcGroup = 'all';
       this.openStaffModal = true;
+    },
+
+    /* Services picker (search + category + select all + chips). */
+    svcSearch: '',
+    svcGroup: 'all',
+    staffSvcGroups() {
+      const ORDER = ['Hair Services', 'Nails & Spa', 'Lashes & Brows', 'Facial & Skin Care', 'Waxing & Laser',
+        'Aesthetic Treatments', 'Massage & Body Care', 'Make-Up Services', 'Promos & Packages'];
+      const present = new Set(this.getServicesForStaffBranch().map(s => s.group || 'Other'));
+      return [...ORDER.filter(g => present.has(g)), ...[...present].filter(g => !ORDER.includes(g)).sort()];
+    },
+    staffSvcVisible() {
+      const q = this.svcSearch.trim().toLowerCase();
+      return this.getServicesForStaffBranch().filter(s =>
+        (q ? s.name.toLowerCase().includes(q) : (this.svcGroup === 'all' || (s.group || 'Other') === this.svcGroup)));
+    },
+    staffSvcAllVisibleChecked() {
+      const list = this.staffSvcVisible();
+      return list.length > 0 && list.every(s => this.staffForm.serviceIds.includes(s.id));
+    },
+    toggleAllVisibleServices() {
+      const ids = this.staffSvcVisible().map(s => s.id);
+      if (this.staffSvcAllVisibleChecked()) {
+        this.staffForm.serviceIds = this.staffForm.serviceIds.filter(id => !ids.includes(id));
+      } else {
+        this.staffForm.serviceIds = [...new Set([...this.staffForm.serviceIds, ...ids])];
+      }
+    },
+    selectedStaffServices() {
+      const byId = new Map(this.getServicesForStaffBranch().map(s => [s.id, s]));
+      return this.staffForm.serviceIds.map(id => byId.get(id)).filter(Boolean);
     },
 
     getServicesForStaffBranch() {
@@ -150,7 +275,9 @@ function adminStaffApp() {
       this.savingStaff = true;
       const result = await store.post('saveStaff.php', {
         id: this.editingStaffId || '',
-        name: this.staffForm.name,
+        firstName: this.staffForm.firstName.trim(),
+        middleName: this.staffForm.noMiddleName ? '' : this.staffForm.middleName.trim(),
+        lastName: this.staffForm.lastName.trim(),
         branchId: this.staffForm.branchId,
         role: this.staffForm.role,
         email: this.staffForm.email,
@@ -174,6 +301,8 @@ function adminStaffApp() {
         LMToast.show(result.message || 'Failed to remove staff member.', 'error');
         return;
       }
+      this.openStaffModal = false;
+      LMToast.show(`${staff.name} was removed.`, 'success');
       await store.refresh();
     }
   };

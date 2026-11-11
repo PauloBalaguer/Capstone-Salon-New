@@ -62,9 +62,9 @@ try {
     Scheduling::autoCloseBranchAttendance($pdo, (int) $branch['id']);
 
     // Live status comes from real attendance and breaks, via the shared
-    // rule every panel uses (StaffShift::liveStatusSql): On Shift / On
-    // Break / Busy / Off Shift. Not employees.shift_status, which nothing
-    // keeps current.
+    // rule every panel uses (StaffShift::liveStatusSql): available / busy /
+    // busy_home_service / on_break / off_shift. Not employees.shift_status,
+    // which nothing keeps current.
     $stmt = $pdo->prepare('
         SELECT e.id, e.first_name, e.last_name, e.position, e.profile_picture, e.hire_date,
             ' . StaffShift::liveStatusSql('e') . ' AS live_status
@@ -87,6 +87,8 @@ try {
             'position' => $e['position'] ?: $groupTitle,
             'photo' => $e['profile_picture'] ?: null,
             'status' => $e['live_status'],
+            'statusLabel' => StaffShift::statusLabel($e['live_status']),
+            'statusColor' => StaffShift::statusColor($e['live_status']),
             'hireDate' => $e['hire_date'],
         ];
     }

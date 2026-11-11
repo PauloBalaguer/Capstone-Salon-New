@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <link rel="stylesheet" href="../shared/theme-tokens.css">
+  <link rel="stylesheet" href="../shared/theme-tokens.css?v=20261111-card-tones">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Reservation Payment | Leo Mejillano Salon &amp; Beauty</title>
@@ -33,7 +33,7 @@
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
   <link rel="stylesheet" href="../../frontend/public/public-unify.css?v=20261110d">
-  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
 </head>
 
 <body class="gw-site gw-result bg-sand-100 text-ink font-body min-h-screen flex items-center justify-center p-4">
@@ -41,8 +41,8 @@
     <div id="resultIcon" class="mx-auto mb-3 w-14 h-14 rounded-full flex items-center justify-center bg-sand-200 text-ink/60" aria-hidden="true">
       <svg class="w-7 h-7 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" d="M12 3a9 9 0 1 0 9 9" /></svg>
     </div>
-    <p class="text-[11px] font-bold tracking-widest uppercase text-ink/50">Reservation payment</p>
-    <h1 id="resultTitle" class="font-display text-2xl mt-2">Checking your payment…</h1>
+    <p class="text-center text-[11px] font-bold tracking-widest uppercase text-ink/50">Reservation payment</p>
+    <h1 id="resultTitle" class="text-center font-display text-2xl mt-2">Checking your payment…</h1>
     <p id="resultMessage" class="text-sm text-ink/60 mt-3">This only takes a moment.</p>
     <p id="resultHold" class="hidden text-sm text-ink/60 mt-2" role="timer"></p>
     <p id="resultReason" class="hidden text-sm text-[color:var(--danger)] bg-rose-50 border border-[#9C1E15]/30 rounded-lg p-3 mt-3"></p>
@@ -71,6 +71,7 @@
   <script src="../../function/shared/pending-payment.js"></script>
   <script src="../../function/shared/late-arrival-rule.js"></script>
   <script src="../../function/public/payment-result.js?v=20261110b"></script>
+<script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 
 </html>

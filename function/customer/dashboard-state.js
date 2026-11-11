@@ -35,6 +35,7 @@ function customerDashboardState() {
     lateArrivalRule: null,
 
     customerProfile: {
+      firstName: '', middleName: '', lastName: '',
       name: '',
       email: '',
       phone: '',
@@ -78,7 +79,7 @@ function customerDashboardState() {
     homeServiceRequests: [],
     isHomeServiceModalOpen: false,
     isHomeServiceSuccess: false,
-    homeServiceForm: { address: '', eventType: 'Standard Home Service', otherEventType: '', weddingPackage: '', clients: '', services: [], venueDetails: '', preferredDate: '', preferredTime: '', requests: '', agreedToTerms: false },
+    homeServiceForm: { address: '', eventType: 'Standard Home Service', otherEventType: '', weddingPackage: '', clients: '', services: [], venueDetails: '', branchKey: '', preferredDate: '', preferredTime: '', requests: '', agreedToTerms: false },
 
     bookingSuccessDetails: null,
     bookingSlotLimit: 2,
@@ -87,6 +88,7 @@ function customerDashboardState() {
       '01:00 PM', '01:30 PM', '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM',
       '04:00 PM', '04:30 PM', '05:00 PM', '05:30 PM', '06:00 PM', '06:30 PM', '07:00 PM'
     ],
+    slotsClosedMessage: '',
     // Populated from backend/public/getAvailableSlots.php (the authoritative,
     // duration-aware check) whenever the schedule step's date/services
     // change. Keyed by slot label; a slot missing from this map falls back

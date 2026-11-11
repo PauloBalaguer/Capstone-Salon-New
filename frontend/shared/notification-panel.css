@@ -1,0 +1,40 @@
+/*
+ * Shared notification panel: the Customer portal look, reused by Admin and
+ * Staff (frontend/customer keeps its own copy in customer-portal.css).
+ * Serif title, "Mark all as read" + close in the header, check icon on the
+ * left, title / unread dot / "4 hours ago" on one line, muted details line,
+ * green pill action, light tint + teal bar for unread, footer link.
+ */
+.np-panel { display: flex; flex-direction: column; overflow: hidden; background: #fff; border: 1px solid var(--np-border, #e3e8e5); border-radius: 18px; box-shadow: 0 18px 40px rgba(15, 35, 28, .16); }
+.np-head { display: flex; align-items: center; gap: 8px; padding: 16px 16px 14px 22px; border-bottom: 1px solid var(--np-border, #e3e8e5); flex-shrink: 0; }
+.np-title { margin: 0 auto 0 0 !important; font-family: "DM Serif Display", "Playfair Display", Georgia, serif !important; font-size: 1.25rem !important; font-weight: 400 !important; line-height: 1.3 !important; color: var(--np-ink, #18261F) !important; white-space: nowrap; }
+.np-readall { border: 0; background: none; padding: 6px 10px; border-radius: 8px; font: inherit; font-size: 13px !important; font-weight: 700; color: var(--np-green, #16604B) !important; white-space: nowrap; cursor: pointer; }
+.np-readall:hover:not(:disabled) { background: rgba(22, 96, 75, .08); }
+.np-readall:disabled { opacity: .5; cursor: default; }
+.np-close { flex-shrink: 0; width: 36px; height: 36px; display: grid; place-items: center; border: 0; background: none; border-radius: 10px; color: var(--np-ink, #18261F); cursor: pointer; }
+.np-close:hover { background: rgba(22, 96, 75, .08); }
+.np-close svg { width: 18px; height: 18px; }
+.np-list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.np-empty { margin: 0; padding: 28px 20px; text-align: center !important; font-size: 13px; color: var(--np-muted, #5F6B65); }
+.np-card { display: flex; gap: 10px; padding: 14px 16px 14px 20px; border-bottom: 1px solid var(--np-border, #e3e8e5); cursor: pointer; transition: background-color .15s ease; outline: none; text-align: left; }
+.np-card:last-child { border-bottom: 0; }
+.np-card:hover { background-color: rgba(22, 96, 75, .05); }
+.np-card:active { background-color: rgba(22, 96, 75, .1); }
+.np-card:focus-visible { box-shadow: inset 0 0 0 2px var(--np-green, #16604B); }
+.np-card.np-unread { background: rgba(22, 96, 75, .07); box-shadow: inset 3px 0 var(--np-green, #16604B); }
+.np-card.np-unread:focus-visible { box-shadow: inset 3px 0 var(--np-green, #16604B), inset 0 0 0 2px var(--np-green, #16604B); }
+.np-icon { flex-shrink: 0; margin-top: 2px; color: var(--np-green, #16604B); }
+.np-icon.np-icon--bad { color: var(--np-danger, #9C1E15); }
+.np-icon svg { width: 20px; height: 20px; display: block; }
+.np-copy { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.np-row { display: flex; align-items: center; gap: 8px; }
+.np-card-title { margin: 0 !important; font-size: 14px !important; font-weight: 700 !important; line-height: 1.4; color: var(--np-ink, #18261F) !important; }
+.np-dot { width: 7px; height: 7px; flex-shrink: 0; border-radius: 50%; background: var(--np-green, #16604B); }
+.np-time { margin-left: auto; flex-shrink: 0; white-space: nowrap; font-size: 12px !important; color: var(--np-muted, #5F6B65) !important; }
+.np-summary { margin: 2px 0 0 !important; font-size: 13.5px !important; line-height: 1.5; color: var(--np-ink, #18261F) !important; text-align: left !important; }
+.np-details { margin: 3px 0 0 !important; font-size: 12.5px !important; line-height: 1.45; color: var(--np-muted, #5F6B65) !important; text-align: left !important; }
+.np-action { display: inline-block; margin-top: 10px; padding: 7px 14px; border: 0; border-radius: 999px; background: var(--np-green, #16604B); color: #fff !important; font: inherit; font-size: 13px !important; font-weight: 700; text-decoration: none; cursor: pointer; }
+.np-action:hover { background: var(--np-green-dark, #0E3B2F); }
+.np-footer { display: flex; align-items: center; gap: 6px; padding: 14px 22px; border-top: 1px solid var(--np-border, #e3e8e5); font-size: 13px; font-weight: 700; color: var(--np-green, #16604B) !important; text-decoration: none; flex-shrink: 0; background: #fff; border-left: 0; border-right: 0; border-bottom: 0; cursor: pointer; text-align: left; width: 100%; }
+.np-footer:hover { background: rgba(22, 96, 75, .05); }
+.np-footer svg { width: 15px; height: 15px; }

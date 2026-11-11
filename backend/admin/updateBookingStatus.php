@@ -119,8 +119,10 @@ try {
             $pdo->prepare('UPDATE home_service_requests SET status = ? WHERE id = ?')->execute([$status, $homeServiceId]);
             if ($status === 'Cancelled') {
                 CustomerNotifier::notify($pdo, $homeServiceCustomerId, 'CANCELLED', "Your home service request {$referenceCode} has been cancelled.");
-                if ($homeService['employee_id'] !== null) {
-                    StaffNotifier::notify($pdo, (int) $homeService['employee_id'], 'APPOINTMENT_CANCELLED', "Home service request {$referenceCode} was cancelled.");
+                // Cancelling releases the team's reserved time (staffBusyWindows
+                // skips Cancelled); refunds follow CancellationPolicy elsewhere.
+                foreach (HomeServiceRequest::team($pdo, $homeService) as $memberId) {
+                    StaffNotifier::notifyOnce($pdo, $memberId, 'APPOINTMENT_CANCELLED', "Home service {$referenceCode} was cancelled; that time is free again.");
                 }
             } elseif ($status === 'Completed') {
                 CustomerNotifier::notify($pdo, $homeServiceCustomerId, 'COMPLETED', "Your home service request {$referenceCode} is now Completed. Thank you for choosing us!");
@@ -129,6 +131,14 @@ try {
 
         $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "BOOKING", ?)')
             ->execute(["Home service request {$referenceCode} status updated to {$status}."]);
+        // Reaching Confirmed / Staff Assigned is when a pre-assigned team
+        // hears about the visit (notifyOnce: a repeated save sends nothing new).
+        // Only on the move INTO a confirmed status: Confirmed -> Staff Assigned
+        // (or re-saving) tells the team nothing new.
+        if (in_array($status, ['Confirmed', 'Staff Assigned'], true)
+            && !in_array($homeService['status'], Scheduling::HOME_SERVICE_RESERVING_STATUSES, true)) {
+            HomeServiceRequest::notifyTeamConfirmed($pdo, array_replace($homeService, ['status' => $status]));
+        }
 
         $pdo->commit();
         echo json_encode(['success' => true, 'message' => 'Request status updated.']);

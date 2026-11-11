@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <link rel="stylesheet" href="../shared/theme-tokens.css">
+  <link rel="stylesheet" href="../shared/theme-tokens.css?v=20261111-card-tones">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Leo Mejillano Salon - My Reviews</title>
@@ -149,7 +149,7 @@
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
   <!-- Customer portal shell (sidebar, header, bottom nav); loaded after the shared themes. -->
   <link rel="stylesheet" href="../../frontend/customer/customer-portal.css?v=20261110">
-  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
 </head>
 
 <body data-customer-page="reviews" data-page-title="My Feedback"
@@ -184,7 +184,7 @@
                 </div>
                 <h3 id="reviews-empty-title" class="font-bold text-white">No reviews yet</h3>
                 <p class="text-xs text-slate-500" x-text="reviewableAppointments().length ? 'Share your experience from your recent appointment below.' : 'You can leave a review after completing an appointment.'"></p>
-                <a x-show="!reviewableAppointments().length" href="appointments.html" class="reviews-primary-action">View My Appointments</a>
+                <a x-show="!reviewableAppointments().length" href="appointments.html" class="reviews-primary-action">Track Booking</a>
               </section>
             </template>
             <section x-show="reviewableAppointments().length > 0" class="col-span-full space-y-3" aria-labelledby="reviewable-heading">
@@ -261,7 +261,7 @@
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <h3 class="text-base font-serif font-bold text-white"
           x-text="isEditingReview ? 'Edit Your Review' : 'Leave a Review'"></h3>
-        <button @click="closeReviewModal()" class="text-slate-400 hover:text-white">
+        <button @click="closeReviewModal()" class="ui-close-icon text-slate-400 hover:text-white">
           &times;
         </button>
       </div>
@@ -313,6 +313,7 @@
   <!-- App logic, split by concern. Only what this page's markup uses:
        the reviews list and edit-review modal. Appointments, booking,
        home service, and profile mixins live on their own pages. -->
+  <script src="../../function/shared/sign-out.js?v=20261111"></script>
   <script src="../../function/customer/customer-shell.js?v=20261110"></script>
   <script src="../../function/customer/dashboard-helpers.js"></script>
   <script src="../../function/customer/dashboard-state.js"></script>
@@ -320,6 +321,7 @@
   <script src="../../function/customer/dashboard-reviews.js"></script>
   <script src="../../function/shared/live-sync.js?v=20261110"></script>
   <script src="../../function/customer/dashboard.js"></script>
+<script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 
 </html>

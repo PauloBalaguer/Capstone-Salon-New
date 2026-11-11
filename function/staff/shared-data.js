@@ -24,6 +24,9 @@ document.addEventListener('alpine:init', () => {
     notifications: [],
     lateGraceMinutes: null,
     availability: { busyUntil: null, busyMinutesLeft: 0 },
+    // Five-status live status from the server (StaffShift): {status, statusLabel, statusColor}.
+    liveStatus: null,
+    homeVisits: [],
     // Server time minus this device's time, so "now" follows the server.
     clockOffsetMs: 0,
     now: new Date(),
@@ -54,6 +57,8 @@ document.addEventListener('alpine:init', () => {
         this.schedule = data.schedule;
         this.lateGraceMinutes = data.lateGraceMinutes;
         this.availability = data.availability;
+        this.liveStatus = data.liveStatus || null;
+        this.homeVisits = data.homeVisits || [];
         this.appointments = data.appointments;
         this.attendance = data.attendance;
         this.inventory = data.inventory;
@@ -153,8 +158,21 @@ document.addEventListener('alpine:init', () => {
       return Math.max(0, Math.floor((this.now - new Date(this.shift.breakStart)) / 1000));
     },
 
+    // The server's live status when it agrees with the local shift state
+    // (it can lag a Shift In / Break click until the next refresh); otherwise
+    // the matching label from the same five-status set.
+    currentLiveStatus() {
+      const fallback = { on: 'available', break: 'on_break', off: 'off_shift' }[this.shift.status] || 'off_shift';
+      const live = this.liveStatus && this.liveStatus.status;
+      const agrees = live && (live === 'busy_home_service'
+        || (fallback === 'off_shift' ? live === 'off_shift' : fallback === 'on_break' ? live === 'on_break' : ['available', 'busy'].includes(live)));
+      return agrees ? live : fallback;
+    },
     shiftStatusLabel() {
-      return { on: 'On Shift', break: 'On Break', off: 'Off Shift' }[this.shift.status] || 'Off Shift';
+      return { available: 'Available now', busy: 'Busy', busy_home_service: 'Busy · Home service', on_break: 'On break', off_shift: 'Off shift' }[this.currentLiveStatus()];
+    },
+    shiftStatusColor() {
+      return { available: 'green', busy: 'blue', busy_home_service: 'blue', on_break: 'amber', off_shift: 'gray' }[this.currentLiveStatus()];
     },
 
     /* ---------- Formatting (always in Asia/Manila) ---------- */
@@ -430,6 +448,35 @@ document.addEventListener('alpine:init', () => {
         if (!result.success) throw new Error('Could not update notifications');
         this.notifications = this.notifications.map(n => ({ ...n, isRead: true }));
       } catch { this.toast('Could not mark notifications as read. Please try again.', 'error'); }
+    },
+
+    // Marks one notification read in the database; the bell updates at once.
+    async markNotificationRead(n) {
+      if (!n || n.isRead) return;
+      n.isRead = true;
+      try {
+        const result = await this.post('backend/staff/markNotificationsRead.php', { id: n.id });
+        if (!result.success) throw new Error('Could not update notification');
+      } catch {
+        n.isRead = false;
+        this.toast('Could not update this notification. Please try again.', 'error');
+      }
+    },
+
+    notificationReference(n) {
+      return (n?.message || '').match(/\bLM-(?:[A-Z]+-)+\d{4}-\d+\b/)?.[0] || '';
+    },
+
+    // Short, friendly headline for a staff notification.
+    notificationTitle(n) {
+      const titles = {
+        APPOINTMENT_ASSIGNED: 'New appointment for you', APPOINTMENT_CANCELLED: 'Appointment cancelled',
+        SCHEDULE_CHANGED: 'Schedule change', HOME_SERVICE_ASSIGNED: 'New home service for you',
+        HOME_SERVICE_UNASSIGNED: 'Removed from home service', APPOINTMENT_RESCHEDULED: 'Appointment moved'
+      };
+      if (titles[n.type]) return titles[n.type];
+      const words = String(n.type || 'Update').toLowerCase().replace(/_/g, ' ');
+      return words.charAt(0).toUpperCase() + words.slice(1);
     },
 
     startClock() {

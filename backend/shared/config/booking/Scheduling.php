@@ -78,7 +78,8 @@ class Scheduling
             $qualified->execute([$mainStaffId, $appointment['branch_id'], $rows[0]['service_id'], $rows[0]['service_id']]);
             if (!$qualified->fetchColumn()) throw new RuntimeException('Selected staff member cannot perform the assigned service at this branch.');
             $duration = array_sum(array_map(fn($row) => (int) $row['duration_minutes'] > 0 ? (int) $row['duration_minutes'] : self::DEFAULT_DURATION_MINUTES, $rows));
-            if (self::staffHasConflict($pdo, $mainStaffId, $start, $duration, (int) $appointment['id'])) {
+            if (self::staffScheduleBlock($pdo, $mainStaffId, $start, $duration) !== null
+                || self::staffHasConflict($pdo, $mainStaffId, $start, $duration, (int) $appointment['id'])) {
                 throw new RuntimeException(self::STAFF_UNAVAILABLE_MESSAGE);
             }
         }
@@ -89,7 +90,10 @@ class Scheduling
             $qualified->execute([$employeeId, $appointment['branch_id'], $row['service_id'], $row['service_id']]);
             if (!$qualified->fetchColumn()) throw new RuntimeException('Selected staff member cannot perform the assigned service at this branch.');
             $minutes = (int) $row['duration_minutes'] > 0 ? (int) $row['duration_minutes'] : self::DEFAULT_DURATION_MINUTES;
-            if (self::staffHasConflict($pdo, $employeeId, $cursor->format('Y-m-d H:i:s'), $minutes, (int) $appointment['id'])) {
+            // Schedule, leave and holidays for the requested time (not live
+            // shift status), then conflicts incl. confirmed home visits.
+            if (self::staffScheduleBlock($pdo, $employeeId, $cursor->format('Y-m-d H:i:s'), $minutes) !== null
+                || self::staffHasConflict($pdo, $employeeId, $cursor->format('Y-m-d H:i:s'), $minutes, (int) $appointment['id'])) {
                 throw new RuntimeException(self::STAFF_UNAVAILABLE_MESSAGE);
             }
             $cursor->modify("+{$minutes} minutes");
@@ -147,10 +151,10 @@ class Scheduling
         $duration = self::totalDurationMinutes($pdo, $stmt->fetchAll(PDO::FETCH_COLUMN));
         $reason = null;
         if ($appointment['status'] !== 'Confirmed') $reason = 'Confirm the booking before reviewing its arrival.';
-        elseif (substr($now, 0, 10) !== substr($appointment['appointment_datetime'], 0, 10)) $reason = 'This appointment is on a different day. Please reschedule it before starting service.';
-        elseif ($now < $appointment['appointment_datetime']) $reason = 'The scheduled start time has not arrived. Review availability again at the appointment time.';
-        elseif (self::isOutsideOperatingHours($start, $duration, $branchKey)) $reason = 'The full service would run outside branch operating hours. Please reschedule.';
-        elseif (self::branchWindowIsFull($pdo, (int) $appointment['branch_id'], $start, $duration, (int) $appointment['id'])) $reason = 'The branch is full for the actual service window. Please choose another schedule.';
+        elseif (substr($now, 0, 10) !== substr($appointment['appointment_datetime'], 0, 10)) $reason = 'This booking is for another day.';
+        elseif ($now < $appointment['appointment_datetime']) $reason = 'Too early. Check in at the reserved time.';
+        elseif (self::isOutsideOperatingHours($start, $duration, $branchKey)) $reason = 'It would end after closing time.';
+        elseif (self::branchWindowIsFull($pdo, (int) $appointment['branch_id'], $start, $duration, (int) $appointment['id'])) $reason = 'The branch is fully booked for this time.';
         $stmt = $pdo->prepare('SELECT id, first_name, last_name FROM employees WHERE branch_id = ? AND is_active = 1 ORDER BY (id = ?) DESC, id');
         $stmt->execute([$appointment['branch_id'], (int) $appointment['employee_id']]);
         $staff = [];
@@ -173,16 +177,83 @@ class Scheduling
             'paymentStatus' => $appointment['payment_status'], 'staff' => $staff, 'reason' => $reason];
     }
 
-    /** Tells each stylist on a booking (main and per-service) that it is confirmed. */
-    public static function notifyStaffOfConfirmation(PDO $pdo, array $appointment): void
+    /**
+     * Tells each stylist on a booking (main and per-service) that it is
+     * confirmed, whether or not they are on duty now: type, branch, their
+     * own service(s), date and time. In-portal only. notifyOnce() makes a
+     * retried confirmation harmless, and a failed notification never undoes
+     * the booking (StaffNotifier swallows its own errors).
+     */
+    public static function notifyStaffOfConfirmation(PDO $pdo, array $appointment, ?array $onlyIds = null): void
+    {
+        $stmt = $pdo->prepare('SELECT aps.employee_id, s.service_name FROM appointment_services aps JOIN services s ON s.id = aps.service_id
+            WHERE aps.appointment_id = ? ORDER BY aps.id');
+        $stmt->execute([$appointment['id']]);
+        $servicesBy = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $who = $row['employee_id'] !== null ? (int) $row['employee_id'] : (int) $appointment['employee_id'];
+            if ($who) $servicesBy[$who][] = $row['service_name'];
+        }
+        if ($appointment['employee_id'] && !isset($servicesBy[(int) $appointment['employee_id']])) $servicesBy[(int) $appointment['employee_id']] = [];
+        $stmt = $pdo->prepare('SELECT branch_name FROM branches WHERE id = ?');
+        $stmt->execute([$appointment['branch_id'] ?? 0]);
+        $branch = $stmt->fetchColumn() ?: 'the salon';
+        $when = date('D, M j, Y \a\t g:i A', strtotime($appointment['appointment_datetime']));
+        foreach ($servicesBy as $id => $services) {
+            if ($onlyIds !== null && !in_array($id, $onlyIds, true)) continue;
+            $what = $services ? implode(', ', array_unique($services)) : 'salon service';
+            StaffNotifier::notifyOnce($pdo, $id, 'APPOINTMENT_ASSIGNED',
+                "Salon appointment {$appointment['reference_code']} is confirmed and assigned to you: {$what} at {$branch}, {$when}.");
+        }
+    }
+
+    /**
+     * After the main stylist of a salon booking changes (Admin or Cashier
+     * reassignment): one message to the newly assigned stylist and one to
+     * the stylist taken off it. Other stylists on the booking are not
+     * affected and hear nothing. No change = no messages.
+     * $appointment must already hold the new employee_id.
+     */
+    public static function notifyStaffOfReassignment(PDO $pdo, array $appointment, ?int $oldStaffId, int $newStaffId): void
+    {
+        if ($oldStaffId === $newStaffId) return;
+        if ($appointment['status'] === 'Confirmed') {
+            self::notifyStaffOfConfirmation($pdo, $appointment, [$newStaffId]);
+        } else {
+            StaffNotifier::notifyOnce($pdo, $newStaffId, 'APPOINTMENT_ASSIGNED', "You've been assigned to appointment {$appointment['reference_code']} on "
+                . date('D, M j, Y \a\t g:i A', strtotime($appointment['appointment_datetime'])) . '.');
+        }
+        if ($oldStaffId) {
+            StaffNotifier::notifyOnce($pdo, $oldStaffId, 'SCHEDULE_CHANGED', "You're no longer assigned to appointment {$appointment['reference_code']} on "
+                . date('D, M j, Y \a\t g:i A', strtotime($appointment['appointment_datetime'])) . '; that time is free again.');
+        }
+    }
+
+    /**
+     * After a salon booking moves (Reschedule::apply): every stylist working
+     * on it at the new time gets one message with the old and new time, and
+     * a main stylist replaced by the move is told they're off it. The old and
+     * new times are in the text, so a later move is never mistaken for a repeat.
+     */
+    public static function notifyStaffOfReschedule(PDO $pdo, array $appointment, string $oldDateTime, ?int $oldMainId): void
     {
         $stmt = $pdo->prepare('SELECT employee_id FROM appointment_services WHERE appointment_id = ? AND employee_id IS NOT NULL');
         $stmt->execute([$appointment['id']]);
         $ids = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
         if ($appointment['employee_id']) $ids[] = (int) $appointment['employee_id'];
-        $when = date('M j, Y g:i A', strtotime($appointment['appointment_datetime']));
-        foreach (array_unique($ids) as $id) {
-            StaffNotifier::notify($pdo, $id, 'APPOINTMENT_ASSIGNED', "Booking {$appointment['reference_code']} is confirmed and assigned to you for {$when}.");
+        $ids = array_values(array_unique($ids));
+        $stmt = $pdo->prepare('SELECT branch_name FROM branches WHERE id = ?');
+        $stmt->execute([$appointment['branch_id'] ?? 0]);
+        $branch = $stmt->fetchColumn() ?: 'the salon';
+        $old = date('D, M j g:i A', strtotime($oldDateTime));
+        $new = date('D, M j, Y \a\t g:i A', strtotime($appointment['appointment_datetime']));
+        foreach ($ids as $id) {
+            StaffNotifier::notifyOnce($pdo, $id, 'SCHEDULE_CHANGED',
+                "Salon appointment {$appointment['reference_code']} at {$branch} ({$appointment['status']}) moved from {$old} to {$new}.");
+        }
+        if ($oldMainId && !in_array($oldMainId, $ids, true)) {
+            StaffNotifier::notifyOnce($pdo, $oldMainId, 'SCHEDULE_CHANGED',
+                "You're no longer assigned to appointment {$appointment['reference_code']} ({$old}); it was rescheduled with another stylist.");
         }
     }
 
@@ -240,7 +311,8 @@ class Scheduling
     {
         if (self::$branchConfigCache === null) {
             $pdo = Database::getInstance();
-            $stmt = $pdo->query('SELECT branch_key, opening_time, closing_time, sunday_opening_time, sunday_closing_time, slot_limit FROM branches');
+            // SELECT * so a column added by a later migration (offers_home_service) is optional.
+            $stmt = $pdo->query('SELECT * FROM branches');
             self::$branchConfigCache = [];
             foreach ($stmt->fetchAll() as $row) {
                 self::$branchConfigCache[$row['branch_key']] = $row;
@@ -249,13 +321,79 @@ class Scheduling
         return self::$branchConfigCache[$branchKey] ?? null;
     }
 
+    /** branch_key for a branch id, or null. */
+    public static function branchKeyForId(PDO $pdo, ?int $branchId): ?string
+    {
+        if (!$branchId) return null;
+        $stmt = $pdo->prepare('SELECT branch_key FROM branches WHERE id = ? LIMIT 1');
+        $stmt->execute([$branchId]);
+        $key = $stmt->fetchColumn();
+        return $key === false ? null : (string) $key;
+    }
+
+    /** Whether this branch accepts home service requests (migration 062; true before it runs). */
+    public static function branchOffersHomeService(string $branchKey): bool
+    {
+        $row = self::branchConfig($branchKey);
+        return $row !== null && (!array_key_exists('offers_home_service', $row) || (int) $row['offers_home_service'] === 1);
+    }
+
+    private static array $holidayCache = [];
+
+    /**
+     * The branch_holidays row for this branch and date (migration 062), or
+     * null. Holiday types: 'closed' (Closed all day), 'special_hours'
+     * (open_time..close_time), 'open' (Open as usual).
+     */
+    public static function branchHoliday(string $branchKey, string $dateYmd): ?array
+    {
+        $cacheKey = $branchKey . '|' . $dateYmd;
+        if (!array_key_exists($cacheKey, self::$holidayCache)) {
+            $row = null;
+            $config = self::branchConfig($branchKey);
+            if ($config) {
+                try {
+                    $stmt = Database::getInstance()->prepare('SELECT holiday_type, open_time, close_time, name FROM branch_holidays WHERE branch_id = ? AND holiday_date = ? LIMIT 1');
+                    $stmt->execute([$config['id'], $dateYmd]);
+                    $row = $stmt->fetch() ?: null;
+                } catch (PDOException $e) {
+                    $row = null; // Migration 062 not applied yet: no holidays.
+                }
+            }
+            self::$holidayCache[$cacheKey] = $row;
+        }
+        return self::$holidayCache[$cacheKey];
+    }
+
+    /** Closed all day for a branch holiday. */
+    public static function isBranchClosed(string $branchKey, string $dateYmd): bool
+    {
+        $holiday = self::branchHoliday($branchKey, $dateYmd);
+        return $holiday !== null && ($holiday['holiday_type'] === 'closed'
+            || ($holiday['holiday_type'] === 'special_hours' && (!$holiday['open_time'] || !$holiday['close_time'])));
+    }
+
     /**
      * Optionally pass the booking's date ($dateYmd, 'Y-m-d') to apply that
      * branch's distinct Sunday hours, if configured (sunday_opening_time/
      * sunday_closing_time both set) -- otherwise the regular daily hours
      * apply every day including Sunday, same as before this was configurable.
+     *
+     * With a date, a branch holiday (migration 062) wins: special hours
+     * replace the day's hours, and a closed day returns 00:00-00:00 so no
+     * slot fits (callers that need to say "closed" use isBranchClosed()).
      */
     public static function operatingHours(string $branchKey, ?string $dateYmd = null): array
+    {
+        if ($dateYmd !== null && ($holiday = self::branchHoliday($branchKey, $dateYmd))) {
+            if (self::isBranchClosed($branchKey, $dateYmd)) return ['00:00:00', '00:00:00'];
+            if ($holiday['holiday_type'] === 'special_hours') return [$holiday['open_time'], $holiday['close_time']];
+        }
+        return self::regularHours($branchKey, $dateYmd);
+    }
+
+    /** The branch's normal weekly hours for that weekday, ignoring holidays. */
+    public static function regularHours(string $branchKey, ?string $dateYmd = null): array
     {
         $row = self::branchConfig($branchKey);
         if (!$row) {
@@ -451,15 +589,19 @@ class Scheduling
         $key = $isWedding ? 'Package ' . ($request['wedding_package'] ?? '') : (string) ($request['event_type'] ?? '');
         $cacheKey = ($isWedding ? 'package:' : 'event:') . $key;
         if (!isset(self::$eventDurationCache[$cacheKey])) {
+            // SELECT * so return_travel_minutes (migration 062) is optional.
             $stmt = $pdo->prepare($isWedding
-                ? 'SELECT travel_minutes, setup_minutes, service_minutes FROM wedding_packages WHERE package_name = ?'
-                : "SELECT travel_minutes, setup_minutes, service_minutes FROM event_type_durations WHERE event_type IN (?, 'Other') ORDER BY event_type = 'Other' LIMIT 1");
+                ? 'SELECT * FROM wedding_packages WHERE package_name = ?'
+                : "SELECT * FROM event_type_durations WHERE event_type IN (?, 'Other') ORDER BY event_type = 'Other' LIMIT 1");
             $stmt->execute([$key]);
             $row = $stmt->fetch() ?: [];
+            $travel = (int) ($row['travel_minutes'] ?? 0);
             self::$eventDurationCache[$cacheKey] = [
-                'travel' => (int) ($row['travel_minutes'] ?? 0),
+                'travel' => $travel,
                 'setup' => (int) ($row['setup_minutes'] ?? 0),
                 'service' => (int) ($row['service_minutes'] ?? 0) ?: self::HOME_SERVICE_DURATION_MINUTES,
+                // Blank return travel = same as the outbound travel.
+                'return' => isset($row['return_travel_minutes']) && $row['return_travel_minutes'] !== null ? (int) $row['return_travel_minutes'] : $travel,
             ];
         }
         return self::$eventDurationCache[$cacheKey];
@@ -468,21 +610,31 @@ class Scheduling
     /**
      * The staff time one event blocks. The preferred time is when the
      * service starts at the venue, so the team leaves (travel) and sets up
-     * before it; the cleaning buffer follows the service. 'end' includes the
-     * buffer, 'minutes' does not (staffHasConflict() adds it itself).
+     * before it, and travels back (return) after it; the cleaning buffer
+     * follows the return. 'minutes' is the occupied time WITHOUT the buffer
+     * (staffConflictUntil() adds the buffer once itself); 'end' includes it,
+     * for comparing against other windows that also include theirs.
+     * 'occupiedEnd' is when the team is back at the salon.
+     *
+     * Example: 30 travel, 0 setup, 60 service, 30 return, 2:00 PM start ->
+     * start 1:30 PM, occupiedEnd 3:30 PM, end 3:30 PM + buffer.
      */
     public static function homeServiceWindow(PDO $pdo, array $request): array
     {
         $durations = self::homeServiceDurations($pdo, $request);
         $lead = $durations['travel'] + $durations['setup'];
         $start = (new DateTime($request['preferred_date'] . ' ' . ($request['preferred_time'] ?: '09:00:00')))->modify("-{$lead} minutes");
-        $minutes = $lead + $durations['service'];
+        $minutes = $lead + $durations['service'] + $durations['return'];
         return $durations + [
             'start' => $start,
+            'occupiedEnd' => (clone $start)->modify("+{$minutes} minutes"),
             'end' => (clone $start)->modify('+' . ($minutes + self::cleaningBufferMinutes()) . ' minutes'),
             'minutes' => $minutes,
         ];
     }
+
+    /** Home service statuses that reserve the assigned team's time. */
+    const HOME_SERVICE_RESERVING_STATUSES = ['Confirmed', 'Staff Assigned', 'Service in Progress'];
 
     /**
      * True if this staff member is already busy -- either with a salon
@@ -526,30 +678,131 @@ class Scheduling
      */
     public static function staffIsScheduled(PDO $pdo, int $employeeId, string $start, int $minutes): bool
     {
+        return self::staffScheduleBlock($pdo, $employeeId, $start, $minutes) === null;
+    }
+
+    /** Reasons staffScheduleBlock()/staffAvailability() return, with the text shown to people. */
+    const BLOCK_MESSAGES = [
+        'leave' => 'On leave',
+        'day_off' => 'Day off',
+        'branch_closed' => 'Branch closed (holiday)',
+        'outside_hours' => 'Unavailable at this time',
+        'not_on_duty' => 'Not on duty right now',
+        'past' => 'This time has passed',
+    ];
+
+    /** The staff_leave row covering $dateYmd for this employee (migration 062), or null. */
+    public static function staffLeaveOn(PDO $pdo, int $employeeId, string $dateYmd): ?array
+    {
+        try {
+            $stmt = $pdo->prepare('SELECT id, start_date, end_date, reason FROM staff_leave WHERE employee_id = ? AND ? BETWEEN start_date AND end_date LIMIT 1');
+            $stmt->execute([$employeeId, $dateYmd]);
+            return $stmt->fetch() ?: null;
+        } catch (PDOException $e) {
+            return null; // Migration 062 not applied yet.
+        }
+    }
+
+    /**
+     * Why the employee is NOT scheduled for the whole window
+     * [$start, $start + $minutes), or null when they are. Only the requested
+     * time matters, never whether they are clocked in now:
+     *   leave          -- a staff_leave row covers the date
+     *   day_off        -- their staff_schedules row marks it a rest day
+     *   branch_closed  -- their branch is closed all day for a holiday
+     *   outside_hours  -- the window does not fit their own hours
+     *                     (staff_schedules), or -- with no row for that
+     *                     weekday, or on a holiday -- their branch's
+     *                     effective hours for that date.
+     * An explicit day off or leave blocks even when the branch is open.
+     */
+    public static function staffScheduleBlock(PDO $pdo, int $employeeId, string $start, int $minutes): ?string
+    {
         $begin = new DateTime($start);
         $finish = (clone $begin)->modify("+{$minutes} minutes");
+        $date = $begin->format('Y-m-d');
+        if (self::staffLeaveOn($pdo, $employeeId, $date)) return 'leave';
         $stmt = $pdo->prepare('SELECT start_time, end_time, is_rest_day FROM staff_schedules WHERE employee_id = ? AND day_of_week = ?');
         $stmt->execute([$employeeId, (int) $begin->format('N')]);
         $row = $stmt->fetch();
-        if (!$row) return true;
-        if ($row['is_rest_day'] || !$row['start_time'] || !$row['end_time']) return false;
-        return $begin->format('H:i:s') >= $row['start_time']
-            && $finish->format('Y-m-d') === $begin->format('Y-m-d')
-            && $finish->format('H:i:s') <= $row['end_time'];
+        if ($row && ($row['is_rest_day'] || !$row['start_time'] || !$row['end_time'])) return 'day_off';
+        if ($finish->format('Y-m-d') !== $date && $finish->format('H:i:s') !== '00:00:00') return 'outside_hours';
+        $endTime = $finish->format('Y-m-d') !== $date ? '24:00:00' : $finish->format('H:i:s');
+        if ($row && ($begin->format('H:i:s') < $row['start_time'] || $endTime > $row['end_time'])) return 'outside_hours';
+
+        $stmt = $pdo->prepare('SELECT b.branch_key FROM employees e JOIN branches b ON b.id = e.branch_id WHERE e.id = ?');
+        $stmt->execute([$employeeId]);
+        $branchKey = $stmt->fetchColumn();
+        if ($branchKey) {
+            if (self::isBranchClosed($branchKey, $date)) return 'branch_closed';
+            // Branch hours apply as the fallback (no staff row) and on a holiday.
+            if (!$row || self::branchHoliday($branchKey, $date)) {
+                [$open, $close] = self::operatingHours($branchKey, $date);
+                if ($begin->format('H:i:s') < $open || $endTime > $close) return 'outside_hours';
+            }
+        }
+        return null;
     }
 
     /**
      * Can this stylist take a booking in [$start, $start + $minutes)?
-     * They must be scheduled to work then (staffIsScheduled) AND be on duty
-     * right now -- clocked in and not on a break -- for any date or time, so
-     * customer and guest booking match the Admin, Cashier and Staff panels.
-     * Overlapping clients are checked separately (staffHasConflict).
+     *
+     * Advance bookings (anything not starting right now -- tomorrow, or later
+     * today) only need the stylist to be scheduled at the requested time
+     * (staffScheduleBlock: schedule, leave, holidays). Someone off shift now
+     * can be booked for a future shift.
+     *
+     * $immediate (a walk-in or a service starting now) additionally needs the
+     * stylist on duty right now: clocked in, not on a break, not away on a
+     * home visit. Overlapping clients are checked separately (staffHasConflict).
      */
-    public static function staffCanTakeBooking(PDO $pdo, int $employeeId, string $start, int $minutes): bool
+    public static function staffCanTakeBooking(PDO $pdo, int $employeeId, string $start, int $minutes, bool $immediate = false): bool
     {
-        if (!self::staffIsScheduled($pdo, $employeeId, $start, $minutes)) return false;
+        return self::staffBookingBlock($pdo, $employeeId, $start, $minutes, $immediate) === null;
+    }
+
+    /** staffCanTakeBooking() with the reason code (BLOCK_MESSAGES key) when it can't. */
+    public static function staffBookingBlock(PDO $pdo, int $employeeId, string $start, int $minutes, bool $immediate = false): ?string
+    {
+        if ($block = self::staffScheduleBlock($pdo, $employeeId, $start, $minutes)) return $block;
+        if (!$immediate) return null;
         require_once __DIR__ . '/../helpers/StaffShift.php';
-        return in_array(StaffShift::liveStatus($pdo, $employeeId), [StaffShift::STATUS_ON, StaffShift::STATUS_BUSY], true);
+        return in_array(StaffShift::liveStatus($pdo, $employeeId), [StaffShift::STATUS_AVAILABLE, StaffShift::STATUS_BUSY], true)
+            ? null : 'not_on_duty';
+    }
+
+    /**
+     * Full advance-booking check for one stylist and window, with a message
+     * for the booking forms: schedule/leave/holiday, then conflicts with
+     * salon bookings and confirmed home visits (cleaning buffer included).
+     *
+     * @return array{available: bool, code: ?string, message: string, busyUntil: ?string}
+     */
+    public static function staffAvailability(PDO $pdo, int $employeeId, string $start, int $minutes, ?int $excludeAppointmentId = null, bool $immediate = false): array
+    {
+        $code = self::staffBookingBlock($pdo, $employeeId, $start, $minutes, $immediate);
+        $until = null;
+        if ($code === null) {
+            $conflict = self::staffConflictUntil($pdo, $employeeId, $start, $minutes, $excludeAppointmentId);
+            if ($conflict !== null) { $code = 'busy'; $until = $conflict->format('g:i A'); }
+        }
+        if ($code === null) {
+            return ['available' => true, 'code' => null, 'message' => 'Available ' . self::friendlyWhen($start), 'busyUntil' => null];
+        }
+        return ['available' => false, 'code' => $code,
+            'message' => $code === 'busy' ? "Booked until {$until}" : self::BLOCK_MESSAGES[$code],
+            'busyUntil' => $until];
+    }
+
+    /** "today at 3:00 PM", "tomorrow at 10:00 AM", "on Mon, Nov 16 at 10:00 AM" (Asia/Manila). */
+    public static function friendlyWhen(string $dateTime): string
+    {
+        $zone = new DateTimeZone('Asia/Manila');
+        $when = new DateTimeImmutable($dateTime, $zone);
+        $today = (new DateTimeImmutable('now', $zone))->format('Y-m-d');
+        $day = $when->format('Y-m-d');
+        $label = $day === $today ? 'today' : ($day === (new DateTimeImmutable('tomorrow', $zone))->format('Y-m-d') ? 'tomorrow' : 'on ' . $when->format('D, M j'));
+        return $label . ' at ' . $when->format('g:i A');
     }
 
     public static function staffConflictUntil(
@@ -636,8 +889,11 @@ class Scheduling
         $buffer = self::cleaningBufferMinutes();
         foreach ($windows as &$window) $window['end']->modify("+{$buffer} minutes");
         unset($window);
+        // Only Confirmed / Staff Assigned / Service in Progress visits reserve
+        // the team. A pending or pre-assigned request (before Confirmed) never
+        // blocks the stylist; cancellation releases the time.
         $stmt = $pdo->prepare("SELECT h.id, h.preferred_date, h.preferred_time, h.event_type, h.wedding_package FROM home_service_requests h
-            WHERE h.status NOT IN ('Cancelled', 'Completed')
+            WHERE h.status IN ('Confirmed', 'Staff Assigned', 'Service in Progress')
               AND (h.employee_id = ? OR EXISTS (SELECT 1 FROM home_service_staff t WHERE t.home_service_request_id = h.id AND t.employee_id = ?))
               AND h.preferred_date BETWEEN DATE_SUB(?, INTERVAL 1 DAY) AND DATE_ADD(?, INTERVAL 1 DAY)
               AND h.id != ? FOR UPDATE");
@@ -782,7 +1038,7 @@ class Scheduling
 
                 $hasActiveHomeService = false;
                 if ((int) $row['is_today']) {
-                    $stmt = $pdo->prepare("SELECT COUNT(*) FROM home_service_requests WHERE employee_id = ? AND status = 'Confirmed'");
+                    $stmt = $pdo->prepare("SELECT COUNT(*) FROM home_service_requests WHERE employee_id = ? AND status IN ('Confirmed', 'Staff Assigned', 'Service in Progress') AND preferred_date = CURDATE()");
                     $stmt->execute([$employeeId]);
                     $hasActiveHomeService = (int) $stmt->fetchColumn() > 0;
                 }

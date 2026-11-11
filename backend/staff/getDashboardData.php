@@ -19,6 +19,7 @@ require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/booking/Scheduling.php';
 require_once '../../backend/shared/config/booking/ArrivalRequest.php';
 require_once '../../backend/shared/config/helpers/StaffShift.php';
+require_once '../../backend/shared/config/booking/HomeServiceRequest.php';
 require_once '../../backend/shared/config/security/Csrf.php';
 
 sendCorsHeaders();
@@ -41,8 +42,9 @@ try {
     $profile = [
         'employeeId' => $employeeId,
         'employeeCode' => StaffShift::employeeCode($employeeId),
-        'name' => trim($employee['first_name'] . ' ' . $employee['last_name']),
+        'name' => implode(' ', array_filter([$employee['first_name'], $employee['middle_name'] ?? '', $employee['last_name']], fn($part) => $part !== '')),
         'firstName' => $employee['first_name'],
+        'middleName' => $employee['middle_name'] ?? '',
         'lastName' => $employee['last_name'],
         'phone' => $employee['phone_number'],
         'profilePicture' => $employee['profile_picture'],
@@ -145,6 +147,49 @@ try {
         return $row;
     }, $stmt->fetchAll());
 
+    // Home visits this staff member is on (lead or team), once Confirmed or
+    // later -- a pending or pre-assigned request is not shown as theirs yet.
+    // Times include the reserved travel (leave by / back by).
+    $stmt = $pdo->prepare("
+        SELECT h.*, br.branch_name, CONCAT(c.first_name, ' ', c.last_name) AS client_name, c.phone_number AS client_phone
+        FROM home_service_requests h
+        JOIN customers c ON c.id = h.customer_id
+        LEFT JOIN branches br ON br.id = h.branch_id
+        WHERE h.status IN ('Confirmed', 'Staff Assigned', 'Service in Progress', 'Completed')
+          AND (h.employee_id = ? OR EXISTS (SELECT 1 FROM home_service_staff t WHERE t.home_service_request_id = h.id AND t.employee_id = ?))
+          AND h.preferred_date >= CURDATE() - INTERVAL 30 DAY
+        ORDER BY h.preferred_date, h.preferred_time
+    ");
+    $stmt->execute([$employeeId, $employeeId]);
+    $homeVisits = [];
+    foreach ($stmt->fetchAll() as $h) {
+        $window = Scheduling::homeServiceWindow($pdo, $h);
+        $team = HomeServiceRequest::team($pdo, $h);
+        $names = [];
+        if ($team) {
+            $teamStmt = $pdo->prepare("SELECT CONCAT(first_name, ' ', last_name) FROM employees WHERE id IN (" . implode(',', array_fill(0, count($team), '?')) . ')');
+            $teamStmt->execute($team);
+            $names = $teamStmt->fetchAll(PDO::FETCH_COLUMN);
+        }
+        $homeVisits[] = [
+            'id' => $h['reference_code'],
+            'status' => $h['status'],
+            'eventType' => $h['event_type'],
+            'service' => HomeServiceRequest::serviceSummary($h),
+            'branchName' => $h['branch_name'] ?: 'Branch not set',
+            'date' => $h['preferred_date'],
+            'time' => date('h:i A', strtotime($h['preferred_time'] ?: '09:00:00')),
+            'leaveBy' => $window['start']->format('h:i A'),
+            'backBy' => $window['occupiedEnd']->format('h:i A'),
+            'address' => $h['address'],
+            'clientName' => $h['client_name'],
+            'clientPhone' => $h['client_phone'],
+            'clients' => (int) $h['number_of_clients'],
+            'team' => implode(', ', $names),
+            'notes' => $h['requests'],
+        ];
+    }
+
     // Attendance history, newest first. Hours are worked out in SQL from the
     // full DATETIMEs (so a shift past midnight adds up) minus every break.
     $stmt = $pdo->prepare("
@@ -167,7 +212,7 @@ try {
         $isOpen = $row['clockOutAt'] === null;
         $notes = (string) $row['notes'];
         if ($isOpen) {
-            $status = (int) $row['onBreak'] ? 'On Break' : 'On Shift';
+            $status = (int) $row['onBreak'] ? 'On break' : 'On shift';
         } elseif ($notes === Scheduling::NOTE_AUTO_CLOSE) {
             $status = 'Auto clock-out';
         } elseif ($notes === Scheduling::NOTE_EOD_CLOSE) {
@@ -237,6 +282,9 @@ try {
         'shift' => $shift,
         'schedule' => $schedule,
         'availability' => $availability,
+        // Same five-status live source as Admin, Cashier and the booking forms.
+        'liveStatus' => StaffShift::statusPayload(StaffShift::liveStatus($pdo, $employeeId)),
+        'homeVisits' => $homeVisits,
         'lateGraceMinutes' => Scheduling::arrivalGraceMinutes(),
         'appointments' => $appointments,
         'attendance' => $attendance,

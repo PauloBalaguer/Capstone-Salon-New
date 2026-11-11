@@ -221,6 +221,33 @@ function adminInventoryApp() {
 
     // Archive = hide from active use (staff supply logs, checkout, stock
     // alerts) while keeping all its history; Restore brings it back.
+    /* Branch cards (same names as the guest booking page). */
+    branchCards() {
+      const store = Alpine.store('admin');
+      const items = (store.inventory || []).filter(i => i.isActive);
+      const pick = id => items.filter(i => id === 'all' || i.branchId === id);
+      const low = list => list.filter(i => this.stockStatus(i) !== 'ok').length;
+      return [
+        { id: 'all', title: 'All branches', sub: 'Every location', count: pick('all').length, low: low(pick('all')) },
+        ...(store.branches || []).map(b => ({ id: b.id, title: this.shortBranch(b.id), sub: (this.BRANCH_SUB[b.id] || b.type || ''), count: pick(b.id).length, low: low(pick(b.id)) })),
+      ];
+    },
+    BRANCH_SUB: { daraga: 'Salon & Make-Up', yashano: 'Skin & Brows', cabangan: 'Lash & Brows' },
+    shortBranch(id) {
+      return ({ daraga: 'Daraga Main', yashano: 'Yashano Mall', cabangan: 'Cabangan' })[id] || Alpine.store('admin').getBranchName(id);
+    },
+    /* Bar fill: stock against twice the minimum (full bar = comfortably stocked). */
+    stockBarPct(item) {
+      const target = Math.max(1, Number(item.minQty || 0) * 2);
+      return Math.max(item.stock > 0 ? 4 : 0, Math.min(100, Math.round((Number(item.stock || 0) / target) * 100)));
+    },
+    async archiveFromEdit() {
+      const item = (Alpine.store('admin').inventory || []).find(i => i.id === this.editingItemId);
+      if (!item) return;
+      this.openItemModal = false;
+      await this.toggleItemActive(item);
+    },
+
     async toggleItemActive(item) {
       const goingActive = !item.isActive;
       if (!goingActive && !(await LMConfirm({ title: `Archive "${item.name}"?`, message: 'It will be hidden from staff, checkout and stock alerts, but its history is kept. You can restore it from the Archived tab.', confirmLabel: 'Archive' }))) return;

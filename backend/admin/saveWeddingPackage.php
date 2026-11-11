@@ -37,7 +37,8 @@ $active = filter_var($_POST['active'] ?? true, FILTER_VALIDATE_BOOLEAN);
 // Team time for scheduling (Scheduling::homeServiceWindow). Blank = not set;
 // a blank service time falls back to 120 minutes.
 $minutes = [];
-foreach (['travelMinutes' => 0, 'setupMinutes' => 0, 'serviceMinutes' => 1] as $field => $min) {
+// returnTravelMinutes (migration 062): blank = same as travelMinutes.
+foreach (['travelMinutes' => 0, 'setupMinutes' => 0, 'serviceMinutes' => 1, 'returnTravelMinutes' => 0] as $field => $min) {
     $raw = trim($_POST[$field] ?? '');
     $minutes[$field] = $raw === '' ? null : filter_var($raw, FILTER_VALIDATE_INT, ['options' => ['min_range' => $min, 'max_range' => 1440]]);
     if ($minutes[$field] === false) {
@@ -83,6 +84,7 @@ try {
             WHERE id = ?
         ')->execute([$packageName, $price, $reservationFee, $features, $style, $displayOrder, $active ? 1 : 0,
             $minutes['travelMinutes'], $minutes['setupMinutes'], $minutes['serviceMinutes'], $durationsConfirmed ? 1 : 0, $packageId]);
+        saveReturnTravel($pdo, (int) $packageId, $minutes['returnTravelMinutes']);
 
         $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "PACKAGE", ?)')
             ->execute(["Wedding package updated: {$packageName}."]);
@@ -97,6 +99,7 @@ try {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ')->execute([$packageName, $price, $reservationFee, $features, $style, $displayOrder, $active ? 1 : 0,
         $minutes['travelMinutes'], $minutes['setupMinutes'], $minutes['serviceMinutes'], $durationsConfirmed ? 1 : 0]);
+    saveReturnTravel($pdo, (int) $pdo->lastInsertId(), $minutes['returnTravelMinutes']);
 
     $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "PACKAGE", ?)')
         ->execute(["New wedding package added: {$packageName}."]);
@@ -106,4 +109,13 @@ try {
     http_response_code(500);
     error_log('admin saveWeddingPackage error: ' . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'A server error occurred while saving the wedding package.']);
+}
+
+/** Return travel needs migration 062; skipped (blank = same as travel) until it is applied. */
+function saveReturnTravel(PDO $pdo, int $packageId, ?int $minutes): void
+{
+    require_once __DIR__ . '/../../backend/shared/config/helpers/Schema.php';
+    if ($packageId > 0 && Schema::hasColumn($pdo, 'wedding_packages', 'return_travel_minutes')) {
+        $pdo->prepare('UPDATE wedding_packages SET return_travel_minutes = ? WHERE id = ?')->execute([$minutes, $packageId]);
+    }
 }

@@ -10,7 +10,7 @@
  * Anyone using that browser who knows the email can sign in, like a saved
  * password. Trouble here never blocks a normal login, so failures are only logged.
  *
- * ponytail: one account per browser (a new Remember me replaces the old one),
+ * Limitation: one account per browser (a new Remember me replaces the old one),
  * add a device list when customers need several accounts in one browser.
  */
 final class TrustedDevice

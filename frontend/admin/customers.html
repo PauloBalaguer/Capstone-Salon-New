@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="../shared/theme-tokens.css">
+  <link rel="stylesheet" href="../shared/theme-tokens.css?v=20261111-card-tones">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Customers · Leo Mejillano Admin</title>
@@ -11,12 +11,15 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="../../function/admin/theme-config.js"></script>
   <script>tailwind.config.corePlugins = { preflight: false };</script>
+  <script src="../../function/shared/list-pager.js?v=20261111"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <link rel="stylesheet" href="admin-panel.css?v=20261110c">
+  <link rel="stylesheet" href="../shared/notification-panel.css?v=20261111">
+  <link rel="stylesheet" href="admin-panel.css?v=20261111-mobile-history">
   <link rel="stylesheet" href="../shared/portal-unify.css?v=20261110b">
   <script src="../../function/shared/toast.js"></script>
+  <script src="../../function/shared/notification-panel.js?v=20261111"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
-  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
 </head>
 <body class="lm-admin" x-data="adminCustomersApp()" x-init="init()" x-effect="AdminUI.lockScroll(openHistoryModalFlag)">
 <div class="lm-shell">
@@ -35,45 +38,60 @@
       <div x-show="$store.admin.error" x-cloak class="lm-alert lm-alert--error" role="alert"><p x-text="$store.admin.error"></p><button type="button" class="lm-btn lm-btn--sm" @click="$store.admin.refresh()">Retry</button></div>
 
       <section class="lm-stats" aria-label="Customer figures">
-        <div class="lm-stat"><span class="lm-stat-label">Total customers</span><span class="lm-stat-value" x-text="$store.admin.customerDirectory.length"></span><span class="lm-stat-note">With at least one salon booking</span></div>
-        <div class="lm-stat"><span class="lm-stat-label">Registered</span><span class="lm-stat-value" x-text="countType('Registered')"></span><span class="lm-stat-note">Have a customer account</span></div>
-        <div class="lm-stat"><span class="lm-stat-label">Guests</span><span class="lm-stat-value" x-text="countType('Guest')"></span><span class="lm-stat-note">Booked without an account</span></div>
-        <div class="lm-stat"><span class="lm-stat-label">Repeat customers</span><span class="lm-stat-value" x-text="$store.admin.customerDirectory.filter(c => c.visits > 1).length"></span><span class="lm-stat-note">2 or more visits</span></div>
-        <div class="lm-stat"><span class="lm-stat-label">Total spending</span><span class="lm-stat-value" style="font-size:24px" x-text="$store.admin.formatCurrency(getTotalLifetimeValue())"></span><span class="lm-stat-note">Completed bookings</span></div>
+        <div data-card-tone="info" class="lm-stat"><span class="lm-stat-label">Total customers</span><span class="lm-stat-value" x-text="$store.admin.customerDirectory.length"></span><span class="lm-stat-note">With at least one salon booking</span></div>
+        <div data-card-tone="success" class="lm-stat"><span class="lm-stat-label">Registered</span><span class="lm-stat-value" x-text="countType('Registered')"></span><span class="lm-stat-note">Have a customer account</span></div>
+        <div data-card-tone="info" class="lm-stat"><span class="lm-stat-label">Guests</span><span class="lm-stat-value" x-text="countType('Guest')"></span><span class="lm-stat-note">Booked without an account</span></div>
+        <div data-card-tone="success" class="lm-stat"><span class="lm-stat-label">Repeat customers</span><span class="lm-stat-value" x-text="$store.admin.customerDirectory.filter(c => c.visits > 1).length"></span><span class="lm-stat-note">2 or more visits</span></div>
+        <div data-card-tone="warning" class="lm-stat"><span class="lm-stat-label">Total spending</span><span class="lm-stat-value" style="font-size:24px" x-text="$store.admin.formatCurrency(getTotalLifetimeValue())"></span><span class="lm-stat-note">Completed bookings</span></div>
       </section>
 
       <section class="lm-card lm-card--flush" aria-label="Customer directory">
-        <div class="lm-toolbar" style="padding:18px 20px 12px">
-          <label class="lm-field lm-field--grow"><span>Search customers</span>
-            <div class="lm-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 21l-5-5m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-              <input class="lm-input" type="search" x-model.debounce.200ms="customerSearchQuery" placeholder="Name, phone or email"></div>
-          </label>
-        </div>
-        <div class="lm-chips" style="padding:0 20px 16px" role="group" aria-label="Customer type">
-          <template x-for="type in [['all','All'],['Registered','Registered'],['Guest','Guest']]" :key="type[0]">
-            <button type="button" class="lm-chip" :aria-pressed="(customerFilterAccountType === type[0]).toString()" @click="customerFilterAccountType = type[0]"><span x-text="type[1]"></span> <small x-text="type[0] === 'all' ? $store.admin.customerDirectory.length : countType(type[0])"></small></button>
-          </template>
+        <div class="lm-cust-tools">
+          <div class="lm-search lm-cust-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 21l-5-5m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input class="lm-input" type="search" x-model.debounce.200ms="customerSearchQuery" placeholder="Search name, phone or email" aria-label="Search customers"></div>
+          <div class="lm-seg" role="group" aria-label="Customer type">
+            <template x-for="type in [['all','All'],['Registered','Registered'],['Guest','Guests']]" :key="type[0]">
+              <button type="button" class="lm-seg-btn" :class="{ 'is-on': customerFilterAccountType === type[0] }" :aria-pressed="(customerFilterAccountType === type[0]).toString()" @click="customerFilterAccountType = type[0]"><span x-text="type[1]"></span> <small x-text="type[0] === 'all' ? $store.admin.customerDirectory.length : countType(type[0])"></small></button>
+            </template>
+          </div>
         </div>
         <div x-show="$store.admin.loading && !$store.admin.error" class="lm-loading" role="status"><span class="lm-spinner"></span>Loading customers…</div>
         <div class="lm-table-wrap" x-show="!$store.admin.loading">
-          <table class="lm-table lm-table--stack">
-            <thead><tr><th scope="col">Customer</th><th scope="col">Type</th><th scope="col">Contact</th><th scope="col" class="center">Visits</th><th scope="col" class="num">Total spending</th><th scope="col">Loyalty</th><th scope="col" class="num">History</th></tr></thead>
+          <table class="lm-table lm-table--stack lm-cust-table">
+            <thead><tr><th scope="col">Customer</th><th scope="col">Contact</th><th scope="col">Visits</th><th scope="col" class="num">Total spent</th><th scope="col">Loyalty</th><th scope="col" class="num"><span class="lm-sr-only">Actions</span></th></tr></thead>
             <tbody>
-              <template x-for="customer in getFilteredCustomers()" :key="customer.id || customer.phone">
+              <template x-for="customer in $store.pager.slice('customers', getFilteredCustomers())" :key="customer.id || customer.phone">
                 <tr>
-                  <td data-label="Customer"><span class="lm-cell-main" x-text="customer.name"></span><span class="lm-cell-sub" x-text="customer.lastVisit ? 'Last visit ' + AdminUI.date(customer.lastVisit) : ''"></span></td>
-                  <td data-label="Type"><span :class="customer.accountType === 'Registered' ? 'lm-badge lm-badge--info' : 'lm-badge lm-badge--neutral'" x-text="customer.accountType"></span></td>
-                  <td data-label="Contact"><span x-text="customer.phone || '—'"></span><span class="lm-cell-sub" x-show="customer.email" x-text="customer.email"></span></td>
-                  <td data-label="Visits" class="center"><strong x-text="customer.visits"></strong></td>
-                  <td data-label="Spending" class="num"><strong x-text="$store.admin.formatCurrency(customer.totalSpent)"></strong></td>
-                  <td data-label="Loyalty"><span :class="$store.admin.getCustomerTierBadgeClass(customer.loyaltyTier)" :title="customer.recentVisits + ' completed visit(s) in the last 12 months'" x-text="customer.loyaltyTier"></span><span class="lm-cell-sub" x-text="customer.loyaltyStamps + '/10 stamps · ' + customer.availableRewards + ' reward(s)'"></span></td>
-                  <td class="lm-actions-cell"><div class="lm-actions"><button type="button" class="lm-btn lm-btn--sm lm-btn--primary" @click="openHistoryModal(customer)" :aria-label="'Booking history for ' + customer.name">History</button></div></td>
+                  <td data-label="Customer">
+                    <button type="button" class="lm-cust-who" @click="openHistoryModal(customer)" :aria-label="'Booking history for ' + customer.name">
+                      <span class="lm-avatar" :class="customer.accountType === 'Registered' ? 'is-reg' : ''" aria-hidden="true" x-text="AdminUI.initials(customer.name)"></span>
+                      <span class="lm-cust-text">
+                        <span class="lm-cust-name"><span x-text="customer.name"></span><span class="lm-cust-type" :class="customer.accountType === 'Registered' ? 'is-reg' : ''" x-text="customer.accountType === 'Registered' ? 'Registered' : 'Guest'"></span></span>
+                        <span class="lm-cell-sub" x-text="customer.lastVisit ? 'Last visit ' + AdminUI.date(customer.lastVisit) : 'No visit yet'"></span>
+                      </span>
+                    </button>
+                  </td>
+                  <td data-label="Contact"><span x-text="customer.phone || '—'"></span><span class="lm-cell-sub lm-truncate" x-show="customer.email" :title="customer.email" x-text="customer.email"></span></td>
+                  <td data-label="Visits"><strong x-text="customer.visits + (customer.visits === 1 ? ' visit' : ' visits')"></strong><span class="lm-cell-sub" x-show="customer.bookings > customer.visits" x-text="customer.bookings + ' booking' + (customer.bookings === 1 ? '' : 's') + ' total'"></span></td>
+                  <td data-label="Total spent" class="num"><strong x-text="$store.admin.formatCurrency(customer.totalSpent)"></strong></td>
+                  <td data-label="Loyalty">
+                    <template x-if="customer.accountType === 'Registered'">
+                      <div class="lm-stamps" :title="customer.loyaltyTier + ' · ' + customer.recentVisits + ' completed visit(s) in the last 12 months'">
+                        <span class="lm-stamp-dots" aria-hidden="true"><template x-for="n in 10" :key="n"><i :class="{ on: n <= customer.loyaltyStamps }"></i></template></span>
+                        <span class="lm-cell-sub" x-text="customer.loyaltyStamps + '/10 stamps'"></span>
+                        <span class="lm-reward" x-show="customer.availableRewards" x-text="customer.availableRewards + (customer.availableRewards === 1 ? ' reward ready' : ' rewards ready')"></span>
+                      </div>
+                    </template>
+                    <span class="lm-cell-sub" x-show="customer.accountType !== 'Registered'">Guests don't earn stamps</span>
+                  </td>
+                  <td class="lm-actions-cell"><div class="lm-actions"><button type="button" class="lm-btn lm-btn--sm" @click="openHistoryModal(customer)" :aria-label="'Booking history for ' + customer.name">History</button></div></td>
                 </tr>
               </template>
-              <tr x-show="getFilteredCustomers().length === 0" class="lm-empty-row"><td colspan="7" class="lm-empty-cell"><div class="lm-empty"><h3>No customers match</h3><p>Try another name, phone number or customer type.</p></div></td></tr>
+              <tr x-show="getFilteredCustomers().length === 0" class="lm-empty-row"><td colspan="6" class="lm-empty-cell"><div class="lm-empty"><h3>No customers match</h3><p>Try another name, phone number or customer type.</p></div></td></tr>
             </tbody>
           </table>
         </div>
+        <nav x-lm-pager="'customers'" aria-label="Customer pages"></nav>
       </section>
     </main>
   </div>
@@ -83,33 +101,51 @@
 <div class="lm-modal" x-show="openHistoryModalFlag" x-cloak @keydown.escape.window="openHistoryModalFlag = false" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
   <div class="lm-modal-box lm-modal-box--lg" @click.outside="openHistoryModalFlag = false">
     <div class="lm-modal-head">
-      <div><h2 id="historyTitle" x-text="selectedCustomer ? selectedCustomer.name : ''"></h2><p x-text="selectedCustomer ? selectedCustomer.accountType + ' · ' + (selectedCustomer.phone || '') + ' · ' + selectedCustomer.visits + ' visit(s)' : ''"></p></div>
-      <button type="button" class="lm-close" @click="openHistoryModalFlag = false" aria-label="Close">&times;</button>
+      <div><h2 id="historyTitle" class="lm-capitalize" x-text="selectedCustomer ? selectedCustomer.name : ''"></h2><p x-text="selectedCustomer ? selectedCustomer.accountType + ' customer · ' + (selectedCustomer.phone || 'No phone') + (selectedCustomer.email ? ' · ' + selectedCustomer.email : '') : ''"></p></div>
+      <button type="button" class="ui-close-icon lm-close" @click="openHistoryModalFlag = false" aria-label="Close">&times;</button>
     </div>
-    <div class="lm-modal-body">
-      <ul class="lm-list">
-        <template x-for="booking in getCustomerBookings()" :key="booking.id">
-          <li class="lm-list-item" style="align-items:flex-start">
-            <div>
-              <span class="lm-cell-main" x-text="booking.eventType || booking.serviceName || 'Not specified'"></span>
-              <span class="lm-cell-sub" x-text="(booking.isHomeService ? 'Home service' : $store.admin.getBranchName(booking.branchId)) + ' · ' + (AdminUI.date(booking.date) || 'Not scheduled') + (booking.time ? ' · ' + booking.time : '')"></span>
-              <span class="lm-ref" x-text="booking.id"></span>
-            </div>
-            <div style="text-align:right;display:flex;flex-direction:column;gap:4px;align-items:flex-end">
-              <span :class="$store.admin.getStatusBadgeClass(booking.status)" x-text="booking.status"></span>
-              <strong x-text="booking.isHomeService ? (booking.quotePrice ? $store.admin.formatCurrency(booking.quotePrice) : 'Quote pending') : $store.admin.formatCurrency(booking.price)"></strong>
-            </div>
-          </li>
+    <div class="lm-modal-body lm-hist">
+      <div class="lm-hist-summary" x-show="getCustomerBookings().length">
+        <div><strong x-text="historyCounts().completed"></strong><span>Completed</span></div>
+        <div><strong x-text="historyCounts().upcoming"></strong><span>Upcoming</span></div>
+        <div><strong x-text="historyCounts().cancelled"></strong><span>Cancelled</span></div>
+        <div class="is-money"><strong x-text="$store.admin.formatCurrency(selectedCustomer ? selectedCustomer.totalSpent : 0)"></strong><span>Spent</span></div>
+      </div>
+      <div class="lm-seg" role="group" aria-label="Show bookings" x-show="getCustomerBookings().length">
+        <template x-for="tab in [['all','All'],['upcoming','Upcoming'],['completed','Completed'],['cancelled','Cancelled']]" :key="tab[0]">
+          <button type="button" class="lm-seg-btn" :class="{ 'is-on': historyTab === tab[0] }" :aria-pressed="(historyTab === tab[0]).toString()" @click="historyTab = tab[0]"><span x-text="tab[1]"></span> <small x-text="historyCounts()[tab[0]]"></small></button>
         </template>
-      </ul>
+      </div>
+      <div class="lm-hist-list">
+        <template x-for="(booking, i) in $store.pager.slice('cust-history', historyRows())" :key="booking.id">
+          <div>
+            <p class="lm-hist-month" x-show="historyMonth($store.pager.slice('cust-history', historyRows()), i)" x-text="historyMonth($store.pager.slice('cust-history', historyRows()), i)"></p>
+            <div class="lm-hist-row" :class="'is-' + historyKind(booking)">
+              <div class="lm-hist-when"><strong x-text="historyDay(booking)"></strong><span x-text="booking.time || ''"></span></div>
+              <div class="lm-hist-what">
+                <strong x-text="booking.eventType || booking.serviceName || 'Not specified'"></strong>
+                <span><span x-text="historyBranch(booking)"></span> · <span class="lm-ref-text" x-text="booking.id"></span></span>
+              </div>
+              <div class="lm-hist-end">
+                <strong x-text="historyPrice(booking)"></strong>
+                <span :class="$store.admin.getStatusBadgeClass(booking.status)" x-text="booking.status"></span>
+              </div>
+            </div>
+          </div>
+        </template>
+        <p class="lm-hint" style="text-align:center;padding:16px" x-show="getCustomerBookings().length && !historyRows().length">No bookings in this group.</p>
+      </div>
+      <nav x-lm-pager="'cust-history'" aria-label="History pages"></nav>
       <div class="lm-empty" x-show="getCustomerBookings().length === 0"><h3>No booking history found</h3></div>
     </div>
   </div>
 </div>
 
-<script src="../../function/admin/admin-shell.js?v=20261110c"></script>
+<script src="../../function/shared/sign-out.js?v=20261111"></script>
+<script src="../../function/admin/admin-shell.js?v=20261111-np"></script>
 <script src="../../function/shared/live-sync.js?v=20261110"></script>
-<script src="../../function/admin/shared-data.js?v=20261110"></script>
-<script src="../../function/admin/customers.js?v=20261110"></script>
+<script src="../../function/admin/shared-data.js?v=20261111"></script>
+<script src="../../function/admin/customers.js?v=20261111-hist"></script>
+<script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

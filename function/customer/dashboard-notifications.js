@@ -31,6 +31,55 @@ function customerNotificationsMixin() {
         this.notifications.forEach(n => n.read = true);
       } catch { this.pushToast('error', 'Could not mark notifications as read. Please try again.'); }
     },
+    // Persists the read state of one card (and any rows merged into it).
+    // Updates the bell immediately; the request uses keepalive so it still
+    // completes when the click navigates away.
+    markNotificationRead(notif) {
+      const ids = (notif.readIds || [notif.id]).filter(id => /^\d+$/.test(String(id || '')));
+      const rows = this.notifications.filter(n => ids.includes(n.id) && !n.read);
+      if (!rows.length) return Promise.resolve();
+      rows.forEach(n => n.read = true);
+      const data = new FormData();
+      data.append('ids', rows.map(n => n.id).join(','));
+      return fetch('../../backend/customer/markNotificationsRead.php', { method: 'POST', body: data, keepalive: true })
+        .then(r => r.json().then(body => { if (!r.ok || !body.success) throw new Error('read failed'); }))
+        .catch(() => { rows.forEach(n => n.read = false); this.pushToast('error', 'Could not update this notification. Please try again.'); });
+    },
+
+    // Where a card leads: the exact booking, its payment, review or payment flow.
+    notificationDestination(notif) {
+      const ref = this.notificationDetails(notif).reference;
+      const booking = ref ? [...(this.appointments || []), ...(this.homeServiceRequests || [])].find(a => a.id === ref) : null;
+      if (['PAYMENT_PENDING', 'PAYMENT_REMINDER'].includes(notif.type) && (notif.actionUrl || booking?.continuePaymentUrl))
+        return notif.actionUrl || booking.continuePaymentUrl;
+      if (!ref) return notif.type === 'WAITLIST_OPENING' ? 'services-promos.html?book=1' : (notif.actionUrl || 'appointments.html?track=1');
+      const q = encodeURIComponent(ref);
+      if (ref.startsWith('LM-HOM-')) return 'home-service.html?reference=' + q;
+      if (['COMPLETED', 'SERVICE_FINISHED'].includes(notif.type)) return 'reviews.html?reference=' + q;
+      if (notif.type === 'CANCELLED') return 'appointments.html?manage=1&reference=' + q;
+      if (/^PAYMENT_|^REFUND_/.test(notif.type)) return 'appointments.html?track=1&reference=' + q + '&focus=payment';
+      return 'appointments.html?track=1&reference=' + q;
+    },
+
+    notificationActionLabel(notif) {
+      if (notif.actionLabel) return notif.actionLabel;
+      const ref = this.notificationDetails(notif).reference;
+      if (!ref) return notif.type === 'WAITLIST_OPENING' ? 'Book now' : 'View bookings';
+      if (ref.startsWith('LM-HOM-')) return 'View request';
+      if (['COMPLETED', 'SERVICE_FINISHED'].includes(notif.type)) return 'Leave feedback';
+      if (notif.type === 'CANCELLED') return 'View in history';
+      if (['PAYMENT_PENDING', 'PAYMENT_REMINDER'].includes(notif.type) && !this.notificationDestination(notif).startsWith('appointments.html')) return 'Continue payment';
+      if (/^PAYMENT_|^REFUND_/.test(notif.type)) return 'View payment';
+      return 'Track booking';
+    },
+
+    async openNotification(notif) {
+      const href = this.notificationDestination(notif);
+      this.markNotificationRead(notif);
+      this.isNotificationPanelOpen = false;
+      window.location.href = href;
+    },
+
     clearAllNotifications() {
       this.notifications = [];
     },
@@ -51,7 +100,7 @@ function customerNotificationsMixin() {
         if (!deposit) return n;
         merged.add(deposit);
         const amount = (deposit.message.match(/₱[\d,.]*\d/) || [''])[0];
-        return { ...n, read: n.read && deposit.read, depositNote: 'Your ' + (amount ? amount + ' ' : '') + 'deposit is non-refundable, but you can still use it by rescheduling.' };
+        return { ...n, read: n.read && deposit.read, readIds: [n.id, deposit.id], depositNote: 'Your ' + (amount ? amount + ' ' : '') + 'deposit is non-refundable, but you can still use it by rescheduling.' };
       });
       // Built from live booking data, not stored rows, so it disappears as soon
       // as the booking is paid or released. Stays unread until then.
@@ -63,17 +112,38 @@ function customerNotificationsMixin() {
           actionUrl: a.continuePaymentUrl, actionLabel: 'Continue payment'
         };
       });
-      return [...pendingPayments, ...list.filter(n => !merged.has(n))];
+      // Never show the same stored row twice.
+      const seen = new Set();
+      const unique = list.filter(n => !merged.has(n)).filter(n => !n.id || (seen.has(n.id) ? false : seen.add(n.id)));
+      return [...pendingPayments, ...unique];
     },
 
     notificationDetails(notif) {
       const message = notif.message || '';
       const field = label => message.match(new RegExp('(?:^|\n)' + label + ': ([^\n]+)'))?.[1] || '';
       const reference = message.match(/\bLM-(?:[A-Z]+-)+\d{4}-\d+\b/)?.[0] || '';
-      const titles = { CANCELLED: 'Booking cancelled', CONFIRMED: 'Booking confirmed', BOOKING_SUBMITTED: 'Booking request received', PAYMENT_RECEIVED: 'Payment received', PAYMENT_VERIFIED: 'Payment verified', PAYMENT_SUBMITTED: 'Payment submitted', PAYMENT_ATTENTION: 'Payment needs attention', PAYMENT_FORFEITED: 'Deposit forfeited', REFUND_DUE: 'Refund pending', PAYMENT_REFUNDED: 'Payment refunded', RESCHEDULE: 'Schedule updated', SERVICE_FINISHED: 'Service finished', COMPLETED: 'Appointment completed', REMINDER: 'Appointment reminder', WAITLIST_OPENING: 'Stylist available', QUOTE_READY: 'Your quote is ready', PAYMENT_REMINDER: 'Payment reminder', PAYMENT_PENDING: 'Payment pending' };
+      const titles = { CANCELLED: 'Booking cancelled', CONFIRMED: 'You’re all set!', BOOKING_SUBMITTED: 'Booking received', PAYMENT_RECEIVED: 'Payment received', PAYMENT_VERIFIED: 'Payment confirmed', PAYMENT_SUBMITTED: 'Payment being checked', PAYMENT_ATTENTION: 'Payment needs your attention', PAYMENT_FORFEITED: 'Deposit forfeited', REFUND_DUE: 'Refund pending', PAYMENT_REFUNDED: 'Payment refunded', RESCHEDULE: 'Schedule updated', SERVICE_FINISHED: 'Service finished', COMPLETED: 'How was your visit?', REMINDER: 'Appointment reminder', WAITLIST_OPENING: 'Stylist available', QUOTE_READY: 'Your quote is ready', PAYMENT_REMINDER: 'Payment reminder', PAYMENT_PENDING: 'Payment pending' };
       let summary = message.split(/\n\s*\n|\nBooking reference:/)[0].replace(' for ' + reference, ' for this booking').replace(reference, '').replace(/\s+([.,:])/g, '$1').replace(/\s{2,}/g, ' ').trim();
       if (notif.type === 'CANCELLED' && /within 30 minutes/i.test(message)) summary = 'Your payment wasn’t completed within 30 minutes.';
       if (notif.type === 'CANCELLED' && /^You cancelled your appointment\.?$/.test(summary)) summary = '';
+      // Friendlier customer-facing wording. Stored messages (and emails) are unchanged.
+      const fullyPaid = /fully paid/i.test(message);
+      const friendly = {
+        BOOKING_SUBMITTED: 'Waiting for salon confirmation.',
+        PAYMENT_SUBMITTED: 'We’re checking your payment.',
+        PAYMENT_RECEIVED: 'Payment received. Thank you!',
+        PAYMENT_VERIFIED: fullyPaid ? 'Fully paid. See you soon!' : 'Your slot is secured.',
+        PAYMENT_ATTENTION: 'Please check your payment details.',
+        CONFIRMED: 'See you at the salon!',
+        RESCHEDULE: 'Tap to see your new schedule.',
+        REMINDER: 'Your appointment is coming up.',
+        SERVICE_FINISHED: 'Hope you love the results!',
+        COMPLETED: 'Tap to leave feedback.',
+        REFUND_DUE: 'Your refund is being processed.',
+        PAYMENT_REFUNDED: 'Your refund has been sent.',
+        QUOTE_READY: 'Tap to review your quote.'
+      };
+      if (friendly[notif.type]) summary = friendly[notif.type];
       if (notif.depositNote) summary = notif.depositNote;
       if (notif.type === 'PAYMENT_PENDING') summary = message; // Keeps the booking reference visible.
       const bookingStatus = field('Booking status');
@@ -82,7 +152,6 @@ function customerNotificationsMixin() {
       const status = notif.type === 'BOOKING_SUBMITTED'
         ? (/^(Pending|Pending Review|Waiting for Confirmation)$/i.test(recordedStatus) || !recordedStatus ? 'Awaiting confirmation' : recordedStatus)
         : '';
-      if (notif.type === 'BOOKING_SUBMITTED' && field('Service / Event')) summary = 'Your request has been received.';
       if (legacy) summary = '';
       const scheduled = field('Scheduled time').match(/^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})/);
       const date = scheduled ? new Date(scheduled[1] + 'T' + scheduled[2] + ':00+08:00') : null;
@@ -154,7 +223,7 @@ function customerNotificationsMixin() {
       const details = [appointment.serviceName, appointment.branchName,
         [appointment.date, appointment.time].filter(Boolean).join(' '),
         appointment.status ? `Booking status: ${appointment.status}` : ''].filter(Boolean).join('\n');
-      this.addNotification('BOOKING_SUBMITTED', `Booking request ${appointment.id} received.\n${details}\nCheck its status in My Appointments.`);
+      this.addNotification('BOOKING_SUBMITTED', `Booking request ${appointment.id} received.\n${details}\nCheck its status in Track Booking.`);
     },
 
     checkForReminders() {

@@ -22,10 +22,12 @@ const state = {
 
 const STAFF_GROUPS = { available: 0, busy: 1, off: 2 };
 
+// Live status keys (StaffShift): available / busy / busy_home_service /
+// on_break / off_shift. Busy, home service and break are grouped as "busy"
+// (can't take a client right now).
 function staffGroup(s) {
-  if (!s.onShift) return 'off';
-  // On Break counts with Busy (clocked in, but can't take a client now).
-  return s.status === 'On Shift' ? 'available' : 'busy';
+  if (s.status === 'off_shift') return 'off';
+  return s.status === 'available' ? 'available' : 'busy';
 }
 
 async function init() {
@@ -54,17 +56,16 @@ async function refreshData() {
   }
 }
 
-/* Same status colours as the staff portal. Off Shift is neutral: it's normal, not an error. */
-function availabilityBadgeStyle(s) {
-  const group = staffGroup(s);
-  if (group === 'available') return 'background:#E6F4EC;color:#115C39;border:1px solid #E6F4EC';
-  if (group === 'busy') return 'background:#FFF3D6;color:#6C4C09;border:1px solid #E0B84C';
-  return 'background:#F6F8F7;color:#38443E;border:1px solid #CDD6D0';
+/* Shared five-status badge (theme-tokens.css .live-status): green available,
+   blue busy / home service, amber on break, gray off shift (neutral, not an error). */
+function liveStatusBadge(s, extra) {
+  return `<span class="live-status live-status--${escapeHtml(s.statusColor || 'gray')}${extra || ''}"><span class="live-status-dot" aria-hidden="true"></span>${escapeHtml(s.availability || s.statusLabel || 'Off shift')}</span>`;
 }
 
 function renderStaffControls(staff) {
   const count = group => staff.filter(s => staffGroup(s) === group).length;
-  document.getElementById('staffCounts').textContent = `${staff.length} staff in total`;
+  const counts = document.getElementById('staffCounts');
+  if (counts) counts.textContent = '';
   document.getElementById('statAvailable').textContent = count('available');
   document.getElementById('statBusy').textContent = count('busy');
   document.getElementById('statOff').textContent = count('off');
@@ -82,6 +83,10 @@ function renderStaffControls(staff) {
   if (state.roleFilter && !roles.includes(state.roleFilter)) state.roleFilter = '';
   document.getElementById('staffRoleFilter').innerHTML = '<option value="">All roles</option>'
     + roles.map(role => `<option value="${escapeHtml(role)}"${role === state.roleFilter ? ' selected' : ''}>${escapeHtml(role)}</option>`).join('');
+}
+
+function titleCaseName(name) {
+  return String(name || '').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
 }
 
 function initials(name) {
@@ -118,24 +123,33 @@ function visibleStaff(staff) {
 /* Only what a cashier needs to make an assignment decision: availability,
    qualified services, and current workload/schedule. Detailed performance
    (ratings, tips, satisfaction) is an Admin/Owner report, not shown here. */
+/* Service staff only: cashiers don't perform services, so they can't be assigned. */
+function serviceStaff() {
+  return (state.data?.staffList || []).filter(s => !/cashier/i.test(s.role || ''));
+}
+
 function renderStaff() {
   if (!state.data) return;
-  renderStaffControls(state.data.staffList);
-  const staff = visibleStaff(state.data.staffList);
-  const emptyMessage = state.data.staffList.length ? 'No staff match these filters.' : 'No staff assigned to this branch yet.';
+  const all = serviceStaff();
+  renderStaffControls(all);
+  const staff = visibleStaff(all);
+  const emptyMessage = all.length ? 'No staff match these filters.' : 'No staff assigned to this branch yet.';
 
+  // 10 cards per page (function/shared/list-pager.js); filters reset to page 1.
+  if (state.staffTotal !== staff.length) { state.staffPage = 1; state.staffTotal = staff.length; }
+  const pageStaff = ListPager.slice(staff, state.staffPage || 1);
   const grid = document.getElementById('staffContainerGrid');
-  grid.innerHTML = staff.length ? staff.map(s => {
+  grid.innerHTML = pageStaff.length ? pageStaff.map(s => {
     const group = staffGroup(s);
     return `
-      <div id="staff-card-${s.id}" class="rounded-xl border border-gray-200 bg-white p-4 flex flex-col gap-3 transition-colors duration-300${group === 'off' ? ' opacity-80' : ''}">
-        <div class="flex items-start gap-3">
-          <span aria-hidden="true" class="avatar ${AVATAR_STYLE[group]}">${escapeHtml(initials(s.name))}</span>
-          <div class="flex-1 min-w-0">
-            <button type="button" data-staff-details="${escapeHtml(s.id)}" class="cp-link-btn font-bold text-slate-900 capitalize truncate" aria-label="View details for ${escapeHtml(s.name)}">${escapeHtml(s.name)}</button>
-            <p class="text-sm text-slate-500 truncate">${escapeHtml(s.role || 'Staff')}</p>
+      <div id="staff-card-${s.id}" class="cp-staff-card rounded-xl border border-gray-200 bg-white p-4 flex flex-col gap-3 transition-colors duration-300">
+        <div class="cp-staff-head">
+          <span aria-hidden="true" class="cp-staff-avatar ${AVATAR_STYLE[group]}">${escapeHtml(initials(s.name))}</span>
+          <div class="cp-staff-who">
+            <button type="button" data-staff-details="${escapeHtml(s.id)}" class="cp-staff-name" aria-label="View details for ${escapeHtml(s.name)}">${escapeHtml(titleCaseName(s.name))}</button>
+            <span class="cp-staff-role">${escapeHtml(s.role || 'Staff')}</span>
           </div>
-          <span class="shrink-0 px-2.5 py-0.5 rounded-full text-xs font-bold whitespace-nowrap${s.availability.startsWith('Busy') ? ' badge-live' : ''}" style="${availabilityBadgeStyle(s)}">${escapeHtml(s.availability)}</span>
+          ${liveStatusBadge(s, ' shrink-0' + (s.status === 'busy' || s.status === 'busy_home_service' ? ' badge-live' : ''))}
         </div>
         <dl class="grid grid-cols-2 gap-2 text-sm">
           <div class="rounded-lg bg-[color:var(--card)] border border-[color:var(--border)] px-3 py-2">
@@ -148,8 +162,8 @@ function renderStaff() {
           </div>
         </dl>
         <div class="flex items-center justify-between gap-2 text-sm">
-          <span class="text-slate-500"><i class="fa-regular fa-clock mr-1"></i>${s.onShift ? (s.clockInTime ? 'Clocked in ' + escapeHtml(s.clockInTime) : 'On shift') : 'Not clocked in'}</span>
-          <span class="text-slate-600 font-semibold">${openAssignments(s).length} open assignment${openAssignments(s).length === 1 ? '' : 's'}</span>
+          ${s.onShift ? `<span class="text-slate-500"><i class="fa-regular fa-clock mr-1" aria-hidden="true"></i>${s.clockInTime ? 'Clocked in ' + escapeHtml(s.clockInTime) : 'On shift'}</span>` : '<span></span>'}
+          <span class="text-slate-600 font-semibold">${(n => n ? `${n} upcoming booking${n === 1 ? '' : 's'}` : 'No upcoming bookings')(openAssignments(s).length)}</span>
         </div>
         <div class="cp-staff-actions">
           <button type="button" data-staff-details="${escapeHtml(s.id)}" class="btn-row cp-btn-ghost">Details</button>
@@ -163,6 +177,10 @@ function renderStaff() {
       <span class="text-sm text-slate-500">${emptyMessage}</span>
     </div>
   `;
+  state.staffPage = ListPager.render(document.getElementById('staffPager'), state.staffPage || 1, staff.length, (page) => {
+    state.staffPage = page;
+    renderStaff();
+  });
 }
 
 /* Bookings this person is assigned to that are not finished yet. */
@@ -182,7 +200,7 @@ function openStaffDetails(staffId) {
       <div class="flex items-center gap-3">
         <span aria-hidden="true" class="avatar ${AVATAR_STYLE[staffGroup(s)]}">${escapeHtml(initials(s.name))}</span>
         <div class="min-w-0"><p class="font-bold text-lg text-slate-900 capitalize">${escapeHtml(s.name)}</p><p class="text-sm text-slate-500">${escapeHtml(s.role || 'Staff')}</p></div>
-        <span class="ml-auto shrink-0 px-2.5 py-0.5 rounded-full text-xs font-bold" style="${availabilityBadgeStyle(s)}">${escapeHtml(s.availability)}</span>
+        ${liveStatusBadge(s, ' ml-auto shrink-0')}
       </div>
       <dl class="grid grid-cols-2 gap-3 text-sm rounded-xl border border-gray-200 bg-[color:var(--card)] p-4">
         ${item('Branch', escapeHtml(document.getElementById('sidebarBranchTitle')?.textContent || ''))}
@@ -307,7 +325,13 @@ async function loadQualifiedStaff(ref) {
 /* Briefly flashes a staff card amber so the cashier can see which stylist
    just changed, since the whole grid re-renders after every action. */
 function flashStaffCard(staffId) {
-  const card = document.getElementById(`staff-card-${staffId}`);
+  let card = document.getElementById(`staff-card-${staffId}`);
+  if (!card && state.data) {
+    // The card is on another page: go there first.
+    const i = visibleStaff(serviceStaff()).findIndex(x => String(x.id) === String(staffId));
+    if (i >= 0) { state.staffPage = Math.floor(i / ListPager.SIZE) + 1; renderStaff(); }
+    card = document.getElementById(`staff-card-${staffId}`);
+  }
   if (!card) return;
   card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   card.classList.add('bg-amber-50', 'border-[#774800]/40', 'shadow-lg');

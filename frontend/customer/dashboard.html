@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="../shared/theme-tokens.css">
+  <link rel="stylesheet" href="../shared/theme-tokens.css?v=20261111-card-tones">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Leo Mejillano Salon - Customer Portal</title>
@@ -59,7 +59,7 @@
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
   <!-- Customer portal shell (sidebar, header, bottom nav); loaded after the shared themes. -->
   <link rel="stylesheet" href="../../frontend/customer/customer-portal.css?v=20261110">
-  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
 </head>
 <body data-customer-page="dashboard" data-page-title="Dashboard" class="salon-portal bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
@@ -100,27 +100,14 @@
               <span class="cp-hero-kicker">THE LEO MEJILLANO EXPERIENCE</span>
               <h2>Beautiful moments<br><em>begin here.</em></h2>
               <p>Your favorite beauty services, thoughtful care, and time to feel like yourself again.</p>
-              <div class="cp-hero-actions">
-                <a href="services-promos.html?book=1" class="cp-btn cp-btn-light">Book an Appointment <svg class="cp-icon-sm" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
-                <a href="services-promos.html" class="cp-btn cp-btn-glass">Explore services</a>
-              </div>
             </div>
           </section>
-
-          <!-- Quick links, so pages that are not in the phone bottom bar stay one tap away. -->
-          <nav class="cp-quick-grid" aria-label="Quick actions">
-            <a href="services-promos.html?book=1" class="cp-quick-card"><span class="cp-quick-icon is-leaf"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg></span><span class="cp-quick-copy"><strong>Book an Appointment</strong><small>Find your perfect time</small></span><svg class="cp-icon-sm" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
-            <a href="appointments.html?track=1" class="cp-quick-card"><span class="cp-quick-icon is-beige"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="7"/><path d="m16 16 5 5"/></svg></span><span class="cp-quick-copy"><strong>Track Booking</strong><small>Check your status</small></span><svg class="cp-icon-sm" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
-            <a href="reviews.html" class="cp-quick-card"><span class="cp-quick-icon is-blush"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20.5 5.5a5.5 5.5 0 0 0-7.8 0L12 6.2l-.7-.7a5.5 5.5 0 0 0-7.8 7.8L12 22l8.5-8.7a5.5 5.5 0 0 0 0-7.8z"/></svg></span><span class="cp-quick-copy"><strong>My Feedback</strong><small>Rate a finished visit</small></span><svg class="cp-icon-sm" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
-            <a href="home-service.html" class="cp-quick-card"><span class="cp-quick-icon is-leaf"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg></span><span class="cp-quick-copy"><strong>Home Service</strong><small>We come to you</small></span><svg class="cp-icon-sm" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
-          </nav>
 
           <div class="cp-content-grid">
             <!-- Next appointment: soonest upcoming active booking (getNextAppointment in dashboard-appointments.js). -->
             <section aria-labelledby="cp-next-title">
               <div class="cp-section-heading">
                 <div><span class="cp-eyebrow">COMING UP</span><h2 id="cp-next-title">Your next appointment</h2></div>
-                <a href="appointments.html" class="cp-text-button">View all <svg class="cp-icon-sm" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
               </div>
               <template x-if="getNextAppointment()">
                 <article class="cp-card cp-upcoming" x-data="{ get next() { return getNextAppointment(); } }">
@@ -159,28 +146,9 @@
                 <h3>Make room for<br>your glow.</h3>
                 <p>From a fresh cut to a relaxing nail session, your next favorite service is waiting.</p>
                 <p class="cp-feature-stat" x-text="Number(displayServiceCount) === 1 ? '1 completed service with us' : displayServiceCount + ' completed services with us'"></p>
-                <a href="services-promos.html" class="cp-text-button">Explore treatments <svg class="cp-icon-sm" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
               </div>
             </section>
           </div>
-
-          <!-- Services you'll love: categories from the live catalogs. -->
-          <section x-show="serviceTeasers().length" aria-labelledby="cp-fav-title">
-            <div class="cp-section-heading cp-spaced">
-              <div><span class="cp-eyebrow">OUR FAVORITES</span><h2 id="cp-fav-title">Services you'll love</h2></div>
-              <a href="services-promos.html" class="cp-text-button">See all services <svg class="cp-icon-sm" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
-            </div>
-            <div class="cp-teasers">
-              <template x-for="(teaser, index) in serviceTeasers()" :key="teaser.name">
-                <a href="services-promos.html" class="cp-teaser">
-                  <span class="cp-teaser-icon"><template x-if="index % 4 === 0"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m12 2 2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5z"/></svg></template><template x-if="index % 4 === 1"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20.5 5.5a5.5 5.5 0 0 0-7.8 0L12 6.2l-.7-.7a5.5 5.5 0 0 0-7.8 7.8L12 22l8.5-8.7a5.5 5.5 0 0 0 0-7.8z"/></svg></template><template x-if="index % 4 === 2"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m12 2 3.1 6.3L22 9.3l-5 4.9 1.2 6.8-6.2-3.3-6.2 3.3L7 14.2 2 9.3l6.9-1z"/></svg></template><template x-if="index % 4 === 3"><svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></template></span>
-                  <strong x-text="teaser.name"></strong>
-                  <small x-text="teaser.detail"></small>
-                  <svg class="cp-icon-sm" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
-                </a>
-              </template>
-            </div>
-          </section>
 
           <!-- Shared loyalty card across all branches. -->
           <section class="cp-card cp-loyalty" aria-labelledby="cp-loyalty-title">
@@ -221,7 +189,6 @@
                   <li>After 10 stamps, a new card starts. Unused rewards remain available.</li>
                 </ul>
               </details>
-              <div class="cp-loyalty-actions"><a href="services-promos.html?book=1" class="cp-btn cp-btn-secondary">Plan a visit <svg class="cp-icon-sm" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></div>
             </div>
           </section>
 
@@ -239,7 +206,7 @@
         <div class="space-y-4">
           <div class="flex justify-between items-start">
             <h3 class="font-serif text-lg font-bold text-white" x-text="viewingAppointment.serviceName"></h3>
-            <button @click="closeAppointmentDetails()" class="text-slate-400 hover:text-white leading-none text-xl">&times;</button>
+            <button @click="closeAppointmentDetails()" class="ui-close-icon text-slate-400 hover:text-white leading-none text-xl">&times;</button>
           </div>
           <div class="text-base text-slate-700 space-y-1">
             <p x-text="viewingAppointment.branchName"></p>
@@ -276,6 +243,7 @@
        the next-appointment card, appointment details, and status
        badges. Booking, reviews, home service, and profile mixins live
        on their own pages. -->
+  <script src="../../function/shared/sign-out.js?v=20261111"></script>
   <script src="../../function/customer/customer-shell.js?v=20261110"></script>
   <script src="../../function/customer/dashboard-helpers.js"></script>
   <script src="../../function/customer/dashboard-state.js"></script>
@@ -283,5 +251,6 @@
   <script src="../../function/customer/dashboard-appointments.js"></script>
   <script src="../../function/shared/live-sync.js?v=20261110"></script>
   <script src="../../function/customer/dashboard.js"></script>
+<script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

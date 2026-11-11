@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="../shared/theme-tokens.css">
+    <link rel="stylesheet" href="../shared/theme-tokens.css?v=20261111-card-tones">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leo Mejillano Salon - Inventory Tracking</title>
@@ -48,13 +48,13 @@
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
   <!-- Cashier Panel redesign: loaded last, scoped to body.cp-cashier. -->
-  <link rel="stylesheet" href="../../frontend/cashier/cashier-panel.css?v=20261110d">
+  <link rel="stylesheet" href="../../frontend/cashier/cashier-panel.css?v=20261111-mobile-shared">
   <link rel="stylesheet" href="../../frontend/shared/portal-unify.css?v=20261110b">
   <style>
     #inventoryAdjustmentForm label:has(input[name="adjType"]:checked) { background:var(--brand-soft); border-color:var(--brand); }
     #inventoryAdjustmentForm label:has(input[name="adjType"]:checked) span { color:var(--brand-dark); }
   </style>
-  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
 </head>
 <body class="salon-portal bg-gray-100 font-sans antialiased flex h-screen overflow-hidden">
 
@@ -98,10 +98,6 @@
                     <i class="fa-solid fa-users-gear w-5 text-center text-slate-400"></i>
                     <span class="text-base">Staff Assignments</span>
                 </a>
-                <a href="profile.html" data-nav-page="profile.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
-                    <i class="fa-solid fa-user-shield w-5 text-center text-slate-400"></i>
-                    <span class="text-base">Profile &amp; Security</span>
-                </a>
             </nav>
         </div>
 
@@ -135,7 +131,7 @@
                         </button>
                     </div>
                 </div>
-                <div data-stat-grid class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div id="stockSummaryCards" data-stat-grid class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="card-lift p-4 bg-slate-50 border border-gray-100 rounded-xl">
                         <p class="text-xs font-bold text-gray-400 uppercase tracking-wide">Total Products</p>
                         <h4 class="font-black text-xl text-slate-800 mt-1" id="invTotalSkus">0</h4>
@@ -152,7 +148,7 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 text-xs">
-                <div class="stagger-item bg-white p-5 rounded-xl shadow-sm border border-gray-200 h-fit space-y-4 order-2 lg:order-none lg:sticky lg:top-0">
+                <div class="stagger-item bg-white p-5 rounded-xl shadow-sm border border-gray-200 h-fit space-y-4 order-2 lg:order-none">
                     <div class="border-b border-gray-100 pb-2">
                         <h3 class="font-bold text-gray-800 text-base flex items-center"><i class="fa-solid fa-circle-plus text-amber-500 mr-2"></i>Stock Adjustment</h3>
                     </div>
@@ -201,14 +197,14 @@
                 <div class="stagger-item bg-white p-5 rounded-xl shadow-sm border border-gray-200 lg:col-span-2 order-1 lg:order-none">
                     <div class="border-b border-gray-100 pb-3 mb-4 flex justify-between items-center flex-wrap gap-2">
                         <h3 class="font-bold text-gray-800 text-base"><i class="fa-solid fa-list-check text-emerald-500 mr-2"></i>Branch Inventory</h3>
-                        <div class="flex items-center gap-2">
-                            <div class="flex items-center gap-1 bg-[color:var(--bg)] rounded-lg p-1">
+                        <div class="cp-inventory-tools">
+                            <div class="cp-inventory-filters flex items-center gap-1 bg-[color:var(--bg)] rounded-lg p-1">
                                 <button type="button" id="btnFilterAllStock" class="px-2.5 py-1 rounded text-xs font-bold bg-white text-slate-800 shadow-sm">All Items</button>
                                 <button type="button" id="btnFilterLowStock" class="px-2.5 py-1 rounded text-xs font-bold text-slate-500">Low Stock</button>
                             </div>
-                            <div class="relative">
-                                <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-gray-400 text-xs"></i>
-                                <input id="inventorySearch" type="text" placeholder="Search product..." class="bg-gray-50 border border-gray-300 rounded-lg pl-7 pr-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 w-40">
+                            <div class="cp-inventory-search">
+                                <i class="fa-solid fa-magnifying-glass text-gray-400" aria-hidden="true"></i>
+                                <input id="inventorySearch" type="search" aria-label="Search inventory products" placeholder="Search product..." class="bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500">
                             </div>
                         </div>
                     </div>
@@ -276,7 +272,7 @@
         <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl border border-gray-100 transform scale-95 transition-transform duration-300">
             <div class="bg-slate-950 p-4 text-white flex justify-between items-center">
                 <h4 class="font-bold text-base tracking-wide"><i class="fa-solid fa-triangle-exclamation text-amber-400 mr-2"></i>Confirm Stock Adjustment</h4>
-                <button id="btnCloseConfirmAdjustmentModal" class="text-gray-400 hover:text-white transition-all text-lg">&times;</button>
+                <button id="btnCloseConfirmAdjustmentModal" class="ui-close-icon text-gray-400 hover:text-white transition-all text-lg">&times;</button>
             </div>
             <div class="p-5 space-y-3.5 text-xs">
                 <p class="text-base text-center text-gray-600">Please review and confirm the following stock modification:</p>
@@ -302,7 +298,7 @@
         <div class="bg-white rounded-2xl w-full max-w-5xl overflow-hidden shadow-2xl border border-gray-100 transform scale-95 transition-transform duration-300">
             <div class="bg-slate-950 p-4 text-white flex justify-between items-center">
                 <h4 class="font-bold text-base tracking-wide"><i class="fa-solid fa-clipboard-list text-amber-400 mr-2"></i>Stock History (<span id="logBranchName"></span>)</h4>
-                <button id="btnCloseInventoryLogModal" class="text-gray-400 hover:text-white transition-all text-lg">&times;</button>
+                <button id="btnCloseInventoryLogModal" class="ui-close-icon text-gray-400 hover:text-white transition-all text-lg">&times;</button>
             </div>
             <div class="p-5 text-xs max-h-[75vh] overflow-y-auto space-y-3">
                 <p class="text-xs text-gray-500">Every stock change at this branch, newest first.</p>
@@ -348,8 +344,10 @@
 
     <script src="../../function/shared/confirm-dialog.js"></script>
     <script src="../../function/shared/live-sync.js?v=20261110"></script>
-    <script src="../../function/cashier/cashier-shell.js?v=20261110c"></script>
+    <script src="../../function/shared/sign-out.js?v=20261111"></script>
+    <script src="../../function/cashier/cashier-shell.js?v=20261111a"></script>
     <script src="../../function/cashier/cashier-common.js?v=20261110"></script>
     <script src="../../function/cashier/inventory.js?v=20261110"></script>
+<script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

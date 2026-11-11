@@ -96,39 +96,48 @@ try {
 
     $durationMinutes = Scheduling::totalDurationMinutes($pdo, $serviceIds);
 
-    // 'busy' lists qualified stylists who are booked at this time, so the
-    // form can offer to waitlist them (backend/public/joinWaitlist.php).
+    // Every qualified, active stylist at the branch is listed -- including
+    // anyone off shift right now -- with two separate things:
+    //   currentShift*      their live status now (StaffShift, five statuses)
+    //   available/message  whether the WHOLE service fits them at the chosen
+    //                      date and time ("Available tomorrow at 10:00 AM",
+    //                      "Day off", "On leave", "Booked until 3:30 PM",
+    //                      "Unavailable at this time").
+    // Advance bookings only need the stylist scheduled then; being off shift
+    // now never blocks a later booking. 'busy' (unavailable ones) still feeds
+    // the waitlist offer (backend/public/joinWaitlist.php).
+    // Branch-level reason shown above the staff list, when there is one.
+    $notice = null;
+    $branchKeyNow = Scheduling::branchKeyForId($pdo, $branchId);
+    if ($branchKeyNow !== null) {
+        if (Scheduling::isBranchClosed($branchKeyNow, substr($appointmentDateTime, 0, 10))) $notice = 'The branch is closed on this date (holiday).';
+        elseif (Scheduling::isOutsideOperatingHours($appointmentDateTime, $durationMinutes, $branchKeyNow)) $notice = 'The full service does not fit the branch hours at this time.';
+    }
+    $isPast = $pdo->query('SELECT ' . $pdo->quote($appointmentDateTime) . ' <= NOW()')->fetchColumn();
+    $describe = function (array $e, string $start, int $minutes) use ($pdo, $isPast, $notice) {
+        $live = StaffShift::liveStatus($pdo, (int) $e['id']);
+        if ($isPast) $check = ['available' => false, 'code' => 'past', 'message' => Scheduling::BLOCK_MESSAGES['past'], 'busyUntil' => null];
+        elseif ($notice !== null) $check = ['available' => false, 'code' => 'outside_hours', 'message' => Scheduling::BLOCK_MESSAGES['outside_hours'], 'busyUntil' => null];
+        else $check = Scheduling::staffAvailability($pdo, (int) $e['id'], $start, $minutes);
+        return [
+            'id' => (string) $e['id'],
+            'name' => trim($e['first_name'] . ' ' . $e['last_name']),
+            'role' => $e['position'] ?: '',
+            'currentShift' => $live,
+            'currentShiftLabel' => StaffShift::statusLabel($live),
+            'currentShiftColor' => StaffShift::statusColor($live),
+            'available' => $check['available'],
+            'status' => $check['available'] ? 'Available' : 'Unavailable',
+            'availabilityCode' => $check['code'],
+            'availabilityMessage' => $check['message'],
+            'busyUntil' => $check['busyUntil'],
+        ];
+    };
     $staff = [];
     $busy = [];
     foreach ($candidates as $candidate) {
-        // Not scheduled to work then (rest day / outside their hours), or an
-        // immediate booking while they're off shift / on a break: hide.
-        if (!Scheduling::staffIsScheduled($pdo, (int) $candidate['id'], $appointmentDateTime, $durationMinutes)) continue;
-        $entry = [
-            'id' => (string) $candidate['id'],
-            'name' => trim($candidate['first_name'] . ' ' . $candidate['last_name']),
-            'role' => $candidate['position'] ?: '',
-            'currentShift' => StaffShift::liveStatus($pdo, (int) $candidate['id']),
-        ];
-        // Same-day booking while off shift / on a break: shown, but not bookable.
-        if (!Scheduling::staffCanTakeBooking($pdo, (int) $candidate['id'], $appointmentDateTime, $durationMinutes)) {
-            $entry['available'] = false;
-            $entry['status'] = $entry['currentShift'];
-            $entry['busyUntil'] = null;
-            $busy[] = $entry;
-            continue;
-        }
-        $busyUntil = Scheduling::staffConflictUntil($pdo, (int) $candidate['id'], $appointmentDateTime, $durationMinutes);
-        if ($busyUntil === null) {
-            $entry['available'] = true;
-            $entry['status'] = 'Available';
-            $staff[] = $entry;
-        } else {
-            $entry['available'] = false;
-            $entry['status'] = 'Busy';
-            $entry['busyUntil'] = $busyUntil->format('h:i A');
-            $busy[] = $entry;
-        }
+        $entry = $describe($candidate, $appointmentDateTime, $durationMinutes);
+        if ($entry['available']) $staff[] = $entry; else $busy[] = $entry;
     }
 
     // Per-service view (one stylist per service): the services run
@@ -155,26 +164,8 @@ try {
         $segmentStart = clone $cursor;
         $segmentEnd = (clone $cursor)->modify("+{$minutes} minutes");
         $qualifiedStmt->execute([$serviceId, $branchId]);
-        $scheduled = array_values(array_filter($qualifiedStmt->fetchAll(), fn($e) =>
-            Scheduling::staffIsScheduled($pdo, (int) $e['id'], $segmentStart->format('Y-m-d H:i:s'), $minutes)));
-        $options = array_map(function ($e) use ($pdo, $segmentStart, $minutes) {
-            $shift = StaffShift::liveStatus($pdo, (int) $e['id']);
-            if (!Scheduling::staffCanTakeBooking($pdo, (int) $e['id'], $segmentStart->format('Y-m-d H:i:s'), $minutes)) {
-                // Off shift / on a break: shown, but can't be picked.
-                return ['id' => (string) $e['id'], 'name' => trim($e['first_name'] . ' ' . $e['last_name']), 'role' => $e['position'] ?: '',
-                    'currentShift' => $shift, 'available' => false, 'status' => $shift, 'busyUntil' => null];
-            }
-            $until = Scheduling::staffConflictUntil($pdo, (int) $e['id'], $segmentStart->format('Y-m-d H:i:s'), $minutes);
-            return [
-                'id' => (string) $e['id'],
-                'name' => trim($e['first_name'] . ' ' . $e['last_name']),
-                'role' => $e['position'] ?: '',
-                'currentShift' => $shift,
-                'available' => $until === null,
-                'status' => $until === null ? 'Available' : 'Busy',
-                'busyUntil' => $until ? $until->format('h:i A') : null,
-            ];
-        }, $scheduled);
+        $segment = $segmentStart->format('Y-m-d H:i:s');
+        $options = array_map(fn($e) => $describe($e, $segment, $minutes), $qualifiedStmt->fetchAll());
         $perService[] = [
             'id' => (string) $serviceId,
             'name' => $serviceRows[$serviceId]['service_name'],
@@ -186,7 +177,7 @@ try {
         $cursor = $segmentEnd;
     }
 
-    echo json_encode(['success' => true, 'staff' => $staff, 'busy' => $busy, 'services' => $perService]);
+    echo json_encode(['success' => true, 'staff' => $staff, 'busy' => $busy, 'services' => $perService, 'notice' => $notice]);
 } catch (PDOException $e) {
     http_response_code(500);
     error_log('getAvailableStaff error: ' . $e->getMessage());

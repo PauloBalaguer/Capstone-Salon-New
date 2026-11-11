@@ -3,6 +3,7 @@ function adminCustomersApp() {
     customerSearchQuery: '',
     customerFilterAccountType: ['Registered', 'Guest'].includes(AdminUI.param('type')) ? AdminUI.param('type') : 'all',
     openHistoryModalFlag: false,
+    historyTab: 'all',
     selectedCustomer: null,
 
     init() {
@@ -30,6 +31,7 @@ function adminCustomersApp() {
 
     openHistoryModal(customer) {
       this.selectedCustomer = customer;
+      this.historyTab = 'all';
       this.openHistoryModalFlag = true;
     },
 
@@ -42,7 +44,43 @@ function adminCustomersApp() {
       if (!customer) return [];
       return store.bookings
         .filter(b => customer.id && b.customerId ? b.customerId === customer.id : b.clientPhone === customer.phone)
-        .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+        .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')) || String(b.time || '').localeCompare(String(a.time || '')));
+    },
+
+    /* History: upcoming / completed / cancelled buckets, summary and rows. */
+    historyKind(b) {
+      if (['Completed', 'Reviewed'].includes(b.status)) return 'completed';
+      if (['Cancelled', 'No-Show', 'Rejected'].includes(b.status)) return 'cancelled';
+      return 'upcoming';
+    },
+    historyCounts() {
+      const list = this.getCustomerBookings();
+      const c = { all: list.length, upcoming: 0, completed: 0, cancelled: 0 };
+      list.forEach(b => { c[this.historyKind(b)]++; });
+      return c;
+    },
+    historyRows() {
+      const list = this.getCustomerBookings();
+      return this.historyTab === 'all' ? list : list.filter(b => this.historyKind(b) === this.historyTab);
+    },
+    /* Month heading only when the month changes from the row above. */
+    historyMonth(rows, i) {
+      const m = b => String(b.date || '').slice(0, 7);
+      if (i > 0 && m(rows[i]) === m(rows[i - 1])) return '';
+      const d = new Date((rows[i].date || '') + 'T00:00:00');
+      return isNaN(d) ? 'No date' : d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    },
+    historyDay(b) {
+      const d = new Date((b.date || '') + 'T00:00:00');
+      return isNaN(d) ? '—' : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    },
+    historyBranch(b) {
+      if (b.isHomeService) return 'Home service';
+      return ({ daraga: 'Daraga Main', yashano: 'Yashano Mall', cabangan: 'Cabangan' })[b.branchId] || Alpine.store('admin').getBranchName(b.branchId);
+    },
+    historyPrice(b) {
+      const store = Alpine.store('admin');
+      return b.isHomeService ? (b.quotePrice ? store.formatCurrency(b.quotePrice) : 'Quote pending') : store.formatCurrency(b.price);
     }
   };
 }

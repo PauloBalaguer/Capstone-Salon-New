@@ -35,8 +35,7 @@
     ['appointments.html', 'Appointments', 'fa-calendar-check'],
     ['payment.html', 'Payment Records', 'fa-money-check-dollar'],
     ['inventory.html', 'Inventory Tracking', 'fa-boxes-stacked'],
-    ['staff.html', 'Staff Assignments', 'fa-users-gear'],
-    ['profile.html', 'Profile & Security', 'fa-user-shield']
+    ['staff.html', 'Staff Assignments', 'fa-users-gear']
   ];
   const BOTTOM_COUNT = 4;
   const LOGOUT_URL = '../../backend/auth/logout.php?portal=cashier';
@@ -59,7 +58,7 @@
     <div class="cp-branch-card" aria-label="Current branch">
       <p class="cp-branch-kicker"><span class="cp-live-dot" aria-hidden="true"></span>Current branch</p>
       <p class="cp-branch-name" id="sidebarBranchTitle">Loading branch…</p>
-      <p class="cp-branch-meta"><span id="cashierBranchSubtitle">Cashier</span> · <span id="sidebarTerminalId"></span></p>
+      <p class="cp-branch-meta"><span id="cashierBranchSubtitle">Cashier</span><span id="sidebarTerminalId"></span></p>
     </div>
     <p class="cp-side-heading" id="cp-side-heading">CASHIER NAVIGATION</p>
     <nav class="cp-nav" id="sidebarNav" aria-labelledby="cp-side-heading">

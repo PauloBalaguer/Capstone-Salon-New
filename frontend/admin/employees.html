@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="../shared/theme-tokens.css">
+  <link rel="stylesheet" href="../shared/theme-tokens.css?v=20261111-card-tones">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Staff · Leo Mejillano Admin</title>
@@ -11,13 +11,16 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="../../function/admin/theme-config.js"></script>
   <script>tailwind.config.corePlugins = { preflight: false };</script>
+  <script src="../../function/shared/list-pager.js?v=20261111"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <link rel="stylesheet" href="admin-panel.css?v=20261110c">
+  <link rel="stylesheet" href="../shared/notification-panel.css?v=20261111">
+  <link rel="stylesheet" href="admin-panel.css?v=20261111-access">
   <link rel="stylesheet" href="../shared/portal-unify.css?v=20261110b">
   <script src="../../function/shared/toast.js"></script>
   <script src="../../function/shared/confirm-dialog.js"></script>
+  <script src="../../function/shared/notification-panel.js?v=20261111"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
-  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
 </head>
 <body class="lm-admin" x-data="adminStaffApp()" x-init="init()" x-effect="AdminUI.lockScroll(openStaffModal || !!detailStaff)">
 <div class="lm-shell">
@@ -38,10 +41,10 @@
       <div x-show="$store.admin.error" x-cloak class="lm-alert lm-alert--error" role="alert"><p x-text="$store.admin.error"></p><button type="button" class="lm-btn lm-btn--sm" @click="$store.admin.refresh()">Retry</button></div>
 
       <section class="lm-stats" aria-label="Staff figures">
-        <div class="lm-stat"><span class="lm-stat-label">Active staff</span><span class="lm-stat-value" x-text="getFilteredStaff().length"></span><span class="lm-stat-note">Matching the current filters</span></div>
-        <div class="lm-stat"><span class="lm-stat-label">On shift now</span><span class="lm-stat-value" x-text="getFilteredStaff().filter(s => ['On Shift','Busy','On Break'].includes(s.status)).length"></span><span class="lm-stat-note">Clocked in (available, busy or on break)</span></div>
-        <div class="lm-stat"><span class="lm-stat-label">Completed services</span><span class="lm-stat-value" x-text="getFilteredStaff().reduce((sum, s) => sum + s.completedCount, 0)"></span><span class="lm-stat-note">All-time, by these staff</span></div>
-        <div class="lm-stat"><span class="lm-stat-label">Average rating</span><span class="lm-stat-value" x-text="getAverageStaffRating() || '—'"></span><span class="lm-stat-note">From guest feedback</span></div>
+        <div data-card-tone="info" class="lm-stat"><span class="lm-stat-label">Active staff</span><span class="lm-stat-value" x-text="getFilteredStaff().length"></span><span class="lm-stat-note">Matching the current filters</span></div>
+        <div data-card-tone="success" class="lm-stat"><span class="lm-stat-label">On shift now</span><span class="lm-stat-value" x-text="getFilteredStaff().filter(s => LIVE_STATUS_CLOCKED_IN.includes(s.status)).length"></span><span class="lm-stat-note">Clocked in (available, busy or on break)</span></div>
+        <div data-card-tone="success" class="lm-stat"><span class="lm-stat-label">Completed services</span><span class="lm-stat-value" x-text="getFilteredStaff().reduce((sum, s) => sum + s.completedCount, 0)"></span><span class="lm-stat-note">All-time, by these staff</span></div>
+        <div data-card-tone="gold" class="lm-stat"><span class="lm-stat-label">Average rating</span><span class="lm-stat-value" x-text="getAverageStaffRating() || '—'"></span><span class="lm-stat-note">From guest feedback</span></div>
       </section>
 
       <section class="lm-card" aria-label="Staff filters">
@@ -50,14 +53,22 @@
             <div class="lm-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 21l-5-5m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
               <input class="lm-input" type="search" x-model="staffSearchQuery" placeholder="Name, role or email"></div>
           </label>
-          <label class="lm-field"><span>Branch</span>
-            <select class="lm-select" x-model="staffFilterBranch"><option value="all">All branches</option><template x-for="branch in $store.admin.branches" :key="branch.id"><option :value="branch.id" x-text="branch.name"></option></template></select>
-          </label>
           <label class="lm-field"><span>Shift status</span>
-            <select class="lm-select" x-model="staffFilterShift"><option value="all">Everyone</option><option value="on">On shift (clocked in)</option><option value="On Shift">Available</option><option value="Busy">Busy / with client</option><option value="On Break">On break</option><option value="Off Shift">Off shift</option></select>
+            <select class="lm-select" x-model="staffFilterShift"><option value="all">Everyone</option><option value="on">On shift (clocked in)</option><option value="available">Available now</option><option value="busy">Busy</option><option value="busy_home_service">Busy · Home service</option><option value="on_break">On break</option><option value="off_shift">Off shift</option></select>
           </label>
         </div>
       </section>
+
+      <div class="lm-branch-pick" role="radiogroup" aria-label="Show staff from">
+        <template x-for="card in branchCards()" :key="card.id">
+          <button type="button" class="lm-branch-card" role="radio" :aria-checked="(staffFilterBranch === card.id).toString()" :class="{ 'is-on': staffFilterBranch === card.id }" @click="staffFilterBranch = card.id">
+            <span class="lm-branch-check" aria-hidden="true">✓</span>
+            <strong x-text="card.title"></strong>
+            <span class="lm-branch-sub" x-text="card.sub"></span>
+            <span class="lm-branch-count" x-text="card.count + (card.count === 1 ? ' staff' : ' staff')"></span>
+          </button>
+        </template>
+      </div>
 
       <div class="lm-tabs" role="tablist" aria-label="Staff views">
         <template x-for="tab in [['directory','Directory'],['attendance','Attendance'],['tasks','Assignments'],['performance','Performance']]" :key="tab[0]">
@@ -73,19 +84,20 @@
           <table class="lm-table lm-table--stack">
             <thead><tr><th scope="col">Staff member</th><th scope="col">Branch</th><th scope="col">Role</th><th scope="col">Shift status</th><th scope="col" class="num">Actions</th></tr></thead>
             <tbody>
-              <template x-for="staff in getDirectoryStaff()" :key="staff.id">
+              <template x-for="staff in $store.pager.slice('staff-directory', getDirectoryStaff())" :key="staff.id">
                 <tr>
                   <td data-label="Staff"><button type="button" class="lm-name-btn" @click="openDetails(staff)"><span class="lm-avatar" aria-hidden="true" x-text="AdminUI.initials(staff.name)"></span><span x-text="staff.name"></span></button></td>
                   <td data-label="Branch" x-text="$store.admin.getBranchName(staff.branchId)"></td>
                   <td data-label="Role" x-text="staff.role || '—'"></td>
-                  <td data-label="Shift"><span :class="getStaffStatusBadgeClass(staff.status)" x-text="getStaffStatusLabel(staff.status)"></span></td>
-                  <td class="lm-actions-cell"><div class="lm-actions"><button type="button" class="lm-btn lm-btn--sm" @click="openDetails(staff)">Details</button><button type="button" class="lm-btn lm-btn--sm" @click="openEditStaff(staff)">Edit</button><button type="button" class="lm-btn lm-btn--sm lm-btn--danger" @click="removeStaffMember(staff)">Remove</button></div></td>
+                  <td data-label="Shift"><span :class="getStaffStatusBadgeClass(staff.status)"><span class="live-status-dot" aria-hidden="true"></span><span x-text="getStaffStatusLabel(staff.status)"></span></span></td>
+                  <td class="lm-actions-cell"><div class="lm-actions"><button type="button" class="lm-btn lm-btn--sm" @click="openEditStaff(staff)" :aria-label="'Edit ' + staff.name">Edit</button></div></td>
                 </tr>
               </template>
               <tr x-show="getDirectoryStaff().length === 0" class="lm-empty-row"><td colspan="5" class="lm-empty-cell"><div class="lm-empty"><h3>No staff match these filters</h3><p>Change the branch, shift status or search.</p></div></td></tr>
             </tbody>
           </table>
         </div>
+        <nav x-lm-pager="'staff-directory'" aria-label="Staff pages"></nav>
       </section>
 
       <!-- Attendance -->
@@ -95,11 +107,11 @@
           <table class="lm-table lm-table--stack">
             <thead><tr><th scope="col">Staff member</th><th scope="col">Branch</th><th scope="col">Shift status</th><th scope="col" class="center">Attendance (30 days)</th></tr></thead>
             <tbody>
-              <template x-for="staff in getDirectoryStaff()" :key="'att-' + staff.id">
+              <template x-for="staff in $store.pager.slice('staff-attendance', getDirectoryStaff())" :key="'att-' + staff.id">
                 <tr>
                   <td data-label="Staff"><button type="button" class="lm-name-btn" @click="openDetails(staff)"><span x-text="staff.name"></span></button></td>
                   <td data-label="Branch" x-text="$store.admin.getBranchName(staff.branchId)"></td>
-                  <td data-label="Shift"><span :class="getStaffStatusBadgeClass(staff.status)" x-text="getStaffStatusLabel(staff.status)"></span></td>
+                  <td data-label="Shift"><span :class="getStaffStatusBadgeClass(staff.status)"><span class="live-status-dot" aria-hidden="true"></span><span x-text="getStaffStatusLabel(staff.status)"></span></span></td>
                   <td data-label="Attendance" class="center"><strong x-text="staff.attendance + '%'"></strong><span class="lm-cell-sub" style="color:var(--lm-warn)" x-show="staff.missedSignOuts" x-text="staff.missedSignOuts + ' missed sign-out' + (staff.missedSignOuts === 1 ? '' : 's')"></span></td>
                 </tr>
               </template>
@@ -107,13 +119,14 @@
             </tbody>
           </table>
         </div>
+        <nav x-lm-pager="'staff-attendance'" aria-label="Attendance pages"></nav>
       </section>
 
       <!-- Assignments -->
       <section class="lm-card" x-show="activeTab === 'tasks' && !$store.admin.loading" x-cloak aria-label="Assignments">
         <div class="lm-card-head"><div><h2>Current assignments</h2><p>Each staff member's active, not-yet-completed bookings.</p></div></div>
         <div class="lm-grid lm-grid--2">
-          <template x-for="staff in getDirectoryStaff()" :key="'tasks-' + staff.id">
+          <template x-for="staff in $store.pager.slice('staff-tasks', getDirectoryStaff())" :key="'tasks-' + staff.id">
             <div class="lm-panel">
               <div class="lm-actions" style="justify-content:space-between;margin-bottom:8px"><button type="button" class="lm-name-btn" @click="openDetails(staff)"><span x-text="staff.name"></span></button><span class="lm-badge lm-badge--neutral" x-text="getStaffTasks(staff.id).length + ' active'"></span></div>
               <ul class="lm-list">
@@ -125,6 +138,7 @@
             </div>
           </template>
         </div>
+        <nav x-lm-pager="'staff-tasks'" aria-label="Assignment pages"></nav>
         <div class="lm-empty" x-show="getDirectoryStaff().length === 0"><h3>No staff match these filters</h3></div>
       </section>
 
@@ -140,9 +154,9 @@
           <table class="lm-table lm-table--stack">
             <thead><tr><th scope="col" class="center">Rank</th><th scope="col">Staff member</th><th scope="col">Branch</th><th scope="col" class="center">Completed</th><th scope="col" class="center">Rating</th><th scope="col" class="center">Attendance</th></tr></thead>
             <tbody>
-              <template x-for="(staff, index) in getPerformanceStaff()" :key="'perf-' + staff.id">
+              <template x-for="(staff, index) in $store.pager.slice('staff-performance', getPerformanceStaff())" :key="'perf-' + staff.id">
                 <tr>
-                  <td data-label="Rank" class="center"><span :class="index < 3 && performanceSortBy !== 'name' ? 'lm-badge lm-badge--gold' : 'lm-badge lm-badge--neutral'" x-text="'#' + (index + 1)"></span></td>
+                  <td data-label="Rank" class="center"><span x-data="{ get rank() { return ($store.pager.entry('staff-performance').page - 1) * 10 + index + 1; } }" :class="rank <= 3 && performanceSortBy !== 'name' ? 'lm-badge lm-badge--gold' : 'lm-badge lm-badge--neutral'" x-text="'#' + rank"></span></td>
                   <td data-label="Staff"><button type="button" class="lm-name-btn" @click="openDetails(staff)"><span x-text="staff.name"></span></button><span class="lm-cell-sub" x-text="staff.role"></span></td>
                   <td data-label="Branch" x-text="$store.admin.getBranchName(staff.branchId)"></td>
                   <td data-label="Completed" class="center" x-text="isServiceRole(staff) ? staff.completedCount : 'N/A'"></td>
@@ -154,6 +168,7 @@
             </tbody>
           </table>
         </div>
+        <nav x-lm-pager="'staff-performance'" aria-label="Performance pages"></nav>
       </section>
     </main>
   </div>
@@ -166,7 +181,7 @@
       <div style="display:contents">
         <div class="lm-modal-head">
           <div class="lm-actions" style="flex-wrap:nowrap"><span class="lm-avatar" style="width:46px;height:46px;font-size:16px" aria-hidden="true" x-text="AdminUI.initials(detailStaff.name)"></span><div><h2 id="staffDetailTitle" x-text="detailStaff.name"></h2><p x-text="(detailStaff.role || 'Staff') + ' · ' + $store.admin.getBranchName(detailStaff.branchId)"></p></div></div>
-          <button type="button" class="lm-close" @click="detailStaff = null" aria-label="Close">&times;</button>
+          <button type="button" class="ui-close-icon lm-close" @click="detailStaff = null" aria-label="Close">&times;</button>
         </div>
         <div class="lm-modal-body">
           <dl class="lm-dl">
@@ -174,15 +189,84 @@
             <div><dt>Account email</dt><dd x-text="detailStaff.email || 'No login email on record'"></dd></div>
             <div><dt>Branch</dt><dd x-text="$store.admin.getBranchName(detailStaff.branchId)"></dd></div>
             <div><dt>Role</dt><dd x-text="detailStaff.role || '—'"></dd></div>
-            <div><dt>Shift status</dt><dd><span :class="getStaffStatusBadgeClass(detailStaff.status)" x-text="getStaffStatusLabel(detailStaff.status)"></span></dd></div>
+            <div><dt>Shift status</dt><dd><span :class="getStaffStatusBadgeClass(detailStaff.status)"><span class="live-status-dot" aria-hidden="true"></span><span x-text="getStaffStatusLabel(detailStaff.status)"></span></span></dd></div>
             <div><dt>Completed services</dt><dd x-text="isServiceRole(detailStaff) ? detailStaff.completedCount : 'N/A (non-service role)'"></dd></div>
             <div><dt>Customer rating</dt><dd class="lm-text-gold" x-text="detailStaff.rating ? detailStaff.rating + ' / 5' : 'No ratings yet'"></dd></div>
             <div><dt>Attendance (30 days)</dt><dd><span x-text="detailStaff.attendance + '%'"></span><span class="lm-cell-sub" x-show="detailStaff.missedSignOuts" x-text="detailStaff.missedSignOuts + ' missed sign-out(s)'"></span></dd></div>
             <div><dt>Performance rank</dt><dd x-text="rankLabel(detailStaff)"></dd></div>
             <div class="full"><dt>Services offered</dt><dd style="font-weight:500" x-text="detailStaff.specialties"></dd></div>
           </dl>
+          <!-- Weekly days off / hours and date-specific leave (migration 062). -->
           <div>
-            <p class="lm-label" style="margin:0 0 8px">Active assignments</p>
+            <p class="lm-label" style="margin:0 0 8px">Weekly schedule</p>
+            <p class="lm-hint" x-show="scheduleLoading">Loading...</p>
+            <div class="lm-list" x-show="!scheduleLoading && scheduleDays.length">
+              <template x-for="day in scheduleDays" :key="day.dayOfWeek">
+                <div class="lm-list-item" style="flex-wrap:wrap;gap:8px">
+                  <span class="lm-cell-main" style="min-width:96px" x-text="day.dayName"></span>
+                  <select class="lm-select" style="max-width:190px" x-model="day.mode" @change="weekAffected = null" :aria-label="day.dayName + ' schedule'">
+                    <option value="branch">Branch hours</option><option value="work">Custom hours</option><option value="off">Day off</option>
+                  </select>
+                  <template x-if="day.mode === 'work'">
+                    <span class="lm-actions" style="flex-wrap:wrap">
+                      <input class="lm-input" style="max-width:130px" type="time" x-model="day.start" @change="weekAffected = null" :aria-label="day.dayName + ' start'">
+                      <input class="lm-input" style="max-width:130px" type="time" x-model="day.end" @change="weekAffected = null" :aria-label="day.dayName + ' end'">
+                    </span>
+                  </template>
+                </div>
+              </template>
+            </div>
+            <div class="lm-actions" style="margin-top:8px" x-show="scheduleDays.length"><button type="button" class="lm-btn lm-btn--sm" @click="previewWeek()">Check affected bookings</button></div>
+            <template x-if="weekAffected !== null">
+              <div style="margin-top:8px">
+                <p class="lm-hint" x-show="!weekAffected.length">No upcoming confirmed bookings are affected.</p>
+                <div x-show="weekAffected.length">
+                  <p class="lm-label" style="margin:0 0 6px" x-text="weekAffected.length + ' confirmed booking(s) no longer fit. They will be flagged for follow-up and keep their original details until you arrange a change with the customer.'"></p>
+                  <ul class="lm-list">
+                    <template x-for="b in weekAffected" :key="b.reference">
+                      <li class="lm-list-item"><div><span class="lm-cell-main" x-text="b.type + ' - ' + b.reference"></span><span class="lm-cell-sub" x-text="b.when + ' - ' + b.client"></span></div></li>
+                    </template>
+                  </ul>
+                </div>
+                <div class="lm-actions" style="margin-top:8px"><button type="button" class="lm-btn lm-btn--sm lm-btn--primary" @click="saveWeek()" x-text="weekAffected.length ? 'Save schedule and flag bookings' : 'Save weekly schedule'"></button></div>
+              </div>
+            </template>
+            <p class="lm-hint">A day off blocks bookings even when the branch is open. Existing bookings are never moved; ones that no longer fit are flagged for follow-up.</p>
+          </div>
+          <div>
+            <p class="lm-label" style="margin:16px 0 8px">Leave</p>
+            <p class="lm-hint" x-show="!leaveReady">Leave is available after database migration 062 is applied.</p>
+            <div x-show="leaveReady">
+            <ul class="lm-list">
+              <template x-for="leave in leaveList" :key="leave.id">
+                <li class="lm-list-item"><div><span class="lm-cell-main" x-text="leave.startDate + (leave.endDate !== leave.startDate ? ' to ' + leave.endDate : '')"></span><span class="lm-cell-sub" x-text="leave.reason || 'No reason given'"></span></div><button type="button" class="lm-btn lm-btn--sm" @click="deleteLeave(leave)">Remove</button></li>
+              </template>
+            </ul>
+            <p class="lm-hint" x-show="!scheduleLoading && !leaveList.length">No upcoming leave.</p>
+            <div class="lm-form-row lm-form-row--3" style="margin-top:8px">
+              <label class="lm-field"><span>From</span><input class="lm-input" type="date" x-model="leaveForm.startDate" @change="leaveAffected = null"></label>
+              <label class="lm-field"><span>To</span><input class="lm-input" type="date" x-model="leaveForm.endDate" @change="leaveAffected = null"></label>
+              <label class="lm-field"><span>Reason (optional)</span><input class="lm-input" type="text" maxlength="255" x-model="leaveForm.reason"></label>
+            </div>
+            <div class="lm-actions"><button type="button" class="lm-btn lm-btn--sm" @click="previewLeave()">Check affected bookings</button></div>
+            <template x-if="leaveAffected !== null">
+              <div style="margin-top:8px">
+                <p class="lm-hint" x-show="!leaveAffected.length">No confirmed bookings on these dates.</p>
+                <div x-show="leaveAffected.length">
+                  <p class="lm-label" style="margin:0 0 6px" x-text="leaveAffected.length + ' confirmed booking(s) affected. They will be flagged for follow-up and keep their original details until you arrange a change with the customer.'"></p>
+                  <ul class="lm-list">
+                    <template x-for="b in leaveAffected" :key="b.reference">
+                      <li class="lm-list-item"><div><span class="lm-cell-main" x-text="b.type + ' - ' + b.reference"></span><span class="lm-cell-sub" x-text="b.when + ' - ' + b.client"></span></div></li>
+                    </template>
+                  </ul>
+                </div>
+                <div class="lm-actions" style="margin-top:8px"><button type="button" class="lm-btn lm-btn--sm lm-btn--primary" @click="addLeave()" x-text="leaveAffected.length ? 'Save leave and flag bookings' : 'Save leave'"></button></div>
+              </div>
+            </template>
+            </div>
+          </div>
+          <div>
+            <p class="lm-label" style="margin:16px 0 8px">Active assignments</p>
             <ul class="lm-list">
               <template x-for="task in getStaffTasks(detailStaff.id)" :key="task.id">
                 <li class="lm-list-item"><div><span class="lm-cell-main" x-text="task.label"></span><span class="lm-cell-sub" x-text="task.id + ' · ' + task.when"></span></div><span :class="$store.admin.getStatusBadgeClass(task.status)" x-text="task.status"></span></li>
@@ -203,24 +287,17 @@
 <!-- Add / edit staff -->
 <div class="lm-modal" x-show="openStaffModal" x-cloak @keydown.escape.window="openStaffModal = false" role="dialog" aria-modal="true" aria-labelledby="staffFormTitle">
   <div class="lm-modal-box" @click.outside="openStaffModal = false">
-    <div class="lm-modal-head"><div><h2 id="staffFormTitle" x-text="editingStaffId ? 'Edit staff member' : 'Add staff member'"></h2><p>Attendance, completed bookings and rating are tracked automatically.</p></div><button type="button" class="lm-close" @click="openStaffModal = false" aria-label="Close">&times;</button></div>
-    <form class="lm-modal-body lm-form" @submit.prevent="saveStaff()">
-      <label class="lm-field"><span>Full name</span><input class="lm-input" type="text" x-model="staffForm.name" required></label>
-      <div class="lm-form-row">
-        <label class="lm-field"><span>Branch</span>
-          <select class="lm-select" x-model="staffForm.branchId" @change="staffForm.serviceIds = []" required><option value="" disabled>Select…</option><template x-for="branch in $store.admin.branches" :key="branch.id"><option :value="branch.id" x-text="branch.name"></option></template></select>
-        </label>
-        <label class="lm-field"><span>Role / specialty</span><input class="lm-input" type="text" x-model="staffForm.role" required placeholder="e.g. Hair Colorist"></label>
-      </div>
-      <div class="lm-field"><span>Services offered</span>
-        <div class="lm-panel" style="max-height:170px;overflow-y:auto;display:flex;flex-direction:column;gap:6px">
-          <p class="lm-hint" x-show="!staffForm.branchId">Select a branch first.</p>
-          <p class="lm-hint" x-show="staffForm.branchId && getServicesForStaffBranch().length === 0">No services set up for this branch yet.</p>
-          <template x-for="service in getServicesForStaffBranch()" :key="service.id">
-            <label class="lm-check"><input type="checkbox" :checked="staffForm.serviceIds.includes(service.id)" @change="toggleStaffService(service.id)"><span x-text="service.name"></span></label>
-          </template>
+    <div class="lm-modal-head"><div><h2 id="staffFormTitle" x-text="editingStaffId ? 'Edit staff member' : 'Add staff member'"></h2><p>Attendance, completed bookings and rating are tracked automatically.</p></div><button type="button" class="ui-close-icon lm-close" @click="openStaffModal = false" aria-label="Close">&times;</button></div>
+    <form class="lm-modal-body lm-form lm-staff-form" @submit.prevent="saveStaff()">
+      <section class="lm-bd-section" aria-label="Personal details">
+      <h3 class="lm-bd-heading">Personal details</h3>
+      <div class="lm-name-row">
+        <label class="lm-field"><span>First name</span><input class="lm-input" type="text" x-model="staffForm.firstName" placeholder="First name" autocomplete="given-name" required></label>
+        <div class="lm-field"><label for="staffMiddleName"><span>Middle name</span></label>
+          <input id="staffMiddleName" class="lm-input" type="text" x-model="staffForm.middleName" placeholder="Optional" autocomplete="additional-name" :disabled="staffForm.noMiddleName">
+          <label class="lm-na"><input type="checkbox" x-model="staffForm.noMiddleName" @change="if (staffForm.noMiddleName) staffForm.middleName = ''"><span>No middle name</span></label>
         </div>
-        <small class="lm-hint">This staff member can only be booked or assigned for the services checked here.</small>
+        <label class="lm-field"><span>Last name</span><input class="lm-input" type="text" x-model="staffForm.lastName" placeholder="Last name" autocomplete="family-name" required></label>
       </div>
       <template x-if="!editingStaffId">
         <div class="lm-form-row">
@@ -228,14 +305,61 @@
           <label class="lm-field"><span>Contact number</span><input class="lm-input" type="text" x-model="staffForm.phone" required></label>
         </div>
       </template>
+      </section>
+
+      <section class="lm-bd-section" aria-label="Work">
+      <h3 class="lm-bd-heading">Work</h3>
+      <div class="lm-form-row">
+        <label class="lm-field"><span>Branch</span>
+          <select class="lm-select" x-model="staffForm.branchId" @change="staffForm.serviceIds = []; svcGroup = 'all'; svcSearch = ''" required><option value="" disabled>Select…</option><template x-for="branch in $store.admin.branches" :key="branch.id"><option :value="branch.id" x-text="branch.name"></option></template></select>
+        </label>
+        <label class="lm-field"><span>Role / specialty</span><input class="lm-input" type="text" x-model="staffForm.role" required placeholder="e.g. Hair Colorist"></label>
+      </div>
+      </section>
+
+      <section class="lm-bd-section lm-svcpick" aria-label="Services offered">
+      <h3 class="lm-bd-heading">Services offered
+          <span class="lm-bd-paystate is-paid" x-show="staffForm.serviceIds.length"><span x-text="staffForm.serviceIds.length + ' selected'"></span> · <button type="button" class="lm-link lm-link--inline" @click="staffForm.serviceIds = []">Clear</button></span></h3>
+        <p class="lm-hint" x-show="!staffForm.branchId">Select a branch first.</p>
+        <p class="lm-hint" x-show="staffForm.branchId && getServicesForStaffBranch().length === 0">No services set up for this branch yet.</p>
+        <template x-if="staffForm.branchId && getServicesForStaffBranch().length">
+          <div class="lm-svcpick-body">
+            <div class="lm-svcpick-tools">
+              <input class="lm-input" type="search" x-model="svcSearch" placeholder="Search services…" aria-label="Search services">
+              <select class="lm-select" x-model="svcGroup" aria-label="Service category">
+                <option value="all">All categories</option>
+                <template x-for="g in staffSvcGroups()" :key="g"><option :value="g" x-text="g"></option></template>
+              </select>
+            </div>
+            <button type="button" class="lm-btn lm-btn--sm lm-svcpick-all" x-show="staffSvcVisible().length" @click="toggleAllVisibleServices()"
+              x-text="(staffSvcAllVisibleChecked() ? 'Unselect all' : 'Select all') + (svcSearch.trim() ? ' matching' : (svcGroup === 'all' ? '' : ' in ' + svcGroup)) + ' (' + staffSvcVisible().length + ')'"></button>
+            <div class="lm-svcpick-grid">
+              <template x-for="service in staffSvcVisible()" :key="service.id">
+                <label class="lm-svc-opt" :class="{ 'is-on': staffForm.serviceIds.includes(service.id) }">
+                  <input type="checkbox" :checked="staffForm.serviceIds.includes(service.id)" @change="toggleStaffService(service.id)">
+                  <span x-text="service.name"></span>
+                </label>
+              </template>
+              <p class="lm-hint" x-show="!staffSvcVisible().length">No services match.</p>
+            </div>
+          </div>
+        </template>
+        <small class="lm-hint">This staff member can only be booked or assigned for the services selected here.</small>
+      </section>
       <button type="submit" class="lm-btn lm-btn--primary lm-btn--block" :disabled="savingStaff" x-text="savingStaff ? 'Saving…' : (editingStaffId ? 'Save changes' : 'Add staff member')"></button>
+      <div class="lm-danger-zone" x-show="editingStaffId">
+        <div><strong>Remove staff member</strong><p>Takes them off the active roster. They can no longer be assigned bookings.</p></div>
+        <button type="button" class="lm-btn lm-btn--danger" :disabled="savingStaff" @click="removeStaffMember($store.admin.staffList.find(x => x.id === editingStaffId) || { id: editingStaffId, name: (staffForm.firstName + ' ' + staffForm.lastName).trim() })">Remove</button>
+      </div>
     </form>
   </div>
 </div>
 
-<script src="../../function/admin/admin-shell.js?v=20261110c"></script>
+<script src="../../function/shared/sign-out.js?v=20261111"></script>
+<script src="../../function/admin/admin-shell.js?v=20261111-np"></script>
 <script src="../../function/shared/live-sync.js?v=20261110"></script>
-<script src="../../function/admin/shared-data.js?v=20261110"></script>
-<script src="../../function/admin/employees.js?v=20261110"></script>
+<script src="../../function/admin/shared-data.js?v=20261111"></script>
+<script src="../../function/admin/employees.js?v=20261111-svcpick"></script>
+<script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

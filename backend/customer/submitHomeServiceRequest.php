@@ -89,7 +89,22 @@ if (!$agreedToTerms) {
     exit();
 }
 
-$validationError = HomeServiceRequest::validate($preferredDate, $preferredTime, $eventType, $weddingPackage, $clients, $services);
+
+// Responsible branch (migration 062): its hours, holidays and home-service
+// eligibility apply to the visit. Requests may be submitted at any hour.
+require_once __DIR__ . '/../../backend/shared/config/setup/database.php';
+$homeBranchId = (int) ($_POST['branchId'] ?? 0);
+if ($homeBranchId <= 0 && trim((string) ($_POST['branchKey'] ?? '')) !== '') {
+    $lookup = Database::getInstance()->prepare('SELECT id FROM branches WHERE branch_key = ? LIMIT 1');
+    $lookup->execute([trim((string) $_POST['branchKey'])]);
+    $homeBranchId = (int) $lookup->fetchColumn();
+}
+if ($homeBranchId <= 0) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'Please choose the branch that will handle your home service.']);
+    exit();
+}
+$validationError = HomeServiceRequest::validate($preferredDate, $preferredTime, $eventType, $weddingPackage, $clients, $services, Database::getInstance(), $homeBranchId);
 if ($validationError !== null) {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => $validationError]);
@@ -99,7 +114,7 @@ $fullRequests = HomeServiceRequest::details($eventType, $weddingPackage, $client
 
 try {
     $pdo = Database::getInstance();
-    $availability = HomeServiceRequest::availability($pdo, ['event_type'=>$eventType,'wedding_package'=>$weddingPackage,'services'=>$services,'preferred_date'=>$preferredDate,'preferred_time'=>$preferredTime]);
+    $availability = HomeServiceRequest::availability($pdo, ['event_type'=>$eventType,'wedding_package'=>$weddingPackage,'services'=>$services,'preferred_date'=>$preferredDate,'preferred_time'=>$preferredTime,'branch_id'=>$homeBranchId]);
     if (!$availability['available']) {
         http_response_code(409);
         echo json_encode(['success'=>false,'conflict'=>true,'message'=>$availability['message']]);
@@ -118,13 +133,13 @@ try {
 
     $ins = $pdo->prepare('
         INSERT INTO home_service_requests (
-            customer_id, contact_email, address, structured_address, event_type, wedding_package, preferred_date, preferred_time,
+            customer_id, branch_id, contact_email, address, structured_address, event_type, wedding_package, preferred_date, preferred_time,
             requests, number_of_clients, terms_accepted_at
         )
-        VALUES (?, (SELECT email FROM users WHERE id = ?), ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        VALUES (?, ?, (SELECT email FROM users WHERE id = ?), ?, ?, ?, ?, ?, ?, ?, ?, NOW())
     ');
     $ins->execute([
-        $customerId, $_SESSION['user_id'], $address, json_encode($structuredAddress), $eventType, $eventType === 'Wedding' ? $weddingPackage : null, $preferredDate, $preferredTime, $fullRequests, (int) $clients,
+        $customerId, $homeBranchId, $_SESSION['user_id'], $address, json_encode($structuredAddress), $eventType, $eventType === 'Wedding' ? $weddingPackage : null, $preferredDate, $preferredTime, $fullRequests, (int) $clients,
     ]);
     $requestId = $pdo->lastInsertId();
     $refStmt = $pdo->prepare('SELECT reference_code FROM home_service_requests WHERE id = ?');

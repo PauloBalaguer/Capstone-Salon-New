@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="../shared/theme-tokens.css">
+  <link rel="stylesheet" href="../shared/theme-tokens.css?v=20261111-card-tones">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Sign in, Leo Mejillano Salon &amp; Beauty</title>
@@ -11,13 +11,14 @@
   <link rel="stylesheet" href="../../frontend/shared/output.css?v=20261106">
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261110-steps">
-  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
+  <link rel="stylesheet" href="login.css?v=20261111-swatch-caption">
 </head>
-<body class="auth-page min-h-[100dvh] bg-teal-700 font-auth-body text-ink-auth antialiased">
+<body class="auth-page login-page min-h-[100dvh] bg-teal-700 font-auth-body text-ink-auth antialiased">
   <main class="mx-auto flex min-h-[100dvh] max-w-[1280px] flex-col lg:grid lg:grid-cols-[1.15fr_1fr] lg:items-center lg:gap-16 lg:px-12 lg:py-12">
 
     <!-- Left: swatch fan (desktop) -->
-    <section class="hidden min-w-0 text-panel lg:block">
+    <section class="login-intro hidden min-w-0 text-panel lg:block">
       <a href="../../index.html" class="auth-back-site"><span aria-hidden="true">&larr;</span> Back to website</a>
       <div class="flex w-fit items-center gap-3 font-auth-display text-xl" aria-label="Leo Mejillano">
         <span class="grid h-11 w-11 place-items-center rounded-full border border-gold-auth text-base text-sand">LM</span>Leo Mejillano
@@ -25,7 +26,7 @@
       <h1 class="mt-8 font-auth-display font-semibold leading-tight text-justify whitespace-nowrap" style="font-size: clamp(1.5rem, 3.2vw, 3rem)">Access your salon portal.</h1>
       <p class="prose-justify mt-5 max-w-[42ch] text-[1.05rem] leading-relaxed text-[color:var(--border)]">One login for customers, salon staff, cashiers, and administrators. Your account opens the dashboard assigned to your role.</p>
 
-      <div class="relative mt-10 h-[300px]" aria-label="Example hair colour swatches">
+      <div class="login-swatches relative mt-10 h-[300px]" aria-label="Example hair colour swatches">
         <div class="absolute bottom-0 left-[150px] h-[280px] w-[64px]">
           <div class="origin-[32px_calc(100%-32px)] [transform:rotate(var(--r))] motion-safe:animate-fan motion-safe:[animation-delay:var(--d)] strand absolute bottom-0 left-0 flex h-[270px] w-[64px] flex-col justify-start rounded-[32px] bg-[color:var(--text)] p-2 shadow-xl [--r:-42deg] [--d:.05s]"><span class="rounded-full bg-black/30 px-2 py-1 text-center text-[10px] font-semibold">1.0</span></div>
           <div class="origin-[32px_calc(100%-32px)] [transform:rotate(var(--r))] motion-safe:animate-fan motion-safe:[animation-delay:var(--d)] strand absolute bottom-0 left-0 flex h-[270px] w-[64px] flex-col justify-start rounded-[32px] bg-[color:var(--text-body-color)] p-2 shadow-xl [--r:-28deg] [--d:.1s]"><span class="rounded-full bg-black/30 px-2 py-1 text-center text-[10px] font-semibold">4.3</span></div>
@@ -97,5 +98,6 @@
   <script src="../../function/auth/common.js?v=2"></script>
   <script src="../../function/auth/auth-ui.js"></script>
   <script src="../../function/auth/login.js?v=20261106d"></script>
+<script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

@@ -52,6 +52,7 @@ try {
         'accountStatus' => ((int) $employee['is_active'] && (int) $employee['user_active']) ? 'Active' : 'Inactive',
         'branchId' => $branchId,
         'branchName' => $employee['branch_name'] ?? 'Unassigned Branch',
+        'branchKey' => $employee['branch_key'] ?? null,
         'hireDate' => $employee['hire_date'],
     ];
 

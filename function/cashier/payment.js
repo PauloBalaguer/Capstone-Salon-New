@@ -8,6 +8,9 @@ const PAGE_SIZE = 40;
 
 const state = {
   records: [],
+  bookings: [],
+  branch: null,
+  balTab: 'all',
   shown: PAGE_SIZE,
   loadedRange: null,
   request: 0
@@ -41,12 +44,77 @@ async function init() {
   wireEvents();
   setRange('30');
   try {
-    const result = await CashierApp.fetchDashboard();
-    if (result.success) {
-      CashierApp.applyBranchChrome(result.myBranch.key);
-      CashierApp.updateQueueBadge(result.bookings);
-    }
+    await loadBookings();
   } catch (e) { console.error(e); }
+  CashierApp.liveSync(() => { loadBookings(); loadRecords(); }, () => state.branch);
+}
+
+async function loadBookings() {
+  const result = await CashierApp.fetchDashboard();
+  if (!result.success) {
+    document.getElementById('balanceList').innerHTML = '<p class="py-10 text-center text-sm text-[color:var(--danger)]">Could not load balances. Refresh to try again.</p>';
+    return;
+  }
+  state.branch = result.myBranch.key;
+  state.bookings = result.bookings;
+  CashierApp.applyBranchChrome(result.myBranch.key);
+  CashierApp.updateQueueBadge(result.bookings);
+  renderBalances();
+}
+
+/* Same rules as the Cashier Panel queue (dashboard.js): payable while In
+   Progress or Completed until a receipt exists; a reported reservation
+   payment needs a cashier to verify it. Display only -- the backend checks
+   everything again when the payment is recorded. */
+function balPayable(b) {
+  return !b.checkoutPaid && (b.status === 'In Progress' || b.status === 'Completed');
+}
+function balNeedsReview(b) {
+  if (needsPaymentVerification(b)) return true;
+  return b.status === 'Pending' && !b.depositVerified
+    && (b.paymentStatus === 'Awaiting Verification' || !!(b.depositAmount || b.depositReference));
+}
+
+function renderBalances() {
+  const open = state.bookings.filter(b => balPayable(b) || balNeedsReview(b));
+  const payable = open.filter(balPayable);
+  const review = open.filter(balNeedsReview);
+  const outstanding = payable.reduce((s, b) => s + CashierApp.balanceOf(b), 0);
+  document.getElementById('sumOutstanding').textContent = CashierApp.formatCurrency(outstanding);
+  document.getElementById('sumOutstandingCount').textContent = `${payable.length} booking${payable.length === 1 ? '' : 's'} ready to pay`;
+  document.getElementById('sumReview').textContent = review.length;
+  document.getElementById('sumReviewHint').textContent = review.length ? 'Check these before confirming' : 'Nothing to check';
+  const counts = { all: open.length, pay: payable.length, review: review.length };
+  document.querySelectorAll('#balTabs [data-bal-count]').forEach(el => { el.textContent = counts[el.dataset.balCount]; });
+
+  const list = state.balTab === 'pay' ? payable : state.balTab === 'review' ? review : open;
+  const container = document.getElementById('balanceList');
+  if (!list.length) {
+    container.innerHTML = '<div class="cp-empty"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><p class="cp-empty-title">All settled</p><p>No open balances or payments to review.</p></div>';
+    return;
+  }
+  container.innerHTML = list.map(b => {
+    const ref = encodeURIComponent(b.id);
+    let action = '';
+    if (balNeedsReview(b)) {
+      const target = b.status === 'Pending' ? 'confirm' : 'verify';
+      action = `<a href="dashboard.html?${target}=${ref}" class="btn-row cp-btn-primary"><i class="fa-solid fa-magnifying-glass-dollar" aria-hidden="true"></i>Review Payment</a>`;
+    } else if (balPayable(b)) {
+      action = `<a href="dashboard.html?checkout=${ref}" class="btn-row cp-btn-gold"><i class="fa-solid fa-cash-register" aria-hidden="true"></i>Checkout</a>`;
+    }
+    const payStatus = (typeof PortalPresentation !== 'undefined' && PortalPresentation.paymentStatus(b.paymentStatus)) || b.paymentStatus || 'Not set';
+    return `
+      <div class="cp-pay-row">
+        <span class="cp-cell" data-label="Reference"><span class="cp-mono">${escapeHtml(b.id)}</span></span>
+        <span class="cp-cell cp-cell-strong" data-label="Customer">${escapeHtml(titleCase(b.clientName))}</span>
+        <span class="cp-cell" data-label="Service">${escapeHtml(b.serviceName || 'No service listed')}</span>
+        <span class="cp-cell" data-label="Total">${CashierApp.formatCurrency(b.price)}</span>
+        <span class="cp-cell" data-label="Paid">${CashierApp.formatCurrency(CashierApp.amountPaid(b))}</span>
+        <span class="cp-cell cp-cell-strong" data-label="Balance">${CashierApp.formatCurrency(CashierApp.balanceOf(b))}</span>
+        <span class="cp-cell" data-label="Payment status"><span class="cp-badge bg-amber-50 text-[color:var(--warn)]">${escapeHtml(payStatus)}</span></span>
+        <span class="cp-cell cp-cell-action">${action}</span>
+      </div>`;
+  }).join('');
 }
 
 function setRange(key) {
@@ -76,7 +144,7 @@ async function loadRecords() {
     if (requestId !== state.request) return; // a newer range was picked
     if (!result.success) {
       CashierApp.toast(result.message || 'Failed to load payment records.', 'error');
-      document.getElementById('paymentList').innerHTML = '<p class="py-10 text-center text-sm text-rose-700">Could not load payment records. Refresh to try again.</p>';
+      document.getElementById('paymentList').innerHTML = '<p class="py-10 text-center text-sm text-[color:var(--danger)]">Could not load payment records. Refresh to try again.</p>';
       return;
     }
     state.records = result.records;
@@ -87,7 +155,7 @@ async function loadRecords() {
   } catch (e) {
     console.error(e);
     if (requestId === state.request) {
-      document.getElementById('paymentList').innerHTML = '<p class="py-10 text-center text-sm text-rose-700">Connection lost. Refresh to try again.</p>';
+      document.getElementById('paymentList').innerHTML = '<p class="py-10 text-center text-sm text-[color:var(--danger)]">Connection lost. Refresh to try again.</p>';
     }
   }
 }
@@ -160,30 +228,30 @@ function render() {
   container.innerHTML = visible.map(r => {
     const day = String(r.paidAt || '').slice(0, 10);
     const heading = day !== lastDay
-      ? `<div class="px-4 sm:px-5 py-2 bg-[#FFFDF9] border-t border-gray-200 text-sm font-bold text-[#06464A]">${escapeHtml(friendlyDate(day))}</div>`
+      ? `<div class="px-4 sm:px-5 py-2 bg-[color:var(--card)] border-t border-gray-200 text-sm font-bold text-teal-700">${escapeHtml(friendlyDate(day))}</div>`
       : '';
     lastDay = day;
     const typeBadge = r.type === 'Checkout'
-      ? '<span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#E5F2F0] text-[#06464A]">Checkout</span>'
-      : '<span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900">Reservation</span>';
+      ? '<span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-700">Checkout</span>'
+      : '<span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-[color:var(--warn)]">Reservation</span>';
     const receipt = r.paymentId
-      ? `<a href="receipt.html?ref=${encodeURIComponent(r.reference)}&pid=${encodeURIComponent(r.paymentId)}" class="inline-flex items-center gap-1 text-sm font-bold text-[#06464A] hover:underline whitespace-nowrap"><i class="fa-solid fa-receipt"></i>${escapeHtml(r.invoiceId)}</a>`
+      ? `<a href="receipt.html?ref=${encodeURIComponent(r.reference)}&pid=${encodeURIComponent(r.paymentId)}" class="inline-flex items-center gap-1 text-sm font-bold text-teal-700 hover:underline whitespace-nowrap"><i class="fa-solid fa-receipt"></i>${escapeHtml(r.invoiceId)}</a>`
       : '<span class="text-xs text-slate-400">No receipt</span>';
     return heading + `
-      <div class="border-t border-gray-100 px-4 sm:px-5 py-3 grid grid-cols-[1fr_auto] lg:grid-cols-[6rem_1.3fr_1.4fr_8rem_7rem_8rem_7.5rem] gap-x-4 gap-y-1 items-center">
-        <span class="order-2 lg:order-none text-right lg:text-left text-sm font-semibold text-slate-700 whitespace-nowrap">${escapeHtml(timeOf(r.paidAt))}</span>
-        <span class="order-1 lg:order-none min-w-0">
+      <div class="border-t border-gray-100 px-4 sm:px-5 py-3 grid grid-cols-[1fr_auto] xl:grid-cols-[6rem_1.3fr_1.4fr_8rem_7rem_8rem_7.5rem] gap-x-4 gap-y-1 items-center">
+        <span class="order-2 xl:order-none text-right xl:text-left text-sm font-semibold text-slate-700 whitespace-nowrap">${escapeHtml(timeOf(r.paidAt))}</span>
+        <span class="order-1 xl:order-none min-w-0">
           <span class="block font-bold text-slate-900 capitalize truncate">${escapeHtml(r.clientName)}</span>
           <span class="block text-xs text-slate-500 font-mono truncate">${escapeHtml(r.reference)}</span>
         </span>
-        <span class="order-3 lg:order-none col-span-2 lg:col-span-1 text-sm text-slate-700 truncate">${escapeHtml(r.serviceName || '')}${r.cashierName ? `<span class="block text-xs text-slate-500">By ${escapeHtml(r.cashierName)}</span>` : ''}</span>
-        <span class="order-4 lg:order-none">${typeBadge}</span>
-        <span class="order-5 lg:order-none text-sm text-slate-700 text-right lg:text-left">${escapeHtml(methodLabel(r.method))}</span>
-        <span class="order-6 lg:order-none text-right">
+        <span class="order-3 xl:order-none col-span-2 xl:col-span-1 text-sm text-slate-700 truncate">${escapeHtml(r.serviceName || '')}${r.cashierName ? `<span class="block text-xs text-slate-500">By ${escapeHtml(r.cashierName)}</span>` : ''}</span>
+        <span class="order-4 xl:order-none">${typeBadge}</span>
+        <span class="order-5 xl:order-none text-sm text-slate-700 text-right xl:text-left">${escapeHtml(methodLabel(r.method))}</span>
+        <span class="order-6 xl:order-none text-right">
           <span class="block font-bold text-slate-900">${CashierApp.formatCurrency(r.amount)}</span>
           ${r.tip > 0 ? `<span class="block text-xs text-slate-500">incl. ${CashierApp.formatCurrency(r.tip)} tip</span>` : ''}
         </span>
-        <span class="order-7 lg:order-none col-span-2 lg:col-span-1 lg:text-right">${receipt}</span>
+        <span class="order-7 xl:order-none col-span-2 xl:col-span-1 xl:text-right">${receipt}</span>
       </div>`;
   }).join('');
 
@@ -219,6 +287,16 @@ function wireEvents() {
   document.getElementById('payMethod').addEventListener('change', () => { state.shown = PAGE_SIZE; render(); });
   document.getElementById('btnPayShowMore').addEventListener('click', () => { state.shown += PAGE_SIZE; render(); });
   document.getElementById('btnExportCsv').addEventListener('click', exportCsv);
+  document.getElementById('balTabs').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-bal]');
+    if (!btn) return;
+    state.balTab = btn.dataset.bal;
+    document.querySelectorAll('#balTabs [data-bal]').forEach(t => {
+      t.classList.toggle('is-active', t === btn);
+      t.setAttribute('aria-selected', String(t === btn));
+    });
+    renderBalances();
+  });
 }
 
 document.addEventListener('DOMContentLoaded', init);

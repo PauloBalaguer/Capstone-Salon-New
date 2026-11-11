@@ -7,7 +7,7 @@
    Branch is fixed by the logged-in Cashier's account (server-side); see
    database/migrations/007_cashier_branch_lock.sql. */
 
-const PAGE_SIZE = 30;
+const PAGE_SIZE = 30; // pagination is applied after sorting by submission time
 
 const state = {
   data: null,
@@ -29,6 +29,7 @@ async function init() {
     document.getElementById('apptStatus').value = tab;
   }
   await refreshData();
+  CashierApp.liveSync(refreshData, () => state.branch);
   const ref = params.get('ref');
   if (ref && state.data) {
     showDetails(ref);
@@ -65,13 +66,13 @@ function cellOrDash(value) {
 function paymentStatusBadgeClass(status) {
   switch (status) {
     case 'Fully Paid':
-    case 'Down Payment Verified': return 'bg-emerald-100 text-emerald-800';
+    case 'Down Payment Verified': return 'bg-emerald-100 text-[color:var(--success)]';
     case 'Awaiting Verification':
     case 'Refund Due':
-    case 'Refund Processing': return 'bg-amber-100 text-amber-900';
+    case 'Refund Processing': return 'bg-amber-100 text-[color:var(--warn)]';
     case 'Rejected':
     case 'Refunded':
-    case 'Forfeited': return 'bg-rose-100 text-rose-800';
+    case 'Forfeited': return 'bg-rose-100 text-[color:var(--danger)]';
     default: return 'bg-gray-100 text-gray-600';
   }
 }
@@ -91,6 +92,11 @@ function friendlyDate(ymd) {
 function inPeriod(b, period) {
   const today = localDateYmd(new Date());
   const date = b.date || '';
+  if (period === 'custom') {
+    const from = document.getElementById('apptFrom').value;
+    const to = document.getElementById('apptTo').value;
+    return (!from || date >= from) && (!to || date <= to);
+  }
   if (period === 'today') return date === today;
   if (period === 'upcoming') return date >= today && ['Pending', 'Confirmed', 'Reschedule Requested'].includes(b.status);
   if (period === 'month') return date.slice(0, 7) === today.slice(0, 7);
@@ -111,8 +117,19 @@ function filteredBookings() {
         || b.clientName.toLowerCase().includes(search)
         || (b.clientPhone || '').includes(search)
         || b.id.toLowerCase().includes(search)))
-    // Newest first; upcoming bookings sit at the top.
-    .sort((a, b) => String(b.startDateTime || b.date || '').localeCompare(String(a.startDateTime || a.date || '')));
+    // Newest submission first (when the booking was made), not appointment date.
+    .sort((a, b) => submittedKey(b).localeCompare(submittedKey(a)) || String(b.id).localeCompare(String(a.id)));
+}
+
+/* submittedAt arrives as "YYYY-MM-DD hh:mm AM" (getDashboardData.php); turn it
+   into a sortable "YYYY-MM-DD HH:mm" key. */
+function submittedKey(b) {
+  const m = String(b.submittedAt || '').match(/^(\d{4}-\d{2}-\d{2}) (\d{1,2}):(\d{2}) ?(AM|PM)?/i);
+  if (!m) return '';
+  let h = Number(m[2]) % 12;
+  if (m[4] && m[4].toUpperCase() === 'PM') h += 12;
+  if (!m[4]) h = Number(m[2]);
+  return `${m[1]} ${String(h).padStart(2, '0')}:${m[3]}`;
 }
 
 function renderAppointments() {
@@ -140,27 +157,17 @@ function renderAppointments() {
   }
 
   const visible = list.slice(0, state.shown);
-  let lastDate = null;
   container.innerHTML = visible.map(b => {
-    const heading = b.date !== lastDate
-      ? `<div class="px-4 sm:px-5 py-2 bg-[#FFFDF9] border-t border-gray-200 text-sm font-bold text-[#06464A]">${escapeHtml(friendlyDate(b.date))}</div>`
-      : '';
-    lastDate = b.date;
-    return heading + `
-      <button type="button" data-ref="${escapeHtml(b.id)}" class="appt-row w-full text-left border-t border-gray-100 px-4 sm:px-5 py-3 hover:bg-[#FFFDF9] focus-visible:outline-none focus-visible:bg-[#E5F2F0] grid grid-cols-[1fr_auto] lg:grid-cols-[8rem_1.2fr_1.4fr_1fr_8.5rem_7rem_2.5rem] gap-x-4 gap-y-1 items-center">
-        <span class="order-2 lg:order-none text-right lg:text-left text-sm font-semibold text-slate-700 whitespace-nowrap">${cellOrDash(b.time)}${b.endTime ? `<span class="hidden lg:block text-xs font-normal text-slate-500">to ${cellOrDash(b.endTime)}</span>` : ''}</span>
-        <span class="order-1 lg:order-none min-w-0">
-          <span class="block font-bold text-slate-900 capitalize truncate">${escapeHtml(b.clientName)}</span>
-          <span class="block text-xs text-slate-500 font-mono truncate">${escapeHtml(b.id)}</span>
-        </span>
-        <span class="order-3 lg:order-none col-span-2 lg:col-span-1 text-sm text-slate-700 truncate">${cellOrDash(b.serviceName) || 'No service listed'}<span class="lg:hidden text-slate-500"> · <span class="capitalize">${cellOrDash(b.staffName) || 'No stylist'}</span></span></span>
-        <span class="hidden lg:block text-sm text-slate-700 capitalize truncate">${cellOrDash(b.staffName) || '<span class="text-slate-400">No stylist</span>'}</span>
-        <span class="order-4 lg:order-none flex flex-wrap gap-1">
-          <span class="text-xs font-bold px-2.5 py-0.5 rounded-full ${statusBadgeClass(b.status)}">${escapeHtml(b.status)}</span>
-          ${b.status === 'Pending' && b.hasConflict ? '<span class="text-xs font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800">Time clash</span>' : ''}
-        </span>
-        <span class="order-5 lg:order-none text-right font-bold text-slate-900">${CashierApp.formatCurrency(b.price)}</span>
-        <span class="hidden lg:flex justify-end text-slate-400"><i class="fa-solid fa-chevron-right"></i></span>
+    return `
+      <button type="button" data-ref="${escapeHtml(b.id)}" class="appt-row cp-appt-row" aria-label="Details for ${escapeHtml(b.clientName)}, ${escapeHtml(b.id)}">
+        <span class="cp-cell" data-label="Reference"><span class="cp-mono">${escapeHtml(b.id)}</span><span class="cp-sub">Booked ${cellOrDash(b.submittedAt) || '-'}</span></span>
+        <span class="cp-cell cp-cell-strong" data-label="Customer">${escapeHtml(titleCase(b.clientName))}</span>
+        <span class="cp-cell" data-label="Service">${cellOrDash(b.serviceName) || 'No service listed'}</span>
+        <span class="cp-cell" data-label="Staff">${escapeHtml(titleCase(b.staffName || '')) || '<span class="cp-sub">No stylist yet</span>'}</span>
+        <span class="cp-cell" data-label="Schedule">${escapeHtml(friendlyDate(b.date))}<span class="cp-sub">${cellOrDash(b.time)}${b.endTime ? ' – ' + cellOrDash(b.endTime) : ''}</span></span>
+        <span class="cp-cell" data-label="Status"><span class="cp-badge ${statusBadgeClass(b.status)}">${escapeHtml(b.status)}</span>${b.status === 'Pending' && b.hasConflict ? '<span class="cp-badge bg-rose-100 text-[color:var(--danger)]">Time clash</span>' : ''}</span>
+        <span class="cp-cell" data-label="Payment"><span class="cp-badge ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(PortalPresentation.paymentStatus(b.paymentStatus)) || 'Not set'}</span></span>
+        <span class="cp-cell cp-cell-action"><span class="btn-row cp-btn-ghost">Details</span></span>
       </button>`;
   }).join('');
 
@@ -186,13 +193,13 @@ function detailsActionsFor(b) {
     out.push(action('Reschedule', 'reschedule'));
   } else if (b.status === 'Pending') {
     out.push(primary('Confirm on Cashier Panel', `href="dashboard.html?confirm=${ref}"`));
-    out.push(action('Reschedule', 'reschedule'), action('Cancel booking', 'cancel', 'text-rose-700'));
+    out.push(action('Reschedule', 'reschedule'), action('Cancel booking', 'cancel', 'text-[color:var(--danger)]'));
   } else if (b.status === 'Confirmed') {
     if (isDue) out.push(`<button type="button" data-detail-action="arrival" class="btn-primary col-span-2">Review arrival &amp; start service</button>`);
     out.push(action(b.staffName ? 'Change stylist' : 'Assign stylist', 'reassign'), action('Reschedule', 'reschedule'));
-    if (b.canMarkNoShow) out.push(action('Mark no-show', 'no-show', 'text-rose-700 col-span-2'));
+    if (b.canMarkNoShow) out.push(action('Mark no-show', 'no-show', 'text-[color:var(--danger)] col-span-2'));
   } else if (b.status === 'Reschedule Requested') {
-    out.push(action('Reschedule', 'reschedule'), action('Cancel booking', 'cancel', 'text-rose-700'));
+    out.push(action('Reschedule', 'reschedule'), action('Cancel booking', 'cancel', 'text-[color:var(--danger)]'));
   } else if (b.status === 'In Progress' || (b.status === 'Completed' && !b.checkoutPaid)) {
     out.push(primary('Checkout on Cashier Panel', `href="dashboard.html?checkout=${ref}"`));
   }
@@ -207,7 +214,7 @@ function showDetails(ref) {
   if (!b) return;
   state.detailsRef = ref;
   const item = (label, value, wide = false) => `<div class="${wide ? 'col-span-2' : ''}"><dt class="field-label mb-0.5">${label}</dt><dd class="text-slate-800 font-semibold">${value || '<span class="text-slate-400 font-normal">None</span>'}</dd></div>`;
-  const requests = (b.arrivalRequests || []).map(kind => `<p class="rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm p-3">${kind === 'no_show' ? 'The stylist asks to mark this booking as a no-show.' : 'The stylist asks to reassign or reschedule this booking.'}</p>`).join('');
+  const requests = (b.arrivalRequests || []).map(kind => `<p class="rounded-xl bg-rose-50 border border-[#9C1E15]/30 text-[color:var(--danger)] text-sm p-3">${kind === 'no_show' ? 'The stylist asks to mark this booking as a no-show.' : 'The stylist asks to reassign or reschedule this booking.'}</p>`).join('');
   document.getElementById('detailsRef').textContent = b.id;
   document.getElementById('detailsModalBody').innerHTML = `
     <div class="space-y-4">
@@ -222,22 +229,25 @@ function showDetails(ref) {
         </div>
       </div>
       ${requests}
-      <dl class="grid grid-cols-2 gap-3 text-sm rounded-xl border border-gray-200 bg-[#FFFDF9] p-4">
+      <dl class="grid grid-cols-2 gap-3 text-sm rounded-xl border border-gray-200 bg-[color:var(--card)] p-4">
         ${item('Date', cellOrDash(b.date))}
         ${item('Time', cellOrDash(b.time) + (b.endTime ? ' – ' + cellOrDash(b.endTime) : ''))}
         ${item('Services', cellOrDash(b.serviceName), true)}
         ${item('Stylist', `<span class="capitalize">${cellOrDash(b.staffName)}</span>`)}
         ${item('Duration', b.durationMinutes ? b.durationMinutes + ' min' : '')}
-        ${item('Total', CashierApp.formatCurrency(b.price))}
         ${item('Booked on', cellOrDash(b.submittedAt))}
+        ${item('Reference', `<span class="font-mono">${escapeHtml(b.id)}</span>`)}
+        ${item('Total amount', CashierApp.formatCurrency(b.price))}
+        ${item('Amount paid', CashierApp.formatCurrency(CashierApp.amountPaid(b)))}
+        ${item('Balance', `<span class="${CashierApp.balanceOf(b) > 0 ? 'text-[color:var(--danger)]' : 'text-[color:var(--success)]'}">${CashierApp.formatCurrency(CashierApp.balanceOf(b))}</span>`)}
       </dl>
       ${b.depositAmount || b.depositReference ? `
-      <div class="rounded-xl border p-4 text-sm ${b.depositVerified ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : 'border-amber-200 bg-amber-50 text-amber-900'}">
+      <div class="rounded-xl border p-4 text-sm ${b.depositVerified ? 'border-[#115C39]/30 bg-emerald-50 text-[color:var(--success)]' : 'border-[#774800]/30 bg-amber-50 text-[color:var(--warn)]'}">
         <p class="font-bold mb-1">${b.depositVerified ? 'Reservation payment (verified)' : 'Reservation payment (not checked yet)'}</p>
         <p>${b.depositAmount ? CashierApp.formatCurrency(b.depositAmount) : ''} by ${cellOrDash(PortalPresentation.methodLabel(b.depositMethod || b.paymentMethod)) || 'unknown method'}</p>
         ${b.depositReference ? `<p>Reference no. <span class="font-mono font-bold">${cellOrDash(b.depositReference)}</span></p>` : ''}
       </div>` : ''}
-      ${hasKeptDeposit(b) ? `<p class="rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm p-3">The ${CashierApp.formatCurrency(b.depositAmount || 0)} deposit is non-refundable. The customer can reschedule to use it.</p>` : ''}
+      ${hasKeptDeposit(b) ? `<p class="rounded-xl bg-rose-50 border border-[#9C1E15]/30 text-[color:var(--danger)] text-sm p-3">The ${CashierApp.formatCurrency(b.depositAmount || 0)} deposit is non-refundable. The customer can reschedule to use it.</p>` : ''}
     </div>`;
   const actions = detailsActionsFor(b);
   const actionsEl = document.getElementById('detailsActions');
@@ -330,7 +340,7 @@ async function loadRescheduleSlots() {
   const result = await CashierApp.get('rescheduleAppointment.php', { id: state.pendingRescheduleRef, date });
   if (requestId !== rescheduleSlotsRequest) return; // a newer date pick superseded this one
   if (!result.success) {
-    box.innerHTML = `<p class="col-span-4 text-rose-600">${escapeHtml(result.message || 'Could not load times.')}</p>`;
+    box.innerHTML = `<p class="col-span-4 text-[color:var(--danger)]">${escapeHtml(result.message || 'Could not load times.')}</p>`;
     return;
   }
   const booking = state.data.bookings.find(x => x.id === state.pendingRescheduleRef);
@@ -346,14 +356,14 @@ async function loadRescheduleSlots() {
     const isCurrent = booking && booking.date === date && booking.time === s.time;
     return `<button type="button" data-time="${escapeHtml(s.time)}" ${s.available && !isCurrent ? '' : 'disabled'}
       class="reschedule-slot border rounded-lg py-1.5 font-semibold transition ${s.available && !isCurrent
-        ? 'border-gray-300 hover:border-amber-500 text-slate-700'
+        ? 'border-gray-300 hover:border-[color:var(--accent)] text-slate-700'
         : 'border-gray-100 text-gray-300 line-through cursor-not-allowed'}">${escapeHtml(s.time)}</button>`;
   }).join('');
 }
 
 function pickRescheduleSlot(btn) {
-  document.querySelectorAll('#rescheduleSlots .reschedule-slot').forEach(b => b.classList.remove('bg-amber-500', 'border-amber-500', 'text-slate-950'));
-  btn.classList.add('bg-amber-500', 'border-amber-500', 'text-slate-950');
+  document.querySelectorAll('#rescheduleSlots .reschedule-slot').forEach(b => b.classList.remove('bg-amber-500', 'border-[color:var(--accent)]', 'text-slate-950'));
+  btn.classList.add('bg-amber-500', 'border-[color:var(--accent)]', 'text-slate-950');
   state.pendingRescheduleTime = btn.dataset.time;
   document.getElementById('btnConfirmReschedule').disabled = false;
 }
@@ -411,7 +421,11 @@ async function markNoShow(ref) {
 function wireStaticEvents() {
   document.getElementById('apptSearch').addEventListener('input', () => { state.shown = PAGE_SIZE; renderAppointments(); });
   document.getElementById('apptStatus').addEventListener('change', () => { state.shown = PAGE_SIZE; renderAppointments(); });
-  document.getElementById('apptPeriod').addEventListener('change', () => { state.shown = PAGE_SIZE; renderAppointments(); });
+  document.getElementById('apptPeriod').addEventListener('change', (e) => {
+    document.getElementById('apptRange').classList.toggle('hidden', e.target.value !== 'custom');
+    state.shown = PAGE_SIZE; renderAppointments();
+  });
+  ['apptFrom', 'apptTo'].forEach(id => document.getElementById(id).addEventListener('change', () => { state.shown = PAGE_SIZE; renderAppointments(); }));
   document.getElementById('btnShowMore').addEventListener('click', () => { state.shown += PAGE_SIZE; renderAppointments(); });
   document.getElementById('appointmentsList').addEventListener('click', (e) => {
     const row = e.target.closest('.appt-row');

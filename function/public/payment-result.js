@@ -29,6 +29,53 @@
     el('resultMessage').textContent = message;
   }
 
+  // Header icon: 'success' | 'failed' | 'pending' | 'loading'.
+  const ICONS = {
+    success: ['bg-emerald-100 text-[color:var(--success)]', '<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>'],
+    failed: ['bg-rose-100 text-[color:var(--danger)]', '<path stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/>'],
+    pending: ['bg-amber-100 text-[color:var(--warn)]', '<circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 7v5l3 2"/>'],
+    loading: ['bg-sand-200 text-ink/60', '<path stroke-linecap="round" d="M12 3a9 9 0 1 0 9 9"/>']
+  };
+  function setIcon(kind) {
+    const [cls, path] = ICONS[kind];
+    el('resultIcon').className = 'mx-auto mb-3 w-14 h-14 rounded-full flex items-center justify-center ' + cls;
+    el('resultIcon').innerHTML = '<svg class="w-7 h-7' + (kind === 'loading' ? ' animate-spin' : '') + '" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">' + path + '</svg>';
+  }
+
+  // Successful payment: 10-second countdown, then guests go home and registered customers to their portal.
+  let redirectTimer = null;
+  function startRedirect(data) {
+    if (redirectTimer) return;
+    const portal = fromCustomer || data.registered;
+    const target = portal
+      ? (data.type === 'home_service' ? '../../frontend/customer/home-service.html' : '../../frontend/customer/dashboard.html')
+      : '../../index.html';
+    el('resultGoNow').href = target;
+    el('resultGoNow').classList.remove('hidden');
+    el('resultBack').classList.add('hidden');
+    el('resultRedirectTarget').textContent = portal ? 'your customer portal' : 'the homepage';
+    el('resultRedirect').classList.remove('hidden');
+    let left = 10;
+    const paint = () => {
+      el('resultCountdown').textContent = left;
+      el('resultCountdownBar').style.width = (left * 10) + '%';
+    };
+    paint();
+    redirectTimer = setInterval(() => {
+      left -= 1;
+      paint();
+      if (left <= 0) { clearInterval(redirectTimer); window.location.replace(target); }
+    }, 1000);
+  }
+
+  el('resultCheckAgain').addEventListener('click', () => {
+    el('resultCheckAgain').classList.add('hidden');
+    setIcon('loading');
+    show('Checking your payment…', 'Asking PayMongo for the latest status.');
+    polls = 10;
+    check();
+  });
+
   function detail(rowId, valueId, value) {
     el(rowId).classList.toggle('hidden', !value);
     el(valueId).textContent = value || '';
@@ -92,6 +139,10 @@
 
   function renderPaid(data) {
     PendingPayment.forget();
+    setIcon('success');
+    detail('resultStatusRow', 'resultStatus', 'Paid');
+    el('resultStatus').className = 'font-bold text-[color:var(--success)]';
+    startRedirect(data);
     el('resultAmountLabel').textContent = 'Amount paid';
     el('resultAmount').textContent = peso(data.amountPaid);
     detail('resultMethodRow', 'resultMethod', data.methodLabel);
@@ -139,6 +190,7 @@
     // Re-renders (polling, countdown end) must not leave the previous state behind.
     el("resultReason").classList.add("hidden");
     el("resultMethods").classList.add("hidden");
+    el('resultCheckAgain').classList.add('hidden');
     el('resultDetails').classList.remove('hidden');
     el('resultRef').textContent = data.reference;
     if (data.type === 'home_service' && fromCustomer) {
@@ -149,11 +201,15 @@
       el('resultAmountLabel').textContent = data.paid ? 'Total paid' : 'Balance due';
       el('resultAmount').textContent = peso(data.paid ? data.amountPaid : data.amountDue);
       if (data.paid) {
+        setIcon('success');
+        detail('resultStatusRow', 'resultStatus', 'Paid');
+        startRedirect(data);
         show('Balance received', data.amountDue > 0
           ? 'Thank you! Your payment went through. Remaining balance: ' + peso(data.amountDue) + '.'
           : 'Thank you! Your home service is now fully paid.');
         return;
       }
+      setIcon('failed');
       show('Payment not completed', 'Your remaining balance hasn\'t been paid yet. You can try again, or pay in cash on the event day.');
       if (data.checkoutUrl) {
         el('resultRetry').href = data.checkoutUrl;
@@ -165,6 +221,11 @@
 
     el('resultAmountLabel').textContent = data.type === 'home_service' ? 'Reservation fee due' : 'Amount due';
     el('resultAmount').textContent = peso(data.amountDue);
+    const failed = data.state === 'failed' || outcome === 'cancel';
+    const statusText = data.status === 'Cancelled' ? 'Expired' : failed ? 'Failed' : outcome === 'choose' ? 'Awaiting payment' : 'Pending';
+    detail('resultStatusRow', 'resultStatus', statusText);
+    el('resultStatus').className = 'font-bold ' + (statusText === 'Pending' || statusText === 'Awaiting payment' ? 'text-[color:var(--warn)]' : 'text-[color:var(--danger)]');
+    setIcon(statusText === 'Pending' || statusText === 'Awaiting payment' ? 'pending' : 'failed');
     if (data.type !== 'home_service' && data.status === 'Cancelled') {
       PendingPayment.forget();
       show('Booking released', 'This booking was cancelled because the payment was not completed in time. Please book again.');
@@ -178,7 +239,9 @@
     } else if (data.state === 'failed' || outcome === 'cancel') {
       show(outcome === 'cancel' ? 'Payment was cancelled' : 'Payment didn\'t go through', ('No money was taken. ' + keepSlot).trim());
     } else {
-      show('Payment not completed yet', ('We haven\'t received confirmation from PayMongo. If you already paid, refresh this page in a moment. ' + keepSlot).trim());
+      // Pending: PayMongo hasn't confirmed yet. Check again first; paying anew could charge twice.
+      show('Payment still processing', ('We haven\'t received confirmation from PayMongo yet. If you already paid, please don\'t pay again tap "Check payment status again" in a moment. ' + keepSlot).trim());
+      el('resultCheckAgain').classList.remove('hidden');
     }
     if (data.reason && /\s/.test(data.reason)) {
       el('resultReason').textContent = data.reason;
@@ -198,6 +261,7 @@
   function waitForResult() {
     el('resultMethods').classList.add('hidden');
     el('resultReason').classList.add('hidden');
+    setIcon('loading');
     show('Waiting for your payment…', 'Finish paying in the PayMongo tab. This page updates by itself once PayMongo responds you can close the PayMongo tab afterwards.');
     polls = 1800;
     waiting = true;
@@ -211,7 +275,7 @@
     fetch('../../backend/public/paymongoStatus.php?ref=' + encodeURIComponent(ref) + '&token=' + encodeURIComponent(token))
       .then(r => r.json())
       .then(data => {
-        if (!data.success) { show('Payment link not found', data.message || 'Please check your booking reference.'); return; }
+        if (!data.success) { setIcon('failed'); show('Payment link not found', data.message || 'Please check your booking reference.'); return; }
         const pending = data.kind === 'balance' ? !data.paid : data.state === 'pending';
         if (pending && polls-- > 0) { pollTimer = setTimeout(() => check(after), 1000); return; }
         polls = 0;
@@ -223,7 +287,7 @@
       .catch(() => show('Something went wrong', 'We could not check your payment. Please refresh this page.'));
   }
 
-  if (!ref || !token) show('Payment link not found', 'This payment link is incomplete.');
+  if (!ref || !token) { setIcon('failed'); show('Payment link not found', 'This payment link is incomplete.'); }
   else if (outcome === 'pay' && LOGOS[params.get('method')]) startPayment(params.get('method'));
   else if (outcome === 'waiting') waitForResult();
   else check();

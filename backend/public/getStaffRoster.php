@@ -15,6 +15,7 @@
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/booking/Scheduling.php';
+require_once '../../backend/shared/config/helpers/StaffShift.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -60,31 +61,13 @@ try {
     // Anyone who forgot to sign out is clocked out once closing time passes.
     Scheduling::autoCloseBranchAttendance($pdo, (int) $branch['id']);
 
-    // Live status comes from real attendance, not employees.shift_status
-    // (nothing updates that column on login anymore -- same derivation as
-    // backend/cashier/getDashboardData.php): clocked in today and not out
-    // = on duty; on duty and mid-appointment right now = with a client.
-    // Uses MySQL's own NOW(), which stamped both clock-ins and bookings.
+    // Live status comes from real attendance and breaks, via the shared
+    // rule every panel uses (StaffShift::liveStatusSql): On Shift / On
+    // Break / Busy / Off Shift. Not employees.shift_status, which nothing
+    // keeps current.
     $stmt = $pdo->prepare('
         SELECT e.id, e.first_name, e.last_name, e.position, e.profile_picture, e.hire_date,
-            CASE
-                WHEN NOT EXISTS (
-                    SELECT 1 FROM attendance att WHERE att.employee_id = e.id
-                      AND DATE(att.clock_in_time) = CURDATE() AND att.clock_out_time IS NULL
-                ) THEN "Off Shift"
-                WHEN EXISTS (
-                    SELECT 1 FROM appointments ap WHERE ap.employee_id = e.id AND (
-                        (ap.status = "In Progress" AND DATE(ap.appointment_datetime) = CURDATE())
-                        OR (ap.status = "Confirmed" AND NOW() >= ap.appointment_datetime
-                            AND NOW() < ap.appointment_datetime + INTERVAL (
-                                SELECT COALESCE(NULLIF(SUM(s.duration_minutes), 0), 30)
-                                FROM appointment_services aps JOIN services s ON s.id = aps.service_id
-                                WHERE aps.appointment_id = ap.id
-                            ) MINUTE)
-                    )
-                ) THEN "With Client"
-                ELSE "On Duty"
-            END AS live_status
+            ' . StaffShift::liveStatusSql('e') . ' AS live_status
         FROM employees e
         WHERE e.branch_id = ? AND e.is_active = 1
         ORDER BY FIELD(e.position, "Hair Stylist", "Nail Technician", "Aesthetics Specialist", "Cashier", "Stock Clerk"), e.first_name, e.last_name

@@ -10,35 +10,70 @@
    ========================================================================== */
 :root {
   /* Every colour below comes from the Salon Portal Palette. */
-  --cl-bg: #FFF8EE;            /* --brand-cream: page background */
-  --cl-surface: #FFFDF9;       /* --brand-panel: cards, sidebar, header */
-  --cl-subtle: #F7F0E4;        /* cream/sand mix: hover rows, soft fills */
-  --cl-border: #E8DCC8;        /* --brand-sand: card and divider lines */
-  --cl-border-strong: #D9C9B4; /* bronze: inputs, outlined buttons */
-  --cl-ink: #222222;           /* --brand-ink: headings and body text */
-  --cl-text: #333333;
-  --cl-muted: #475569;         /* --brand-muted: secondary text */
-  --cl-accent: #006D6F;        /* --brand-teal: actions, links, active nav */
-  --cl-accent-hover: #06464A;  /* --brand-teal-dark */
-  --cl-accent-soft: #E5F2F0;   /* light teal tint for the active nav item */
-  --cl-gold: #E0B84C;          /* --brand-gold: small fills, selection */
-  --cl-gold-ink: #805B0B;      /* --brand-gold-ink: small labels on light */
-  --cl-danger: #B91C1C;        /* red buttons; hover #991B1B */
+  --cl-bg: var(--bg);            /* --brand-cream: page background */
+  --cl-surface: var(--card);       /* --brand-panel: cards, sidebar, header */
+  --cl-subtle: var(--bg);        /* cream/sand mix: hover rows, soft fills */
+  --cl-border: var(--border);        /* --brand-sand: card and divider lines */
+  --cl-border-strong: var(--border); /* bronze: inputs, outlined buttons */
+  --cl-ink: var(--text);           /* --brand-ink: headings and body text */
+  --cl-text: var(--text);
+  --cl-muted: var(--muted);         /* --brand-muted: secondary text */
+  --cl-accent: var(--brand);        /* --brand-teal: actions, links, active nav */
+  --cl-accent-hover: var(--brand-dark);  /* --brand-teal-dark */
+  --cl-accent-soft: var(--brand-soft);   /* light teal tint for the active nav item */
+  --cl-gold: var(--accent);          /* --brand-gold: small fills, selection */
+  --cl-gold-ink: var(--accent-ink);      /* --brand-gold-ink: small labels on light */
+  --cl-danger: var(--danger);        /* red buttons; hover var(--danger) */
   --cl-radius: 18px;
-  --cl-shadow: 0 1px 2px rgba(34, 34, 34, .04);
-  --cl-shadow-pop: 0 12px 32px -12px rgba(34, 34, 34, .18);
+  --cl-shadow: 0 1px 2px rgba(24, 38, 31, .04);
+  --cl-shadow-pop: 0 12px 32px -12px rgba(24, 38, 31, .18);
 }
 
 html body ::selection { background: var(--cl-gold); color: var(--cl-ink); }
 
-/* Longer descriptions and instructions share consistent paragraph alignment. */
-html body .prose-justify {
-  text-align: left;
+/* Only selected explanatory copy and policies are justified, at every size.
+   Target text elements, not containers that also hold headings or controls. */
+html body p.prose-justify,
+html body li.prose-justify:not(.step-card),
+html body p[data-justify],
+html body p[data-late-rule],
+html body li[data-late-rule] {
+  text-align: justify !important;
+  text-align-last: start;
   overflow-wrap: break-word;
 }
-/* Justify only where lines are long enough to avoid wide word gaps. */
-@media (min-width: 768px) {
-  html body .prose-justify { text-align: justify; text-align-last: start; }
+
+/* Keep the sign-up introduction's short lines naturally spaced. */
+html body.auth-page .auth-intro p {
+  text-align: left;
+}
+
+/* Validation messages need natural word spacing, including in narrow forms. */
+html body p.booking-field-error,
+html body p.field-error {
+  text-align: left;
+}
+
+/* Match the guest booking mobile-number validation message. */
+html body.auth-page #reg-contact-error.show {
+  display: block;
+  color: var(--danger);
+  background: var(--danger-soft);
+  padding: .35rem .5rem;
+  border-radius: .375rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: .35rem 0 .65rem;
+}
+
+html body.auth-page #reg-contact-error::before {
+  content: none;
+}
+
+@media (min-width: 1024px) {
+  html body.auth-page .auth-intro {
+    align-self: start;
+  }
 }
 
 /* ==========================================================================
@@ -77,13 +112,13 @@ html body.salon-portal main > header :is(h1, h2) { color: var(--cl-ink) !importa
 
 /* ---------- Sidebar: dark teal (--brand-teal-dark), cream text, gold marks the current page ---------- */
 html body.salon-portal aside {
-  --sb-bg: #06464A;                       /* --brand-teal-dark */
-  --sb-text: rgba(255, 248, 238, .74);    /* cream, softened */
-  --sb-strong: #FFF8EE;                   /* --brand-cream */
-  --sb-faint: rgba(255, 248, 238, .58);
-  --sb-line: rgba(255, 248, 238, .12);
-  --sb-fill: rgba(255, 248, 238, .07);
-  --sb-gold: #E0B84C;                     /* --brand-gold */
+  --sb-bg: var(--brand-dark);                       /* --brand-teal-dark */
+  --sb-text: rgba(246, 248, 247, .74);    /* cream, softened */
+  --sb-strong: var(--bg);                   /* --brand-cream */
+  --sb-faint: rgba(246, 248, 247, .58);
+  --sb-line: rgba(246, 248, 247, .12);
+  --sb-fill: rgba(246, 248, 247, .07);
+  --sb-gold: var(--accent);                     /* --brand-gold */
   background: var(--sb-bg) !important;
   background-image: none !important;
   border-right: 0 !important;
@@ -115,12 +150,12 @@ html body.salon-portal aside #sidebarNav .nav-item {
 html body.salon-portal aside a[data-nav-page]:hover,
 html body.salon-portal aside #sidebarNav .nav-item:hover {
   color: var(--sb-strong) !important;
-  background: rgba(255, 248, 238, .08) !important;
+  background: rgba(246, 248, 247, .08) !important;
 }
 html body.salon-portal aside a[data-nav-page]:is(.admin-nav-active, [class*="bg-luxury-900"], [class*="bg-emerald-950"], .bg-amber-500),
 html body.salon-portal aside #sidebarNav .nav-item.bg-amber-500 {
   color: var(--sb-strong) !important;
-  background: rgba(255, 248, 238, .11) !important;
+  background: rgba(246, 248, 247, .11) !important;
   box-shadow: inset 3px 0 0 var(--sb-gold) !important;   /* gold bar on the left */
 }
 html body.salon-portal aside a[data-nav-page]:is(.admin-nav-active, [class*="bg-luxury-900"], [class*="bg-emerald-950"], .bg-amber-500) :is(svg, i),
@@ -136,18 +171,18 @@ html body.salon-portal aside a[href*="logout"] {
 }
 html body.salon-portal aside a[href*="logout"] :is(span, svg, i) { color: inherit !important; }
 html body.salon-portal aside a[href*="logout"]:is(:hover, :focus-visible) {
-  color: #F2A3A3 !important;                       /* soft red, readable on dark teal */
-  background: rgba(242, 163, 163, .12) !important;
+  color: var(--border-strong) !important;                       /* soft red, readable on dark teal */
+  background: rgba(205, 214, 208, .12) !important;
 }
 /* The cashier sign-out row had its own tinted strip. */
 html body.salon-portal aside :is(div, nav):has(> a[href*="logout"]) { background: transparent !important; }
 html body.salon-portal aside :focus-visible { outline-color: var(--sb-gold) !important; }
-html body.salon-portal aside ::selection { background: var(--sb-gold); color: #222222; }
+html body.salon-portal aside ::selection { background: var(--sb-gold); color: var(--text); }
 html body.salon-portal aside :is(h1, h2, .font-bold, .font-serif, .font-semibold:not(a *)):is(.uppercase, .text-xs, *) { color: var(--sb-strong) !important; }
 
 /* Admin/cashier phone menu bar (mobile-nav.css) */
 html body .lm-mobilebar,
-html body.salon-portal main > .lm-mobilebar { background-color: #06464A !important; color: #FFF8EE !important; border-bottom: 0; box-shadow: none !important; }
+html body.salon-portal main > .lm-mobilebar { background-color: var(--brand-dark) !important; color: var(--bg) !important; border-bottom: 0; box-shadow: none !important; }
 
 /* Bottom navigation bars (customer phone nav, staff floating dock) */
 html body.salon-portal :is(#customer-mobile-nav, nav.fixed.bottom-0, .fixed.bottom-0 > nav) {
@@ -158,21 +193,21 @@ html body.salon-portal :is(#customer-mobile-nav, nav.fixed.bottom-0, .fixed.bott
 /* ---------- Cards and surfaces ---------- */
 html body.salon-portal main :is(.bg-slate-900, .bg-slate-800, .bg-slate-950, .bg-white, .bg-gray-50, .bg-slate-50,
   [class*="bg-slate-900/"], [class*="bg-slate-800/"], [class*="from-slate-9"], [class*="from-luxury-9"],
-  [class~="bg-[#FFFDF9]"], [class~="bg-[#F7F1E6]"], [class~="bg-[#FFF8EE]"], .service-catalog-card, .card-lift):not(button):not(a) {
+  [class~="bg-[color:var(--card)]"], [class~="bg-[color:var(--bg)]"], [class~="bg-[color:var(--bg)]"], .service-catalog-card, .card-lift):not(button):not(a) {
   background-color: var(--cl-surface) !important;
   background-image: none !important;
 }
-html body.salon-portal main :is(.rounded-2xl, .rounded-xl):is(.bg-slate-900, .bg-slate-800, .bg-white, [class*="from-slate-9"], [class~="bg-[#FFFDF9]"], .card-lift) {
+html body.salon-portal main :is(.rounded-2xl, .rounded-xl):is(.bg-slate-900, .bg-slate-800, .bg-white, [class*="from-slate-9"], [class~="bg-[color:var(--card)]"], .card-lift) {
   border: 1px solid var(--cl-border) !important;
   box-shadow: var(--cl-shadow) !important;
 }
 html body.salon-portal main .rounded-2xl { border-radius: var(--cl-radius) !important; }
 /* Soft inner panels (summaries, "payment details", filter boxes) */
-html body.salon-portal :is([class~="bg-[#F7F1E6]"], [class~="bg-[#EFE6D6]"], [class~="bg-[#E8DCC8]"], .bg-sand-100, .bg-sand-200) {
+html body.salon-portal :is([class~="bg-[color:var(--bg)]"], [class~="bg-[color:var(--border)]"], [class~="bg-[color:var(--border)]"], .bg-sand-100, .bg-sand-200) {
   background-color: var(--cl-subtle) !important;
 }
 /* Borders: beige/brown -> cool gray */
-html body.salon-portal :is([class~="border-[#E4D7C0]"], [class~="border-[#D9C9B4]"], [class~="border-[#EFE6D6]"], [class~="border-[#E8DCC8]"],
+html body.salon-portal :is([class~="border-[color:var(--border)]"], [class~="border-[color:var(--border)]"], [class~="border-[color:var(--border)]"], [class~="border-[color:var(--border)]"],
   [class*="border-luxury-"], [class*="border-emerald-9"], .border-slate-800, .border-slate-700, .border-gray-100, .border-gray-200, .border-gray-300, [class*="border-bronze"], [class*="border-sand"]) {
   border-color: var(--cl-border) !important;
 }
@@ -194,13 +229,13 @@ html body.salon-portal main :is(.text-gold-300, .text-gold-400, .text-gold-500, 
   color: var(--cl-gold-ink) !important;
 }
 /* Prices / amounts used a brown-gold; make them ink. */
-html body.salon-portal :is([class~="text-[#8B6914]"], [class~="text-[#805B0B]"], .text-gold-ink) { color: var(--cl-ink) !important; }
+html body.salon-portal :is([class~="text-[color:var(--accent-ink)]"], [class~="text-[color:var(--accent-ink)]"], .text-gold-ink) { color: var(--cl-ink) !important; }
 html body.salon-portal :is(.text-purple-300, .text-purple-400) { color: var(--cl-accent) !important; }
 
 /* ---------- Buttons ---------- */
 /* Primary: solid teal pill */
 html body.salon-portal :is(button, a, input[type="submit"]):is(.bg-luxury-600, .bg-luxury-700, .bg-luxury-500, [class*="from-luxury-6"], [class*="from-luxury-5"],
-  .bg-gold-500, .bg-gold-600, .bg-amber-500, .bg-amber-600, [class~="bg-[#006D6F]"], [class~="bg-[#B8860B]"], .bg-emerald-600, .bg-teal-600, .bg-teal-700):not([role="tab"]):not([role="radio"]):not(aside *) {
+  .bg-gold-500, .bg-gold-600, .bg-amber-500, .bg-amber-600, [class~="bg-[color:var(--brand)]"], [class~="bg-[color:var(--accent)]"], .bg-emerald-600, .bg-teal-600, .bg-teal-700):not([role="tab"]):not([role="radio"]):not(aside *) {
   background: var(--cl-accent) !important;
   background-image: none !important;
   color: #FFFFFF !important;
@@ -208,19 +243,19 @@ html body.salon-portal :is(button, a, input[type="submit"]):is(.bg-luxury-600, .
   border-radius: 999px !important;
   box-shadow: none !important;
 }
-html body.salon-portal :is(button, a):is(.bg-luxury-600, .bg-luxury-700, [class*="from-luxury-6"], .bg-gold-500, .bg-gold-600, .bg-amber-500, [class~="bg-[#006D6F]"], [class~="bg-[#B8860B]"], .bg-emerald-600):not([role="tab"]):not([role="radio"]):not(aside *):hover:not(:disabled) {
+html body.salon-portal :is(button, a):is(.bg-luxury-600, .bg-luxury-700, [class*="from-luxury-6"], .bg-gold-500, .bg-gold-600, .bg-amber-500, [class~="bg-[color:var(--brand)]"], [class~="bg-[color:var(--accent)]"], .bg-emerald-600):not([role="tab"]):not([role="radio"]):not(aside *):hover:not(:disabled) {
   background: var(--cl-accent-hover) !important;
 }
 /* Secondary: white pill with a thin border */
-html body.salon-portal :is(.service-add-button, .booking-button, [class~="bg-[#EFE6D6]"], .bg-slate-800.rounded-lg, .bg-slate-700) :is(*) { color: inherit; }
-html body.salon-portal :is(button, a):is(.service-add-button, .booking-button, [class~="bg-[#EFE6D6]"], [class*="bg-slate-800/"], [class*="bg-slate-700/"]):not(aside *) {
+html body.salon-portal :is(.service-add-button, .booking-button, [class~="bg-[color:var(--border)]"], .bg-slate-800.rounded-lg, .bg-slate-700) :is(*) { color: inherit; }
+html body.salon-portal :is(button, a):is(.service-add-button, .booking-button, [class~="bg-[color:var(--border)]"], [class*="bg-slate-800/"], [class*="bg-slate-700/"]):not(aside *) {
   background: var(--cl-surface) !important;
   color: var(--cl-ink) !important;
   border: 1px solid var(--cl-border-strong) !important;
   border-radius: 999px !important;
   box-shadow: none !important;
 }
-html body.salon-portal :is(button, a):is(.service-add-button, .booking-button, [class~="bg-[#EFE6D6]"], [class*="bg-slate-800/"], [class*="bg-slate-700/"]):not(aside *):hover:not(:disabled) { background: var(--cl-subtle) !important; }
+html body.salon-portal :is(button, a):is(.service-add-button, .booking-button, [class~="bg-[color:var(--border)]"], [class*="bg-slate-800/"], [class*="bg-slate-700/"]):not(aside *):hover:not(:disabled) { background: var(--cl-subtle) !important; }
 /* Segmented controls / tabs: soft gray track, white or teal thumb */
 html body.salon-portal [role="tablist"][class*="bg-"], html body.salon-portal [role="radiogroup"][class*="bg-"] {
   background: var(--cl-subtle) !important;
@@ -237,11 +272,11 @@ html body.salon-portal :is(input:not([type="checkbox"]):not([type="radio"]):not(
 }
 html body.salon-portal :is(input, select, textarea):focus {
   border-color: var(--cl-accent) !important;
-  box-shadow: 0 0 0 3px rgba(0, 109, 111, .15) !important;
+  box-shadow: 0 0 0 3px rgba(22, 96, 75, .15) !important;
   outline: none !important;
 }
-html body.salon-portal :is(input, textarea)::placeholder { color: #8B8174 !important; }
-html body.salon-portal :disabled:not(button) { background-color: var(--cl-subtle) !important; color: #8B8174 !important; }
+html body.salon-portal :is(input, textarea)::placeholder { color: var(--muted) !important; }
+html body.salon-portal :disabled:not(button) { background-color: var(--cl-subtle) !important; color: var(--muted) !important; }
 
 /* Tables */
 html body.salon-portal main table thead,
@@ -251,11 +286,11 @@ html body.salon-portal main table :is(td, th) { border-color: var(--cl-border) !
 html body.salon-portal main table tbody tr:hover { background: var(--cl-subtle) !important; }
 
 /* Dialogs: white, thin border, one soft shadow */
-html body.salon-portal [role="dialog"]:not([aria-hidden="true"]) :is(.bg-slate-900, .bg-white, [class~="bg-[#FFFDF9]"]),
+html body.salon-portal [role="dialog"]:not([aria-hidden="true"]) :is(.bg-slate-900, .bg-white, [class~="bg-[color:var(--card)]"]),
 html body.salon-portal [role="dialog"][class*="bg-"] {
   background-color: var(--cl-surface) !important;
 }
-html body.salon-portal [role="dialog"] > div > :first-child[class*="bg-[#006D6F]"] { border-radius: var(--cl-radius) var(--cl-radius) 0 0; }
+html body.salon-portal [role="dialog"] > div > :first-child[class*="bg-[color:var(--brand)]"] { border-radius: var(--cl-radius) var(--cl-radius) 0 0; }
 
 /* ==========================================================================
    Home page + payment result (not a portal)
@@ -283,7 +318,7 @@ html body :is(.rounded-full, .rounded-xl, .rounded-lg)[class*="bg-gradient-to-"]
   color: #FFFFFF !important;
   box-shadow: none !important;
 }
-html body.salon-portal aside .rounded-full[class*="bg-gradient-to-"] { background: #E0B84C !important; color: #222222 !important; }
+html body.salon-portal aside .rounded-full[class*="bg-gradient-to-"] { background: var(--accent) !important; color: var(--text) !important; }
 
 /* Sidebar: only rounded "cards" get a soft fill; footers/strips stay flat with a top line. */
 html body.salon-portal aside :is(.bg-slate-950, .bg-slate-900, .bg-slate-800, [class*="bg-slate-800/"], [class*="bg-slate-950/"], [class*="bg-luxury-950"]):not([class*="rounded"]) {
@@ -291,56 +326,59 @@ html body.salon-portal aside :is(.bg-slate-950, .bg-slate-900, .bg-slate-800, [c
 }
 
 /* Inline beige styles written straight into markup (loyalty stamps, reward boxes, etc.). */
-html body [style*="background:#FFF8EE"], html body [style*="background: #FFF8EE"],
-html body [style*="background:#FFFDF9"], html body [style*="background: #FFFDF9"],
-html body [style*="background:#F7F1E6"], html body [style*="background: #F7F1E6"] {
+html body [style*="background:var(--bg)"], html body [style*="background: var(--bg)"],
+html body [style*="background:var(--card)"], html body [style*="background: var(--card)"],
+html body [style*="background:var(--bg)"], html body [style*="background: var(--bg)"] {
   background: var(--cl-surface) !important;
   border-color: var(--cl-border) !important;
 }
-html body [style*="#D9C79E"], html body [style*="#E8DCC8"], html body [style*="#E4D7C0"] { border-color: var(--cl-border) !important; }
-html body [style*="color:#876515"], html body [style*="color: #876515"] { color: var(--cl-gold-ink) !important; }
+html body [style*="var(--border-strong)"], html body [style*="var(--border)"], html body [style*="var(--border)"] { border-color: var(--cl-border) !important; }
+html body [style*="color:var(--accent-ink)"], html body [style*="color: var(--accent-ink)"] { color: var(--cl-gold-ink) !important; }
 
 /* Loading skeletons and scrollbars in the palette. */
 html body .skeleton {
-  background: linear-gradient(90deg, #FFF8EE 25%, #E8DCC8 37%, #FFF8EE 63%) !important;
+  background: linear-gradient(90deg, var(--bg) 25%, var(--border) 37%, var(--bg) 63%) !important;
   background-size: 400% 100% !important;
 }
 html body ::-webkit-scrollbar-track { background: var(--cl-bg) !important; }
-html body ::-webkit-scrollbar-thumb { background: #D9C9B4 !important; border-radius: 999px; }
+html body ::-webkit-scrollbar-thumb { background: var(--border) !important; border-radius: 999px; }
 
 /* Progress-bar tracks and other sand fills */
-html body.salon-portal :is(.bg-slate-950.h-2, .bg-slate-950.h-1\.5, [class*="bg-luxury-950"], .bg-sand-200, [class~="bg-[#E4D7C0]"]) { background-color: #F1E8D8 !important; }
+html body.salon-portal :is(.bg-slate-950.h-2, .bg-slate-950.h-1\.5, [class*="bg-luxury-950"], .bg-sand-200, [class~="bg-[color:var(--border)]"]) { background-color: var(--border) !important; }
 
 /* ==========================================================================
    Home page footer: dark teal like the portal sidebars, gold headings,
    cream text, cream-outlined Facebook pills that turn gold on hover.
    ========================================================================== */
 html body footer.bg-plum {
-  background-color: #06464A !important;   /* --brand-teal-dark */
-  color: #FFF8EE !important;
+  background-color: var(--brand-dark) !important;   /* --brand-teal-dark */
+  color: var(--bg) !important;
 }
 /* Section headings: BRANCHES, CONTACT, FACEBOOK PAGES */
-html body footer.bg-plum :is(.text-copper, .text-copper-dark) { color: #E0B84C !important; }   /* --brand-gold */
+html body footer.bg-plum :is(.text-copper, .text-copper-dark) { color: var(--accent) !important; }   /* --brand-gold */
 /* Branch names */
-html body footer.bg-plum [class~="text-white/85"] { color: #FFF8EE !important; }
+html body footer.bg-plum [class~="text-white/85"] { color: var(--bg) !important; }
 /* Addresses, phone, emails */
-html body footer.bg-plum :is([class~="text-white/55"], [class~="text-white/70"]) { color: rgba(255, 248, 238, .74) !important; }
-html body footer.bg-plum [class~="text-white/40"] { color: rgba(255, 248, 238, .58) !important; }
-html body footer.bg-plum a:not([class*="rounded-full"]):hover { color: #E0B84C !important; }
+html body footer.bg-plum :is([class~="text-white/55"], [class~="text-white/70"]) { color: var(--on-brand-muted) !important; }
+html body footer.bg-plum [class~="text-white/40"] { color: var(--on-brand-muted) !important; }
+html body footer.bg-plum a:not([class*="rounded-full"]):hover { color: var(--accent) !important; }
 /* Facebook pills */
 html body footer.bg-plum a[class*="rounded-full"] {
-  color: rgba(255, 248, 238, .86) !important;
-  border-color: rgba(255, 248, 238, .28) !important;
+  color: var(--on-brand) !important;
+  border-color: rgba(246, 248, 247, .28) !important;
 }
 html body footer.bg-plum a[class*="rounded-full"]:hover {
-  color: #E0B84C !important;
-  border-color: #E0B84C !important;
+  color: var(--accent) !important;
+  border-color: var(--accent) !important;
   background: rgba(224, 184, 76, .08) !important;
 }
-html body footer.bg-plum a[class*="rounded-full"] > span[class*="bg-white/"] { background: rgba(255, 248, 238, .10) !important; }
+html body footer.bg-plum a[class*="rounded-full"] > span[class*="bg-white/"] { background: rgba(246, 248, 247, .10) !important; }
 /* Bottom line + copyright */
-html body footer.bg-plum [class~="border-white/10"] { border-color: rgba(255, 248, 238, .12) !important; }
-html body footer.bg-plum [class~="text-white/40"].text-center { color: rgba(255, 248, 238, .6) !important; }
+html body footer.bg-plum [class~="border-white/10"] { border-color: rgba(246, 248, 247, .12) !important; }
+html body footer.bg-plum [class~="text-white/40"].text-center { color: var(--on-brand-muted) !important; }
+/* Dark mode: footer sits on the deep green surface; text that used --bg (dark in .dark) uses --text. */
+html.dark body footer.bg-plum { background-color: var(--brand-deep) !important; color: var(--text) !important; }
+html.dark body footer.bg-plum [class~="text-white/85"] { color: var(--text) !important; }
 
 /* ==========================================================================
    Auth pages: visible "Back to website" link (desktop brand panel + phone header).
@@ -350,12 +388,12 @@ html body footer.bg-plum [class~="text-white/40"].text-center { color: rgba(255,
   display: inline-flex; align-items: center; gap: .4rem;
   width: fit-content; margin-bottom: 1.25rem;
   padding: .4rem .9rem; border-radius: 999px;
-  border: 1px solid rgba(255, 248, 238, .35);
-  color: #FFF8EE; font-size: .875rem; font-weight: 600; text-decoration: none;
+  border: 1px solid rgba(246, 248, 247, .35);
+  color: var(--bg); font-size: .875rem; font-weight: 600; text-decoration: none;
   transition: color .15s, border-color .15s, background-color .15s;
 }
-.auth-back-site:hover { color: #E0B84C; border-color: #E0B84C; background: rgba(224, 184, 76, .08); }
-.auth-back-site:focus-visible { outline: 3px solid #E0B84C; outline-offset: 3px; }
+.auth-back-site:hover { color: var(--accent); border-color: var(--accent); background: rgba(224, 184, 76, .08); }
+.auth-back-site:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 /* Phone header: LM mark on the left, back link on the right; keeps the old mb-auto spacing. */
 .hero .auth-topbar { margin-bottom: auto; display: flex; align-items: center; justify-content: space-between; gap: .75rem; width: 100%; }
 .hero .auth-topbar .mark { margin-bottom: 0 !important; }
@@ -367,14 +405,14 @@ html body footer.bg-plum [class~="text-white/40"].text-center { color: rgba(255,
 .lm-notif-head { display: flex; align-items: center; gap: .5rem; }
 .admin-notice-header { display: flex; align-items: center; gap: .5rem; }
 .admin-notice-header > strong { margin-right: auto; }
-.lm-notif-readall { margin-left: auto; min-height: 32px !important; padding: 2px 8px !important; border-radius: 6px; color: #006D6F; font-size: 12px !important; font-weight: 600; white-space: nowrap; }
+.lm-notif-readall { margin-left: auto; min-height: 32px !important; padding: 2px 8px !important; border-radius: 6px; color: var(--brand); font-size: 12px !important; font-weight: 600; white-space: nowrap; }
 .admin-notice-header .lm-notif-readall { margin-left: 0; }
-.lm-notif-readall:hover:not(:disabled) { background: rgba(0, 109, 111, .08); }
+.lm-notif-readall:hover:not(:disabled) { background: rgba(22, 96, 75, .08); }
 .lm-notif-readall:disabled { opacity: .5; cursor: default; }
 .lm-notif-title { display: flex; align-items: center; gap: 8px; font-size: 14px; line-height: 1.4; }
-.lm-notif-dot { width: 7px; height: 7px; flex-shrink: 0; border-radius: 50%; background: #006D6F; }
-.lm-notif-time { margin-left: auto; flex-shrink: 0; white-space: nowrap; font-size: 11px; color: #475569; }
-.lm-notif-line { margin-top: 3px; font-size: 12px; line-height: 1.45; color: #475569; overflow-wrap: anywhere; }
+.lm-notif-dot { width: 7px; height: 7px; flex-shrink: 0; border-radius: 50%; background: var(--brand); }
+.lm-notif-time { margin-left: auto; flex-shrink: 0; white-space: nowrap; font-size: 11px; color: var(--muted); }
+.lm-notif-line { margin-top: 3px; font-size: 12px; line-height: 1.45; color: var(--muted); overflow-wrap: anywhere; }
 .admin-notice-card { padding: 10px 14px !important; }
 .admin-notice-card .portal-notification-message, .portal-notification-card .portal-notification-message { margin-top: 2px; font-size: 13px; line-height: 1.45; }
 .portal-notification-card { padding: 10px 14px !important; }
@@ -388,7 +426,11 @@ html body footer.bg-plum [class~="text-white/40"].text-center { color: rgba(255,
   header.hidden:has(.portal-notification-panel) > :not(:has(.portal-notification-panel)),
   header.hidden:has(.portal-notification-panel) > :has(.portal-notification-panel):not(:has(> .portal-notification-panel)) > :not(:has(.portal-notification-panel)) { display: none !important; }
   header.hidden:has(.portal-notification-panel) .relative:has(> .portal-notification-panel) { position: fixed; top: 24px; right: 72px; z-index: 40; }
-  header.hidden:has(.portal-notification-panel) .relative:has(> .portal-notification-panel) > button { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; background: #FFFDF9; border: 1px solid #E8DCC8; }
+  header.hidden:has(.portal-notification-panel) .relative:has(> .portal-notification-panel) > button { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; background: var(--card); border: 1px solid var(--border); }
   /* Tailwind top-full would mean 100% of the screen on a fixed element. */
   header.hidden .portal-notification-panel { position: fixed !important; top: 76px !important; left: 16px !important; right: 16px !important; bottom: auto !important; width: auto !important; margin-top: 0 !important; }
 }
+
+/* Auth side panel: highlight the step the visitor is on. */
+.pts li.on { border-color: rgb(224 184 76 / .55); background: rgb(255 255 255 / .12); }
+.pts li.on > span { background: var(--accent); color: var(--text); }

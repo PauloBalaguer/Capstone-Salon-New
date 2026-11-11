@@ -16,6 +16,7 @@
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/booking/Scheduling.php';
+require_once '../../backend/shared/config/helpers/StaffShift.php';
 require_once '../../backend/shared/config/payments/PayMongo.php';
 
 sendCorsHeaders();
@@ -73,7 +74,7 @@ try {
 
     $servicePlaceholders = implode(',', array_fill(0, count($serviceIds), '?'));
     $stmt = $pdo->prepare("
-        SELECT e.id, e.first_name, e.last_name, e.position, e.shift_status
+        SELECT e.id, e.first_name, e.last_name, e.position
         FROM employees e
         WHERE e.branch_id = ? AND e.is_active = 1
           AND (SELECT COUNT(DISTINCT service_id) FROM staff_services WHERE employee_id = e.id AND service_id IN ($servicePlaceholders)) = ?
@@ -100,12 +101,23 @@ try {
     $staff = [];
     $busy = [];
     foreach ($candidates as $candidate) {
+        // Not scheduled to work then (rest day / outside their hours), or an
+        // immediate booking while they're off shift / on a break: hide.
+        if (!Scheduling::staffIsScheduled($pdo, (int) $candidate['id'], $appointmentDateTime, $durationMinutes)) continue;
         $entry = [
             'id' => (string) $candidate['id'],
             'name' => trim($candidate['first_name'] . ' ' . $candidate['last_name']),
             'role' => $candidate['position'] ?: '',
-            'currentShift' => $candidate['shift_status'],
+            'currentShift' => StaffShift::liveStatus($pdo, (int) $candidate['id']),
         ];
+        // Same-day booking while off shift / on a break: shown, but not bookable.
+        if (!Scheduling::staffCanTakeBooking($pdo, (int) $candidate['id'], $appointmentDateTime, $durationMinutes)) {
+            $entry['available'] = false;
+            $entry['status'] = $entry['currentShift'];
+            $entry['busyUntil'] = null;
+            $busy[] = $entry;
+            continue;
+        }
         $busyUntil = Scheduling::staffConflictUntil($pdo, (int) $candidate['id'], $appointmentDateTime, $durationMinutes);
         if ($busyUntil === null) {
             $entry['available'] = true;
@@ -143,17 +155,26 @@ try {
         $segmentStart = clone $cursor;
         $segmentEnd = (clone $cursor)->modify("+{$minutes} minutes");
         $qualifiedStmt->execute([$serviceId, $branchId]);
+        $scheduled = array_values(array_filter($qualifiedStmt->fetchAll(), fn($e) =>
+            Scheduling::staffIsScheduled($pdo, (int) $e['id'], $segmentStart->format('Y-m-d H:i:s'), $minutes)));
         $options = array_map(function ($e) use ($pdo, $segmentStart, $minutes) {
+            $shift = StaffShift::liveStatus($pdo, (int) $e['id']);
+            if (!Scheduling::staffCanTakeBooking($pdo, (int) $e['id'], $segmentStart->format('Y-m-d H:i:s'), $minutes)) {
+                // Off shift / on a break: shown, but can't be picked.
+                return ['id' => (string) $e['id'], 'name' => trim($e['first_name'] . ' ' . $e['last_name']), 'role' => $e['position'] ?: '',
+                    'currentShift' => $shift, 'available' => false, 'status' => $shift, 'busyUntil' => null];
+            }
             $until = Scheduling::staffConflictUntil($pdo, (int) $e['id'], $segmentStart->format('Y-m-d H:i:s'), $minutes);
             return [
                 'id' => (string) $e['id'],
                 'name' => trim($e['first_name'] . ' ' . $e['last_name']),
                 'role' => $e['position'] ?: '',
+                'currentShift' => $shift,
                 'available' => $until === null,
                 'status' => $until === null ? 'Available' : 'Busy',
                 'busyUntil' => $until ? $until->format('h:i A') : null,
             ];
-        }, $qualifiedStmt->fetchAll());
+        }, $scheduled);
         $perService[] = [
             'id' => (string) $serviceId,
             'name' => $serviceRows[$serviceId]['service_name'],

@@ -440,6 +440,16 @@ document.addEventListener('alpine:init', () => {
     }
   });
 
-  Alpine.store('staff').refresh();
-  Alpine.store('staff').startClock();
+  const staffStore = Alpine.store('staff');
+  // Live sync: reload the moment anything at this stylist's branch changes
+  // on another device (cashier clock-out, new/cancelled/reassigned
+  // bookings) -- function/shared/live-sync.js. Skipped while one of this
+  // page's own actions is saving; that action reloads the state itself.
+  staffStore.refresh().finally(() => {
+    if (window.LiveSync) window.LiveSync.start({
+      branch: staffStore.profile.branchKey || 'all',
+      onChange: () => (staffStore.busy || staffStore.shiftBusy) ? null : staffStore.refresh()
+    });
+  });
+  staffStore.startClock();
 });

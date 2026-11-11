@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="../shared/theme-tokens.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leo Mejillano Salon - Receipt</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { theme: { extend: { colors: { teal: { 50: "#EEF7F2", 100: "#DDF0E6", 200: "#DDF0E6", 300: "#CDD6D0", 400: "#16604B", 500: "#16604B", 700: "#0E3B2F", 900: "#0A2E24" }, gold: { 100: "#FAF2DC", 200: "#FAF2DC", 300: "#E0B84C", 500: "#E0B84C", 600: "#E0B84C", 800: "#6C4C09" }, bronze: "#E2E7E3" } } } };</script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style type="text/tailwindcss">
         /* Converted from assets/css/cashier.css. Tailwind has no utility for
@@ -12,8 +14,8 @@
            else below uses @apply with normal Tailwind classes. */
         ::-webkit-scrollbar { @apply w-1.5 h-1.5; }
         ::-webkit-scrollbar-track { @apply bg-transparent; }
-        ::-webkit-scrollbar-thumb { @apply bg-slate-300 rounded-full; }
-        ::-webkit-scrollbar-thumb:hover { @apply bg-slate-400; }
+        ::-webkit-scrollbar-thumb { @apply bg-[color:var(--border-strong)] rounded-full; }
+        ::-webkit-scrollbar-thumb:hover { @apply bg-[color:var(--muted)]; }
 
         @keyframes fade-up {
             from { opacity: 0; transform: translateY(8px); }
@@ -24,7 +26,7 @@
         .card-lift { @apply transition duration-200 hover:-translate-y-0.5 hover:shadow-lg; }
 
         /* Skeleton placeholder shown while a page's first fetch is in flight. */
-        .skeleton { @apply bg-slate-200 animate-pulse rounded-lg; }
+        .skeleton { @apply bg-[color:var(--border)] animate-pulse rounded-lg; }
         .skeleton-line { @apply h-3.5; }
         .skeleton-row { @apply flex items-center gap-3 p-4; }
         .skeleton-avatar { @apply w-9 h-9 rounded-full shrink-0; }
@@ -52,6 +54,9 @@
   <script src="../../function/shared/portal-presentation.js"></script>
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
+  <link rel="stylesheet" href="../../frontend/cashier/cashier-panel.css?v=20261110d">
+  <link rel="stylesheet" href="../../frontend/shared/portal-unify.css?v=20261110b">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
 </head>
 <body class="salon-portal bg-gray-100 font-sans antialiased min-h-screen flex flex-col items-center py-10 px-4">
 
@@ -77,7 +82,7 @@
             <div class="bg-amber-500 text-slate-950 font-bold rounded-full w-12 h-12 flex items-center justify-center mx-auto text-lg shadow-sm">LM</div>
             <h2 class="font-black text-slate-900 text-base uppercase tracking-wide">Leo Mejillano Salon</h2>
             <p id="receiptBranchName" class="text-xs text-gray-500">-</p>
-            <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full mt-1"><i class="fa-solid fa-circle-check"></i> PAID</span>
+            <span class="inline-flex items-center gap-1 bg-emerald-100 text-[color:var(--success)] text-xs font-bold px-2 py-0.5 rounded-full mt-1"><i class="fa-solid fa-circle-check"></i> PAID</span>
         </div>
 
         <div class="flex justify-between text-xs">
@@ -115,12 +120,12 @@
         </div>
 
         <div class="space-y-1 border-t border-dashed border-gray-300 pt-3">
-            <p id="receiptLoyaltyReward" class="hidden text-xs text-emerald-700"></p>
+            <p id="receiptLoyaltyReward" class="hidden text-xs text-[color:var(--success)]"></p>
             <div class="flex justify-between text-gray-500">
                 <span>Subtotal</span>
                 <span id="receiptSubtotal">₱0.00</span>
             </div>
-            <div id="receiptReservationRow" class="hidden flex justify-between text-emerald-700">
+            <div id="receiptReservationRow" class="hidden flex justify-between text-[color:var(--success)]">
                 <span>Reservation Payment Received</span>
                 <span id="receiptReservation">₱0.00</span>
             </div>
@@ -152,7 +157,9 @@
         </div>
     </div>
 
-    <script src="../../function/cashier/cashier-common.js"></script>
+    <script src="../../function/shared/live-sync.js?v=20261110"></script>
+    <script src="../../function/cashier/cashier-common.js?v=20261110"></script>
     <script src="../../function/cashier/receipt.js"></script>
+    <script src="../../function/cashier/cashier-shell.js?v=20261110c"></script>
 </body>
 </html>

@@ -5,15 +5,15 @@ function lmDialog({ title, message, confirmLabel, cancelLabel, input }) {
   return new Promise(resolve => {
     const dialog = document.createElement('dialog');
     dialog.setAttribute('aria-labelledby', 'lm-confirm-title');
-    dialog.style.cssText = 'width:min(92vw,420px);margin:auto;padding:24px;border:0;border-radius:16px;background:#FFFDF9;color:#1F2937;box-shadow:0 20px 50px rgba(0,0,0,.3);';
+    dialog.style.cssText = 'width:min(92vw,420px);margin:auto;padding:24px;border:0;border-radius:16px;background:var(--card);color:var(--text);box-shadow:0 20px 50px rgba(0,0,0,.3);';
 
     const heading = document.createElement('h2');
     heading.id = 'lm-confirm-title';
     heading.textContent = title;
-    heading.style.cssText = 'margin:0 0 8px;font-size:18px;font-weight:700;color:#06464A;';
+    heading.style.cssText = 'margin:0 0 8px;font-size:18px;font-weight:700;color:var(--brand-dark);';
     const text = document.createElement('p');
     text.textContent = message;
-    text.style.cssText = 'margin:0 0 20px;font-size:14px;line-height:1.5;color:#475569;white-space:pre-line;';
+    text.style.cssText = 'margin:0 0 20px;font-size:14px;line-height:1.5;color:var(--muted);white-space:pre-line;';
     dialog.append(heading, text);
 
     let field = null;
@@ -22,7 +22,7 @@ function lmDialog({ title, message, confirmLabel, cancelLabel, input }) {
       field.type = 'text';
       field.value = input.value ?? '';
       field.setAttribute('aria-label', input.label || title);
-      field.style.cssText = 'display:block;width:100%;min-height:44px;margin:-8px 0 20px;padding:10px 14px;border:1px solid #D9C9B4;border-radius:10px;background:#FFFFFF;color:#222222;font-size:14px;';
+      field.style.cssText = 'display:block;width:100%;min-height:44px;margin:-8px 0 20px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;background:#FFFFFF;color:var(--text);font-size:14px;';
       dialog.append(field);
     }
 
@@ -35,8 +35,8 @@ function lmDialog({ title, message, confirmLabel, cancelLabel, input }) {
       el.addEventListener('click', () => { accepted = result; dialog.close(); });
       return el;
     };
-    const cancel = button(cancelLabel, 'background:#FFFFFF !important;color:#1F2937 !important;border:1px solid #CBD5E1 !important;', false);
-    const accept = button(confirmLabel, 'background:#006D6F !important;color:#FFFFFF !important;border:1px solid #006D6F !important;', true);
+    const cancel = button(cancelLabel, 'background:#FFFFFF !important;color:#18261F !important;border:1px solid #CDD6D0 !important;', false);
+    const accept = button(confirmLabel, 'background:#16604B !important;color:#FFFFFF !important;border:1px solid #16604B !important;', true);
     const actions = document.createElement('div');
     actions.style.cssText = 'display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;';
     actions.append(cancel, accept);

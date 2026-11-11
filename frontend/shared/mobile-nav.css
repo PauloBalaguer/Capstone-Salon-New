@@ -27,7 +27,7 @@
 
   .lm-drawer-backdrop {
     position: fixed; inset: 0; z-index: 55;
-    background: rgba(2, 6, 23, .5);
+    background: rgba(24, 38, 31, .5);
     opacity: 0; pointer-events: none; transition: opacity .25s ease;
   }
   body.lm-drawer-open .lm-drawer-backdrop { opacity: 1; pointer-events: auto; }
@@ -37,7 +37,7 @@
     display: flex; align-items: center; gap: .75rem;
     position: sticky; top: 0; z-index: 40;
     min-height: 3.5rem; padding: .5rem 1rem;
-    background: #06464A; color: #fff;
+    background: var(--brand-dark); color: #fff;
     box-shadow: 0 1px 0 rgba(0, 0, 0, .15);
     flex-shrink: 0;
   }
@@ -46,7 +46,7 @@
     width: 2.75rem; height: 2.75rem; min-height: 2.75rem; margin-left: -.5rem;
     border-radius: .75rem; color: inherit; background: transparent; border: 0; cursor: pointer;
   }
-  .lm-mobilebar button:focus-visible { outline: 3px solid #E4B84A; outline-offset: 2px; }
+  .lm-mobilebar button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
   .lm-mobilebar-title { font-weight: 700; font-size: 1rem; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 }
@@ -64,7 +64,7 @@
   .booking-filters > .booking-filter-toggle { display: inline-flex; align-items: center; gap: .4rem; grid-column: 2; }
   .booking-filters:not(.is-open) > :not(.booking-search):not(.booking-filter-toggle) { display: none !important; }
   .booking-filters.is-open > :not(.booking-search):not(.booking-filter-toggle) { grid-column: 1 / -1; }
-  .booking-filter-count { min-width: 1.25rem; height: 1.25rem; padding: 0 .3rem; border-radius: 999px; background: #006D6F; color: #fff; font-size: .75rem; line-height: 1.25rem; text-align: center; }
+  .booking-filter-count { min-width: 1.25rem; height: 1.25rem; padding: 0 .3rem; border-radius: 999px; background: var(--brand); color: #fff; font-size: .75rem; line-height: 1.25rem; text-align: center; }
 }
 
 /* Admin reports filters: label above each control; the two dates side by side. */

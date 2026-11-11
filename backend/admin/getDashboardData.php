@@ -21,6 +21,7 @@ require_once '../../backend/shared/config/helpers/LoyaltyTier.php';
 require_once '../../backend/shared/config/helpers/StaffMetrics.php';
 require_once '../../backend/shared/config/payments/RevenueReport.php';
 require_once '../../backend/shared/config/booking/Scheduling.php';
+require_once '../../backend/shared/config/helpers/StaffShift.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -43,6 +44,9 @@ try {
     $homeServiceWhere = $selection === null ? '' : 'WHERE h.id IN (' . implode(',', array_map('intval', $selection['homeIds']) ?: [0]) . ')';
 
     if (!isset($_GET['bookingsOnly']) || $selection === null) {
+    foreach ($pdo->query('SELECT id FROM branches')->fetchAll(PDO::FETCH_COLUMN) as $branchIdToSettle) {
+        Scheduling::autoCloseBranchAttendance($pdo, (int) $branchIdToSettle);
+    }
     $revenueTotals = RevenueReport::totals($pdo);
     $stmt = $pdo->query("
         SELECT
@@ -85,6 +89,7 @@ try {
         SELECT
             a.reference_code AS id,
             a.created_at AS createdAt, a.notes AS notes, c.email AS clientEmail,
+            c.id AS customerId, (c.user_id IS NOT NULL) AS isRegistered,
             a.deposit_paid AS depositPaid, a.reservation_amount_due AS requiredAmount,
             br.branch_key AS branchId,
             CONCAT(c.first_name, ' ', c.last_name) AS clientName,
@@ -135,6 +140,9 @@ try {
         $row['checkoutPaid'] = (bool) $row['checkoutPaid'];
         $row['checkoutRevenue'] = (float) $row['checkoutRevenue'];
         $row['isHomeService'] = false;
+        $row['customerId'] = (string) $row['customerId'];
+        $row['customerType'] = $row['isRegistered'] ? 'Registered' : 'Guest';
+        unset($row['isRegistered']);
         $row['bookingType'] = $row['depositMethod'] === 'Walk-in' ? 'Walk-In' : 'Appointment';
         $row['hasConflict'] = (bool) $row['hasConflict'];
         $row['durationMinutes'] = (int) $row['durationMinutes'];
@@ -153,6 +161,7 @@ try {
     $stmt = $pdo->query("
         SELECT
             h.reference_code AS id, h.submitted_at AS createdAt, c.email AS clientEmail,
+            c.id AS customerId, (c.user_id IS NOT NULL) AS isRegistered,
             CONCAT(c.first_name, ' ', c.last_name) AS clientName,
             c.phone_number AS clientPhone,
             h.event_type AS eventType,
@@ -191,6 +200,8 @@ try {
         return [
             'id' => $row['id'],
             'createdAt' => $row['createdAt'], 'clientEmail' => $row['clientEmail'],
+            'customerId' => (string) $row['customerId'],
+            'customerType' => $row['isRegistered'] ? 'Registered' : 'Guest',
             'branchId' => null,
             'clientName' => $row['clientName'],
             'clientPhone' => $row['clientPhone'],
@@ -233,22 +244,23 @@ try {
         exit();
     }
 
+    // Same live-status rule as the cashier/staff portal: settle forgotten
+    // sign-outs first, then derive status from real attendance.
+    foreach ($pdo->query('SELECT id FROM branches')->fetchAll(PDO::FETCH_COLUMN) as $bid) {
+        Scheduling::autoCloseBranchAttendance($pdo, (int) $bid);
+    }
+
     $stmt = $pdo->query("
         SELECT
             e.id,
             CONCAT(e.first_name, ' ', e.last_name) AS name,
             br.branch_key AS branchId,
-            e.position AS role,
+            e.position AS role, ue.email AS email,
             (SELECT COUNT(*) FROM appointments ap WHERE " . StaffMetrics::worksOnSql('ap', 'e.id') . " AND ap.status IN " . StaffMetrics::FINISHED_STATUSES_SQL . ") AS completedCount,
             (SELECT ROUND(AVG(f.rating), 1) FROM feedback f
                 JOIN appointments ap2 ON ap2.id = f.appointment_id
                 WHERE " . StaffMetrics::worksOnSql('ap2', 'e.id') . ") AS avgRating,
-            (SELECT COUNT(*) FROM appointments ap3
-                WHERE ap3.employee_id = e.id AND ap3.status = 'In Progress'
-                AND DATE(ap3.appointment_datetime) = CURDATE()) AS inProgressToday,
-            (SELECT COUNT(*) FROM attendance at
-                WHERE at.employee_id = e.id AND DATE(at.clock_in_time) = CURDATE()
-                AND at.clock_out_time IS NULL) AS openAttendanceToday,
+            " . StaffShift::liveStatusSql('e') . " AS liveStatus,
             " . StaffMetrics::attendedDaysSql('e') . " AS attendanceDays,
             " . StaffMetrics::branchOpenDaysSql('e') . " AS branchOpenDays,
             (SELECT COUNT(*) FROM attendance at3 WHERE at3.employee_id = e.id AND at3.notes IS NOT NULL
@@ -257,22 +269,22 @@ try {
             (SELECT GROUP_CONCAT(sv.service_name ORDER BY sv.id SEPARATOR ', ') FROM staff_services ss
                 JOIN services sv ON sv.id = ss.service_id WHERE ss.employee_id = e.id) AS specialties
         FROM employees e
+        LEFT JOIN users ue ON ue.id = e.user_id
         LEFT JOIN branches br ON br.id = e.branch_id
         WHERE e.is_active = 1
         ORDER BY e.id
     ");
+    // Live status: the shared rule in StaffShift::liveStatusSql() (On Shift /
+    // On Break / Busy / Off Shift), the same one the Cashier panel and the
+    // public roster use.
     $staffList = array_map(function ($row) {
-        $status = 'Off Shift';
-        if ((int) $row['inProgressToday'] > 0) {
-            $status = 'With Client';
-        } elseif ((int) $row['openAttendanceToday'] > 0) {
-            $status = 'On Duty';
-        }
+        $status = $row['liveStatus'];
         return [
             'id' => (string) $row['id'],
             'name' => $row['name'],
             'branchId' => $row['branchId'],
             'role' => $row['role'],
+            'email' => $row['email'],
             'completedCount' => (int) $row['completedCount'],
             'rating' => $row['avgRating'] !== null ? (float) $row['avgRating'] : 0,
             'status' => $status,
@@ -304,7 +316,7 @@ try {
     }, $stmt->fetchAll());
 
     $stmt = $pdo->query("
-        SELECT i.id, i.product_name AS name, br.branch_key AS branchId,
+        SELECT i.id, i.product_name AS name, i.category AS category, br.branch_key AS branchId,
                i.quantity_on_hand AS stock, i.reorder_level AS minQty,
                i.cost_price AS costPrice, i.sale_price AS salePrice,
                i.supplier AS supplier, i.is_active AS isActive
@@ -436,6 +448,7 @@ try {
     $stmt = $pdo->query("
         SELECT
             c.id, CONCAT(c.first_name, ' ', c.last_name) AS name, c.phone_number AS phone,
+            COALESCE(c.email, (SELECT u2.email FROM users u2 WHERE u2.id = c.user_id)) AS email,
             c.user_id IS NOT NULL AS isRegistered,
             c.loyalty_points AS loyaltyPoints,
             (SELECT COUNT(*) FROM loyalty_stamps ls WHERE ls.customer_id = c.id) AS loyaltyStamps,
@@ -453,8 +466,10 @@ try {
     ");
     $customerDirectory = array_map(function ($row) {
         return [
+            'id' => (string) $row['id'],
             'name' => $row['name'],
             'phone' => $row['phone'],
+            'email' => $row['email'],
             // A guest checkout (submitGuestBooking.php) creates a `customers`
             // row with no linked `users` account -- user_id IS NULL is the
             // real, structural signal for "Guest" vs "Registered", not a
@@ -516,7 +531,8 @@ try {
         SELECT sv.id, br.branch_key AS branchId, sv.service_name AS name, sv.description,
                sv.category, sv.duration_minutes AS durationMinutes, sv.duration_label AS durationLabel,
                sv.price, sv.loyalty_multiplier AS loyaltyMultiplier, sv.loyalty_treatment_eligible, sv.payment_requirement AS paymentRequirement,
-               sv.is_active AS active
+               sv.is_active AS active,
+               (SELECT COUNT(*) FROM appointment_services aps2 WHERE aps2.service_id = sv.id) AS bookingCount
         FROM services sv
         LEFT JOIN branches br ON br.id = sv.branch_id
         ORDER BY br.branch_key, sv.service_name
@@ -538,6 +554,7 @@ try {
             // frontend only ever sees the three canonical rule names.
             'paymentRequirement' => $row['paymentRequirement'] === 'Half Payment' ? '50% Down Payment' : $row['paymentRequirement'],
             'active' => (bool) $row['active'],
+            'bookingCount' => (int) $row['bookingCount'],
         ];
     }, $stmt->fetchAll());
 

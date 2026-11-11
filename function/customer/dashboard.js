@@ -26,6 +26,33 @@ function customerApp() {
     {
       init() {
         this.loadDashboardData();
+        // Live sync: bookings, cancellations, staff assignments and stylist
+        // availability changed on any other device show up here on their
+        // own (function/shared/live-sync.js).
+        if (window.LiveSync) window.LiveSync.start({ branch: 'all', onChange: () => this.liveRefresh() });
+      },
+
+      // Quiet reload for live sync: no boot screen, no prefill or reminder
+      // pop-ups -- just the server's current bookings, notifications and
+      // staff, plus a fresh check of an open booking form's times/stylists.
+      async liveRefresh() {
+        if (this.isBooting) return;
+        try {
+          const response = await fetch('../../backend/customer/getDashboardData.php', { cache: 'no-store' });
+          if (response.status === 401) return;
+          const body = await response.json();
+          if (!body.success) return;
+          this.loadServerNotifications(body.notifications);
+          this.appointments = body.appointments;
+          this.allBookings = body.allBookings;
+          this.myReviews = body.reviews;
+          this.homeServiceRequests = body.homeServiceRequests;
+          this.staffList = body.catalogs.staff;
+        } catch (_) { return; }
+        if (this.refreshAvailableSlots && this.bookingForm && this.bookingForm.date && this.selectedServicesForBooking?.length) {
+          await this.refreshAvailableSlots({ quiet: true });
+          if (this.bookingForm.time) await this.refreshAvailableStaff({ quiet: true });
+        }
       },
 
       openSignOutConfirm() {
@@ -80,7 +107,7 @@ function customerApp() {
         this.isBooting = true;
         this.dashboardLoadError = '';
 
-        fetch('../../backend/customer/getDashboardData.php')
+        fetch('../../backend/customer/getDashboardData.php', { cache: 'no-store' })
           .then(response => response.json().then(body => ({ status: response.status, body })))
           .then(({ status, body }) => {
             if (status === 401) {

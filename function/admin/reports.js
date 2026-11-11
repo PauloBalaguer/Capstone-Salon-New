@@ -1,7 +1,8 @@
 function adminReportsApp() {
   return {
-    reportType: 'appointments',
-    reportFilterBranch: 'all',
+    // ?type=revenue&branch=... comes from the Dashboard's Collections card.
+    reportType: ['appointments','revenue','staff','inventory','feedback','payments','reconciliation','activity'].includes(AdminUI.param('type')) ? AdminUI.param('type') : 'appointments',
+    reportFilterBranch: AdminUI.param('branch') || 'all',
     reportDateFrom: '',
     reportDateTo: '',
 
@@ -175,7 +176,8 @@ function adminReportsApp() {
     getReportBookings() {
       const store = Alpine.store('admin');
       return store.bookings.filter(b => {
-        if (this.reportFilterBranch !== 'all' && b.branchId !== this.reportFilterBranch) return false;
+        if (this.reportFilterBranch === 'home-service') { if (!b.isHomeService) return false; }
+        else if (this.reportFilterBranch !== 'all' && b.branchId !== this.reportFilterBranch) return false;
         return this.isWithinDateRange(b.date);
       });
     },
@@ -189,7 +191,34 @@ function adminReportsApp() {
     },
 
     getUniqueGuestCount() {
-      return new Set(this.getReportBookings().map(b => b.clientPhone)).size;
+      return new Set(this.getReportBookings().map(b => b.customerId || b.clientPhone)).size;
+    },
+
+    getReportAverageRating() {
+      const list = this.getReportFeedback();
+      if (!list.length) return '—';
+      return (list.reduce((sum, f) => sum + f.rating, 0) / list.length).toFixed(1) + ' ★';
+    },
+
+    // Per-branch bookings, completions, unique customers and collections for
+    // the current filters (home service grouped as its own row).
+    getBranchPerformance() {
+      const store = Alpine.store('admin');
+      const rows = new Map();
+      const row = (id, name) => {
+        if (!rows.has(id)) rows.set(id, { id, name, bookings: 0, completed: 0, customerSet: new Set(), revenue: 0 });
+        return rows.get(id);
+      };
+      store.branches.forEach(b => { if (this.reportFilterBranch === 'all' || this.reportFilterBranch === b.id) row(b.id, b.name); });
+      this.getReportBookings().forEach(b => {
+        const r = b.isHomeService ? row('home-service', 'Home Service (off-site)') : row(b.branchId, store.getBranchName(b.branchId));
+        r.bookings += 1;
+        if (b.status === 'Completed') r.completed += 1;
+        r.customerSet.add(b.customerId || b.clientPhone);
+      });
+      this.getRevenueByBranch().forEach(g => { row(g.id || 'home-service', g.name || 'Home Service (off-site)').revenue += g.revenue; });
+      return [...rows.values()].map(r => ({ id: r.id, name: r.name, bookings: r.bookings, completed: r.completed, customers: r.customerSet.size, revenue: Math.round(r.revenue * 100) / 100 }))
+        .sort((a, b) => b.revenue - a.revenue || b.bookings - a.bookings);
     },
 
     getServicePopularity() {
@@ -259,7 +288,7 @@ function adminReportsApp() {
     exportReportToCSV() {
       const store = Alpine.store('admin');
       if (this.reportType === 'appointments') {
-        const rows = this.getReportBookings().map(b => [b.id, store.getBranchName(b.branchId), b.clientName, b.serviceName, b.date, b.status]);
+        const rows = this.getReportBookings().map(b => [b.id, b.isHomeService ? 'Home Service (off-site)' : store.getBranchName(b.branchId), b.clientName, b.serviceName, b.date, b.status]);
         store.exportRowsToCSV('appointments-report.csv', ['Ref ID', 'Branch', 'Client', 'Service', 'Date', 'Status'], rows);
       } else if (this.reportType === 'revenue') {
         if (this.collectionsLoading || this.collectionsError) return;

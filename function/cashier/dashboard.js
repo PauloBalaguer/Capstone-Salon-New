@@ -24,6 +24,7 @@ async function init() {
   CashierApp.initChrome();
   wireStaticEvents();
   await refreshData();
+  CashierApp.liveSync(refreshData, () => state.branch);
   // Other pages link here with ?confirm=<ref>, ?checkout=<ref> or ?verify=<ref>.
   const params = new URLSearchParams(window.location.search);
   const ref = params.get('confirm') || params.get('checkout') || params.get('verify');
@@ -111,7 +112,7 @@ function renderStats() {
   document.getElementById('statPaymentsToVerifyHint').textContent = toVerify
     ? `${toVerify} payment${toVerify === 1 ? '' : 's'} to check`
     : 'No payments to check';
-  document.getElementById('statPaymentsToVerifyHint').classList.toggle('text-rose-600', toVerify > 0);
+  document.getElementById('statPaymentsToVerifyHint').classList.toggle('text-[color:var(--danger)]', toVerify > 0);
   document.getElementById('statPaymentsToVerifyHint').classList.toggle('font-bold', toVerify > 0);
   document.getElementById('statConfirmed').textContent = queue.filter(b => b.status === 'Confirmed').length;
   document.getElementById('statTodayAppointments').textContent = `${todays.length} appointment${todays.length === 1 ? '' : 's'} today`;
@@ -119,7 +120,7 @@ function renderStats() {
   const walkIns = todays.filter(b => b.depositMethod === 'Walk-in').length;
   document.getElementById('statWalkInsToday').textContent = `${walkIns} walk-in${walkIns === 1 ? '' : 's'} today`;
   document.getElementById('statReadyForCheckout').textContent = payable.length;
-  document.getElementById('statToCollect').textContent = CashierApp.formatCurrency(payable.reduce((sum, b) => sum + Number(b.price || 0), 0)) + ' in bills';
+  document.getElementById('statToCollect').textContent = CashierApp.formatCurrency(payable.reduce((sum, b) => sum + CashierApp.balanceOf(b), 0)) + ' remaining balance';
 
   ['all', 'pending', 'confirmed', 'service', 'pay'].forEach(tab => {
     const el = document.querySelector(`#queueTabs [data-count="${tab}"]`);
@@ -141,9 +142,9 @@ function setTab(tab) {
 }
 
 function paymentBadge(b) {
-  if (b.checkoutPaid || b.paymentStatus === 'Fully Paid') return ['Paid', 'bg-emerald-100 text-emerald-800'];
-  if (b.depositVerified) return ['Reservation paid', 'bg-emerald-100 text-emerald-800'];
-  if (hasReportedPayment(b)) return ['Payment to check', 'bg-amber-100 text-amber-900'];
+  if (b.checkoutPaid || b.paymentStatus === 'Fully Paid') return ['Paid', 'bg-emerald-100 text-[color:var(--success)]'];
+  if (b.depositVerified) return ['Reservation paid', 'bg-emerald-100 text-[color:var(--success)]'];
+  if (hasReportedPayment(b)) return ['Payment to check', 'bg-amber-100 text-[color:var(--warn)]'];
   return ['Not paid yet', 'bg-gray-100 text-gray-600'];
 }
 
@@ -151,16 +152,16 @@ function paymentBadge(b) {
 function primaryAction(b) {
   const ref = escapeHtml(b.id);
   if (needsPaymentVerification(b)) {
-    return `<button type="button" data-action="verify" data-ref="${ref}" class="btn-row bg-[#006D6F] hover:bg-[#06464A] text-white">Verify payment</button>`;
+    return `<button type="button" data-action="verify" data-ref="${ref}" class="btn-row cp-btn-primary"><i class="fa-solid fa-magnifying-glass-dollar" aria-hidden="true"></i>Review Payment</button>`;
   }
   if (b.status === 'Pending') {
-    return `<button type="button" data-action="confirm" data-ref="${ref}" class="btn-row bg-[#006D6F] hover:bg-[#06464A] text-white">Confirm booking</button>`;
+    return `<button type="button" data-action="confirm" data-ref="${ref}" class="btn-row cp-btn-primary"><i class="fa-solid fa-check" aria-hidden="true"></i>Confirm Booking</button>`;
   }
   if (b.status === 'Confirmed') {
-    return `<button type="button" data-action="start" data-ref="${ref}" class="btn-row border border-[#006D6F] text-[#06464A] bg-white hover:bg-[#E5F2F0]"><i class="fa-solid fa-scissors"></i>Start service</button>`;
+    return `<button type="button" data-action="start" data-ref="${ref}" class="btn-row cp-btn-primary"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>Check In</button>`;
   }
   if (isPayable(b)) {
-    return `<button type="button" data-action="checkout" data-ref="${ref}" class="btn-row bg-[#E0B84C] hover:bg-[#d4a93a] text-slate-900"><i class="fa-solid fa-cash-register"></i>${b.status === 'Completed' ? 'Take payment' : 'Checkout'}</button>`;
+    return `<button type="button" data-action="checkout" data-ref="${ref}" class="btn-row cp-btn-gold"><i class="fa-solid fa-cash-register" aria-hidden="true"></i>Checkout</button>`;
   }
   return '';
 }
@@ -179,46 +180,45 @@ function renderQueue() {
 
   const row = b => {
     const [payLabel, payClass] = paymentBadge(b);
+    const balance = CashierApp.balanceOf(b);
+    const late = (b.date || '') < today;
+    const dateNote = b.date !== today ? `<span class="cp-q-date${late ? ' is-late' : ''}">${escapeHtml(b.date || '')}</span>` : '';
     return `
-    <div class="p-4 sm:px-5 flex flex-col md:flex-row md:items-center gap-3 md:gap-4 hover:bg-[#FFFDF9]">
-      <div class="flex items-start gap-3 flex-1 min-w-0">
-        <div class="w-[4.5rem] shrink-0 text-left">
-          <p class="font-bold text-slate-900 text-sm whitespace-nowrap">${escapeHtml(b.time || '')}</p>
-          ${b.date !== today ? `<p class="text-xs font-semibold ${(b.date || '') < today ? 'text-rose-700' : 'text-[#06464A]'}">${escapeHtml(b.date || '')}</p>` : ''}
-        </div>
-        <div class="hidden sm:flex w-10 h-10 rounded-full bg-[#E5F2F0] text-[#06464A] font-bold text-sm items-center justify-center shrink-0">${escapeHtml(initialsOf(b.clientName))}</div>
-        <div class="min-w-0">
-          <p class="font-bold text-slate-900 capitalize truncate">${escapeHtml(b.clientName)}</p>
-          <p class="text-sm text-slate-600 truncate">${escapeHtml(b.serviceName || 'No service listed')}</p>
-          <p class="text-xs text-slate-500 truncate"><span class="font-mono">${escapeHtml(b.id)}</span> · <span class="capitalize">${escapeHtml(b.staffName || 'No stylist yet')}</span></p>
+    <article class="cp-q-row" aria-label="${escapeHtml(b.clientName)}, ${escapeHtml(b.time || '')}">
+      <div class="cp-q-time" data-label="Time"><strong>${escapeHtml(b.time || '')}</strong>${dateNote}</div>
+      <div class="cp-q-who">
+        <span class="cp-q-avatar" aria-hidden="true">${escapeHtml(initialsOf(b.clientName))}</span>
+        <div class="cp-q-who-text">
+          <p class="cp-q-name">${escapeHtml(titleCase(b.clientName))}</p>
+          <p class="cp-q-service" data-label="Service">${escapeHtml(b.serviceName || 'No service listed')}</p>
+          <p class="cp-q-meta"><span class="cp-mono">${escapeHtml(b.id)}</span> · <span data-label="Staff">${escapeHtml(titleCase(b.staffName || 'No stylist yet'))}</span></p>
         </div>
       </div>
-      <div class="flex flex-wrap md:flex-nowrap items-center gap-2 md:gap-4 md:justify-end md:shrink-0">
-        <div class="flex md:flex-col md:items-end gap-1.5">
-          <span class="text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap ${statusBadgeClass(b.status)}">${escapeHtml(b.status)}</span>
-          <span class="text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap ${payClass}">${payLabel}</span>
-        </div>
-        <span class="font-black text-slate-900 md:w-24 text-right ml-auto md:ml-0">${CashierApp.formatCurrency(b.price)}</span>
-        <div class="flex items-center gap-1 w-full sm:w-auto">
-          <span class="flex-1 sm:flex-none grid sm:w-40">${primaryAction(b)}</span>
-          <a href="appointments.html?ref=${encodeURIComponent(b.id)}" class="w-10 h-10 shrink-0 inline-flex items-center justify-center rounded-xl text-slate-500 hover:bg-gray-100 hover:text-slate-800" title="View details" aria-label="View details of ${escapeHtml(b.clientName)}"><i class="fa-solid fa-ellipsis"></i></a>
-        </div>
+      <dl class="cp-q-facts">
+        <div><dt>Status</dt><dd><span class="cp-badge ${statusBadgeClass(b.status)}">${escapeHtml(b.status)}</span></dd></div>
+        <div><dt>Payment</dt><dd><span class="cp-badge ${payClass}">${payLabel}</span></dd></div>
+        <div class="cp-q-balance"><dt>Balance</dt><dd>${CashierApp.formatCurrency(balance)}</dd></div>
+      </dl>
+      <div class="cp-q-actions">
+        ${primaryAction(b)}
+        <a href="appointments.html?ref=${encodeURIComponent(b.id)}" class="btn-row cp-btn-ghost" aria-label="Details for ${escapeHtml(b.clientName)}">Details</a>
       </div>
-    </div>`;
+    </article>`;
   };
 
   const empty = `
-    <div class="text-center py-14 px-4">
-      <i class="fa-solid fa-mug-hot text-3xl text-gray-300 mb-2"></i>
-      <p class="text-sm text-gray-500">${search ? 'No bookings match your search.' : 'Nothing here right now.'}</p>
+    <div class="cp-empty">
+      <i class="fa-solid ${search ? 'fa-magnifying-glass' : 'fa-mug-hot'}" aria-hidden="true"></i>
+      <p class="cp-empty-title">${search ? 'No bookings match your search' : 'The queue is clear'}</p>
+      <p>${search ? 'Check the spelling, or search by booking reference.' : 'New bookings and walk-ins will appear here.'}</p>
     </div>`;
 
   const section = (title, note, tone, rows) => rows.length
-    ? `<div class="px-4 sm:px-5 py-3 ${tone} text-sm font-bold">${title} (${rows.length})<span class="block font-medium opacity-90">${note}</span></div>` + rows.map(row).join('')
+    ? `<div class="cp-q-section ${tone}"><strong>${title} (${rows.length})</strong><span>${note}</span></div>` + rows.map(row).join('')
     : '';
-  const html = todays.map(row).join('')
-    + section('Still open from earlier days', 'Finish or close these before the end of the day.', 'bg-amber-50 text-amber-900', earlier)
-    + section('Upcoming bookings to check', 'Confirm or verify these ahead of time once the payment is checked.', 'bg-[#E5F2F0] text-[#06464A]', upcoming);
+  const html = section('Today', 'Appointments scheduled for today.', 'is-today', todays)
+    + section('Still open from earlier days', 'Not scheduled for today. Finish or close these before the end of the day.', 'is-late', earlier)
+    + section('Upcoming bookings to check', 'Confirm or verify these ahead of time once the payment is checked.', 'is-upcoming', upcoming);
   document.getElementById('queueContainer').innerHTML = html || empty;
 }
 
@@ -253,7 +253,7 @@ function openConfirm(ref) {
   document.getElementById('cfTotal').textContent = CashierApp.formatCurrency(b.price);
   document.getElementById('cfConflict').classList.toggle('hidden', !b.hasConflict);
 
-  const onShift = state.data.staffList.filter(s => s.onShift);
+  const onShift = state.data.staffList.filter(s => s.onShift && s.status !== 'On Break');
   const options = [];
   if (!b.staffId) options.push('<option value="">Choose for me (first free stylist)</option>');
   else if (!onShift.some(s => String(s.id) === String(b.staffId))) {
@@ -378,7 +378,7 @@ async function submitConfirm() {
       stylistName = state.data.staffList.find(s => String(s.id) === String(chosen))?.name || stylistName;
     } else if (!verifyOnly && !chosen && !b.staffId) {
       let assigned = null, lastError = 'No stylist on shift can take this booking.';
-      for (const s of state.data.staffList.filter(x => x.onShift)) {
+      for (const s of state.data.staffList.filter(x => x.onShift && x.status !== 'On Break')) {
         const r = await CashierApp.post('assignStaff.php', { id: b.id, staffId: s.id });
         if (r.success) { assigned = s; break; }
         lastError = r.message || lastError;
@@ -448,11 +448,27 @@ function openWalkInModal() {
         <span class="text-gray-500 font-semibold">${CashierApp.formatCurrency(sv.price)}</span>
       </label>`).join('')
     : '<p class="text-gray-400">No services set up for this branch.</p>';
-  document.getElementById('selectStylist').innerHTML = staff.length
-    ? staff.map(s => `<option value="${escapeHtml(s.id)}">${escapeHtml(titleCase(s.name))} (${escapeHtml(s.role || 'Staff')})</option>`).join('')
-    : '<option value="">No stylists available</option>';
+  // On-shift staff first; off-shift staff are listed but cannot be picked
+  // (createWalkIn.php refuses them anyway).
+  const available = staff.filter(s => s.onShift && s.status !== 'On Break');
+  const unavailable = staff.filter(s => !available.includes(s));
+  const option = (s, ok) => `<option value="${escapeHtml(s.id)}"${ok ? '' : ' disabled'}>${escapeHtml(titleCase(s.name))} (${escapeHtml(s.role || 'Staff')})${ok ? '' : ' - ' + (s.onShift ? 'on break' : 'off shift')}</option>`;
+  document.getElementById('selectStylist').innerHTML = available.length
+    ? available.map(s => option(s, true)).join('') + unavailable.map(s => option(s, false)).join('')
+    : '<option value="">No staff on shift right now</option>' + unavailable.map(s => option(s, false)).join('');
   document.getElementById('walkInForm').reset();
+  updateWalkInSummary();
   CashierApp.showModal('walkInModal');
+}
+
+function updateWalkInSummary() {
+  const services = (state.data && state.data.servicesByBranch[state.branch]) || [];
+  const ids = Array.from(document.querySelectorAll('.walkin-service-checkbox:checked')).map(cb => cb.value);
+  const total = services.filter(sv => ids.includes(String(sv.id))).reduce((sum, sv) => sum + Number(sv.price || 0), 0);
+  document.getElementById('walkInTotal').textContent = CashierApp.formatCurrency(total);
+  let now = '';
+  try { now = new Date().toLocaleTimeString('en-US', { timeZone: 'Asia/Manila', hour: '2-digit', minute: '2-digit' }); } catch (e) { /* older browsers */ }
+  document.getElementById('walkInSchedule').textContent = now ? `Today, now (${now})` : 'Today, now';
 }
 
 async function submitWalkIn(e) {
@@ -516,6 +532,7 @@ function wireStaticEvents() {
   document.getElementById('btnCloseModal').addEventListener('click', () => CashierApp.hideModal('walkInModal'));
   document.getElementById('btnCancelModal').addEventListener('click', () => CashierApp.hideModal('walkInModal'));
   document.getElementById('walkInForm').addEventListener('submit', submitWalkIn);
+  document.getElementById('servicesCheckboxContainer').addEventListener('change', updateWalkInSummary);
 
   const phoneInput = document.getElementById('inputClientPhone');
   phoneInput.addEventListener('keypress', (e) => {

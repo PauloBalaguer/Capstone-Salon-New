@@ -4,6 +4,19 @@
    (backend/admin/getDashboardData.php) and refreshes it after every
    mutation, so edits on one page are visible after navigating to another. */
 
+/* The five live staff statuses (StaffShift::STATUS_META). Compare on the key;
+   show the label. Badges use the shared .live-status styles (theme-tokens.css). */
+const LIVE_STATUS = {
+  available: { label: 'Available now', color: 'green' },
+  busy: { label: 'Busy', color: 'blue' },
+  busy_home_service: { label: 'Busy · Home service', color: 'blue' },
+  on_break: { label: 'On break', color: 'amber' },
+  off_shift: { label: 'Off shift', color: 'gray' }
+};
+const LIVE_STATUS_CLOCKED_IN = ['available', 'busy', 'on_break'];
+function liveStatusLabel(key) { return (LIVE_STATUS[key] || LIVE_STATUS.off_shift).label; }
+function liveStatusClass(key) { return 'live-status live-status--' + (LIVE_STATUS[key] || LIVE_STATUS.off_shift).color; }
+
 const ADMIN_API_BASE = '../../backend/admin/';
 
 document.addEventListener('alpine:init', () => {
@@ -39,6 +52,31 @@ document.addEventListener('alpine:init', () => {
       } catch {
         this.notificationReadError = 'Could not update. Try again.';
       } finally { this.notificationsReadBusy = false; }
+    },
+    // Marks one notification read (saved per admin) and updates the bell at once.
+    async markNotificationRead(item) {
+      if (!item || item.isRead) return;
+      item.isRead = true;
+      try {
+        const result = await this.post('markNotificationsRead.php', {id: item.id});
+        if (!result.success) throw new Error('Read update failed');
+      } catch {
+        item.isRead = false;
+        this.notificationReadError = 'Could not update. Try again.';
+      }
+    },
+    // The admin page that handles this notification, filtered to its booking when it has one.
+    notificationDestination(item) {
+      const reference = (item.message || '').match(/\bLM-(?:[A-Z]+-)+\d{4}-\d+\b/)?.[0] || '';
+      const pages = {INVENTORY: 'inventory.html', SERVICE: 'promotions.html', PACKAGE: 'promotions.html', PROMO: 'promotions.html',
+        STAFF: 'employees.html', ATTENDANCE: 'employees.html', SETTINGS: 'settings.html', EOD: 'reports.html'};
+      if (reference) return 'appointments.html?search=' + encodeURIComponent(reference);
+      return pages[item.type] || 'appointments.html';
+    },
+    openNotification(item) {
+      const href = this.notificationDestination(item);
+      this.markNotificationRead(item);
+      window.location.href = href;
     },
     notificationPrefs: { bookingAlerts: true, inventoryAlerts: true, orderAlerts: true, marketingAlerts: false },
     customerDirectory: [],
@@ -91,6 +129,16 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
+    /* GETs a backend/admin/*.php read endpoint and returns the parsed JSON. */
+    async get(endpoint, params) {
+      const response = await fetch(ADMIN_API_BASE + endpoint + '?' + new URLSearchParams(params || {}), { credentials: 'same-origin', cache: 'no-store' });
+      if (response.status === 401) {
+        window.location.href = '../../frontend/auth/login.html';
+        throw new Error('Not authenticated');
+      }
+      return response.json();
+    },
+
     /* POSTs to a backend/admin/*.php mutation endpoint and returns the
        parsed JSON response. Callers refresh() afterward on success. */
     async post(endpoint, params) {
@@ -134,11 +182,14 @@ document.addEventListener('alpine:init', () => {
     },
 
     /* Total staff time one event blocks -- mirrors Scheduling::homeServiceWindow()
-       (blank travel/setup = 0, blank service = the 120-minute fallback). */
+       (blank travel/setup = 0, blank service = the 120-minute fallback,
+       blank return travel = the same as travel). */
     eventWindowLabel(d) {
       const defaults = this.homeServiceDefaults;
       const service = Number(d.serviceMinutes) || defaults.fallbackServiceMinutes;
-      const total = (Number(d.travelMinutes) || 0) + (Number(d.setupMinutes) || 0) + service + defaults.cleaningBufferMinutes;
+      const travel = Number(d.travelMinutes) || 0;
+      const back = d.returnTravelMinutes === '' || d.returnTravelMinutes === null || d.returnTravelMinutes === undefined ? travel : (Number(d.returnTravelMinutes) || 0);
+      const total = travel + (Number(d.setupMinutes) || 0) + service + back + defaults.cleaningBufferMinutes;
       const hours = Math.floor(total / 60), mins = total % 60;
       return `${hours ? hours + ' h ' : ''}${mins ? mins + ' min' : ''}`.trim() + ` incl. ${defaults.cleaningBufferMinutes}-min buffer`;
     },
@@ -189,10 +240,11 @@ document.addEventListener('alpine:init', () => {
 
     getStaffStatusSummary() {
       return {
-        onDuty: this.staffList.filter(s => s.status === 'On Shift').length,
-        withClient: this.staffList.filter(s => s.status === 'Busy').length,
-        onBreak: this.staffList.filter(s => s.status === 'On Break').length,
-        offShift: this.staffList.filter(s => s.status === 'Off Shift').length
+        onDuty: this.staffList.filter(s => s.status === 'available').length,
+        withClient: this.staffList.filter(s => s.status === 'busy').length,
+        onHomeService: this.staffList.filter(s => s.status === 'busy_home_service').length,
+        onBreak: this.staffList.filter(s => s.status === 'on_break').length,
+        offShift: this.staffList.filter(s => s.status === 'off_shift').length
       };
     },
 

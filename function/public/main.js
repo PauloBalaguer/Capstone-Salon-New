@@ -19,6 +19,12 @@
     if(activePage) {
       activePage.classList.add('active-page');
     }
+    // Branch details already contain addresses, contacts, and social links.
+    const footerBranchContact = document.getElementById('footerBranchContact');
+    if (footerBranchContact) {
+      footerBranchContact.classList.toggle('hidden', tabId === 'branches-tab');
+      footerBranchContact.classList.toggle('grid', tabId !== 'branches-tab');
+    }
 
     const targetNav = document.getElementById('nav-' + tabId);
     if(targetNav) {
@@ -871,14 +877,20 @@
 
   // Live status from backend/public/getStaffRoster.php -- the same rule
   // the Admin and Cashier panels use (StaffShift::liveStatusSql).
+  // Keys are StaffShift's stable status keys; labels/colours match every panel.
   const STAFF_STATUS_META = {
-    'On Shift': { cls: 'is-available', label: 'Available now', note: 'Currently clocked in and able to take walk-ins or bookings.' },
-    'On Break': { cls: 'is-busy', label: 'On a short break', note: 'Clocked in but on a break right now book ahead for a later slot.' },
-    'Busy': { cls: 'is-busy', label: 'With a client', note: 'Attending to another guest right now book ahead for a later slot.' },
-    'Off Shift': { cls: '', label: 'Off duty', note: "Not clocked in at the moment. Book an appointment for a time they're scheduled to work." }
+    available: { color: 'green', label: 'Available now', note: 'On shift and free to take a customer.' },
+    busy: { color: 'blue', label: 'Busy', note: 'Serving a customer at the salon right now. You can still book a later time.' },
+    busy_home_service: { color: 'blue', label: 'Busy · Home service', note: 'Away on a home service visit right now. You can still book a later time.' },
+    on_break: { color: 'amber', label: 'On break', note: 'Temporarily unavailable. You can still book a later time.' },
+    off_shift: { color: 'gray', label: 'Off shift', note: "Off duty right now. You can still book a time they're scheduled to work." }
   };
   function staffStatusMeta(status) {
-    return STAFF_STATUS_META[status] || STAFF_STATUS_META['Off Shift'];
+    return STAFF_STATUS_META[status] || STAFF_STATUS_META.off_shift;
+  }
+  function liveStatusBadge(status, extraClass) {
+    const meta = staffStatusMeta(status);
+    return '<span class="live-status live-status--' + meta.color + (extraClass ? ' ' + extraClass : '') + '"><span class="live-status-dot" aria-hidden="true"></span>' + meta.label + '</span>';
   }
 
   function staffCardHtml(role, s) {
@@ -886,7 +898,7 @@
     const avatar = s.photo
       ? `<img src="${escAttr(s.photo)}" alt="" class="w-10 h-10 rounded-full object-cover mb-3">`
       : `<div class="w-10 h-10 rounded-full ${role.bookable ? 'bg-plum text-white group-hover:bg-copper' : 'bg-sand-200 text-copper-dark'} font-bold flex items-center justify-center text-xs mb-3 transition">${getStaffInitials(s.name)}</div>`;
-    const statusBadge = `<span class="staff-status-badge ${meta.cls} mt-2"><span class="staff-status-dot ${meta.cls}"></span>${meta.label}</span>`;
+    const statusBadge = liveStatusBadge(s.status, 'mt-2');
 
     if (role.bookable) {
       return `
@@ -990,7 +1002,7 @@
       ? `<img src="${escAttr(s.photo)}" alt="" class="w-full h-full object-cover">`
       : getStaffInitials(s.name);
 
-    document.getElementById('staffProfileStatusDot').className = 'staff-status-dot ' + meta.cls;
+    document.getElementById('staffProfileStatusDot').className = 'live-status-dot live-status-dot--' + meta.color;
     document.getElementById('staffProfileStatusLabel').textContent = meta.label;
     document.getElementById('staffProfileStatusNote').textContent = meta.note;
 
@@ -1051,6 +1063,7 @@
       tag: 'Flagship Hub',
       name: 'Leo Mejillano Salon & Make-Up Studio',
       addr: '2nd Floor, Luna Building, Regidor Street, Daraga, Albay',
+      mapUrl: 'https://maps.app.goo.gl/AutS4d9MxWHk8giG7?g_st=ac',
       spec: "Hair, nails, skin, brows and make-up services at our Daraga flagship.",
       hours: '8:00 AM – 8:00 PM', hoursNote: 'Open Daily',
       phone: '0918 536 8016', tel: '+639185368016', email: 'leomejillano88@yahoo.com',
@@ -1061,6 +1074,7 @@
       tag: 'Mall Studio',
       name: 'Skin Brows by Leo Mejillano',
       addr: '2nd Floor, Yashano Mall, Legazpi City, Albay',
+      mapUrl: 'https://maps.app.goo.gl/rdsWkMBuMewjKKgb8?g_st=ac',
       landmark: "Beside Angel's Pizza",
       spec: "Skin, brow and beauty treatments at Yashano Mall, beside Angel's Pizza.",
       hours: '9:30 AM – 8:00 PM', hoursNote: 'Open Daily',
@@ -1072,6 +1086,7 @@
       tag: 'Lash & Brow Hub',
       name: 'Lash & Brows by Leo Mejillano',
       addr: 'Brgy. 18, Rizal Street, Cabangan, Legazpi City, Albay',
+      mapUrl: 'https://maps.app.goo.gl/hEXbJjepntJqirx68?g_st=ac',
       spec: "Haircuts, colour, rebonding, lash and brow services in Cabangan.",
       hours: '8:00 AM – 8:00 PM', hoursNote: 'Open Daily',
       phone: '0918 536 8016', tel: '+639185368016', email: 'mejillanoleo@gmail.com',
@@ -1090,6 +1105,9 @@
     document.getElementById('bTag').textContent = BRANCH_LABEL[key];
     document.getElementById('bName').textContent = b.name;
     document.getElementById('bAddr').textContent = b.addr;
+    const directions = document.getElementById('bDirections');
+    directions.href = b.mapUrl;
+    directions.setAttribute('aria-label', 'Get directions to ' + BRANCH_LABEL[key] + ' on Google Maps (opens in a new tab)');
     const lm = document.getElementById('bLandmark');
     lm.textContent = b.landmark || '';
     lm.classList.toggle('hidden', !b.landmark);
@@ -1113,11 +1131,33 @@
     const image = document.getElementById('bImg');
     image.src = b.img;
     image.alt = b.name + ' ' + BRANCH_LABEL[key] + ' branch';
+    const cap = document.getElementById('bPhotoCap');
+    if (cap) cap.textContent = b.addr;
+    // Book at this branch + live open status (refreshLiveStatus fills these).
+    const book = document.getElementById('bBook');
+    if (book) { book.dataset.branch = key; document.getElementById('bBookText').textContent = 'Book at ' + BRANCH_LABEL[key]; }
+    const dot = document.getElementById('bLiveDot');
+    const liveLabel = document.getElementById('bLiveLabel');
+    if (dot && liveLabel) { dot.dataset.live = key; liveLabel.dataset.liveLabel = key; refreshLiveStatus(); }
     const groups = new Set(SERVICE_DATA[key].menus.flatMap(menu => menu.cats.map(category => category.g)));
     document.getElementById('bServiceCategories').innerHTML = SERVICE_GROUPS
       .filter(group => group.k !== 'all' && group.k !== 'deals' && groups.has(group.k))
-      .map(group => `<span class="rounded-full border border-plum/20 bg-plum/5 px-3 py-1 text-sm font-semibold text-plum">${escAttr(group.label)}</span>`).join('');
+      .map(group => `<button type="button" class="br2-chip" data-branch="${key}" data-g="${escAttr(group.k)}" aria-label="See ${escAttr(group.label)} services at ${escAttr(BRANCH_LABEL[key])}">${escAttr(group.label)}</button>`).join('');
   }
+  // Service chip: open this branch's menu filtered to that category.
+  document.getElementById('bServiceCategories')?.addEventListener('click', (e) => {
+    const chip = e.target.closest('.br2-chip');
+    if (!chip) return;
+    goBranchMenu(chip.dataset.branch);
+    activeSvcGroup = 'all';
+    setSvcGroup(chip.dataset.g);
+  });
+  // "Book at <branch>": open booking; the branch is pre-selected once the
+  // guest continues (function/public/booking-wizard.js reads it).
+  document.getElementById('bBook')?.addEventListener('click', (e) => {
+    window.__preBookBranch = String(BRANCH_ID_BY_KEY[e.currentTarget.dataset.branch] || '');
+    openBookingModal();
+  });
   document.querySelectorAll('.branch-tab-btn').forEach(button => {
     button.addEventListener('click', () => renderBranchDetails(button.dataset.b));
   });
@@ -1458,6 +1498,9 @@
       if (!hsSelectedServices.length) return null;
       hsSelectedServices.forEach(s => params.append('services[]', s));
     }
+    // Responsible branch: its hours, holidays and home-service eligibility apply.
+    const branchId = document.getElementById('hsBranch')?.value;
+    if (branchId) params.set('branchId', branchId);
     return params;
   }
 
@@ -1532,7 +1575,7 @@
     }
   }
 
-  ['hsDate','hsTime'].forEach(id => {
+  ['hsDate','hsTime','hsBranch'].forEach(id => {
     document.getElementById(id)?.addEventListener('change', () => {
       if (hsSelectedWeddingPackage) hsFillWeddingSummary('[data-wedding-summary]');
       hsRefreshAvailability();
@@ -1595,6 +1638,9 @@
       if (!hsSelectedWeddingPackage) { if (btn) btn.disabled = false; hsGo(3, true); fieldError('hsWeddingPackageGrid', 'Please choose a wedding package.'); return; }
       formData.append('weddingPackage', hsSelectedWeddingPackage.name.slice(-1));
     }
+    const hsBranchId = document.getElementById('hsBranch')?.value || '';
+    if (!hsBranchId) { if (btn) { btn.disabled = false; btn.textContent = 'Submit Home Service Request'; } fieldError('hsBranch', 'Please choose the branch that will handle your visit.'); return; }
+    formData.append('branchId', hsBranchId);
     formData.append('date', date);
     formData.append('time', time);
     formData.append('clients', clients);
@@ -2364,7 +2410,7 @@
         // One stylist per service, back-to-back. Every qualified stylist is
         // listed; busy ones are shown (with "busy until") but can't be picked.
         box.className = 'rounded-xl border border-bronze/50 bg-sand-100 p-3 space-y-3';
-        box.innerHTML = services.map((svc, i) =>
+        box.innerHTML = (res.notice ? '<p class="text-[12px] font-semibold text-copper-dark">' + escAttr(res.notice) + '</p>' : '') + services.map((svc, i) =>
           '<div class="book-staff-service" data-service="' + escAttr(svc.id) + '">' +
             '<div class="flex items-baseline justify-between gap-2 mb-1.5">' +
               '<p class="text-[13px] font-bold text-ink">' + (services.length > 1 ? (i + 1) + '. ' : '') + escAttr(svc.name) + '</p>' +
@@ -2373,20 +2419,22 @@
             (svc.staff.length
               ? '<div class="grid grid-cols-2 sm:grid-cols-3 gap-2">' + svc.staff.map(s =>
                   '<button type="button" data-staff="' + escAttr(s.id) + '" data-name="' + escAttr(s.name) + '"' + (s.available ? '' : ' disabled') +
-                  ' title="' + (s.available ? 'Free for this service' : s.busyUntil ? escAttr(s.name) + ' is with another client until ' + escAttr(s.busyUntil) : escAttr(s.name) + (s.currentShift === 'On Break' ? ' is on a break right now' : ' is off duty right now')) + '"' +
+                  ' title="' + escAttr(s.name + ': ' + (s.availabilityMessage || (s.available ? 'Available' : 'Unavailable at this time'))) + '"' +
                   ' aria-pressed="false" class="staff-btn bk-staff-card ' + (s.available ? 'is-available' : 'is-busy') + '">' +
                     '<span class="bk-staff-check" aria-hidden="true">✓</span>' +
                     '<span class="bk-staff-avatar" aria-hidden="true">' + escAttr(getStaffInitials(s.name)) + '</span>' +
                     '<span class="block font-semibold">' + escAttr(s.name) + '</span>' +
                     '<span class="block text-[11px] opacity-70">' + escAttr(s.role || 'Stylist') + '</span>' +
-                    '<span class="mt-1 inline-flex items-center gap-1 text-[10px] font-bold ' + (s.available ? 'text-[color:var(--success)]' : 'text-[color:var(--danger)]') + '">' +
-                      '<span class="w-1.5 h-1.5 rounded-full ' + (s.available ? 'bg-[color:var(--success)]' : 'bg-[color:var(--danger)]') + '"></span>' +
-                      (s.available ? 'Available' : s.busyUntil ? 'Busy until ' + escAttr(s.busyUntil) : (s.currentShift === 'On Break' ? 'On break' : 'Off duty')) +
-                    '</span>' +
+                    // Now: live status. At the chosen time: whether the whole service fits.
+                    '<span class="mt-1 block">' + liveStatusBadge(s.currentShift) + '</span>' +
+                    // Selectable = free at this time, so no message; otherwise say why.
+                    (s.available ? '' : '<span class="mt-1 block text-[11px] font-bold text-[color:var(--danger)]">' +
+                      escAttr(s.availabilityMessage || 'Unavailable at this time') +
+                    '</span>') +
                   '</button>').join('') + '</div>'
               : '<p class="text-[12px] text-copper-dark">No stylist at this branch offers this service.</p>') +
             (svc.staff.length && !svc.staff.some(s => s.available)
-              ? '<p class="mt-1.5 text-[11px] text-copper-dark">No stylist who does this service is available at ' + escAttr(svc.start) + ' (busy, on a break or off duty). Pick another time' + (svc.staff.some(s => s.busyUntil) ? ', or join a waitlist below.' : '.') + '</p>' : '') +
+              ? '<p class="mt-1.5 text-[11px] text-copper-dark">No stylist who does this service is free for the whole service at ' + escAttr(svc.start) + '. Pick another time' + (svc.staff.some(s => s.busyUntil) ? ', or join a waitlist below.' : '.') + '</p>' : '') +
           '</div>').join('') +
           (services.length > 1 ? '<p class="text-[11px] text-ink/55">Your services are done one after another, starting ' + escAttr(services[0].start) + '. The same stylist can do more than one if they\'re free.</p>' : '');
 
@@ -2455,6 +2503,11 @@
       .then(res => {
         if (requestId !== slotGridRequestId) return; // a newer branch/date selection superseded this response
         if (!res.success || !Array.isArray(res.slots)) { renderSlotLoadError(box); return; }
+        if (res.closed) {
+          // Branch holiday: say so instead of showing an empty grid.
+          box.innerHTML = '<p class="font-bold text-ink" role="status">' + escAttr(res.message || 'The branch is closed on this date.') + '</p>';
+          return;
+        }
         if (!res.slots.some(slot => slot.available)) {
           box.innerHTML = '<p class="font-bold text-ink">No available times on this date.</p><p class="mt-1 text-ink/60">Please select another date.</p>';
           return;

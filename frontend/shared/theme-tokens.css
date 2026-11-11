@@ -13,6 +13,11 @@
   --card: #FFFFFF;
   --border: #E2E7E3;
   --border-strong: #CDD6D0;
+  --card-border: #CDD6D0;
+  --card-border-success: #4A9270;
+  --card-border-warn: #C76B24;
+  --card-border-info: #548BAD;
+  --card-border-danger: #DDB3AD;
   --text: #18261F;
   --text-body-color: #38443E; /* 9.54:1 on --bg */
   --muted: #4A5751;          /* AAA: 7.10:1 on --bg, 7.57:1 on --card */
@@ -41,6 +46,11 @@
   --card: #10241B;
   --border: #24392F;
   --border-strong: #5B7A69;  /* input borders, 3.44:1 on --card */
+  --card-border: #5B7A69;
+  --card-border-success: #47765B;
+  --card-border-warn: #E09A60;
+  --card-border-info: #486F8B;
+  --card-border-danger: #8E5751;
   --text: #E8F0EB;
   --text-body-color: #C5D3CA;
   --muted: #A3B6AB;          /* 7.62:1 on --card, 7.45:1 on --brand-softer */
@@ -50,4 +60,95 @@
   --info: #93C5EC;     --info-soft: #12293A;
   --on-brand: #FFFFFF;
   --on-brand-muted: #DCEBE2;
+}
+
+/* Shared card outlines across all four portals. Keep control/focus borders separate. */
+:root:root body:is(.lm-admin, .cp-cashier, .sp-body, .cp-portal)
+  :is(.lm-stat, .stat-card, .sp-stat, .cp-feature-card) {
+  --card-outline: var(--card-border-success);
+}
+:root:root body:is(.lm-admin, .cp-cashier, .sp-body, .cp-portal)
+  :is(.lm-card, .lm-stat, .stat-card, .sp-card, .sp-stat, .cp-card, .cp-feature-card) {
+  border: 5px solid var(--card-outline, var(--card-border)) !important;
+}
+:root:root body.cp-cashier .stat-card:has(#statPendingConfirmation),
+:root:root body.sp-body .sp-stat:has(.sp-stat-icon.is-amber) {
+  --card-outline: var(--card-border-warn);
+}
+:root:root body.cp-cashier .stat-card:has(#statConfirmed),
+:root:root body.sp-body .sp-stat:has(:is(.sp-stat-icon.is-green, .sp-stat-icon.is-teal)),
+:root:root body.lm-admin .lm-stat:has(.lm-stat-icon) {
+  --card-outline: var(--card-border-success);
+}
+:root:root body.cp-cashier .stat-card:has(#statInProgress),
+:root:root body.sp-body .sp-stat:has(.sp-stat-icon.is-blue) {
+  --card-outline: var(--card-border-info);
+}
+:root:root body.cp-cashier .stat-card-gold,
+:root:root body.lm-admin .lm-stat:has(.lm-stat-icon--gold),
+:root:root body.sp-body .sp-stat:has(.sp-stat-icon.is-gold) {
+  --card-outline: var(--accent);
+}
+:root:root body.lm-admin .lm-stat:has(.lm-stat-icon--danger) {
+  --card-outline: var(--card-border-danger);
+}
+:root:root:root body:is(.lm-admin, .cp-cashier, .sp-body, .cp-portal)
+  :is(.lm-stat, .stat-card, .sp-stat, .cp-card)[data-card-tone="warning"] {
+  --card-outline: var(--card-border-warn);
+}
+:root:root:root body [data-card-tone="success"] { --card-outline: var(--card-border-success); }
+:root:root:root body [data-card-tone="info"] { --card-outline: var(--card-border-info); }
+:root:root:root body [data-card-tone="gold"] { --card-outline: var(--accent); }
+:root:root:root body [data-card-tone="danger"] { --card-outline: var(--card-border-danger); }
+:root:root body:is(.lm-admin, .cp-cashier, .sp-body, .cp-portal)
+  :is(a.lm-stat, button.lm-stat, a.stat-card, button.stat-card, button.sp-stat):hover,
+:root:root body:is(.lm-admin, .cp-cashier, .sp-body, .cp-portal)
+  :is(.lm-stat, .stat-card, .sp-stat):is(.is-active, [aria-pressed="true"]) {
+  border-color: var(--brand) !important;
+}
+
+/* Live staff status badge (StaffShift: five statuses), shared by every panel.
+   Coloured dot + readable text label, so colour is never the only signal.
+   <span class="live-status live-status--green"><span class="live-status-dot"></span>Available now</span> */
+:root {
+  --ls-green: #13663F; --ls-green-bg: #E3F4EA;
+  --ls-blue: #1D4F91;  --ls-blue-bg: #E3EDFA;
+  --ls-amber: #7A4B00; --ls-amber-bg: #FBF0D9;
+  --ls-gray: #4A5551;  --ls-gray-bg: #ECEFEE;
+}
+.dark, html.dark, [data-theme="dark"] {
+  --ls-green: #86E0B0; --ls-green-bg: #133A29;
+  --ls-blue: #9CC3FF;  --ls-blue-bg: #172C4A;
+  --ls-amber: #F2C76B; --ls-amber-bg: #3A2C10;
+  --ls-gray: #C4CDC9;  --ls-gray-bg: #26302C;
+}
+.live-status { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 3px 9px 3px 7px; border-radius: 999px;
+  font-size: .8125rem; font-weight: 700; line-height: 1.35; white-space: nowrap; color: var(--ls-gray); background: var(--ls-gray-bg); }
+.live-status-dot { flex: none; width: 8px; height: 8px; border-radius: 999px; background: currentColor; }
+.live-status--green { color: var(--ls-green); background: var(--ls-green-bg); }
+.live-status--blue { color: var(--ls-blue); background: var(--ls-blue-bg); }
+.live-status--amber { color: var(--ls-amber); background: var(--ls-amber-bg); }
+.live-status--gray { color: var(--ls-gray); background: var(--ls-gray-bg); }
+.live-status-note { display: block; margin-top: 4px; font-size: .75rem; font-weight: 600; color: inherit; opacity: .85; white-space: normal; }
+@media (max-width: 480px) { .live-status { white-space: normal; } }
+/* A dot on its own (e.g. next to a separate label). */
+.live-status-dot--green { background: var(--ls-green); }
+.live-status-dot--blue { background: var(--ls-blue); }
+.live-status-dot--amber { background: var(--ls-amber); }
+.live-status-dot--gray { background: var(--ls-gray); }
+
+/* Shared touch/keyboard press feedback for buttons and button-styled links. */
+@media (prefers-reduced-motion: no-preference) {
+  html body :is(button, input[type="button"], input[type="submit"], input[type="reset"],
+    [role="button"], a.btn, a.cp-btn, a.lm-btn, a.sp-btn,
+    a.btn-primary, a.btn-secondary) {
+    transition-property: transform, background-color, border-color, color, box-shadow, opacity !important;
+    transition-duration: 150ms !important;
+    transition-timing-function: ease-out !important;
+  }
+  html body :is(button, input[type="button"], input[type="submit"], input[type="reset"],
+    [role="button"], a.btn, a.cp-btn, a.lm-btn, a.sp-btn,
+    a.btn-primary, a.btn-secondary):not(:disabled):not([aria-disabled="true"]):active {
+    transform: scale(.96) !important;
+  }
 }

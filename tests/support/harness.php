@@ -51,7 +51,7 @@ function clone_database(string $name): PDO
     (new ReflectionProperty(Database::class, 'db_name'))->setValue(null, $name);
     (new ReflectionProperty(EmailOutbox::class, 'hookRegistered'))->setValue(null, true);
     $pdo = Database::getInstance();
-    // Booking needs a stylist on duty right now (Scheduling::staffCanTakeBooking),
+    // Walk-ins need a stylist on duty right now (Scheduling::staffCanTakeBooking with $immediate),
     // so in this throwaway copy every active stylist is clocked in, not on a break.
     $pdo->exec("UPDATE attendance_breaks SET break_end = break_start WHERE break_end IS NULL");
     $pdo->exec("INSERT INTO attendance (employee_id, clock_in_time)

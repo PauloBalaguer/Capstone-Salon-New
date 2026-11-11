@@ -160,6 +160,10 @@ body.lm-admin .lm-intro-actions :is(.lm-btn, .lm-select) { min-height: 44px; }
 .lm-bell-list { overflow-y: auto; }
 .lm-bell-item { padding: 10px 14px; border-bottom: 1px solid var(--lm-cream-2); font-size: 13px; }
 .lm-bell-item.is-unread { background: var(--lm-teal-soft); }
+.lm-bell-clickable { cursor: pointer; transition: filter .15s ease, background-color .15s ease; outline: none; }
+.lm-bell-clickable:hover { filter: brightness(.97); }
+.lm-bell-clickable:active { filter: brightness(.93); }
+.lm-bell-clickable:focus-visible { box-shadow: inset 0 0 0 2px var(--lm-teal); }
 .lm-bell-item .lm-notif-title { display: flex; align-items: center; gap: 6px; color: var(--lm-ink); }
 .lm-bell-item .lm-notif-title strong { margin-right: auto; }
 .lm-bell-item .lm-notif-time { color: var(--lm-muted); font-size: 12px; white-space: nowrap; }
@@ -274,6 +278,12 @@ body.lm-admin .lm-search .lm-input { padding-left: 38px; }
 .lm-tab { min-height: 38px; padding: 7px 14px; border: 0; border-radius: 9px; background: transparent; color: var(--lm-muted); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 .lm-tab:hover { color: var(--lm-ink); }
 .lm-tab[aria-selected="true"] { background: var(--lm-card); color: var(--lm-teal); box-shadow: var(--lm-shadow); }
+.lm-tabs[aria-label="Staff views"] { border: 1px solid #6b9b87; gap: 6px; }
+.lm-tabs[aria-label="Staff views"] .lm-tab { border: 1px solid #a4c2b4; }
+.lm-tabs[aria-label="Staff views"] .lm-tab[aria-selected="true"] {
+  border-color: var(--lm-teal); box-shadow: inset 0 0 0 1px var(--lm-teal);
+}
+.lm-tabs[aria-label="Staff views"] .lm-tab:focus-visible { outline: 2px solid var(--lm-teal); outline-offset: 2px; }
 
 /* ---------- Badges ---------- */
 .lm-badge, body.lm-admin .admin-badge {
@@ -385,6 +395,19 @@ body.lm-modal-open { overflow: hidden; }
 /* Native <dialog> used by the booking details */
 dialog.lm-dialog { padding: 0; border: 0; background: transparent; width: min(820px, calc(100% - 32px)); max-width: none; max-height: calc(100dvh - 32px); overflow: visible; }
 dialog.lm-dialog::backdrop { background: rgba(24, 38, 31, .55); backdrop-filter: blur(3px); }
+.lm-booking-meta { display: flex; flex-direction: column; gap: 4px; }
+.lm-booking-contact {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 16px;
+  padding: 12px 16px; border: 1px solid var(--lm-border); border-radius: 10px;
+  color: var(--lm-muted); font-size: 14px; text-align: center;
+}
+.lm-booking-contact > span { min-width: 0; overflow-wrap: anywhere; }
+.lm-booking-contact strong { color: var(--lm-ink); }
+@media (max-width: 767.98px) {
+  .lm-booking-contact { flex-direction: column; align-items: flex-start; text-align: left; }
+}
+.lm-booking-details .lm-ref-text { white-space: normal; overflow-wrap: anywhere; }
+.lm-booking-details dd .lm-link { display: inline-block; margin: 4px 0 0; padding: 6px 0; }
 dialog.lm-dialog .lm-modal-box { max-width: none; max-height: calc(100dvh - 32px); }
 
 /* Content copied from older markup inside modals keeps readable colours. */
@@ -502,11 +525,18 @@ body.lm-admin .lm-modal-box :is(.text-white, .text-slate-100, .text-slate-200, .
   .lm-table--stack td.lm-empty-cell::before { display: none; }
   .lm-table--stack tr.lm-empty-row { border-style: dashed; box-shadow: none; }
 
-  .lm-modal { padding: 0; align-items: flex-end; }
-  .lm-modal-box, dialog.lm-dialog .lm-modal-box { max-width: none; max-height: 94dvh; border-radius: 18px 18px 0 0; }
-  dialog.lm-dialog { width: 100%; max-height: 94dvh; margin: auto 0 0; }
+  .lm-modal { padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)); align-items: center; }
+  .lm-modal-box, dialog.lm-dialog .lm-modal-box { min-width: 0; max-width: none; max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); border-radius: 18px; }
+  dialog.lm-dialog { width: calc(100% - 24px); max-height: calc(100dvh - 24px); margin: auto; }
+  .lm-modal-head, .lm-modal-foot { flex: 0 0 auto; }
+  .lm-modal-head > div { min-width: 0; overflow-wrap: anywhere; }
+  .lm-modal-box > form:not(.lm-modal-body) { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: hidden; }
+  .lm-modal-body { flex: 1 1 auto; min-height: 0; overscroll-behavior: contain; overflow-wrap: anywhere; }
+  .lm-modal-box :is(input, select, textarea) { min-width: 0; max-width: 100%; box-sizing: border-box; }
+  .lm-modal-box :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) { font-size: 16px !important; min-height: 44px; }
+  .lm-modal-foot .lm-btn { min-height: 44px; min-width: 0; white-space: normal; }
   .lm-modal-head, .lm-modal-body, .lm-modal-foot { padding-left: 16px; padding-right: 16px; }
-  .lm-modal-foot .lm-btn { flex: 1 1 auto; }
+  .lm-modal-foot .lm-btn { flex: 1 1 140px; }
 }
 
 /* Narrow phones: two-line labels need a taller bar. */
@@ -529,3 +559,333 @@ body.lm-admin .lm-modal-box :is(.text-white, .text-slate-100, .text-slate-200, .
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+/* ---------- Admin account card (matches the customer profile summary) ---------- */
+.lm-profile-card { overflow: hidden; padding-top: 0 !important; }
+.lm-profile-cover { height: 96px; margin: 0 -20px; background: linear-gradient(130deg, var(--brand-dark, #0A2E24), var(--brand, #16604B)); }
+.lm-profile-photo { display: grid; place-items: center; width: 84px; height: 84px; margin: -42px auto 10px; border-radius: 50%; border: 4px solid #fff; background: var(--brand, #16604B); color: #fff; font-size: 24px; font-weight: 800; box-shadow: 0 4px 15px rgba(24,38,31,.13); }
+.lm-profile-id { text-align: center; margin-bottom: 14px; }
+.lm-profile-name { font-size: 22px; font-weight: 750; overflow-wrap: anywhere; }
+.lm-profile-mail { color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
+.lm-profile-pill { display: inline-flex; gap: 5px; margin-top: 10px; padding: 5px 11px; border-radius: 999px; background: var(--brand-softer, #EEF7F2); color: var(--success, #16604B); font-size: 12px; font-weight: 800; }
+
+/* Notifications: same look as the customer panel. Light tint + teal bar for
+   unread (not a solid green block), compact rows, header kept on one line. */
+.lm-bell-head { flex-wrap: nowrap; }
+.lm-bell-head .lm-btn--sm { white-space: nowrap; flex-shrink: 0; }
+.lm-bell-item { padding: 10px 14px; }
+.lm-bell-item.is-unread { background: rgba(22, 96, 75, .06); box-shadow: inset 3px 0 var(--lm-teal); }
+.lm-bell-clickable.is-unread:focus-visible { box-shadow: inset 3px 0 var(--lm-teal), inset 0 0 0 2px var(--lm-teal); }
+.lm-bell-item .lm-notif-title strong { font-size: 13.5px; }
+.lm-bell-item p { color: var(--lm-ink); opacity: .85; line-height: 1.45; }
+
+/* Dashboard: display-only records (no links / click actions). */
+.lm-ref-text { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; font-weight: 600; color: var(--lm-ink); white-space: nowrap; }
+.lm-stat.lm-stat--static { cursor: default; }
+.lm-stat.lm-stat--static:hover { transform: none; box-shadow: var(--lm-shadow); }
+.lm-ref-text { color: #111 !important; font-weight: 800 !important; font-size: 13px; letter-spacing: .01em; }
+
+/* Booking cards: keep labels above their values and supporting details. */
+@media (max-width: 767.98px) {
+  .lm-booking-table td[data-label] {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+    padding: 10px 0;
+  }
+  .lm-booking-table td[data-label]::before { margin-bottom: 3px; }
+  .lm-booking-table td[data-label] > * { min-width: 0; max-width: 100%; }
+  .lm-booking-table .lm-ref-text { white-space: normal; overflow-wrap: anywhere; }
+  .lm-booking-table .lm-cell-sub { margin-top: 0; }
+  .lm-booking-table td[data-label="Status"] > span { justify-self: start; }
+}
+
+/* Bookings filters: date range on its own row with quick dates and reset. */
+.lm-daterow { display: flex; align-items: flex-end; gap: 12px 16px; flex-wrap: wrap; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--lm-cream-2); }
+.lm-daterange { min-width: 0; }
+.lm-daterange-inputs { display: flex; align-items: center; gap: 8px; }
+.lm-daterange-inputs .lm-input { width: 168px; }
+.lm-daterange-sep { color: var(--lm-muted); }
+.lm-quickdates { display: flex; gap: 6px; flex-wrap: wrap; padding-bottom: 4px; }
+.lm-chip { min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--lm-border); background: #fff; font: inherit; font-size: 13px; font-weight: 600; color: var(--lm-ink); cursor: pointer; }
+.lm-chip:hover { border-color: var(--lm-teal); }
+.lm-chip.is-on { background: var(--lm-teal-800); border-color: var(--lm-teal-800); color: #fff; }
+.lm-filter-reset { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.lm-filter-count { font-size: 13px; font-weight: 600; color: var(--lm-teal-800); white-space: nowrap; }
+.lm-filter-reset .lm-btn:disabled { opacity: .45; cursor: default; }
+@media (max-width: 767.98px) {
+  .lm-daterange, .lm-daterange-inputs { width: 100%; }
+  .lm-daterange-inputs .lm-input { flex: 1; width: auto; min-width: 0; }
+  .lm-filter-reset { margin-left: 0; width: 100%; justify-content: space-between; }
+}
+
+/* Staff directory: names in bold black (underline on hover only). */
+.lm-name-btn { color: var(--lm-ink) !important; font-weight: 700; }
+.lm-name-btn:hover span { text-decoration: none; }
+.lm-name-btn:hover span:last-child { text-decoration: underline; }
+/* "Remove staff member" inside the Edit dialog. */
+.lm-danger-zone { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 18px; padding: 14px 16px; border: 1px solid rgba(156, 30, 21, .25); border-radius: 12px; background: rgba(156, 30, 21, .04); }
+.lm-danger-zone strong { display: block; color: var(--lm-danger); font-size: 14px; }
+.lm-danger-zone p { margin: 2px 0 0; font-size: 12.5px; color: var(--lm-muted); }
+.lm-danger-zone .lm-btn { flex-shrink: 0; }
+
+/* One scroll area keeps mobile booking details and actions reachable. */
+@media (max-width: 767.98px) {
+  dialog.lm-booking-details {
+    width: calc(100% - 16px);
+    max-height: calc(100dvh - 16px);
+  }
+  dialog.lm-booking-details .lm-modal-box {
+    display: block; overflow-y: auto; overscroll-behavior: contain;
+    max-height: calc(100dvh - 16px); border-radius: 16px;
+  }
+  .lm-booking-details .lm-modal-head {
+    position: sticky; top: 0; z-index: 2; padding: 14px 16px;
+  }
+  .lm-booking-details .lm-modal-body { overflow: visible; padding: 16px; gap: 16px; }
+  .lm-booking-details .lm-dl { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .lm-booking-details .lm-modal-foot { padding: 14px 16px max(16px, env(safe-area-inset-bottom)); }
+  .lm-booking-details .lm-modal-foot .lm-actions {
+    display: flex; flex-direction: column; align-items: stretch; gap: 8px;
+  }
+  .lm-booking-details .lm-modal-foot .lm-btn {
+    flex: none; width: 100%; min-height: 44px; white-space: normal;
+  }
+  .lm-booking-details .lm-modal-foot .lm-btn--primary { order: -1; }
+}
+
+/* Booking details dialog. */
+.lm-capitalize { text-transform: capitalize; }
+.lm-dd-inline { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; }
+.lm-booking-details .lm-dl dd .lm-cell-sub { display: block; margin-top: 2px; }
+.lm-booking-details .lm-divider { margin: 14px 0; }
+
+/* Employees: branch picker cards (guest booking style). */
+.lm-branch-pick { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.lm-branch-card { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 15px 17px; border: 2px solid #6b9b87; border-radius: 16px; background: #fff; font: inherit; text-align: left; cursor: pointer; transition: border-color .15s, background .15s, box-shadow .15s; }
+.lm-branch-card:hover { border-color: var(--lm-teal); }
+.lm-branch-card strong { font-size: 16px; font-weight: 700; color: var(--lm-ink); }
+.lm-branch-sub { font-size: 14px; color: var(--lm-muted); }
+.lm-branch-count { margin-top: 6px; font-size: 12px; font-weight: 700; color: var(--lm-teal-800); }
+.lm-branch-check { position: absolute; top: 12px; right: 12px; width: 24px; height: 24px; border-radius: 50%; display: none; place-items: center; background: var(--lm-teal-800); color: #fff; font-size: 13px; font-weight: 800; }
+.lm-branch-card.is-on { border: 2px solid var(--lm-teal-800); padding: 15px 17px; background: rgba(22, 96, 75, .05); }
+.lm-branch-card.is-on .lm-branch-check { display: grid; }
+.lm-branch-card:focus-visible { outline: 3px solid var(--lm-gold); outline-offset: 2px; }
+@media (max-width: 899.98px) { .lm-branch-pick { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Booking details: three clear sections (Customer, Appointment, Payment). */
+.lm-booking-details .lm-modal-body { display: flex; flex-direction: column; gap: 14px; }
+.lm-bd-section { border: 1px solid var(--lm-border); border-radius: 14px; padding: 14px 16px; background: #fff; }
+.lm-bd-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 10px !important; font-family: inherit !important; font-size: 12px !important; font-weight: 800 !important; letter-spacing: .08em; text-transform: uppercase; color: var(--lm-muted) !important; }
+.lm-bd-person { display: flex; align-items: center; gap: 12px; }
+.lm-bd-strong { margin: 0 !important; font-size: 16px; font-weight: 700; color: var(--lm-ink); }
+.lm-bd-sub { display: block; margin: 2px 0 0 !important; font-size: 13px; color: var(--lm-muted); text-align: left !important; }
+.lm-bd-rows { margin: 0; display: flex; flex-direction: column; }
+.lm-bd-rows > div { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 12px; align-items: baseline; padding: 8px 0; border-top: 1px solid var(--lm-cream-2); }
+.lm-bd-rows > div:first-child { border-top: 0; padding-top: 0; }
+.lm-bd-rows > div[style*="display: none"] { display: none !important; }
+.lm-bd-rows dt { font-size: 13px; color: var(--lm-muted); text-transform: none; letter-spacing: 0; font-weight: 600; }
+.lm-bd-rows dd { margin: 0; font-size: 14.5px; font-weight: 600; color: var(--lm-ink); min-width: 0; }
+.lm-bd-staff { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.lm-bd-money { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 8px; }
+.lm-bd-money > div { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 10px; background: var(--lm-cream-2); }
+.lm-bd-money span { font-size: 12px; color: var(--lm-muted); font-weight: 600; }
+.lm-bd-money strong { font-size: 16px; font-weight: 800; color: var(--lm-ink); }
+.lm-bd-paystate { font-size: 12px; letter-spacing: 0; text-transform: none; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+.lm-bd-paystate.is-paid { background: var(--lm-success-soft); color: var(--lm-success); }
+.lm-bd-paystate.is-due { background: var(--lm-gold-soft); color: var(--lm-gold-ink); }
+@media (max-width: 559.98px) {
+  .lm-bd-rows > div { grid-template-columns: 1fr; gap: 2px; }
+  .lm-bd-money { grid-template-columns: 1fr 1fr; }
+}
+
+/* Staff form: First / Middle (N/A) / Last, like the guest and customer forms. */
+.lm-name-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.lm-name-row .lm-field > label:not(.lm-na) { display: block; font-weight: 700; }
+.lm-name-row .lm-field > label.lm-na { display: flex; align-items: flex-start; gap: 8px; font-weight: 400; line-height: 1.4; }
+.lm-name-row .lm-na input { flex: 0 0 16px; width: 16px; height: 16px; margin: 2px 0 0; accent-color: var(--lm-teal); }
+.lm-optional { font-style: normal; font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--lm-muted); }
+.lm-na { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; color: var(--lm-muted); cursor: pointer; }
+.lm-name-row .lm-input:disabled { background: var(--lm-cream-2); cursor: not-allowed; }
+@media (max-width: 599.98px) { .lm-name-row { grid-template-columns: 1fr; } }
+
+/* Staff form: services picker (search, category, select all, chips). */
+.lm-svcpick-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.lm-svcpick-count { font-size: 13px; font-weight: 700; color: var(--lm-teal-800); text-transform: none; letter-spacing: 0; }
+.lm-svcpick-body { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+.lm-svcpick-tools { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 8px; }
+.lm-svcpick-all { align-self: flex-start; }
+.lm-svcpick-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; max-height: 260px; overflow-y: auto; padding: 2px; }
+.lm-svc-opt { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--lm-border); border-radius: 10px; background: #fff; font-size: 13.5px; cursor: pointer; min-width: 0; }
+.lm-svc-opt span { overflow-wrap: anywhere; }
+.lm-svc-opt:hover { border-color: var(--lm-teal); }
+.lm-svc-opt.is-on { border-color: var(--lm-teal-800); background: rgba(22, 96, 75, .06); font-weight: 600; }
+.lm-svc-opt input { accent-color: var(--lm-teal-800); flex-shrink: 0; }
+.lm-svcpick-chips { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 8px; border-top: 1px dashed var(--lm-border); }
+.lm-svc-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 6px 4px 10px; border: 0; border-radius: 999px; background: var(--lm-teal-soft); color: var(--lm-teal-800); font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+.lm-svc-chip span:last-child { width: 18px; height: 18px; display: grid; place-items: center; border-radius: 50%; background: rgba(22, 96, 75, .15); font-size: 13px; }
+.lm-svc-chip:hover span:last-child { background: var(--lm-teal-800); color: #fff; }
+@media (max-width: 599.98px) {
+  .lm-svcpick-tools, .lm-svcpick-grid { grid-template-columns: 1fr; }
+}
+
+/* Inventory: product name opens history; stock number + bar + minimum. */
+.lm-item-name { all: unset; cursor: pointer; font-weight: 700; color: var(--lm-ink); }
+.lm-item-name:hover { text-decoration: underline; }
+.lm-item-name:focus-visible { outline: 3px solid var(--lm-gold); outline-offset: 2px; border-radius: 4px; }
+.lm-stockcell { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 2px 10px; min-width: 120px; max-width: 180px; }
+.lm-stockcell strong { font-size: 15px; color: var(--lm-ink); }
+.lm-stockbar { height: 6px; border-radius: 99px; background: var(--lm-cream-2); overflow: hidden; }
+.lm-stockbar span { display: block; height: 100%; border-radius: 99px; background: var(--lm-success, #1b7a4b); }
+.lm-stockcell small { grid-column: 1 / -1; font-size: 12px; color: var(--lm-muted); }
+.lm-stockcell.is-low strong { color: var(--lm-gold-ink); }
+.lm-stockcell.is-low .lm-stockbar span { background: var(--lm-gold); }
+.lm-stockcell.is-out strong { color: var(--lm-danger); }
+.lm-stockcell.is-out .lm-stockbar span { background: var(--lm-danger); }
+
+/* Add / Edit staff: same section boxes as Booking details. */
+.lm-staff-form { display: flex; flex-direction: column; gap: 14px; }
+.lm-staff-form .lm-bd-section { display: flex; flex-direction: column; gap: 12px; }
+.lm-staff-form .lm-bd-heading { margin-bottom: 0 !important; }
+.lm-staff-form .lm-name-row, .lm-staff-form .lm-form-row { margin: 0; }
+.lm-link--inline { padding: 0; border: 0; background: none; font: inherit; color: inherit; text-decoration: underline; cursor: pointer; }
+.lm-staff-form .lm-svcpick-grid { max-height: 300px; }
+.lm-staff-form .lm-danger-zone { margin-top: 0; }
+/* Promotions service menu: search + category dropdown on one row. */
+.lm-svc-catfield { min-width: 240px; }
+@media (max-width: 767.98px) { .lm-svc-catfield { min-width: 0; width: 100%; } }
+
+/* Promotions service table: short labels, management inside Edit. */
+.lm-cat-group { font-weight: 600; }
+.lm-nowrap { white-space: nowrap; }
+.lm-svc-manage { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+.lm-svc-manage-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 16px; border: 1px solid var(--lm-border); border-radius: 12px; }
+.lm-svc-manage-row strong { display: block; font-size: 14px; color: var(--lm-ink); }
+.lm-svc-manage-row p { margin: 2px 0 0; font-size: 12.5px; color: var(--lm-muted); }
+.lm-svc-manage-row .lm-btn, .lm-svc-manage .lm-danger-zone { flex-shrink: 0; }
+.lm-svc-manage .lm-danger-zone { margin-top: 0; }
+
+/* Promotions service table: icon, coloured category pill, price + payment tag. */
+.lm-svc-table { table-layout: fixed; }
+.lm-svc-who { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.lm-svc-who > div { min-width: 0; }
+.lm-svc-icon { width: 38px; height: 38px; flex-shrink: 0; border-radius: 12px; display: grid; place-items: center; font-size: 17px; font-weight: 800; }
+.lm-svc-name { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-weight: 700; color: var(--lm-ink); }
+.lm-svc-pill { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+.lm-svc-price { display: block; font-size: 15px; color: var(--lm-ink); }
+.lm-svc-tag { display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 999px; background: var(--lm-cream-2); color: var(--lm-muted); font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+.lm-svc-tag--hot { margin-top: 0; background: #fff1dc; color: #9a5b00; }
+.lm-svc-dur { display: inline-flex; align-items: center; gap: 6px; color: var(--lm-ink); font-size: 14px; }
+.lm-svc-dur svg { width: 15px; height: 15px; color: var(--lm-muted); }
+/* Category colours (icon tile + pill share them). */
+.g-hair   { background: #e7f3ee; color: #1b5e4b; }
+.g-nails  { background: #fdecf3; color: #a3245c; }
+.g-lash   { background: #efeafb; color: #5b3fa8; }
+.g-facial { background: #e8f4fb; color: #1f6d93; }
+.g-wax    { background: #fff4e0; color: #9a5b00; }
+.g-aesth  { background: #fdeeee; color: #a33a3a; }
+.g-body   { background: #eaf6f0; color: #2f7a55; }
+.g-makeup { background: #fbeaf6; color: #93307a; }
+.g-promo  { background: #fff7d6; color: #7a5a00; }
+.g-other  { background: #f1f3f2; color: #55625c; }
+@media (max-width: 1023.98px) { .lm-svc-table { table-layout: auto; } .lm-svc-table colgroup { display: none; } }
+/* Service name: slightly bigger and bold so it stands out. */
+.lm-svc-name > span:first-child { font-size: 16px; font-weight: 800; color: #111; letter-spacing: .005em; }
+
+/* Customers: one toolbar row, avatar + capitalised name, stamp dots. */
+.lm-cust-tools { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 18px 20px 16px; }
+.lm-cust-search { flex: 1; min-width: 240px; }
+.lm-seg { display: inline-flex; padding: 4px; gap: 4px; border: 1px solid var(--lm-border); border-radius: 12px; background: var(--lm-cream-2); }
+.lm-seg-btn { border: 0; background: none; padding: 8px 14px; border-radius: 9px; font: inherit; font-size: 13.5px; font-weight: 700; color: var(--lm-muted); cursor: pointer; white-space: nowrap; }
+.lm-seg-btn small { margin-left: 4px; font-weight: 600; opacity: .8; }
+.lm-seg-btn.is-on { background: #fff; color: var(--lm-ink); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+.lm-cust-who { all: unset; display: flex; align-items: center; gap: 12px; cursor: pointer; min-width: 0; }
+.lm-cust-who:focus-visible { outline: 3px solid var(--lm-gold); outline-offset: 3px; border-radius: 8px; }
+.lm-cust-who:hover .lm-cust-name > span:first-child { text-decoration: underline; }
+.lm-cust-who .lm-avatar { flex-shrink: 0; }
+.lm-cust-who .lm-avatar.is-reg { background: var(--lm-teal-800); color: #fff; }
+.lm-cust-text { display: flex; flex-direction: column; min-width: 0; }
+.lm-cust-name { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.lm-cust-name > span:first-child { font-size: 15.5px; font-weight: 800; color: #111; text-transform: capitalize; }
+.lm-cust-type { padding: 1px 8px; border-radius: 999px; background: var(--lm-cream-2); color: var(--lm-muted); font-size: 11px; font-weight: 700; }
+.lm-cust-type.is-reg { background: var(--lm-info-soft, #e8f1fb); color: var(--lm-info, #1f5f99); }
+.lm-truncate { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lm-stamps { display: flex; flex-direction: column; gap: 3px; }
+.lm-stamp-dots { display: inline-flex; gap: 3px; }
+.lm-stamp-dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--lm-cream-2); border: 1px solid var(--lm-border); }
+.lm-stamp-dots i.on { background: var(--lm-teal-800); border-color: var(--lm-teal-800); }
+.lm-reward { font-size: 12px; font-weight: 700; color: var(--lm-success, #1b7a4b); }
+.lm-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 767.98px) { .lm-cust-search { min-width: 0; width: 100%; } .lm-seg { width: 100%; } .lm-seg-btn { flex: 1; } }
+/* Stamp dots: bigger, clear outline even when empty. */
+.lm-stamp-dots { gap: 4px; }
+.lm-stamp-dots i { width: 13px; height: 13px; background: #fff; border: 1.5px solid #9aa8a1; }
+.lm-stamp-dots i.on { background: var(--lm-teal-800); border-color: var(--lm-teal-800); box-shadow: inset 0 0 0 2px #fff; }
+.lm-stamps .lm-cell-sub { font-weight: 600; color: var(--lm-ink); }
+
+/* Customer history: summary, filter, month-grouped timeline rows. */
+.lm-hist { display: flex; flex-direction: column; gap: 14px; }
+.lm-hist-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.lm-hist-summary > div { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 12px; background: var(--lm-cream-2); }
+.lm-hist-summary strong { font-size: 20px; font-weight: 800; color: var(--lm-ink); }
+.lm-hist-summary .is-money strong { font-size: 16px; padding-top: 3px; }
+.lm-hist-summary span { font-size: 12px; font-weight: 600; color: var(--lm-muted); }
+.lm-hist .lm-seg { align-self: flex-start; flex-wrap: wrap; }
+.lm-hist-list { display: flex; flex-direction: column; }
+.lm-hist-month { margin: 12px 0 6px !important; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--lm-muted); text-align: left !important; }
+.lm-hist-list > div:first-child .lm-hist-month { margin-top: 0 !important; }
+.lm-hist-row { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 12px 14px; border: 1px solid var(--lm-border); border-left-width: 4px; border-radius: 12px; background: #fff; margin-bottom: 8px; }
+.lm-hist-row.is-upcoming { border-left-color: var(--lm-gold); }
+.lm-hist-row.is-completed { border-left-color: var(--lm-success, #1b7a4b); }
+.lm-hist-row.is-cancelled { border-left-color: var(--lm-danger); opacity: .85; }
+.lm-hist-when { display: flex; flex-direction: column; }
+.lm-hist-when strong { font-size: 15px; font-weight: 800; color: var(--lm-ink); }
+.lm-hist-when span { font-size: 12px; color: var(--lm-muted); }
+.lm-hist-what { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.lm-hist-what > strong { font-size: 15px; font-weight: 700; color: var(--lm-ink); }
+.lm-hist-what > span { font-size: 12.5px; color: var(--lm-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lm-hist-end { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+.lm-hist-end strong { font-size: 15px; color: var(--lm-ink); }
+@media (max-width: 599.98px) {
+  .lm-hist .lm-seg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+  .lm-hist .lm-seg-btn { min-width: 0; min-height: 44px; padding: 8px; text-align: center; }
+  .lm-hist-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lm-hist-row { grid-template-columns: 60px minmax(0, 1fr); }
+  .lm-hist-end { grid-column: 2; }
+}
+/* History summary boxes: outlined, colour-matched to the row edges. */
+.lm-hist-summary > div { background: #fff; border: 1.5px solid var(--lm-border); }
+.lm-hist-summary > div:nth-child(1) { border-color: var(--lm-success, #1b7a4b); }
+.lm-hist-summary > div:nth-child(1) strong { color: var(--lm-success, #1b7a4b); }
+.lm-hist-summary > div:nth-child(2) { border-color: var(--lm-gold); }
+.lm-hist-summary > div:nth-child(2) strong { color: var(--lm-gold-ink); }
+.lm-hist-summary > div:nth-child(3) { border-color: var(--lm-danger); }
+.lm-hist-summary > div:nth-child(3) strong { color: var(--lm-danger); }
+.lm-hist-summary > div.is-money { border-color: var(--lm-teal-800); }
+
+/* Settings: tabs, branch cards, section boxes, Sunday switch, sticky save bar. */
+.lm-settings-tabs { align-self: flex-start; flex-wrap: wrap; }
+.lm-branch-pick--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.lm-set-summary { margin-top: 4px !important; font-weight: 600; color: var(--lm-teal-800) !important; }
+.lm-set-box { display: flex; flex-direction: column; gap: 12px; }
+.lm-set-box .lm-bd-heading { margin-bottom: 0 !important; }
+.lm-switch { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--lm-ink); }
+.lm-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.lm-switch-ui { position: relative; width: 40px; height: 22px; flex-shrink: 0; border-radius: 999px; background: #c9d1cd; transition: background .2s; }
+.lm-switch-ui::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform .2s; }
+.lm-switch input:checked + .lm-switch-ui { background: var(--lm-teal-800); }
+.lm-switch input:checked + .lm-switch-ui::after { transform: translateX(18px); }
+.lm-switch input:focus-visible + .lm-switch-ui { outline: 3px solid var(--lm-gold); outline-offset: 2px; }
+.lm-set-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.lm-set-stats > div { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border-radius: 12px; background: var(--lm-cream-2); }
+.lm-set-stats span { font-size: 12px; font-weight: 600; color: var(--lm-muted); }
+.lm-set-stats strong { font-size: 16px; color: var(--lm-ink); }
+.lm-savebar { position: sticky; bottom: 12px; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 16px; border: 1px solid var(--lm-border); border-radius: 14px; background: #fff; box-shadow: 0 10px 28px rgba(14, 59, 47, .12); }
+.lm-savebar > span { font-size: 13.5px; font-weight: 600; color: var(--lm-muted); }
+.lm-savebar.is-dirty { border-color: var(--lm-gold); background: #fffaf0; }
+.lm-savebar.is-dirty > span { color: var(--lm-gold-ink); }
+@media (max-width: 767.98px) { .lm-branch-pick--3 { grid-template-columns: 1fr; } .lm-savebar { bottom: calc(var(--lm-bottom-h, 64px) + 10px); } }
+
+/* Settings > Staff access: branch heading rows inside the tables. */
+.lm-table .lm-group-row th { padding: 10px 20px !important; background: rgba(22, 96, 75, .06); text-align: left; font-size: 13px; font-weight: 800; letter-spacing: .02em; text-transform: none; color: var(--lm-teal-800); border-top: 1px solid var(--lm-border); }
+.lm-table .lm-group-row th small { margin-left: 6px; font-weight: 600; color: var(--lm-muted); }
+@media (max-width: 767.98px) { .lm-table--stack .lm-group-row { display: block; } .lm-table--stack .lm-group-row th { display: block; } }

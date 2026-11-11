@@ -252,6 +252,12 @@
   const origGuest = window.continueAsGuestBooking;
   window.continueAsGuestBooking = function () {
     const r = origGuest.apply(this, arguments);
+    // "Book at <branch>" on the Branches tab pre-selects that branch.
+    if (window.__preBookBranch && !select.disabled && select.querySelector('option[value="' + window.__preBookBranch + '"]')) {
+      select.value = window.__preBookBranch;
+      select.dispatchEvent(new Event('change'));
+    }
+    window.__preBookBranch = '';
     renderBranchCards();
     refresh();
     return r;

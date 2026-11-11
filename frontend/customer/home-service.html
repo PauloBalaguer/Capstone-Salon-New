@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="../shared/theme-tokens.css">
+  <link rel="stylesheet" href="../shared/theme-tokens.css?v=20261111-card-tones">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Leo Mejillano Salon - Home Service</title>
@@ -61,7 +61,7 @@
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
   <!-- Customer portal shell (sidebar, header, bottom nav); loaded after the shared themes. -->
   <link rel="stylesheet" href="../../frontend/customer/customer-portal.css?v=20261110">
-  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
 </head>
 <body data-customer-page="home-service" data-page-title="Home Service" class="salon-portal bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
@@ -199,7 +199,7 @@
     <div x-show="isHomeServiceModalOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" @click.outside="closeHomeServiceModal()" class="bg-slate-900 border border-luxury-800 rounded-2xl max-w-3xl w-full max-h-[calc(100dvh-2rem)] md:max-h-[calc(100dvh-3rem)] p-6 flex flex-col min-h-0 overflow-hidden">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-5 shrink-0">
         <h3 class="text-base font-serif font-bold text-white">Request Home Service</h3>
-        <button @click="closeHomeServiceModal()" class="text-slate-400 hover:text-white">&times;</button>
+        <button @click="closeHomeServiceModal()" class="ui-close-icon text-slate-400 hover:text-white">&times;</button>
       </div>
 
       <form @submit.prevent="submitHomeServiceRequest()" @change.debounce.250ms="refreshEventAvailability()" class="space-y-4 text-xs min-h-0 overflow-y-auto overscroll-contain pr-3 pb-1">
@@ -307,6 +307,17 @@
         </div>
 
         <p x-show="homeServiceForm.eventType !== 'Wedding'" class="text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3">Price and deposit are confirmed after review.</p>
+
+        <div>
+          <label for="hsBranchKey" class="block font-bold text-slate-400 mb-1">Responsible branch</label>
+          <select id="hsBranchKey" x-model="homeServiceForm.branchKey" required class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+            <option value="">Choose the branch that will handle your visit...</option>
+            <option value="daraga">Daraga Main</option>
+            <option value="yashano">Yashano Mall</option>
+            <option value="cabangan">Cabangan</option>
+          </select>
+          <p class="mt-1 text-slate-500">You can send a request any time. The whole visit, including travel, must fit this branch's hours on your date.</p>
+        </div>
 
         <div>
           <label class="block font-bold text-slate-400 mb-1">Preferred date</label>
@@ -434,7 +445,7 @@
     <div x-show="isTrackModalOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" @click.outside="closeTrackModal()" class="bg-slate-900 border border-luxury-800 rounded-2xl max-w-md w-full p-6 space-y-5">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <h3 class="text-base font-serif font-bold text-white">Track a Booking</h3>
-        <button @click="closeTrackModal()" class="text-slate-400 hover:text-white">&times;</button>
+        <button @click="closeTrackModal()" class="ui-close-icon text-slate-400 hover:text-white">&times;</button>
       </div>
 
       <p class="prose-justify text-xs text-slate-400">Look up the status of any home service request by its reference code, including one made before you had an account.</p>
@@ -487,14 +498,16 @@
        the home service request list/modal and the track-a-booking modal.
        Appointments, booking, reviews, and profile mixins live on their
        own pages. -->
+  <script src="../../function/shared/sign-out.js?v=20261111"></script>
   <script src="../../function/customer/customer-shell.js?v=20261110"></script>
   <script src="../../function/customer/dashboard-helpers.js"></script>
-  <script src="../../function/customer/dashboard-state.js?v=home-service-aligned-1"></script>
+  <script src="../../function/customer/dashboard-state.js?v=20261111"></script>
   <script src="../../function/customer/dashboard-notifications.js"></script>
   <script src="../../function/shared/address-form.js"></script>
-  <script src="../../function/customer/dashboard-home-service.js?v=home-service-aligned-1"></script>
+  <script src="../../function/customer/dashboard-home-service.js?v=20261111"></script>
   <script src="../../function/customer/dashboard-track-booking.js"></script>
   <script src="../../function/shared/live-sync.js?v=20261110"></script>
   <script src="../../function/customer/dashboard.js"></script>
+<script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

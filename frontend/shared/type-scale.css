@@ -1,6 +1,67 @@
-/* Shared size-only scale. Load after each area's theme.
+/* Shared typography scale. Load after each area's theme.
    Repeated :root specificity intentionally beats legacy !important size rules.
-   Families, weights, colours, icon sizes and layout remain owned by each area. */
+   Area themes own typography except shared close controls and table headings. */
+/* Shared close controls: a prominent glyph and a comfortable tap target.
+   Leave display untouched so hidden drawer controls stay hidden. */
+:root:root:root:root:root body :is(.ui-close-icon, .lm-close, .modal-close, .wi-close,
+  .cp-close, .sp-drawer-close, .cp-drawer-close, .notification-close,
+  .terms-modal-close, button[aria-label="Close"]) {
+  font-size: 30px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  min-width: 44px;
+  min-height: 44px;
+  flex-shrink: 0;
+}
+:root:root:root:root:root body :is(.ui-close-icon, .lm-close, .modal-close, .wi-close,
+  .cp-close, .sp-drawer-close, .cp-drawer-close, .notification-close,
+  .terms-modal-close, button[aria-label="Close"]) :is(svg, i) {
+  width: 24px !important;
+  height: 24px !important;
+  font-size: 24px !important;
+}
+:root:root:root:root:root body :is(.sp-drawer-close, .cp-drawer-close,
+  .notification-close, .terms-modal-close, button[aria-label="Close"]) svg {
+  stroke-width: 2.75;
+}
+/* Subtle sign-out treatment, with softer colours on dark navigation. */
+:root:root:root:root body :is(a[href*="auth/logout.php"], .lm-signout,
+  .lm-header-signout, .cp-signout, .cp-signout-link, .cp-header-signout,
+  .sp-side-signout, .sp-header-signout, :where(#portal-sign-out) button[data-confirm]) {
+  border: 1px solid #d6a09a !important;
+  border-radius: 12px !important;
+  background: #fff7f5 !important;
+  color: #923d35 !important;
+  min-height: 44px;
+  padding: 11px 16px;
+}
+:root:root:root:root body :is(a[href*="auth/logout.php"], .lm-signout,
+  .lm-header-signout, .cp-signout, .cp-signout-link, .cp-header-signout,
+  .sp-side-signout, .sp-header-signout, :where(#portal-sign-out) button[data-confirm]):is(:hover, :focus-visible) {
+  border-color: #b9665c !important;
+  background: #fbe9e5 !important;
+}
+:root:root:root:root body :is(a, button):is(.lm-signout, .cp-signout, .cp-signout-link, .sp-side-signout) {
+  border-color: rgba(222, 157, 145, .35) !important;
+  background: #123d32 !important;
+  color: #f5eee7 !important;
+  padding: 12px 13px;
+  border-radius: 10px !important;
+}
+:root:root:root:root body :is(a, button):is(.lm-signout, .cp-signout, .cp-signout-link, .sp-side-signout):is(:hover, :focus-visible) {
+  border-color: #de9d91 !important;
+  background: rgba(222, 157, 145, .16) !important;
+  color: #fff !important;
+}
+:root:root:root:root body :is(a[href*="auth/logout.php"], .lm-signout,
+  .lm-header-signout, .cp-signout, .cp-signout-link, .cp-header-signout,
+  .sp-side-signout, .sp-header-signout) :is(span, i, svg) {
+  color: inherit !important;
+}
+:root:root:root:root body :is(.lm-signout, .cp-signout, .cp-signout-link, .sp-side-signout) :is(i, svg) {
+  color: #e6a69b !important;
+}
+
 :root {
   --type-hero: clamp(40px, calc(34.057142857px + 1.523809524vw), 56px);
   --type-page: 38px;
@@ -73,6 +134,14 @@
   line-height: 1.5;
 }
 
+/* Keep role navigation headings on one line in sidebars and menu drawers. */
+:root:root:root:root body :where(.cp-side-heading, .lm-side-heading, .sp-side-heading) {
+  font-size: var(--type-helper) !important;
+  line-height: 1.4;
+  letter-spacing: .1em;
+  white-space: nowrap;
+}
+
 /* Drawer/desktop navigation uses the same size; bottom navigation is separate. */
 :root:root:root:root body :where(.cp-side-link, .cp-side-link > span, .lm-nav a,
   .lm-nav a > span, .sp-nav-link, .sp-nav-label, .cp-nav .nav-item,
@@ -108,6 +177,14 @@
   font-size: var(--type-card) !important;
   line-height: 1.3 !important;
 }
+/* Branch names and detail headings share size, color, and semibold weight. */
+:root:root:root:root body.gw-site #branchInfo :is(#bTag, .branch-detail-label) {
+  font-size: var(--type-card) !important;
+  font-weight: 600 !important;
+  color: #000 !important;
+  line-height: 1.3 !important;
+  letter-spacing: .04em;
+}
 /* Top-level sections, including role-page sections and public tab sections. */
 :root:root:root:root body :where(.gw-site .page-body h2, main > section > h2,
   .lm-section-title, .cp-section-heading h2, .cp-subheading,
@@ -134,12 +211,40 @@
   .terms-modal-head h2, #servicesPopupTitle, #staffProfileName,
   #bookingModalBox h3.font-display, #trackModalBox h3.font-display,
   [role="dialog"] > div > h3:first-of-type, body > .fixed.inset-0 > div > h3:first-of-type,
-  .cp-notification-head h4, .lm-bell-head h3, .lm-bell-head > strong,
-  .sp-notif-head > p,
   #inventoryLogModal h4, #stockAdjustmentConfirmModal h4,
   .cp-portal .fixed.inset-0 h3.text-base.font-serif) {
   font-size: var(--type-dialog) !important;
   line-height: 1.25 !important;
+}
+
+/* Notification panel headings are small panel titles, not dialog titles:
+   at dialog size "Notifications" broke onto two lines in the 360px panel. */
+:root:root:root:root body :where(.cp-notification-head h4, .lm-bell-head h3, .lm-bell-head > strong, .sp-notif-head > p) {
+  font-size: 18px !important;
+  line-height: 1.3 !important;
+  white-space: nowrap;
+}
+
+/* Consistent table headings and responsive card labels across all portals. */
+:root:root:root:root body :is(th, [role="columnheader"],
+  .cp-appt-head > span, .cp-pay-head > span, .cp-records-head > span),
+:root:root:root:root body :is(th, [role="columnheader"]) :is(span, a, button),
+:root:root:root:root body td[data-label]::before,
+:root:root:root:root body :is(.cp-appt-row, .cp-pay-row) .cp-cell[data-label]::before {
+  font-weight: 800 !important;
+  color: #000 !important;
+}
+
+/* Stock summary cards: clear labels and prominent counts. */
+:root:root:root:root body #stockSummaryCards > :is(div, button) > p {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: #000 !important;
+}
+:root:root:root:root body #stockSummaryCards > :is(div, button) > h4 {
+  font-size: 26px !important;
+  font-weight: 700 !important;
+  color: #000 !important;
 }
 
 /* Tables retain their current scrolling/stacking layout. */

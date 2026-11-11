@@ -10,10 +10,18 @@ if (!isLoggedIn() || ($_SESSION['user_role'] ?? '') !== 'Admin') {
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405); echo json_encode(['success'=>false]); exit;
 }
+// "id" marks one notification (clicked card); "through" marks all up to that id (Mark all read).
+$id = filter_var($_POST['id'] ?? '', FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
 $through = filter_var($_POST['through'] ?? '', FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
-if (!$through) { http_response_code(422); echo json_encode(['success'=>false]); exit; }
+if (!$id && !$through) { http_response_code(422); echo json_encode(['success'=>false]); exit; }
 try {
     $pdo = Database::getInstance();
+    if ($id) {
+        $pdo->prepare('INSERT IGNORE INTO admin_notification_reads (user_id, notification_id) SELECT ?, id FROM notifications WHERE id = ? AND (user_id IS NULL OR user_id = ?)')
+            ->execute([$_SESSION['user_id'], $id, $_SESSION['user_id']]);
+        echo json_encode(['success'=>true]);
+        exit;
+    }
     $stmt = $pdo->prepare('INSERT IGNORE INTO admin_notification_reads (user_id, notification_id) SELECT ?, id FROM notifications WHERE id <= ? AND (user_id IS NULL OR user_id = ?)');
     $stmt->execute([$_SESSION['user_id'], $through, $_SESSION['user_id']]);
     echo json_encode(['success'=>true]);

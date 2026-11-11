@@ -30,12 +30,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $eventType = trim($_POST['eventType'] ?? '');
 // Blank = not set; a blank service time falls back to 120 minutes.
 $minutes = [];
-foreach (['travelMinutes' => 0, 'setupMinutes' => 0, 'serviceMinutes' => 1] as $field => $min) {
+// returnTravelMinutes (migration 062): blank = same as travelMinutes.
+foreach (['travelMinutes' => 0, 'setupMinutes' => 0, 'serviceMinutes' => 1, 'returnTravelMinutes' => 0] as $field => $min) {
     $raw = trim($_POST[$field] ?? '');
     $minutes[$field] = $raw === '' ? null : filter_var($raw, FILTER_VALIDATE_INT, ['options' => ['min_range' => $min, 'max_range' => 1440]]);
     if ($minutes[$field] === false) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Travel, setup and service times must be whole minutes (up to 1440).']);
+        echo json_encode(['success' => false, 'message' => 'Travel, setup, service and return travel times must be whole minutes (up to 1440).']);
         exit();
     }
 }
@@ -52,10 +53,15 @@ try {
         exit();
     }
 
+    require_once __DIR__ . '/../../backend/shared/config/helpers/Schema.php';
     $pdo->prepare('
         UPDATE event_type_durations SET travel_minutes = ?, setup_minutes = ?, service_minutes = ?, durations_confirmed = ?
         WHERE event_type = ?
     ')->execute([$minutes['travelMinutes'], $minutes['setupMinutes'], $minutes['serviceMinutes'], $durationsConfirmed ? 1 : 0, $eventType]);
+    // Return travel needs migration 062; skipped (blank = same as travel) until it is applied.
+    if (Schema::hasColumn($pdo, 'event_type_durations', 'return_travel_minutes')) {
+        $pdo->prepare('UPDATE event_type_durations SET return_travel_minutes = ? WHERE event_type = ?')->execute([$minutes['returnTravelMinutes'], $eventType]);
+    }
 
     $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "SETTINGS", ?)')
         ->execute(["Event durations updated for {$eventType}."]);

@@ -1,6 +1,5 @@
 // Customer portal shell: the one copy of the sidebar, top header, phone
 // bottom navigation and Sign Out confirmation used by every customer page.
-//
 // Each page marks where the pieces go with placeholders:
 //   <div data-customer-shell="sidebar"></div>
 //   <div data-customer-shell="header"></div>       (first child of <main>)
@@ -9,7 +8,6 @@
 //   <div data-customer-shell="intro" data-eyebrow=".." data-title=".." data-accent=".." data-text=".."></div>
 //   <div data-customer-shell="footer"></div>
 // and names itself on <body data-customer-page="..." data-page-title="...">.
-//
 // This file is loaded as a normal (non-deferred) script at the end of
 // <body>, so the markup is in place before Alpine (loaded with `defer`)
 // starts and binds the x-* attributes below to customerApp().
@@ -24,6 +22,7 @@
     services: '<path d="m12 2 2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5z"/>',
     track: '<circle cx="10.8" cy="10.8" r="7"/><path d="m16 16 5 5"/>',
     feedback: '<path d="M20.5 5.5a5.5 5.5 0 0 0-7.8 0L12 6.2l-.7-.7a5.5 5.5 0 0 0-7.8 7.8L12 22l8.5-8.7a5.5 5.5 0 0 0 0-7.8z"/>',
+    homeService: '<path d="m3 11 9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M12 18s-3-1.8-3-3.6a1.6 1.6 0 0 1 3-.8 1.6 1.6 0 0 1 3 .8C15 16.2 12 18 12 18z"/>',
     profile: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
     bell: '<path d="M18 8a6 6 0 0 0-12 0c0 8-3 8-3 10h18c0-2-3-2-3-10M10 21h4"/>',
     signout: '<path d="M10 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5M15 8l4 4-4 4M8 12h11"/>',
@@ -44,7 +43,8 @@
     { key: 'book', label: 'Book Appointment', href: 'services-promos.html?book=1', icon: 'book' },
     { key: 'bookings', label: 'My Bookings', href: 'appointments.html', icon: 'bookings' },
     { key: 'services', label: 'Explore Services', href: 'services-promos.html', icon: 'services' },
-    { key: 'track', label: 'Track Booking', href: 'appointments.html?track=1', icon: 'track', track: true },
+    { key: 'home', label: 'Home Service', href: 'home-service.html', icon: 'homeService' },
+    { key: 'track', label: 'Track Booking', href: 'appointments.html?track=1', icon: 'track' },
     { key: 'feedback', label: 'My Feedback', href: 'reviews.html', icon: 'feedback' }
   ];
   const BOTTOM_COUNT = 4;
@@ -62,7 +62,7 @@
       dashboard: 'dashboard',
       appointments: params.get('track') === '1' ? 'track' : 'bookings',
       services: params.get('book') === '1' ? 'book' : 'services',
-      'home-service': 'book',
+      'home-service': 'home',
       reviews: 'feedback'
     };
     return map[page] || '';
@@ -77,13 +77,11 @@
   function sidebarHtml(active) {
     const items = NAV.map(item => {
       const current = item.key === active;
-      // On a page that already has the Track modal, open it in place.
-      const track = item.track ? ' @click="if ($data.openTrackModal) { $event.preventDefault(); $data.openTrackModal(); }"' : '';
       // My Bookings shows how many upcoming bookings the customer has.
       const count = item.key === 'bookings'
         ? '<span class="cp-nav-count" x-show="upcomingBookingCount() > 0" x-text="upcomingBookingCount()" style="display: none;"></span>' : '';
       return '<a href="' + item.href + '" data-nav-key="' + item.key + '" class="cp-side-link' + (current ? ' is-active' : '') + '"' +
-        (current ? ' aria-current="page"' : '') + track + '>' + icon(item.icon) + '<span>' + item.label + '</span>' + count + '</a>';
+        (current ? ' aria-current="page"' : '') + '>' + icon(item.icon) + '<span>' + item.label + '</span>' + count + '</a>';
     }).join('');
     return '<aside id="customer-sidebar" class="cp-sidebar" aria-label="Customer navigation">' +
       // Phones/tablets only: closes the slide-in menu.
@@ -106,9 +104,13 @@
         '<button type="button" @click="isNotificationPanelOpen = false" aria-label="Close notifications" class="notification-close">' + icon('close') + '</button>' +
       '</div>' +
       '<div class="notification-list" aria-live="polite">' +
-        '<template x-if="displayNotifications.length === 0"><p class="cp-notification-empty">You\'re all caught up. Booking updates will appear here.</p></template>' +
+        '<template x-if="isBooting && displayNotifications.length === 0"><p class="cp-notification-empty">Loading notifications…</p></template>' +
+        '<template x-if="!isBooting && dashboardLoadError && displayNotifications.length === 0"><p class="cp-notification-empty" role="alert">We couldn\'t load your notifications. Please refresh the page.</p></template>' +
+        '<template x-if="!isBooting && !dashboardLoadError && displayNotifications.length === 0"><p class="cp-notification-empty">You\'re all caught up. Booking updates will appear here.</p></template>' +
         '<template x-for="notif in displayNotifications" :key="notif.id || notif.time + notif.message">' +
-          '<article class="notification-card" :class="{ \'notification-unread\': !notif.read }">' +
+          '<article class="notification-card notification-clickable" :class="{ \'notification-unread\': !notif.read }" role="link" tabindex="0" ' +
+            ':aria-label="notificationDetails(notif).title + (notif.read ? \'\' : \', unread\') + \'. \' + notificationActionLabel(notif)" ' +
+            '@click="openNotification(notif)" @keydown.enter.prevent="openNotification(notif)" @keydown.space.prevent="openNotification(notif)">' +
             '<div class="notification-status" :class="{ \'notification-status-cancelled\': notif.type === \'CANCELLED\' }" aria-hidden="true">' +
               '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="notif.icon"></path></svg>' +
             '</div>' +
@@ -117,12 +119,12 @@
               '<p class="notification-summary" x-show="notificationDetails(notif).summary" x-text="notificationDetails(notif).summary"></p>' +
               '<span class="notification-state-badge" x-show="notificationDetails(notif).status" x-text="notificationDetails(notif).status"></span>' +
               '<p class="notification-service" x-show="notificationDetails(notif).service || notificationDetails(notif).schedule" x-text="[notificationDetails(notif).service, notificationDetails(notif).branch, notificationDetails(notif).schedule].filter(Boolean).join(\' · \')"></p>' +
-              '<a class="notification-action" x-show="notif.actionUrl" :href="notif.actionUrl" x-text="notif.actionLabel"></a>' +
+              '<a class="notification-action" :href="notificationDestination(notif)" tabindex="-1" @click.stop="markNotificationRead(notif); isNotificationPanelOpen = false" x-text="notificationActionLabel(notif)"></a>' +
             '</div>' +
           '</article>' +
         '</template>' +
       '</div>' +
-      '<a href="appointments.html" class="cp-notification-footer">View all bookings ' + icon('arrow') + '</a>' +
+      '<a href="appointments.html" class="cp-notification-footer">Track Booking ' + icon('arrow') + '</a>' +
     '</div>';
   }
 
@@ -222,10 +224,6 @@
     '</div>' + action + '</div>';
   }
 
-  function footerHtml() {
-    return '<footer class="cp-footer"><span>&copy; ' + new Date().getFullYear() + ' Leo Mejillano Salon &amp; Beauty Services</span><span>Customer Portal</span></footer>';
-  }
-
   function esc(text) {
     return String(text).replace(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
   }
@@ -233,6 +231,13 @@
   function render() {
     const body = document.body;
     const booking = body.dataset.customerPage === 'services' && new URLSearchParams(location.search).get('book') === '1';
+    const myBookings = body.dataset.customerPage === 'appointments' && new URLSearchParams(location.search).get('track') !== '1';
+    if (myBookings) {
+      body.dataset.pageTitle = 'My Bookings';
+      document.title = 'Leo Mejillano Salon - My Bookings';
+      const intro = document.querySelector('[data-customer-shell=intro]');
+      if (intro) { intro.dataset.title = 'My'; intro.dataset.accent = 'Bookings'; intro.dataset.text = 'View and manage your upcoming appointments and booking history.'; intro.dataset.actionHref = 'services-promos.html?book=1'; intro.dataset.actionLabel = 'New booking'; }
+    }
     const title = esc(booking ? 'Book Appointment' : (body.dataset.pageTitle || ''));
     const active = activeKeys();
     const parts = {
@@ -240,7 +245,7 @@
       header: () => headerHtml(title),
       'bottom-nav': () => bottomNavHtml(active),
       signout: () => signOutHtml(),
-      footer: () => footerHtml()
+      footer: () => ''
     };
     document.querySelectorAll('[data-customer-shell]').forEach(slot => {
       const kind = slot.dataset.customerShell;

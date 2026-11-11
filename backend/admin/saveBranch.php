@@ -91,6 +91,13 @@ try {
         $branch['id'],
     ]);
 
+    // Home-service eligibility (migration 062): only when the form sends it.
+    require_once __DIR__ . '/../../backend/shared/config/helpers/Schema.php';
+    if (isset($_POST['offersHomeService']) && Schema::hasColumn($pdo, 'branches', 'offers_home_service')) {
+        $pdo->prepare('UPDATE branches SET offers_home_service = ? WHERE id = ?')
+            ->execute([filter_var($_POST['offersHomeService'], FILTER_VALIDATE_BOOLEAN) ? 1 : 0, $branch['id']]);
+    }
+
     $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "SETTINGS", ?)')
         ->execute(["Branch info updated for {$branch['branch_name']}."]);
 

@@ -3,7 +3,7 @@
 /**
  * Admin: Deactivate / Reactivate Inventory Item
  *
- * Replaces the old hard-delete endpoint. inventory_adjustments has
+ * Items are deactivated, not deleted: inventory_adjustments has
  * ON DELETE CASCADE to inventory(id) -- deleting a product with any
  * adjustment history silently wiped that history too. Deactivating
  * (is_active = 0) removes it from active use (hidden from

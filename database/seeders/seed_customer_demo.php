@@ -3,8 +3,7 @@
  * One-time seeder: creates the branches, per-branch services, staff
  * (employees + backing user accounts), and promotions the customer
  * dashboard needs, plus a demo customer account with sample appointments,
- * reviews, and home service requests. This is the same data that used to
- * be hardcoded in the frontend JS — now real rows the backend queries.
+ * reviews, and home service requests.
  *
  * Idempotent: safe to re-run, existing rows are matched and left alone.
  *

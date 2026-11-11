@@ -7,12 +7,12 @@
    Branch is fixed by the logged-in Cashier's account (server-side); see
    database/migrations/007_cashier_branch_lock.sql. */
 
-const PAGE_SIZE = 30; // pagination is applied after sorting by submission time
+const PAGE_SIZE = 10; // 10 bookings per page, after sorting newest first
 
 const state = {
   data: null,
   branch: null,
-  shown: PAGE_SIZE,
+  page: 1,
   detailsRef: null,
   pendingReassignRef: null,
   pendingRescheduleRef: null,
@@ -89,6 +89,28 @@ function friendlyDate(ymd) {
   return label;
 }
 
+/* List version of the date, easy to scan:
+     today/yesterday/tomorrow -> "Today · Nov 11"
+     this year                -> "Mon, Nov 16"
+     another year             -> "Tue, Jan 5, 2027"
+   The details popup keeps the long friendlyDate. */
+function shortDate(ymd) {
+  if (!ymd) return 'No date';
+  const d = new Date(ymd + 'T00:00:00');
+  if (isNaN(d)) return ymd;
+  const sameYear = d.getFullYear() === new Date().getFullYear();
+  const rel = { [localDateYmd(new Date())]: 'Today', [localDateYmd(new Date(Date.now() - 86400000))]: 'Yesterday', [localDateYmd(new Date(Date.now() + 86400000))]: 'Tomorrow' }[ymd];
+  if (rel) return `${rel} · ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', ...(sameYear ? {} : { year: 'numeric' }) });
+}
+
+/* "08:00 AM" + "10:00 AM" -> "8:00 AM – 10:00 AM" (no leading zeros, AM/PM on both). */
+function shortTimeRange(start, end) {
+  const trim = t => String(t || '').trim().replace(/^0(\d)/, '$1');
+  const s = trim(start), e = trim(end);
+  return e ? `${s} – ${e}` : s;
+}
+
 function inPeriod(b, period) {
   const today = localDateYmd(new Date());
   const date = b.date || '';
@@ -132,6 +154,48 @@ function submittedKey(b) {
   return `${m[1]} ${String(h).padStart(2, '0')}:${m[3]}`;
 }
 
+/* "today, 4:58 PM" / "yesterday, 9:10 AM" / "Nov 11, 4:58 PM" (adds the year
+   when it isn't this year). Falls back to the raw text if it can't be read. */
+function bookedLabel(b) {
+  const key = submittedKey(b);
+  if (!key) return b.submittedAt || '';
+  const [ymd, hm] = key.split(' ');
+  const [y, mo, d] = ymd.split('-').map(Number);
+  const [H, M] = hm.split(':').map(Number);
+  const when = new Date(y, mo - 1, d, H, M);
+  const time = when.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const day = new Date(y, mo - 1, d);
+  const diff = Math.round((today - day) / 86400000);
+  if (diff === 0) return `today, ${time}`;
+  if (diff === 1) return `yesterday, ${time}`;
+  const date = when.toLocaleDateString('en-US', { month: 'short', day: 'numeric', ...(y !== today.getFullYear() ? { year: 'numeric' } : {}) });
+  return `${date}, ${time}`;
+}
+
+/* "today, <nowrap>4:08 PM</nowrap>" so a narrow column wraps between the day and the time. */
+function bookedHtml(b) {
+  const label = bookedLabel(b);
+  if (!label) return '-';
+  const i = label.lastIndexOf(', ');
+  return i < 0 ? escapeHtml(label) : `${escapeHtml(label.slice(0, i + 1))} <span class="cp-nowrap">${escapeHtml(label.slice(i + 2))}</span>`;
+}
+
+/* Page buttons: ‹ 1 2 3 … 9 › (current page highlighted). */
+function renderPager(pages) {
+  const box = document.getElementById('apptPager');
+  if (pages <= 1) { box.innerHTML = ''; return; }
+  const cur = state.page;
+  const nums = [...new Set([1, cur - 1, cur, cur + 1, pages].filter(n => n >= 1 && n <= pages))].sort((a, b) => a - b);
+  let html = `<button type="button" class="cp-page-btn" data-page="${cur - 1}" ${cur === 1 ? 'disabled' : ''} aria-label="Previous page"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>`;
+  nums.forEach((n, i) => {
+    if (i && n - nums[i - 1] > 1) html += '<span class="cp-page-gap" aria-hidden="true">…</span>';
+    html += `<button type="button" class="cp-page-btn${n === cur ? ' is-current' : ''}" data-page="${n}"${n === cur ? ' aria-current="page"' : ''} aria-label="Page ${n}">${n}</button>`;
+  });
+  html += `<button type="button" class="cp-page-btn" data-page="${cur + 1}" ${cur === pages ? 'disabled' : ''} aria-label="Next page"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>`;
+  box.innerHTML = html;
+}
+
 function renderAppointments() {
   if (!state.data) return;
   const list = filteredBookings();
@@ -152,27 +216,30 @@ function renderAppointments() {
         <p class="text-sm text-gray-500">No appointments match these filters.</p>
       </div>`;
     document.getElementById('apptCountLabel').textContent = '';
-    document.getElementById('btnShowMore').classList.add('hidden');
+    document.getElementById('apptPager').innerHTML = '';
     return;
   }
 
-  const visible = list.slice(0, state.shown);
+  const pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+  state.page = Math.min(Math.max(1, state.page), pages);
+  const first = (state.page - 1) * PAGE_SIZE;
+  const visible = list.slice(first, first + PAGE_SIZE);
   container.innerHTML = visible.map(b => {
     return `
       <button type="button" data-ref="${escapeHtml(b.id)}" class="appt-row cp-appt-row" aria-label="Details for ${escapeHtml(b.clientName)}, ${escapeHtml(b.id)}">
-        <span class="cp-cell" data-label="Reference"><span class="cp-mono">${escapeHtml(b.id)}</span><span class="cp-sub">Booked ${cellOrDash(b.submittedAt) || '-'}</span></span>
+        <span class="cp-cell" data-label="Reference"><span class="cp-mono">${escapeHtml(b.id)}</span><span class="cp-sub cp-booked" title="Booked ${escapeHtml(b.submittedAt || '')}">Booked ${bookedHtml(b)}</span></span>
         <span class="cp-cell cp-cell-strong" data-label="Customer">${escapeHtml(titleCase(b.clientName))}</span>
         <span class="cp-cell" data-label="Service">${cellOrDash(b.serviceName) || 'No service listed'}</span>
         <span class="cp-cell" data-label="Staff">${escapeHtml(titleCase(b.staffName || '')) || '<span class="cp-sub">No stylist yet</span>'}</span>
-        <span class="cp-cell" data-label="Schedule">${escapeHtml(friendlyDate(b.date))}<span class="cp-sub">${cellOrDash(b.time)}${b.endTime ? ' – ' + cellOrDash(b.endTime) : ''}</span></span>
+        <span class="cp-cell" data-label="Schedule" title="${escapeHtml(friendlyDate(b.date))}"><span class="cp-when">${escapeHtml(shortDate(b.date))}</span><span class="cp-sub cp-when">${escapeHtml(shortTimeRange(b.time, b.endTime)) || '-'}</span></span>
         <span class="cp-cell" data-label="Status"><span class="cp-badge ${statusBadgeClass(b.status)}">${escapeHtml(b.status)}</span>${b.status === 'Pending' && b.hasConflict ? '<span class="cp-badge bg-rose-100 text-[color:var(--danger)]">Time clash</span>' : ''}</span>
         <span class="cp-cell" data-label="Payment"><span class="cp-badge ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(PortalPresentation.paymentStatus(b.paymentStatus)) || 'Not set'}</span></span>
         <span class="cp-cell cp-cell-action"><span class="btn-row cp-btn-ghost">Details</span></span>
       </button>`;
   }).join('');
 
-  document.getElementById('apptCountLabel').textContent = `Showing ${visible.length} of ${list.length}`;
-  document.getElementById('btnShowMore').classList.toggle('hidden', visible.length >= list.length);
+  document.getElementById('apptCountLabel').textContent = `Showing ${first + 1}–${first + visible.length} of ${list.length}`;
+  renderPager(pages);
 }
 
 /* Cancelled, but the salon kept the (non-refundable) deposit -- the booking
@@ -419,14 +486,20 @@ async function markNoShow(ref) {
 }
 
 function wireStaticEvents() {
-  document.getElementById('apptSearch').addEventListener('input', () => { state.shown = PAGE_SIZE; renderAppointments(); });
-  document.getElementById('apptStatus').addEventListener('change', () => { state.shown = PAGE_SIZE; renderAppointments(); });
+  document.getElementById('apptSearch').addEventListener('input', () => { state.page = 1; renderAppointments(); });
+  document.getElementById('apptStatus').addEventListener('change', () => { state.page = 1; renderAppointments(); });
   document.getElementById('apptPeriod').addEventListener('change', (e) => {
     document.getElementById('apptRange').classList.toggle('hidden', e.target.value !== 'custom');
-    state.shown = PAGE_SIZE; renderAppointments();
+    state.page = 1; renderAppointments();
   });
-  ['apptFrom', 'apptTo'].forEach(id => document.getElementById(id).addEventListener('change', () => { state.shown = PAGE_SIZE; renderAppointments(); }));
-  document.getElementById('btnShowMore').addEventListener('click', () => { state.shown += PAGE_SIZE; renderAppointments(); });
+  ['apptFrom', 'apptTo'].forEach(id => document.getElementById(id).addEventListener('change', () => { state.page = 1; renderAppointments(); }));
+  document.getElementById('apptPager').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-page]');
+    if (!btn || btn.disabled) return;
+    state.page = Number(btn.dataset.page);
+    renderAppointments();
+    document.querySelector('.cp-appt-head')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  });
   document.getElementById('appointmentsList').addEventListener('click', (e) => {
     const row = e.target.closest('.appt-row');
     if (row) showDetails(row.dataset.ref);

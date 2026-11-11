@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="../shared/theme-tokens.css">
+  <link rel="stylesheet" href="../shared/theme-tokens.css?v=20261111-card-tones">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Services &amp; Promos · Leo Mejillano Admin</title>
@@ -11,13 +11,16 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="../../function/admin/theme-config.js"></script>
   <script>tailwind.config.corePlugins = { preflight: false };</script>
+  <script src="../../function/shared/list-pager.js?v=20261111"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <link rel="stylesheet" href="admin-panel.css?v=20261110c">
+  <link rel="stylesheet" href="../shared/notification-panel.css?v=20261111">
+  <link rel="stylesheet" href="admin-panel.css?v=20261111-access">
   <link rel="stylesheet" href="../shared/portal-unify.css?v=20261110b">
   <script src="../../function/shared/toast.js"></script>
   <script src="../../function/shared/confirm-dialog.js"></script>
+  <script src="../../function/shared/notification-panel.js?v=20261111"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
-  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
 </head>
 <body class="lm-admin" x-data="adminPromotionsApp()" x-init="init()" x-effect="AdminUI.lockScroll(openServiceModal || openPromoModal || openPackageModal)">
 <div class="lm-shell">
@@ -50,36 +53,44 @@
             <div class="lm-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 21l-5-5m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
               <input class="lm-input" type="search" x-model.debounce.200ms="serviceSearch" placeholder="Service name or description"></div>
           </label>
-        </div>
-        <div class="lm-chips" style="padding:0 20px 16px" role="group" aria-label="Service category">
-          <button type="button" class="lm-chip" :aria-pressed="(serviceCategory === 'all').toString()" @click="serviceCategory = 'all'">All <small x-text="branchServices().length"></small></button>
-          <template x-for="cat in branchCategories()" :key="cat.name">
-            <button type="button" class="lm-chip" :aria-pressed="(serviceCategory === cat.name).toString()" @click="serviceCategory = cat.name"><span x-text="cat.name"></span> <small x-text="cat.count"></small></button>
-          </template>
+          <label class="lm-field lm-svc-catfield"><span>Category</span>
+            <select class="lm-select" x-model="serviceCategory">
+              <option value="all" x-text="'All categories (' + branchServices().length + ')'"></option>
+              <template x-for="cat in branchCategories()" :key="cat.name"><option :value="cat.name" x-text="cat.name + ' (' + cat.count + ')'"></option></template>
+            </select>
+          </label>
         </div>
         <div class="lm-table-wrap">
-          <table class="lm-table lm-table--stack">
-            <thead><tr><th scope="col">Service</th><th scope="col">Category</th><th scope="col" class="num">Price</th><th scope="col">Duration</th><th scope="col">Availability</th><th scope="col">Payment requirement</th><th scope="col" class="num">Actions</th></tr></thead>
+          <table class="lm-table lm-table--stack lm-svc-table">
+            <colgroup><col style="width:34%"><col style="width:26%"><col style="width:16%"><col style="width:14%"><col style="width:10%"></colgroup>
+            <thead><tr><th scope="col">Service</th><th scope="col">Category</th><th scope="col">Price</th><th scope="col">Duration</th><th scope="col" class="num">Action</th></tr></thead>
             <tbody>
-              <template x-for="service in getFilteredServices()" :key="service.id">
+              <template x-for="service in $store.pager.slice('services', getFilteredServices())" :key="service.id">
                 <tr :class="!service.active ? 'lm-row-muted' : ''">
-                  <td data-label="Service"><span class="lm-cell-main" x-text="service.name"></span><span class="lm-cell-sub" x-text="service.bookingCount + ' booking' + (service.bookingCount === 1 ? '' : 's') + (service.loyaltyTreatmentEligible ? ' · loyalty reward eligible' : '')"></span></td>
-                  <td data-label="Category" x-text="service.category || 'Uncategorized'"></td>
-                  <td data-label="Price" class="num"><strong x-text="$store.admin.formatCurrency(service.price)"></strong></td>
-                  <td data-label="Duration" x-text="ServiceDuration.format(service.durationMinutes)"></td>
-                  <td data-label="Availability"><button type="button" class="lm-link" :aria-label="(service.active ? 'Disable ' : 'Enable ') + service.name" @click="toggleServiceActive(service.id)"><span :class="service.active ? 'lm-badge lm-badge--success' : 'lm-badge lm-badge--neutral'" x-text="service.active ? 'Available' : 'Disabled'"></span></button></td>
-                  <td data-label="Payment" x-text="service.paymentRequirement === 'No Online Reservation' ? 'No online reservation' : service.paymentRequirement"></td>
+                  <td data-label="Service">
+                    <div class="lm-svc-who">
+                      <span class="lm-svc-icon" :class="'g-' + groupKey(service.group)" aria-hidden="true" x-text="groupIcon(service.group)"></span>
+                      <div>
+                        <span class="lm-svc-name"><span x-text="service.name"></span>
+                          <span class="lm-svc-tag lm-svc-tag--hot" x-show="isPopular(service)">Popular</span>
+                          <span class="lm-badge lm-badge--neutral" x-show="!service.active">Disabled</span></span>
+                        <span class="lm-cell-sub" x-text="(service.bookingCount ? service.bookingCount + ' booking' + (service.bookingCount === 1 ? '' : 's') : 'No bookings yet') + (service.loyaltyTreatmentEligible ? ' · loyalty reward' : '')"></span>
+                      </div>
+                    </div>
+                  </td>
+                  <td data-label="Category"><span class="lm-svc-pill" :class="'g-' + groupKey(service.group)" x-text="service.group || 'Other'"></span><span class="lm-cell-sub" x-show="sectionOf(service.category) && sectionOf(service.category) !== service.group" x-text="sectionOf(service.category)"></span></td>
+                  <td data-label="Price"><strong class="lm-svc-price" x-text="$store.admin.formatCurrency(service.price)"></strong><span class="lm-svc-tag" x-text="paymentShort(service.paymentRequirement)"></span></td>
+                  <td data-label="Duration" class="lm-nowrap"><span class="lm-svc-dur"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span x-text="durationShort(service.durationMinutes)"></span></span></td>
                   <td class="lm-actions-cell"><div class="lm-actions">
-                    <button type="button" class="lm-btn lm-btn--primary lm-btn--sm" @click="openEditService(service)">Edit</button>
-                    <button type="button" class="lm-btn lm-btn--sm" @click="toggleServiceActive(service.id)" x-text="service.active ? 'Disable' : 'Enable'"></button>
-                    <button type="button" class="lm-btn lm-btn--sm lm-btn--danger" @click="removeService(service)">Delete</button>
+                    <button type="button" class="lm-btn lm-btn--sm" @click="openEditService(service)" :aria-label="'Edit ' + service.name">Edit</button>
                   </div></td>
                 </tr>
               </template>
-              <tr x-show="getFilteredServices().length === 0" class="lm-empty-row"><td colspan="7" class="lm-empty-cell"><div class="lm-empty"><h3>No services found</h3><p>No services match this branch, category or search. Use “Add service” to create one.</p></div></td></tr>
+              <tr x-show="getFilteredServices().length === 0" class="lm-empty-row"><td colspan="5" class="lm-empty-cell"><div class="lm-empty"><h3>No services found</h3><p>No services match this branch, category or search. Use “Add service” to create one.</p></div></td></tr>
             </tbody>
           </table>
         </div>
+        <nav x-lm-pager="'services'" aria-label="Service pages"></nav>
       </section>
 
       <section x-show="!$store.admin.loading" aria-labelledby="promoTitle" style="display:flex;flex-direction:column;gap:14px">
@@ -88,7 +99,7 @@
           <button type="button" class="lm-btn lm-btn--primary" @click="openNewPromoModal()">+ Add promotion</button>
         </div>
         <div class="lm-grid lm-grid--2">
-          <template x-for="promo in branchPromotions()" :key="promo.id">
+          <template x-for="promo in $store.pager.slice('promotions', branchPromotions())" :key="promo.id">
             <article class="lm-card" style="display:flex;flex-direction:column;gap:10px">
               <div class="lm-actions" style="justify-content:space-between"><span class="lm-badge lm-badge--gold" x-text="promo.discount"></span><span :class="promo.active ? 'lm-badge lm-badge--success' : 'lm-badge lm-badge--neutral'" x-text="promo.active ? 'Active' : 'Inactive'"></span></div>
               <h3 class="lm-section-title" style="font-size:18px" x-text="promo.title"></h3>
@@ -98,6 +109,7 @@
             </article>
           </template>
         </div>
+        <nav x-lm-pager="'promotions'" aria-label="Promotion pages"></nav>
         <div class="lm-card lm-empty" x-show="branchPromotions().length === 0"><h3>No promotions for this branch</h3><p>Use “Add promotion” to create a campaign.</p></div>
       </section>
 
@@ -113,7 +125,7 @@
               <h3 class="lm-section-title" style="font-size:18px" x-text="pkg.packageName"></h3>
               <p class="lm-cell-main" style="margin:0" x-text="$store.admin.formatCurrency(pkg.price) + (pkg.reservationFee ? ' · ' + $store.admin.formatCurrency(pkg.reservationFee) + ' reservation fee' : '')"></p>
               <ul class="lm-hint" style="margin:0;padding-left:18px;flex:1"><template x-for="line in pkg.features.split('\n').filter(l => l.trim())" :key="line"><li x-text="line"></li></template></ul>
-              <p class="lm-cell-sub" style="margin:0"><span x-text="'Team time: ' + (pkg.travelMinutes ?? 0) + ' travel + ' + (pkg.setupMinutes ?? 0) + ' setup + ' + (pkg.serviceMinutes ?? $store.admin.homeServiceDefaults.fallbackServiceMinutes) + ' service min · order ' + pkg.displayOrder"></span> <span x-show="!pkg.durationsConfirmed" class="lm-badge lm-badge--pending">Placeholder times</span></p>
+              <p class="lm-cell-sub" style="margin:0"><span x-text="'Team time: ' + (pkg.travelMinutes ?? 0) + ' travel + ' + (pkg.setupMinutes ?? 0) + ' setup + ' + (pkg.serviceMinutes ?? $store.admin.homeServiceDefaults.fallbackServiceMinutes) + ' service + ' + (pkg.returnTravelMinutes ?? pkg.travelMinutes ?? 0) + ' return min · order ' + pkg.displayOrder"></span> <span x-show="!pkg.durationsConfirmed" class="lm-badge lm-badge--pending">Placeholder times</span></p>
               <div class="lm-actions"><button type="button" class="lm-btn lm-btn--sm" @click="openEditPackage(pkg)">Edit</button><button type="button" class="lm-btn lm-btn--sm" @click="togglePackageActive(pkg.id)" x-text="pkg.active ? 'Deactivate' : 'Activate'"></button><button type="button" class="lm-btn lm-btn--sm lm-btn--danger" @click="removePackage(pkg)">Delete</button></div>
             </article>
           </template>
@@ -127,7 +139,7 @@
 <!-- Service form -->
 <div class="lm-modal" x-show="openServiceModal" x-cloak @keydown.escape.window="openServiceModal = false" role="dialog" aria-modal="true" aria-labelledby="serviceTitle">
   <div class="lm-modal-box lm-modal-box--lg" @click.outside="openServiceModal = false">
-    <div class="lm-modal-head"><div><h2 id="serviceTitle" x-text="editingServiceId ? 'Edit service' : 'Add service'"></h2><p>Name, price, duration and booking rules.</p></div><button type="button" class="lm-close" @click="openServiceModal = false" aria-label="Close">&times;</button></div>
+    <div class="lm-modal-head"><div><h2 id="serviceTitle" x-text="editingServiceId ? 'Edit service' : 'Add service'"></h2><p>Name, price, duration and booking rules.</p></div><button type="button" class="ui-close-icon lm-close" @click="openServiceModal = false" aria-label="Close">&times;</button></div>
     <form class="lm-modal-body lm-form" @submit.prevent="saveService()">
       <label class="lm-field"><span>Service name</span><input class="lm-input" type="text" x-model="serviceForm.name" required placeholder="e.g. Signature Hair Spa"></label>
       <div class="lm-form-row">
@@ -147,6 +159,18 @@
       <label class="lm-check"><input type="checkbox" x-model="serviceForm.loyaltyTreatmentEligible"><span>Eligible for the free hair treatment loyalty reward</span></label>
       <label class="lm-check"><input type="checkbox" x-model="serviceForm.active"><span>Available for booking</span></label>
       <button type="submit" class="lm-btn lm-btn--primary lm-btn--block" :disabled="savingService" x-text="savingService ? 'Saving…' : (editingServiceId ? 'Save changes' : 'Create service')"></button>
+      <template x-if="editingServiceId">
+        <div class="lm-svc-manage">
+          <div class="lm-svc-manage-row">
+            <div><strong x-text="serviceIsActive() ? 'Disable service' : 'Enable service'"></strong><p x-text="serviceIsActive() ? 'Hides it from guest and customer booking. Existing bookings are kept.' : 'Makes it bookable again.'"></p></div>
+            <button type="button" class="lm-btn" @click="toggleFromEdit()" x-text="serviceIsActive() ? 'Disable' : 'Enable'"></button>
+          </div>
+          <div class="lm-danger-zone">
+            <div><strong>Delete service</strong><p>Removes it permanently. This can't be undone.</p></div>
+            <button type="button" class="lm-btn lm-btn--danger" @click="deleteFromEdit()">Delete</button>
+          </div>
+        </div>
+      </template>
     </form>
   </div>
 </div>
@@ -154,7 +178,7 @@
 <!-- Promotion form -->
 <div class="lm-modal" x-show="openPromoModal" x-cloak @keydown.escape.window="openPromoModal = false" role="dialog" aria-modal="true" aria-labelledby="promoFormTitle">
   <div class="lm-modal-box lm-modal-box--lg" @click.outside="openPromoModal = false">
-    <div class="lm-modal-head"><div><h2 id="promoFormTitle" x-text="editingPromoId ? 'Edit promotion' : 'Add promotion'"></h2><p>Sets the “was / now” price customers see.</p></div><button type="button" class="lm-close" @click="openPromoModal = false" aria-label="Close">&times;</button></div>
+    <div class="lm-modal-head"><div><h2 id="promoFormTitle" x-text="editingPromoId ? 'Edit promotion' : 'Add promotion'"></h2><p>Sets the “was / now” price customers see.</p></div><button type="button" class="ui-close-icon lm-close" @click="openPromoModal = false" aria-label="Close">&times;</button></div>
     <form class="lm-modal-body lm-form" @submit.prevent="savePromo()">
       <label class="lm-field"><span>Campaign title</span><input class="lm-input" type="text" x-model="promoForm.title" required></label>
       <label class="lm-field"><span>Description</span><textarea class="lm-textarea" x-model="promoForm.description" required rows="2"></textarea></label>
@@ -179,7 +203,7 @@
 <!-- Wedding package form -->
 <div class="lm-modal" x-show="openPackageModal" x-cloak @keydown.escape.window="openPackageModal = false" role="dialog" aria-modal="true" aria-labelledby="pkgFormTitle">
   <div class="lm-modal-box lm-modal-box--lg" @click.outside="openPackageModal = false">
-    <div class="lm-modal-head"><div><h2 id="pkgFormTitle" x-text="editingPackageId ? 'Edit wedding package' : 'Add wedding package'"></h2></div><button type="button" class="lm-close" @click="openPackageModal = false" aria-label="Close">&times;</button></div>
+    <div class="lm-modal-head"><div><h2 id="pkgFormTitle" x-text="editingPackageId ? 'Edit wedding package' : 'Add wedding package'"></h2></div><button type="button" class="ui-close-icon lm-close" @click="openPackageModal = false" aria-label="Close">&times;</button></div>
     <form class="lm-modal-body lm-form" @submit.prevent="savePackage()">
       <label class="lm-field"><span>Package name</span><input class="lm-input" type="text" x-model="packageForm.packageName" required placeholder="e.g. Package A"></label>
       <div class="lm-form-row">
@@ -196,8 +220,9 @@
           <label class="lm-field"><span>Travel (min)</span><input class="lm-input" type="number" x-model.number="packageForm.travelMinutes" min="0" max="1440" step="1" placeholder="0"></label>
           <label class="lm-field"><span>Setup (min)</span><input class="lm-input" type="number" x-model.number="packageForm.setupMinutes" min="0" max="1440" step="1" placeholder="0"></label>
           <label class="lm-field"><span>Service (min)</span><input class="lm-input" type="number" x-model.number="packageForm.serviceMinutes" min="1" max="1440" step="1" :placeholder="$store.admin.homeServiceDefaults.fallbackServiceMinutes"></label>
+          <label class="lm-field"><span>Return travel (min)</span><input class="lm-input" type="number" x-model.number="packageForm.returnTravelMinutes" min="0" max="1440" step="1" :placeholder="'Same as travel (' + (packageForm.travelMinutes || 0) + ')'"></label>
         </div>
-        <p class="lm-hint">The team is blocked for <strong x-text="$store.admin.eventWindowLabel(packageForm)"></strong>. Blank service time uses <span x-text="$store.admin.homeServiceDefaults.fallbackServiceMinutes"></span> minutes.</p>
+        <p class="lm-hint">The team is blocked for <strong x-text="$store.admin.eventWindowLabel(packageForm)"></strong>. Blank service time uses <span x-text="$store.admin.homeServiceDefaults.fallbackServiceMinutes"></span> minutes; blank return travel uses the travel time.</p>
         <label class="lm-check"><input type="checkbox" x-model="packageForm.durationsConfirmed"><span>These times are confirmed by the salon</span></label>
       </fieldset>
       <label class="lm-check"><input type="checkbox" x-model="packageForm.active"><span>Active immediately</span></label>
@@ -206,10 +231,12 @@
   </div>
 </div>
 
-<script src="../../function/admin/admin-shell.js?v=20261110c"></script>
+<script src="../../function/shared/sign-out.js?v=20261111"></script>
+<script src="../../function/admin/admin-shell.js?v=20261111-np"></script>
 <script src="../../function/shared/live-sync.js?v=20261110"></script>
-<script src="../../function/admin/shared-data.js?v=20261110"></script>
+<script src="../../function/admin/shared-data.js?v=20261111"></script>
 <script src="../../function/shared/service-duration.js"></script>
-<script src="../../function/admin/promotions.js?v=20261110"></script>
+<script src="../../function/admin/promotions.js?v=20261111-svcdesign"></script>
+<script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

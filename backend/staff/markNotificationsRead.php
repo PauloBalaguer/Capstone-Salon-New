@@ -31,8 +31,15 @@ Csrf::requireValid();
 
 try {
     $pdo = Database::getInstance();
-    $pdo->prepare('UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0')
-        ->execute([$_SESSION['user_id']]);
+    // "id" marks one clicked notification; without it, Mark all as read.
+    $id = filter_var($_POST['id'] ?? '', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    if ($id) {
+        $pdo->prepare('UPDATE notifications SET is_read = 1 WHERE user_id = ? AND id = ?')
+            ->execute([$_SESSION['user_id'], $id]);
+    } else {
+        $pdo->prepare('UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0')
+            ->execute([$_SESSION['user_id']]);
+    }
 
     echo json_encode(['success' => true]);
 } catch (PDOException $e) {

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="../shared/theme-tokens.css">
+  <link rel="stylesheet" href="../shared/theme-tokens.css?v=20261111-card-tones">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Settings · Leo Mejillano Admin</title>
@@ -12,12 +12,14 @@
   <script src="../../function/admin/theme-config.js"></script>
   <script>tailwind.config.corePlugins = { preflight: false };</script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <link rel="stylesheet" href="admin-panel.css?v=20261110c">
+  <link rel="stylesheet" href="../shared/notification-panel.css?v=20261111">
+  <link rel="stylesheet" href="admin-panel.css?v=20261111-access">
   <link rel="stylesheet" href="../shared/portal-unify.css?v=20261110b">
   <script src="../../function/shared/toast.js"></script>
   <script src="../../function/shared/confirm-dialog.js"></script>
+  <script src="../../function/shared/notification-panel.js?v=20261111"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
-  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
 </head>
 <body class="lm-admin" x-data="adminSettingsApp()" x-init="init()" x-effect="AdminUI.lockScroll(openCashierModal)">
 <div class="lm-shell">
@@ -30,9 +32,6 @@
         <p>Branch hours and booking capacity, event durations, your account and staff access.</p>
       </div>
       <div class="lm-topbar-actions">
-        <label class="lm-field" style="min-width:220px"><span class="lm-sr-only">Branch to edit</span>
-          <select class="lm-select" x-model="branchKey" aria-label="Branch to edit"><template x-for="branch in $store.admin.branches" :key="branch.id"><option :value="branch.id" x-text="branch.name"></option></template></select>
-        </label>
       </div>
     </header>
 
@@ -40,46 +39,117 @@
       <div x-show="$store.admin.error" x-cloak class="lm-alert lm-alert--error" role="alert"><p x-text="$store.admin.error"></p><button type="button" class="lm-btn lm-btn--sm" @click="$store.admin.refresh()">Retry</button></div>
       <div x-show="$store.admin.loading && !$store.admin.error" class="lm-loading" role="status"><span class="lm-spinner"></span>Loading settings…</div>
 
+      <div class="lm-seg lm-settings-tabs" role="tablist" aria-label="Settings sections">
+        <template x-for="tab in [['branch','Branch'],['durations','Event durations'],['account','My account'],['access','Staff access']]" :key="tab[0]">
+          <button type="button" role="tab" class="lm-seg-btn" :class="{ 'is-on': settingsTab === tab[0] }" :aria-selected="(settingsTab === tab[0]).toString()" @click="settingsTab = tab[0]" x-text="tab[1]"></button>
+        </template>
+      </div>
+
+      <div class="lm-branch-pick lm-branch-pick--3" role="radiogroup" aria-label="Branch to edit" x-show="settingsTab === 'branch' && !$store.admin.loading">
+        <template x-for="b in $store.admin.branches" :key="b.id">
+          <button type="button" class="lm-branch-card" role="radio" :aria-checked="(branchKey === b.id).toString()" :class="{ 'is-on': branchKey === b.id }" @click="branchKey = b.id">
+            <span class="lm-branch-check" aria-hidden="true">✓</span>
+            <strong x-text="({ daraga: 'Daraga Main', yashano: 'Yashano Mall', cabangan: 'Cabangan' })[b.id] || b.name"></strong>
+            <span class="lm-branch-sub" x-text="b.type || ''"></span>
+            <span class="lm-branch-count" x-text="hoursText(b.openingTime, b.closingTime)"></span>
+          </button>
+        </template>
+      </div>
+
       <!-- One branch at a time -->
-      <section class="lm-card" x-show="!$store.admin.loading && branchForm" aria-labelledby="branchSettingsTitle">
+      <section class="lm-card" x-show="settingsTab === 'branch' && !$store.admin.loading && branchForm" aria-labelledby="branchSettingsTitle">
         <template x-if="branchForm">
         <form class="lm-form" @submit.prevent="saveBranch()">
           <div class="lm-card-head" style="margin:0">
-            <div><h2 id="branchSettingsTitle" x-text="'Branch settings · ' + (branchForm?.name || '')"></h2><p>Saving updates only this branch. Other branches are not changed.</p></div>
-            <span class="lm-badge lm-badge--pending" x-show="branchDirty()">Unsaved changes</span>
+            <div><h2 id="branchSettingsTitle" x-text="branchForm?.name || ''"></h2>
+              <p class="lm-set-summary" x-text="settingsSummary()"></p></div>
           </div>
-          <div class="lm-form-row">
-            <label class="lm-field"><span>Branch name</span><input class="lm-input" type="text" :value="branchForm?.name" disabled><small class="lm-hint">The branch name is fixed here because the existing branch settings endpoint does not change names.</small></label>
-            <label class="lm-field"><span>Branch type</span><input class="lm-input" type="text" x-model="branchForm.type" maxlength="100"></label>
-          </div>
-          <label class="lm-field"><span>Location</span><input class="lm-input" type="text" x-model="branchForm.location" maxlength="255"></label>
-          <fieldset class="lm-fieldset"><legend>Operating hours</legend>
-            <div class="lm-form-row lm-form-row--4">
+
+          <section class="lm-bd-section lm-set-box" aria-label="Details">
+            <h3 class="lm-bd-heading">Details</h3>
+            <div class="lm-form-row">
+              <label class="lm-field"><span>Branch name</span><input class="lm-input" type="text" :value="branchForm?.name" disabled><small class="lm-hint">Branch names can't be changed here.</small></label>
+              <label class="lm-field"><span>Branch type</span><input class="lm-input" type="text" x-model="branchForm.type" maxlength="100" placeholder="e.g. Full Service Flagship"></label>
+            </div>
+            <label class="lm-field"><span>Location</span><input class="lm-input" type="text" x-model="branchForm.location" maxlength="255" placeholder="Floor, building, street, city"><small class="lm-hint">Shown to guests on the booking pages.</small></label>
+          </section>
+
+          <section class="lm-bd-section lm-set-box" aria-label="Hours">
+            <h3 class="lm-bd-heading">Hours</h3>
+            <div class="lm-form-row">
               <label class="lm-field"><span>Opening</span><input class="lm-input" type="time" x-model="branchForm.openingTime" required></label>
               <label class="lm-field"><span>Closing</span><input class="lm-input" type="time" x-model="branchForm.closingTime" required></label>
-              <label class="lm-field"><span>Sunday opening (optional)</span><input class="lm-input" type="time" x-model="branchForm.sundayOpeningTime"></label>
-              <label class="lm-field"><span>Sunday closing (optional)</span><input class="lm-input" type="time" x-model="branchForm.sundayClosingTime"></label>
             </div>
-            <p class="lm-hint">Leave both Sunday fields blank to use the regular hours on Sunday too.</p>
-          </fieldset>
-          <fieldset class="lm-fieldset"><legend>Booking capacity</legend>
-            <label class="lm-field" style="max-width:240px"><span>Concurrent slot limit</span><input class="lm-input" type="number" min="1" step="1" x-model.number="branchForm.slotLimit" required></label>
-            <p class="lm-hint">The maximum number of overlapping in-salon appointments this branch accepts in the same time window. Existing booking rules (deposits, cleaning buffer, staff availability) still apply.</p>
-          </fieldset>
-          <dl class="lm-dl">
-            <div><dt>Collections (all-time)</dt><dd x-text="$store.admin.formatCurrency(currentBranch()?.revenue || 0)"></dd></div>
-            <div><dt>Guest rating</dt><dd x-text="$store.admin.getBranchRatingLabel(currentBranch())"></dd></div>
-          </dl>
-          <div class="lm-actions lm-actions--end">
-            <button type="button" class="lm-btn" @click="loadBranchForm()" :disabled="!branchDirty() || savingBranch">Discard changes</button>
-            <button type="submit" class="lm-btn lm-btn--primary" :disabled="savingBranch" x-text="savingBranch ? 'Saving…' : 'Save branch settings'"></button>
+            <label class="lm-switch"><input type="checkbox" x-model="sundayDifferent" @change="if (!sundayDifferent) { branchForm.sundayOpeningTime = ''; branchForm.sundayClosingTime = ''; }"><span class="lm-switch-ui" aria-hidden="true"></span><span>Different hours on Sunday</span></label>
+            <div class="lm-form-row" x-show="sundayDifferent" x-cloak>
+              <label class="lm-field"><span>Sunday opening</span><input class="lm-input" type="time" x-model="branchForm.sundayOpeningTime" :required="sundayDifferent"></label>
+              <label class="lm-field"><span>Sunday closing</span><input class="lm-input" type="time" x-model="branchForm.sundayClosingTime" :required="sundayDifferent"></label>
+            </div>
+          </section>
+
+          <section class="lm-bd-section lm-set-box" aria-label="Bookings">
+            <h3 class="lm-bd-heading">Bookings</h3>
+            <label class="lm-field" style="max-width:260px"><span>Bookings at the same time</span><input class="lm-input" type="number" min="1" step="1" x-model.number="branchForm.slotLimit" required></label>
+            <p class="lm-hint">The most in-salon appointments this branch takes in one time slot. Deposits, cleaning time and staff availability still apply.</p>
+            <label class="lm-switch"><input type="checkbox" x-model="branchForm.offersHomeService"><span class="lm-switch-ui" aria-hidden="true"></span><span>Handles home service requests</span></label>
+            <p class="lm-hint">Guests pick the responsible branch on the home service form. Its hours and holidays apply to the whole visit, travel included.</p>
+          </section>
+
+          <div class="lm-set-stats">
+            <div><span>Collections (all-time)</span><strong x-text="$store.admin.formatCurrency(currentBranch()?.revenue || 0)"></strong></div>
+            <div><span>Guest rating</span><strong x-text="$store.admin.getBranchRatingLabel(currentBranch())"></strong></div>
+          </div>
+
+          <div class="lm-savebar" :class="{ 'is-dirty': branchDirty() }">
+            <span x-text="branchDirty() ? 'You have unsaved changes' : 'All changes saved'"></span>
+            <div class="lm-actions">
+              <button type="button" class="lm-btn" @click="loadBranchForm()" :disabled="!branchDirty() || savingBranch">Discard</button>
+              <button type="submit" class="lm-btn lm-btn--primary" :disabled="savingBranch || !branchDirty()" x-text="savingBranch ? 'Saving…' : 'Save changes'"></button>
+            </div>
           </div>
         </form>
         </template>
       </section>
 
-      <section class="lm-card" x-show="!$store.admin.loading" aria-labelledby="durTitle">
-        <div class="lm-card-head"><div><h2 id="durTitle">Event &amp; home service durations</h2><p>How long each event type keeps its team busy: travel and setup before the booked time, then the service and the <span x-text="$store.admin.homeServiceDefaults.cleaningBufferMinutes"></span>-minute cleaning buffer. Weddings use each package's own times. A blank service time uses <span x-text="$store.admin.homeServiceDefaults.fallbackServiceMinutes"></span> minutes.</p></div></div>
+      <!-- Branch holidays (migration 062). Separate from the cashier end-of-day lock. -->
+      <section class="lm-card" x-show="settingsTab === 'branch' && !$store.admin.loading && branchForm" aria-labelledby="holidayTitle">
+        <div class="lm-card-head"><div><h2 id="holidayTitle" x-text="'Holidays · ' + (branchForm?.name || '')"></h2><p>Closed all day, special hours, or open as usual for one date at this branch. Bookings and home visits must fit that day's hours.</p></div></div>
+        <ul class="lm-list">
+          <template x-for="h in holidays" :key="h.id">
+            <li class="lm-list-item"><div><span class="lm-cell-main" x-text="h.date + (h.name ? ' - ' + h.name : '')"></span><span class="lm-cell-sub" x-text="h.typeLabel + (h.type === 'special_hours' ? ' ' + h.openTime + '-' + h.closeTime : '')"></span></div><button type="button" class="lm-btn lm-btn--sm" @click="deleteHoliday(h)">Remove</button></li>
+          </template>
+        </ul>
+        <p class="lm-hint" x-show="!holidays.length">No upcoming holidays for this branch.</p>
+        <div class="lm-form" style="margin-top:12px">
+          <div class="lm-form-row lm-form-row--3">
+            <label class="lm-field"><span>Date</span><input class="lm-input" type="date" x-model="holidayForm.date" @change="holidayAffected = null"></label>
+            <label class="lm-field"><span>Type</span><select class="lm-select" x-model="holidayForm.type" @change="holidayAffected = null"><option value="closed">Closed all day</option><option value="special_hours">Special hours</option><option value="open">Open as usual</option></select></label>
+            <label class="lm-field"><span>Name (optional)</span><input class="lm-input" type="text" maxlength="120" x-model="holidayForm.name" placeholder="e.g. Christmas Day"></label>
+          </div>
+          <div class="lm-form-row" x-show="holidayForm.type === 'special_hours'">
+            <label class="lm-field"><span>Opens</span><input class="lm-input" type="time" x-model="holidayForm.openTime" @change="holidayAffected = null"></label>
+            <label class="lm-field"><span>Closes</span><input class="lm-input" type="time" x-model="holidayForm.closeTime" @change="holidayAffected = null"></label>
+          </div>
+          <div class="lm-actions"><button type="button" class="lm-btn lm-btn--sm" @click="previewHoliday()">Check affected bookings</button></div>
+          <template x-if="holidayAffected !== null">
+            <div>
+              <p class="lm-hint" x-show="!holidayAffected.length">No confirmed bookings are affected.</p>
+              <div x-show="holidayAffected.length">
+                <p class="lm-label" style="margin:0 0 6px" x-text="holidayAffected.length + ' confirmed booking(s) no longer fit. They will be flagged for follow-up and keep their original details until you arrange a change with the customer.'"></p>
+                <ul class="lm-list">
+                  <template x-for="b in holidayAffected" :key="b.reference">
+                    <li class="lm-list-item"><div><span class="lm-cell-main" x-text="b.type + ' - ' + b.reference"></span><span class="lm-cell-sub" x-text="b.when + ' - ' + b.client"></span></div></li>
+                  </template>
+                </ul>
+              </div>
+              <div class="lm-actions" style="margin-top:8px"><button type="button" class="lm-btn lm-btn--sm lm-btn--primary" @click="saveHoliday()" x-text="holidayAffected.length ? 'Save holiday and flag bookings' : 'Save holiday'"></button></div>
+            </div>
+          </template>
+        </div>
+      </section>
+
+      <section class="lm-card" x-show="settingsTab === 'durations' && !$store.admin.loading" aria-labelledby="durTitle">
+        <div class="lm-card-head"><div><h2 id="durTitle">Event &amp; home service durations</h2><p>How long each event type keeps its team busy: travel and setup before the booked time, then the service, the return trip (blank = same as travel) and the <span x-text="$store.admin.homeServiceDefaults.cleaningBufferMinutes"></span>-minute cleaning buffer. Weddings use each package's own times. A blank service time uses <span x-text="$store.admin.homeServiceDefaults.fallbackServiceMinutes"></span> minutes.</p></div></div>
         <div class="lm-grid lm-grid--2">
           <template x-for="row in $store.admin.eventDurations" :key="row.eventType">
             <form class="lm-panel lm-form" @submit.prevent="saveEventDuration(row)">
@@ -88,6 +158,7 @@
                 <label class="lm-field"><span>Travel (min)</span><input class="lm-input" type="number" min="0" max="1440" placeholder="0" x-model.number="row.travelMinutes"></label>
                 <label class="lm-field"><span>Setup (min)</span><input class="lm-input" type="number" min="0" max="1440" placeholder="0" x-model.number="row.setupMinutes"></label>
                 <label class="lm-field"><span>Service (min)</span><input class="lm-input" type="number" min="1" max="1440" :placeholder="$store.admin.homeServiceDefaults.fallbackServiceMinutes" x-model.number="row.serviceMinutes"></label>
+                <label class="lm-field"><span>Return travel (min)</span><input class="lm-input" type="number" min="0" max="1440" :placeholder="'Same as travel (' + (row.travelMinutes || 0) + ')'" x-model.number="row.returnTravelMinutes"></label>
               </div>
               <p class="lm-hint" x-text="'Team blocked: ' + $store.admin.eventWindowLabel(row)"></p>
               <div class="lm-actions" style="justify-content:space-between"><label class="lm-check"><input type="checkbox" x-model="row.durationsConfirmed"><span>Confirmed by the salon</span></label><button type="submit" class="lm-btn lm-btn--sm lm-btn--primary">Save</button></div>
@@ -97,8 +168,15 @@
         <div class="lm-empty" x-show="!$store.admin.eventDurations.length"><h3>No event types found</h3><p>Run database/migrations/054_event_durations.sql.</p></div>
       </section>
 
-      <div class="lm-grid lm-grid--2" x-show="!$store.admin.loading">
-        <section class="lm-card" aria-labelledby="profileTitle">
+      <div class="lm-grid lm-grid--2" x-show="settingsTab === 'account' && !$store.admin.loading">
+        <section class="lm-card lm-profile-card" aria-labelledby="profileTitle">
+          <div class="lm-profile-cover" aria-hidden="true"></div>
+          <div class="lm-profile-photo" aria-hidden="true" x-text="($store.admin.adminProfile.name || 'A').split(' ').filter(Boolean).map(n => n[0]).slice(0, 2).join('').toUpperCase()"></div>
+          <div class="lm-profile-id">
+            <p class="lm-profile-name" x-text="$store.admin.adminProfile.name || 'Administrator'"></p>
+            <p class="lm-profile-mail" x-text="$store.admin.adminProfile.email"></p>
+            <span class="lm-profile-pill">&#10003; <span x-text="$store.admin.adminProfile.role || 'Admin'"></span> account</span>
+          </div>
           <div class="lm-card-head"><div><h2 id="profileTitle">Admin account</h2><p>Your administrator profile.</p></div></div>
           <form class="lm-form" @submit.prevent="saveProfile()">
             <label class="lm-field"><span>Full name</span><input class="lm-input" type="text" x-model="$store.admin.adminProfile.name"></label>
@@ -118,39 +196,55 @@
         </section>
       </div>
 
-      <div data-password-card></div>
+      <div x-show="settingsTab === 'account'"><div data-password-card></div></div>
 
-      <section class="lm-card lm-card--flush" x-show="!$store.admin.loading" aria-labelledby="staffAccTitle">
+      <div class="lm-branch-pick" role="radiogroup" aria-label="Show accounts for" x-show="settingsTab === 'access' && !$store.admin.loading">
+        <template x-for="card in accessCards()" :key="card.id">
+          <button type="button" class="lm-branch-card" role="radio" :aria-checked="(accessBranch === card.id).toString()" :class="{ 'is-on': accessBranch === card.id }" @click="accessBranch = card.id">
+            <span class="lm-branch-check" aria-hidden="true">✓</span>
+            <strong x-text="card.title"></strong>
+            <span class="lm-branch-sub" x-text="card.sub"></span>
+            <span class="lm-branch-count" x-text="card.staff + ' staff · ' + card.cashiers + (card.cashiers === 1 ? ' cashier' : ' cashiers')"></span>
+          </button>
+        </template>
+      </div>
+
+      <section class="lm-card lm-card--flush" x-show="settingsTab === 'access' && !$store.admin.loading" aria-labelledby="staffAccTitle">
         <div class="lm-card-head"><div><h2 id="staffAccTitle">Staff accounts</h2><p>Role and branch for every active staff login. Add, edit or remove staff from the Staff page.</p></div><a class="lm-btn lm-btn--sm" href="employees.html">Open Staff</a></div>
         <div class="lm-table-wrap">
           <table class="lm-table lm-table--stack">
-            <thead><tr><th scope="col">Name</th><th scope="col">Login email</th><th scope="col">Role</th><th scope="col">Branch</th></tr></thead>
-            <tbody>
-              <template x-for="staff in $store.admin.staffList" :key="'settings-staff-' + staff.id">
-                <tr><td data-label="Name"><strong x-text="staff.name"></strong></td><td data-label="Email" x-text="staff.email || '—'"></td><td data-label="Role" x-text="staff.role || '—'"></td><td data-label="Branch" x-text="$store.admin.getBranchName(staff.branchId)"></td></tr>
-              </template>
-              <tr x-show="$store.admin.staffList.length === 0" class="lm-empty-row"><td colspan="4" class="lm-empty-cell"><div class="lm-empty"><h3>No staff accounts yet</h3></div></td></tr>
-            </tbody>
+            <thead><tr><th scope="col">Name</th><th scope="col">Login email</th><th scope="col">Role</th></tr></thead>
+            <template x-for="group in accessGroups($store.admin.staffList)" :key="'sg-' + group.id">
+              <tbody>
+                <tr class="lm-group-row"><th colspan="3" scope="rowgroup"><span x-text="group.label"></span> <small x-text="group.rows.length + (group.rows.length === 1 ? ' staff' : ' staff')"></small></th></tr>
+                <template x-for="staff in group.rows" :key="'settings-staff-' + staff.id">
+                  <tr><td data-label="Name"><strong x-text="staff.name"></strong></td><td data-label="Email" x-text="staff.email || '—'"></td><td data-label="Role" x-text="staff.role || '—'"></td></tr>
+                </template>
+              </tbody>
+            </template>
+            <tbody x-show="!accessGroups($store.admin.staffList).length"><tr class="lm-empty-row"><td colspan="3" class="lm-empty-cell"><div class="lm-empty"><h3>No staff accounts for this branch</h3></div></td></tr></tbody>
           </table>
         </div>
       </section>
 
-      <section class="lm-card lm-card--flush" x-show="!$store.admin.loading" aria-labelledby="cashierTitle">
+      <section class="lm-card lm-card--flush" x-show="settingsTab === 'access' && !$store.admin.loading" aria-labelledby="cashierTitle">
         <div class="lm-card-head"><div><h2 id="cashierTitle">Cashier accounts</h2><p>Front-desk logins, each locked to a single branch.</p></div><button type="button" class="lm-btn lm-btn--primary lm-btn--sm" @click="openAddCashierModal()">+ Add cashier</button></div>
         <div class="lm-table-wrap">
           <table class="lm-table lm-table--stack">
-            <thead><tr><th scope="col">Name</th><th scope="col">Branch</th><th scope="col">Login email</th><th scope="col" class="num">Actions</th></tr></thead>
+            <thead><tr><th scope="col">Name</th><th scope="col">Login email</th><th scope="col" class="num">Actions</th></tr></thead>
+            <template x-for="group in accessGroups($store.admin.cashierList)" :key="'cg-' + group.id">
             <tbody>
-              <template x-for="cashier in $store.admin.cashierList" :key="cashier.id">
+              <tr class="lm-group-row"><th colspan="3" scope="rowgroup"><span x-text="group.label"></span></th></tr>
+              <template x-for="cashier in group.rows" :key="cashier.id">
                 <tr>
                   <td data-label="Name"><strong x-text="cashier.name"></strong></td>
-                  <td data-label="Branch" x-text="$store.admin.getBranchName(cashier.branchId)"></td>
                   <td data-label="Email" x-text="cashier.email"></td>
                   <td class="lm-actions-cell"><div class="lm-actions"><button type="button" class="lm-btn lm-btn--sm" @click="openEditCashier(cashier)">Edit</button><button type="button" class="lm-btn lm-btn--sm lm-btn--danger" @click="removeCashierMember(cashier.id)">Remove</button></div></td>
                 </tr>
               </template>
-              <tr x-show="$store.admin.cashierList.length === 0" class="lm-empty-row"><td colspan="4" class="lm-empty-cell"><div class="lm-empty"><h3>No cashier accounts yet</h3></div></td></tr>
             </tbody>
+            </template>
+            <tbody x-show="!accessGroups($store.admin.cashierList).length"><tr class="lm-empty-row"><td colspan="3" class="lm-empty-cell"><div class="lm-empty"><h3>No cashier account for this branch</h3></div></td></tr></tbody>
           </table>
         </div>
       </section>
@@ -160,20 +254,29 @@
 
 <div class="lm-modal" x-show="openCashierModal" x-cloak @keydown.escape.window="openCashierModal = false" role="dialog" aria-modal="true" aria-labelledby="cashierFormTitle">
   <div class="lm-modal-box" @click.outside="openCashierModal = false">
-    <div class="lm-modal-head"><div><h2 id="cashierFormTitle" x-text="editingCashierId ? 'Edit cashier account' : 'Add cashier account'"></h2></div><button type="button" class="lm-close" @click="openCashierModal = false" aria-label="Close">&times;</button></div>
+    <div class="lm-modal-head"><div><h2 id="cashierFormTitle" x-text="editingCashierId ? 'Edit cashier account' : 'Add cashier account'"></h2></div><button type="button" class="ui-close-icon lm-close" @click="openCashierModal = false" aria-label="Close">&times;</button></div>
     <form class="lm-modal-body lm-form" @submit.prevent="saveCashier()">
       <label class="lm-field"><span>Full name</span><input class="lm-input" type="text" x-model="cashierForm.name" required></label>
       <label class="lm-field"><span>Branch</span><select class="lm-select" x-model="cashierForm.branchId" required><option value="" disabled>Select…</option><template x-for="branch in $store.admin.branches" :key="branch.id"><option :value="branch.id" x-text="branch.name"></option></template></select><small class="lm-hint">This cashier can only work this branch's queue, inventory and payments.</small></label>
-      <template x-if="!editingCashierId"><label class="lm-field"><span>Email (login)</span><input class="lm-input" type="email" x-model="cashierForm.email" required><small class="lm-hint">A temporary password is generated and shown once after saving.</small></label></template>
+      <template x-if="!editingCashierId"><label class="lm-field"><span>Email (login)</span><input class="lm-input" type="email" x-model="cashierForm.email" required><small class="lm-hint">An account setup link is emailed after saving.</small></label></template>
+      <template x-if="editingCashierId">
+        <fieldset class="lm-form">
+          <legend>Change cashier password (optional)</legend>
+          <label class="lm-field"><span>New password</span><input class="lm-input" type="password" autocomplete="new-password" x-model="cashierForm.newPassword" minlength="8" maxlength="72"><small class="lm-hint">Leave blank to keep the current password. Use at least 8 characters with uppercase, lowercase, a number and a special character.</small></label>
+          <label class="lm-field"><span>Confirm new password</span><input class="lm-input" type="password" autocomplete="new-password" x-model="cashierForm.confirmPassword" :required="!!cashierForm.newPassword" maxlength="72"></label>
+        </fieldset>
+      </template>
       <button type="submit" class="lm-btn lm-btn--primary lm-btn--block" :disabled="savingCashier" x-text="savingCashier ? 'Saving…' : (editingCashierId ? 'Save changes' : 'Add cashier account')"></button>
     </form>
   </div>
 </div>
 
-<script src="../../function/admin/admin-shell.js?v=20261110c"></script>
+<script src="../../function/shared/sign-out.js?v=20261111"></script>
+<script src="../../function/admin/admin-shell.js?v=20261111-np"></script>
 <script src="../../function/shared/password-card.js"></script>
 <script src="../../function/shared/live-sync.js?v=20261110"></script>
-<script src="../../function/admin/shared-data.js?v=20261110"></script>
-<script src="../../function/admin/settings.js?v=20261110"></script>
+<script src="../../function/admin/shared-data.js?v=20261111"></script>
+<script src="../../function/admin/settings.js?v=20261111-access"></script>
+<script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

@@ -139,7 +139,22 @@ try {
     }, $allSlots);
 
     [$openingTime, $closingTime] = Scheduling::operatingHours($branchKey, $date);
-    echo json_encode(['success' => true, 'branchKey' => $branchKey, 'openingTime' => $openingTime, 'closingTime' => $closingTime, 'slots' => $slots]);
+    // operatingHours() is holiday-aware (migration 062): a closed day has no
+    // slots; 'closed' lets the form say why. Requests can be made any hour --
+    // only the requested time has to fit.
+    $closed = Scheduling::isBranchClosed($branchKey, $date);
+    $holiday = Scheduling::branchHoliday($branchKey, $date);
+    $closedMessage = null;
+    if ($closed) {
+        $stmt = $pdo->prepare('SELECT branch_name FROM branches WHERE id = ?');
+        $stmt->execute([$branchId]);
+        // e.g. "Daraga Main is closed on Dec 25 (Christmas Day). Please choose another date."
+        $closedMessage = ($stmt->fetchColumn() ?: 'This branch') . ' is closed on ' . date('M j', strtotime($date))
+            . (!empty($holiday['name']) ? ' (' . $holiday['name'] . ')' : '') . '. Please choose another date.';
+    }
+    echo json_encode(['success' => true, 'branchKey' => $branchKey, 'openingTime' => $openingTime, 'closingTime' => $closingTime,
+        'closed' => $closed, 'holidayName' => $holiday['name'] ?? null,
+        'message' => $closedMessage, 'slots' => $slots]);
 } catch (PDOException $e) {
     http_response_code(500);
     error_log('getAvailableSlots error: ' . $e->getMessage());

@@ -77,9 +77,7 @@ try {
         // current status; staff can be pre-assigned without forcing the flow.
         $nextStatus = $homeService['status'] === 'Confirmed' ? 'Staff Assigned' : $homeService['status'];
 
-        $stmt = $pdo->prepare('SELECT employee_id FROM home_service_staff WHERE home_service_request_id = ?');
-        $stmt->execute([$homeServiceId]);
-        $previousTeam = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+        $previousTeam = HomeServiceRequest::team($pdo, $homeService);
 
         $pdo->prepare('DELETE FROM home_service_staff WHERE home_service_request_id = ?')->execute([$homeServiceId]);
         $add = $pdo->prepare('INSERT INTO home_service_staff (home_service_request_id, employee_id) VALUES (?, ?)');
@@ -90,14 +88,17 @@ try {
         $teamNames = implode(', ', array_map(fn($id) => $staffById[$id], $staffIds));
         $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "BOOKING", ?)')
             ->execute(["Team for home service request {$referenceCode}: {$teamNames}."]);
-        foreach ($staffIds as $id) {
-            if (!in_array($id, $previousTeam, true)) {
-                StaffNotifier::notify($pdo, $id, 'HOME_SERVICE_ASSIGNED', "You've been assigned to home service request {$referenceCode} on "
-                    . date('M j, Y', strtotime($homeService['preferred_date'])) . ' (team: ' . $teamNames . ').');
+        // Pre-assigning before Confirmed tells nobody and reserves nothing
+        // (Scheduling::staffBusyWindows only counts Confirmed and later);
+        // HOME_SERVICE_ASSIGNED goes out when the status reaches Confirmed /
+        // Staff Assigned (here, or in updateBookingStatus.php).
+        $homeService['status'] = $nextStatus;
+        $homeService['employee_id'] = $staffIds[0];
+        if (in_array($nextStatus, Scheduling::HOME_SERVICE_RESERVING_STATUSES, true)) {
+            HomeServiceRequest::notifyTeamConfirmed($pdo, $homeService, array_values(array_diff($staffIds, $previousTeam)));
+            foreach (array_diff($previousTeam, $staffIds) as $removedId) {
+                StaffNotifier::notify($pdo, (int) $removedId, 'HOME_SERVICE_UNASSIGNED', "You've been removed from home service {$referenceCode}; that time is free again.");
             }
-        }
-        foreach (array_diff($previousTeam, $staffIds) as $removedId) {
-            StaffNotifier::notify($pdo, (int) $removedId, 'HOME_SERVICE_UNASSIGNED', "You've been removed from home service request {$referenceCode}.");
         }
         $pdo->commit();
 
@@ -117,6 +118,11 @@ try {
     $pdo->beginTransaction();
     $appointment = Scheduling::lockAppointment($pdo, (int) $appointment['id']);
     Scheduling::validateAppointmentStaff($pdo, $appointment, $appointment['appointment_datetime'], $staffId);
+    // Start already arrived = served now: the stylist must be on duty (same rule as cashier/assignStaff.php).
+    $immediate = (bool) $pdo->query('SELECT ' . $pdo->quote($appointment['appointment_datetime']) . ' <= NOW()')->fetchColumn();
+    if ($immediate && !Scheduling::staffCanTakeBooking($pdo, $staffId, $appointment['appointment_datetime'], 1, true)) {
+        throw new RuntimeException('This booking starts now, and the selected stylist is not on duty. Choose a stylist who is on duty.');
+    }
     $stmt = $pdo->prepare('SELECT first_name, last_name FROM employees WHERE id = ?');
     $stmt->execute([$staffId]);
     $staff = $stmt->fetch();
@@ -126,7 +132,11 @@ try {
     $staffName = trim($staff['first_name'] . ' ' . $staff['last_name']);
     $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "BOOKING", ?)')
         ->execute(["{$staffName} assigned to booking {$referenceCode}."]);
-    StaffNotifier::notify($pdo, $staffId, 'APPOINTMENT_ASSIGNED', "You've been assigned to a new appointment: {$referenceCode}.");
+    // One message to the new stylist (full details if Confirmed, even when
+    // off duty) and one to the stylist taken off it; nobody else.
+    $oldStaffId = $appointment['employee_id'] !== null ? (int) $appointment['employee_id'] : null;
+    $appointment['employee_id'] = $staffId;
+    Scheduling::notifyStaffOfReassignment($pdo, $appointment, $oldStaffId, $staffId);
 
     $pdo->commit();
 

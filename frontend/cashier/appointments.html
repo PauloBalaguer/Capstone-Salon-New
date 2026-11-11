@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="../shared/theme-tokens.css">
+    <link rel="stylesheet" href="../shared/theme-tokens.css?v=20261111-card-tones">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leo Mejillano Salon - Appointments</title>
@@ -84,9 +84,9 @@
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
   <!-- Cashier Panel redesign: loaded last, scoped to body.cp-cashier. -->
-  <link rel="stylesheet" href="../../frontend/cashier/cashier-panel.css?v=20261110d">
+  <link rel="stylesheet" href="../../frontend/cashier/cashier-panel.css?v=20261111-mobile-shared">
   <link rel="stylesheet" href="../../frontend/shared/portal-unify.css?v=20261110b">
-  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
 </head>
 <body class="salon-portal bg-gray-100 font-sans antialiased flex h-screen overflow-hidden">
 
@@ -130,10 +130,6 @@
                     <i class="fa-solid fa-users-gear w-5 text-center text-slate-400"></i>
                     <span class="text-base">Staff Assignments</span>
                 </a>
-                <a href="profile.html" data-nav-page="profile.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
-                    <i class="fa-solid fa-user-shield w-5 text-center text-slate-400"></i>
-                    <span class="text-base">Profile &amp; Security</span>
-                </a>
             </nav>
         </div>
 
@@ -155,10 +151,10 @@
 
         <section class="flex-1 p-4 sm:p-6 overflow-y-auto space-y-5">
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <div class="stat-card"><span class="stat-label">Appointments</span><span class="stat-value" id="sumTotal">0</span><span class="stat-hint">in this list</span></div>
-                <div class="stat-card"><span class="stat-label">Completed</span><span class="stat-value" id="sumCompleted">0</span><span class="stat-hint" id="sumCompletedValue">₱0.00</span></div>
-                <div class="stat-card"><span class="stat-label">Upcoming</span><span class="stat-value" id="sumUpcoming">0</span><span class="stat-hint">pending or confirmed</span></div>
-                <div class="stat-card"><span class="stat-label">Cancelled / no-show</span><span class="stat-value" id="sumCancelled">0</span><span class="stat-hint">did not happen</span></div>
+                <div data-card-tone="info" class="stat-card"><span class="stat-label">Appointments</span><span class="stat-value" id="sumTotal">0</span><span class="stat-hint">in this list</span></div>
+                <div data-card-tone="success" class="stat-card"><span class="stat-label">Completed</span><span class="stat-value" id="sumCompleted">0</span><span class="stat-hint" id="sumCompletedValue">₱0.00</span></div>
+                <div data-card-tone="info" class="stat-card"><span class="stat-label">Upcoming</span><span class="stat-value" id="sumUpcoming">0</span><span class="stat-hint">pending or confirmed</span></div>
+                <div data-card-tone="danger" class="stat-card"><span class="stat-label">Cancelled / no-show</span><span class="stat-value" id="sumCancelled">0</span><span class="stat-hint">did not happen</span></div>
             </div>
 
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
@@ -205,14 +201,13 @@
                 <div class="cp-appt-head" aria-hidden="true">
                     <span>Reference</span><span>Customer</span><span>Service</span><span>Staff</span><span>Appointment</span><span>Status</span><span>Payment</span><span></span>
                 </div>
-                <p class="cp-sort-note">Sorted by when the booking was submitted, newest first.</p>
                 <div id="appointmentsList">
                     <div class="skeleton-row"><div class="flex-1 space-y-2"><div class="skeleton skeleton-line w-1/3"></div><div class="skeleton skeleton-line w-1/2"></div></div></div>
                     <div class="skeleton-row"><div class="flex-1 space-y-2"><div class="skeleton skeleton-line w-2/5"></div><div class="skeleton skeleton-line w-1/3"></div></div></div>
                 </div>
                 <div class="px-4 sm:px-5 py-3 border-t border-gray-200 flex flex-wrap items-center justify-between gap-3">
                     <p id="apptCountLabel" class="text-sm text-slate-500"></p>
-                    <button type="button" id="btnShowMore" class="hidden btn-secondary py-2 text-sm">Show more</button>
+                    <nav id="apptPager" class="cp-pager" aria-label="Appointment pages"></nav>
                 </div>
             </div>
         </section>
@@ -226,7 +221,7 @@
                     <h4 id="detailsTitle" class="font-bold text-lg">Booking details</h4>
                     <p id="detailsRef" class="text-xs font-mono text-white/70 truncate"></p>
                 </div>
-                <button id="btnCloseDetailsModal" type="button" class="modal-close" aria-label="Close">&times;</button>
+                <button id="btnCloseDetailsModal" type="button" class="ui-close-icon modal-close" aria-label="Close">&times;</button>
             </div>
             <div class="p-5 overflow-y-auto" id="detailsModalBody"></div>
             <div id="detailsActions" class="px-5 pb-5 pt-1 grid grid-cols-2 gap-2"></div>
@@ -237,7 +232,7 @@
         <div class="modal-panel max-w-sm transform scale-95 transition-transform duration-300">
             <div class="modal-head">
                 <h4 id="reassignTitle" class="font-bold text-lg">Assign stylist</h4>
-                <button id="btnCloseReassignModal" type="button" class="modal-close" aria-label="Close">&times;</button>
+                <button id="btnCloseReassignModal" type="button" class="ui-close-icon modal-close" aria-label="Close">&times;</button>
             </div>
             <div class="p-5 space-y-4">
                 <div>
@@ -253,7 +248,7 @@
         <div class="modal-panel max-w-md transform scale-95 transition-transform duration-300">
             <div class="modal-head">
                 <h4 id="rescheduleTitle" class="font-bold text-lg">Reschedule booking</h4>
-                <button id="btnCloseRescheduleModal" type="button" class="modal-close" aria-label="Close">&times;</button>
+                <button id="btnCloseRescheduleModal" type="button" class="ui-close-icon modal-close" aria-label="Close">&times;</button>
             </div>
             <div class="p-5 space-y-4 text-sm overflow-y-auto">
                 <div id="rescheduleInfo" class="rounded-xl bg-gray-50 border border-gray-200 p-3 grid grid-cols-2 gap-x-3 gap-y-2"></div>
@@ -289,9 +284,11 @@
     </div>
 
     <script src="../../function/shared/live-sync.js?v=20261110"></script>
-    <script src="../../function/cashier/cashier-shell.js?v=20261110c"></script>
+    <script src="../../function/shared/sign-out.js?v=20261111"></script>
+    <script src="../../function/cashier/cashier-shell.js?v=20261111a"></script>
     <script src="../../function/cashier/cashier-common.js?v=20261110"></script>
-    <script src="../../function/shared/appointment-arrival.js"></script>
-    <script src="../../function/cashier/appointments.js?v=20261110"></script>
+    <script src="../../function/shared/appointment-arrival.js?v=20261111-mobile"></script>
+    <script src="../../function/cashier/appointments.js?v=20261111k"></script>
+<script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

@@ -20,6 +20,7 @@ date_default_timezone_set('Asia/Manila');
 
 sendCorsHeaders();
 header('Content-Type: application/json');
+header('Cache-Control: no-store, private');
 
 $reference = strtoupper(trim($_GET['reference'] ?? ''));
 $phone = trim($_GET['phone'] ?? '');
@@ -38,6 +39,12 @@ try {
     $stmt = $pdo->prepare("
         SELECT
             a.id, a.reference_code AS reference, a.status, a.appointment_datetime, a.total_price,
+            a.updated_at, a.payment_status, a.deposit_amount, a.deposit_recorded_by,
+            COALESCE(a.deposit_method, a.preferred_payment_method) AS payment_method,
+            CASE WHEN EXISTS (SELECT 1 FROM payments p WHERE p.appointment_id = a.id AND p.status = 'Paid') THEN 0
+                ELSE GREATEST(0, a.total_price - CASE WHEN a.deposit_paid = 1 AND a.deposit_recorded_by IS NOT NULL THEN COALESCE(a.deposit_amount, 0) ELSE 0 END) END AS remaining_balance,
+            COALESCE((SELECT GROUP_CONCAT(DISTINCT CONCAT(e.first_name, ' ', e.last_name) SEPARATOR ', ') FROM appointment_services sx JOIN employees e ON e.id = COALESCE(sx.employee_id, a.employee_id) WHERE sx.appointment_id = a.id),
+                (SELECT CONCAT(e.first_name, ' ', e.last_name) FROM employees e WHERE e.id = a.employee_id)) AS staff_name,
             a.deposit_paid, a.reservation_amount_due, a.online_payment_token, a.preferred_payment_method,
             br.branch_name AS branch, c.phone_number AS phone,
             GROUP_CONCAT(DISTINCT s.service_name ORDER BY s.id SEPARATOR ', ') AS services,
@@ -54,7 +61,7 @@ try {
     $appt = $stmt->fetch();
 
     if ($appt) {
-        if ($appt['phone'] !== $phone) {
+        if ($phone === '' || $appt['phone'] !== $phone) {
             http_response_code(404);
             echo json_encode(['success' => false, 'message' => 'No booking found for that reference and mobile number.']);
             exit();
@@ -66,6 +73,14 @@ try {
             'reference' => $appt['reference'],
             'status' => $appt['status'],
             'branch' => $appt['branch'],
+            'staffName' => $appt['staff_name'],
+            'updatedAt' => $appt['updated_at'],
+            'paymentStatus' => $appt['payment_status'],
+            'paymentMethod' => $appt['payment_method'],
+            'depositAmount' => $appt['deposit_amount'] !== null ? (float) $appt['deposit_amount'] : null,
+            'depositVerified' => $appt['deposit_recorded_by'] !== null,
+            'remainingBalance' => (float) $appt['remaining_balance'],
+            'amountPaid' => max(0, (float) $appt['total_price'] - (float) $appt['remaining_balance']),
             'services' => $appt['services'],
             'price' => $appt['total_price'] !== null ? (float) $appt['total_price'] : null,
             'date' => date('Y-m-d', strtotime($appt['appointment_datetime'])),
@@ -82,6 +97,10 @@ try {
     $stmt = $pdo->prepare("
         SELECT
             h.id, h.reference_code AS reference, h.status, h.event_type, h.preferred_date, h.address, h.requests,
+            h.payment_status, h.deposit_method, h.deposit_recorded_by,
+            (SELECT branch_name FROM branches WHERE id = h.branch_id) AS branch_name,
+            COALESCE((SELECT GROUP_CONCAT(CONCAT(e.first_name, ' ', e.last_name) ORDER BY t.id SEPARATOR ', ') FROM home_service_staff t JOIN employees e ON e.id = t.employee_id WHERE t.home_service_request_id = h.id),
+                (SELECT CONCAT(e.first_name, ' ', e.last_name) FROM employees e WHERE e.id = h.employee_id)) AS staff_name,
             h.quote_price, h.deposit_amount, h.deposit_paid, h.online_payment_token,
             h.reference_code, h.customer_id, h.preferred_time, h.reschedule_count, h.contact_email,
             h.balance_checkout_url, (SELECT COALESCE(SUM(hp.amount), 0) FROM home_service_payments hp WHERE hp.home_service_request_id = h.id) AS amount_paid,
@@ -99,7 +118,7 @@ try {
         $phoneMatches = $phone !== '' && $hs['phone'] === $phone;
         if (!$emailMatches && !$phoneMatches) {
             http_response_code(404);
-            echo json_encode(['success' => false, 'message' => 'No home service request found for that reference and email address.']);
+            echo json_encode(['success' => false, 'message' => 'No booking found for those details.']);
             exit();
         }
 
@@ -109,6 +128,14 @@ try {
             'reference' => $hs['reference'],
             'status' => $hs['status'],
             'event' => $hs['event_type'],
+            'branch' => $hs['branch_name'],
+            'staffName' => $hs['staff_name'],
+            'price' => $hs['quote_price'] !== null ? (float) $hs['quote_price'] : null,
+            'depositAmount' => $hs['deposit_amount'] !== null ? (float) $hs['deposit_amount'] : null,
+            'depositVerified' => $hs['deposit_recorded_by'] !== null || ((int) $hs['deposit_paid'] === 1 && PayMongo::isOnline($hs['deposit_method'])),
+            'paymentStatus' => $hs['payment_status'],
+            'paymentMethod' => $hs['deposit_method'],
+            'remainingBalance' => $hs['quote_price'] !== null ? max(0, round((float) $hs['quote_price'] - (float) $hs['amount_paid'], 2)) : null,
             'date' => $hs['preferred_date'],
             'venue' => $hs['address'],
             'requests' => $hs['requests'],

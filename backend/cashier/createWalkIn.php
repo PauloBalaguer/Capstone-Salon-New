@@ -157,10 +157,12 @@ try {
         echo json_encode(['success' => false, 'message' => 'Selected stylist already has an overlapping booking right now. Choose another stylist.']);
         exit();
     }
-    if (!Scheduling::staffCanTakeBooking($pdo, $stylistId, $now, $durationMinutes)) {
+    // Immediate service: the stylist must be on duty right now (clocked in,
+    // not on a break, not away on a home visit) as well as scheduled.
+    if (!Scheduling::staffCanTakeBooking($pdo, $stylistId, $now, $durationMinutes, true)) {
         $pdo->rollBack();
         http_response_code(409);
-        echo json_encode(['success' => false, 'message' => 'Selected stylist is not on shift right now (off shift or on a break). Choose another stylist.']);
+        echo json_encode(['success' => false, 'message' => 'Selected stylist is not on duty right now (off shift, on a break, on leave or away on a home visit). Choose another stylist.']);
         exit();
     }
 

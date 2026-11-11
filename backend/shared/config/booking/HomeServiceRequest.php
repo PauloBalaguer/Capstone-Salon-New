@@ -76,6 +76,9 @@ class HomeServiceRequest
     {
         $services = self::requestedServices($request);
         if (!$services || array_diff($services, self::SERVICES)) return ['available'=>false, 'message'=>'Please review the requested event services before checking availability.'];
+        // Responsible branch: its hours, holidays and home-service eligibility
+        // (older requests without a branch skip this until Admin sets one).
+        if ($problem = self::branchProblem($pdo, $request)) return ['available'=>false, 'message'=>$problem];
         $employees = $pdo->query('SELECT id FROM employees WHERE is_active = 1 ORDER BY id' . ($pdo->inTransaction() ? ' FOR UPDATE' : ''))->fetchAll(PDO::FETCH_COLUMN);
         $rows = $pdo->query('SELECT ss.employee_id, s.service_name FROM staff_services ss JOIN services s ON s.id = ss.service_id WHERE s.is_active = 1')->fetchAll();
         $skills = [];
@@ -99,7 +102,10 @@ class HomeServiceRequest
                 $id = (int) $employeeId;
                 if ($index === 0 && $fixedTeam !== null && !in_array($id, $fixedTeam, true)) continue;
                 $covers = array_values(array_intersect($needs, $skills[$id] ?? []));
-                if ($covers && !Scheduling::homeServiceStaffHasConflict($pdo,$id,$demand,(int) ($request['id'] ?? 0))) $candidates[$id] = $covers;
+                // Day off, leave or a closed branch day blocks the stylist for the
+                // whole occupied window (travel out + setup + service + return).
+                if ($covers && Scheduling::staffScheduleBlock($pdo, $id, $window['start']->format('Y-m-d H:i:s'), $window['minutes']) === null
+                    && !Scheduling::homeServiceStaffHasConflict($pdo,$id,$demand,(int) ($request['id'] ?? 0))) $candidates[$id] = $covers;
             }
             if ($index === 0 && $fixedTeam !== null && count($candidates) !== count($fixedTeam)) return ['available'=>false,'message'=>'Every selected team member must be active, qualified for a requested service, and available.'];
             $jobs[] = ['needs'=>$needs,'candidates'=>$candidates,'start'=>$window['start'],'end'=>$window['end'],'fixed'=>$index===0 ? $fixedTeam : null];
@@ -170,7 +176,47 @@ class HomeServiceRequest
         if (!$result['available']) throw new RuntimeException($result['message']);
     }
 
-    public static function validate(string $date, string $time, string $event, string $package, string $clients, array $services): ?string
+    /**
+     * Why the responsible branch can't take this visit, or null. Checks the
+     * branch offers home service, isn't closed for a holiday that day, and
+     * that the whole occupied window -- outbound travel and setup before the
+     * start, service and return travel after it -- fits that branch's
+     * effective hours for the date (holiday special hours included). So a
+     * visit may need an earlier start than the salon's closing time suggests.
+     * Requests without a branch (older rows) return null.
+     */
+    public static function branchProblem(PDO $pdo, array $request): ?string
+    {
+        $branchId = (int) ($request['branch_id'] ?? 0);
+        if ($branchId <= 0) return null;
+        $key = Scheduling::branchKeyForId($pdo, $branchId);
+        if ($key === null) return 'Please choose a valid branch.';
+        if (!Scheduling::branchOffersHomeService($key)) return 'This branch does not take home service requests. Please choose another branch.';
+        $date = $request['preferred_date'];
+        if (Scheduling::isBranchClosed($key, $date)) return 'The branch is closed on that date (holiday). Please choose another date.';
+        [$open, $close] = Scheduling::operatingHours($key, $date);
+        $window = Scheduling::homeServiceWindow($pdo, $request);
+        $start = $window['start'];
+        $back = $window['occupiedEnd'];
+        if ($start->format('Y-m-d') === $date && $start->format('H:i:s') >= $open
+            && $back->format('Y-m-d') === $date && $back->format('H:i:s') <= $close) return null;
+        $lead = $window['travel'] + $window['setup'];
+        $tail = $window['service'] + $window['return'];
+        $earliest = (new DateTime("$date $open"))->modify("+{$lead} minutes");
+        $latest = (new DateTime("$date $close"))->modify("-{$tail} minutes");
+        $range = $earliest <= $latest
+            ? ' Start times from ' . $earliest->format('g:i A') . ' to ' . $latest->format('g:i A') . ' fit.'
+            : ' No start time fits that day.';
+        return 'The full visit, including travel, must fit the branch hours on that date ('
+            . date('g:i A', strtotime($open)) . '–' . date('g:i A', strtotime($close)) . ').' . $range;
+    }
+
+    /**
+     * $pdo/$branchId (optional): also apply the responsible branch's hours,
+     * holidays and home-service eligibility (branchProblem). Requests may be
+     * submitted at any hour; only the requested visit time is checked.
+     */
+    public static function validate(string $date, string $time, string $event, string $package, string $clients, array $services, ?PDO $pdo = null, ?int $branchId = null): ?string
     {
         $zone = new DateTimeZone('Asia/Manila');
         $day = DateTimeImmutable::createFromFormat('!Y-m-d', $date, $zone);
@@ -184,7 +230,53 @@ class HomeServiceRequest
         } elseif (!$services || array_diff($services, self::SERVICES)) {
             return 'Please select the services you need.';
         }
+        if ($pdo !== null && $branchId) {
+            return self::branchProblem($pdo, ['preferred_date' => $date, 'preferred_time' => "$time:00", 'event_type' => $event,
+                'wedding_package' => $package, 'branch_id' => $branchId]);
+        }
         return null;
+    }
+
+    /** "Wedding Package B" or "Debut (Hair Styling, Event Makeup)" for staff messages. */
+    public static function serviceSummary(array $request): string
+    {
+        if (($request['event_type'] ?? '') === 'Wedding') return 'Wedding Package ' . ($request['wedding_package'] ?? '');
+        $services = self::requestedServices($request);
+        return ($request['event_type'] ?: 'Home service') . ($services ? ' (' . implode(', ', $services) . ')' : '');
+    }
+
+    /**
+     * Tells every team member a visit is confirmed and theirs -- even when
+     * off duty -- with the type, branch, service, date and time. Does nothing
+     * unless the request is Confirmed / Staff Assigned / Service in Progress,
+     * so a pending or pre-assigned request never notifies anyone.
+     * notifyOnce() keeps a retry from repeating it; $onlyIds limits it to
+     * newly added members on a reassignment.
+     */
+    public static function notifyTeamConfirmed(PDO $pdo, array $request, ?array $onlyIds = null): void
+    {
+        if (!in_array($request['status'], Scheduling::HOME_SERVICE_RESERVING_STATUSES, true)) return;
+        $team = self::team($pdo, $request);
+        if (!$team) return;
+        $branch = 'Branch not set';
+        if (!empty($request['branch_id'])) {
+            $stmt = $pdo->prepare('SELECT branch_name FROM branches WHERE id = ?');
+            $stmt->execute([$request['branch_id']]);
+            $branch = ($stmt->fetchColumn() ?: 'Unknown') . ' branch';
+        }
+        $when = date('D, M j, Y \a\t g:i A', strtotime($request['preferred_date'] . ' ' . ($request['preferred_time'] ?: '09:00:00')));
+        $window = Scheduling::homeServiceWindow($pdo, $request);
+        $stmt = $pdo->prepare("SELECT id, CONCAT(first_name, ' ', last_name) FROM employees WHERE id IN (" . implode(',', array_fill(0, count($team), '?')) . ')');
+        $stmt->execute($team);
+        $names = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+        $teamNames = implode(', ', array_map(fn($id) => $names[$id] ?? ('#' . $id), $team));
+        $message = "Home service {$request['reference_code']} is confirmed and assigned to you: " . self::serviceSummary($request)
+            . ", {$branch}, {$when} (leave the salon by " . $window['start']->format('g:i A') . ', back by ' . $window['occupiedEnd']->format('g:i A')
+            . "; team: {$teamNames}).";
+        foreach ($team as $id) {
+            if ($onlyIds !== null && !in_array($id, $onlyIds, true)) continue;
+            StaffNotifier::notifyOnce($pdo, $id, 'HOME_SERVICE_ASSIGNED', $message);
+        }
     }
 
     public static function details(string $event, string $package, string $clients, array $services, string $venueDetails, string $notes): string
@@ -244,6 +336,11 @@ class HomeServiceRequest
     {
         $request = self::lock($pdo, (int) $request['id']);
         if ($blocked = self::rescheduleBlockedReason($request)) throw new RuntimeException($blocked);
+        // The checks below run in the caller's transaction; staffConflictUntil()
+        // locks each stylist's employees row (FOR UPDATE), so a concurrent booking
+        // for the same stylist waits. On failure the caller rolls back and the
+        // original date, time and team stay as they were. The new time must also
+        // fit the responsible branch's hours/holidays (availability -> branchProblem).
 
         $zone = new DateTimeZone('Asia/Manila');
         $day = DateTimeImmutable::createFromFormat('!Y-m-d', $date, $zone);

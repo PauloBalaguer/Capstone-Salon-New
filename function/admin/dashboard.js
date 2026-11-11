@@ -1,6 +1,7 @@
 /* Dashboard: every figure is computed from the live admin store
    (backend/admin/getDashboardData.php) for the selected branch. */
-const ADMIN_ON_SHIFT_STATUSES = ['On Shift', 'Busy', 'On Break'];
+// Clocked in at the salon (StaffShift::CLOCKED_IN_STATUSES).
+const ADMIN_ON_SHIFT_STATUSES = ['available', 'busy', 'on_break'];
 
 function adminDashboardApp() {
   return {
@@ -13,6 +14,18 @@ function adminDashboardApp() {
       this.$watch('branchSel', (value) => {
         try { history.replaceState(null, '', value === 'all' ? location.pathname : location.pathname + '?branch=' + encodeURIComponent(value)); } catch (e) {}
       });
+    },
+
+    selectBranch(branchId) {
+      this.branchSel = this.branchSel === branchId ? 'all' : branchId;
+      if (window.matchMedia('(max-width: 1023.98px)').matches) {
+        this.$nextTick(() => {
+          this.$refs.branchResults?.scrollIntoView({
+            behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+            block: 'start'
+          });
+        });
+      }
     },
 
     inBranch(branchId) { return this.branchSel === 'all' || branchId === this.branchSel; },
@@ -46,7 +59,7 @@ function adminDashboardApp() {
     staffSummary() {
       const list = this.branchStaff();
       const count = (status) => list.filter(s => s.status === status).length;
-      return `${count('On Shift')} available · ${count('Busy')} with client · ${count('On Break')} on break`;
+      return `${count('available')} available · ${count('busy')} busy · ${count('busy_home_service')} on home service · ${count('on_break')} on break`;
     },
     collections() {
       const store = Alpine.store('admin');

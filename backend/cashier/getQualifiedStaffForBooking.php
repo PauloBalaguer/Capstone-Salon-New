@@ -80,6 +80,9 @@ try {
         $placeholders = implode(',', array_fill(0, count($requiredServiceIds), '?'));
     }
     $durationMinutes = Scheduling::totalDurationMinutes($pdo, $requiredServiceIds);
+    // A booking whose start has arrived is served now: the stylist must be on
+    // duty. A later one only needs them scheduled at that time.
+    $immediate = (bool) $pdo->query('SELECT ' . $pdo->quote($appointment['appointment_datetime']) . ' <= NOW()')->fetchColumn();
 
     foreach ($onShiftStaff as $staff) {
         if (!empty($requiredServiceIds)) {
@@ -92,7 +95,7 @@ try {
 
         // Immediate bookings need the stylist clocked in and not on a break;
         // later ones need them scheduled (same rule as customer booking).
-        if (!Scheduling::staffCanTakeBooking($pdo, (int) $staff['id'], $appointment['appointment_datetime'], $durationMinutes)) {
+        if (!Scheduling::staffCanTakeBooking($pdo, (int) $staff['id'], $appointment['appointment_datetime'], $durationMinutes, $immediate)) {
             continue;
         }
 

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="../shared/theme-tokens.css">
+  <link rel="stylesheet" href="../shared/theme-tokens.css?v=20261111-card-tones">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Guest Feedback · Leo Mejillano Admin</title>
@@ -11,12 +11,15 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="../../function/admin/theme-config.js"></script>
   <script>tailwind.config.corePlugins = { preflight: false };</script>
+  <script src="../../function/shared/list-pager.js?v=20261111"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <link rel="stylesheet" href="admin-panel.css?v=20261110c">
+  <link rel="stylesheet" href="../shared/notification-panel.css?v=20261111">
+  <link rel="stylesheet" href="admin-panel.css?v=20261111-access">
   <link rel="stylesheet" href="../shared/portal-unify.css?v=20261110b">
   <script src="../../function/shared/toast.js"></script>
+  <script src="../../function/shared/notification-panel.js?v=20261111"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
-  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
 </head>
 <body class="lm-admin" x-data="adminFeedbackApp()" x-init="init()">
 <div class="lm-shell">
@@ -35,10 +38,10 @@
       <div x-show="$store.admin.error" x-cloak class="lm-alert lm-alert--error" role="alert"><p x-text="$store.admin.error"></p><button type="button" class="lm-btn lm-btn--sm" @click="$store.admin.refresh()">Retry</button></div>
 
       <section class="lm-stats" aria-label="Feedback figures">
-        <div class="lm-stat"><span class="lm-stat-label">Average rating</span><span class="lm-stat-value" x-text="$store.admin.feedback.length ? $store.admin.getAverageRating() + ' ★' : '—'"></span><span class="lm-stat-note">All reviews</span></div>
-        <div class="lm-stat"><span class="lm-stat-label">Total reviews</span><span class="lm-stat-value" x-text="$store.admin.feedback.length"></span></div>
-        <button type="button" class="lm-stat" @click="feedbackFilterRead = 'unread'"><span class="lm-stat-label">Unread</span><span class="lm-stat-value" x-text="$store.admin.feedback.filter(f => isUnread(f)).length"></span><span class="lm-stat-cta">Show unread →</span></button>
-        <button type="button" class="lm-stat" @click="feedbackFilterRating = 'low'"><span class="lm-stat-label">Needs attention</span><span class="lm-stat-value lm-text-danger" x-text="$store.admin.feedback.filter(f => f.rating <= 3).length"></span><span class="lm-stat-note">3 stars or below</span></button>
+        <div data-card-tone="gold" class="lm-stat"><span class="lm-stat-label">Average rating</span><span class="lm-stat-value" x-text="$store.admin.feedback.length ? $store.admin.getAverageRating() + ' ★' : '—'"></span><span class="lm-stat-note">All reviews</span></div>
+        <div data-card-tone="info" class="lm-stat"><span class="lm-stat-label">Total reviews</span><span class="lm-stat-value" x-text="$store.admin.feedback.length"></span></div>
+        <button data-card-tone="info" type="button" class="lm-stat" @click="feedbackFilterRead = 'unread'"><span class="lm-stat-label">Unread</span><span class="lm-stat-value" x-text="$store.admin.feedback.filter(f => isUnread(f)).length"></span><span class="lm-stat-cta">Show unread →</span></button>
+        <button data-card-tone="warning" type="button" class="lm-stat" @click="feedbackFilterRating = 'low'"><span class="lm-stat-label">Needs attention</span><span class="lm-stat-value lm-text-danger" x-text="$store.admin.feedback.filter(f => f.rating <= 3).length"></span><span class="lm-stat-note">3 stars or below</span></button>
       </section>
 
       <section class="lm-card" aria-label="Feedback filters">
@@ -59,7 +62,7 @@
       <div x-show="$store.admin.loading && !$store.admin.error" class="lm-loading" role="status"><span class="lm-spinner"></span>Loading reviews…</div>
 
       <section class="lm-grid lm-grid--2" x-show="!$store.admin.loading" aria-label="Reviews">
-        <template x-for="review in getFilteredFeedback()" :key="review.id">
+        <template x-for="review in $store.pager.slice('feedback', getFilteredFeedback())" :key="review.id">
           <article class="lm-card" style="display:flex;flex-direction:column;gap:10px" :style="isUnread(review) ? 'border-left:4px solid var(--lm-gold)' : ''">
             <div class="lm-actions" style="justify-content:space-between;align-items:flex-start;flex-wrap:nowrap">
               <div style="min-width:0"><span class="lm-cell-main" x-text="review.clientName"></span><span class="lm-cell-sub" x-text="(review.branchId ? $store.admin.getBranchName(review.branchId) : 'Home service (off-site)') + ' · ' + AdminUI.date(review.date)"></span></div>
@@ -78,14 +81,17 @@
           </article>
         </template>
       </section>
+      <div class="lm-card lm-card--flush" x-show="!$store.admin.loading && getFilteredFeedback().length > 10"><nav x-lm-pager="'feedback'" aria-label="Review pages"></nav></div>
       <div class="lm-card lm-empty" x-show="!$store.admin.loading && getFilteredFeedback().length === 0"><h3>No reviews match these filters</h3><p>Change the branch, rating or read status.</p></div>
     </main>
   </div>
 </div>
 
-<script src="../../function/admin/admin-shell.js?v=20261110c"></script>
+<script src="../../function/shared/sign-out.js?v=20261111"></script>
+<script src="../../function/admin/admin-shell.js?v=20261111-np"></script>
 <script src="../../function/shared/live-sync.js?v=20261110"></script>
-<script src="../../function/admin/shared-data.js?v=20261110"></script>
+<script src="../../function/admin/shared-data.js?v=20261111"></script>
 <script src="../../function/admin/feedback.js?v=20261110"></script>
+<script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

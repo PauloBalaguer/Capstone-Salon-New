@@ -28,7 +28,6 @@ try {
     $stmt->execute([$branchId, ...$ids]);
     $services = $stmt->fetchAll();
     if (count($services) !== count($ids)) throw new InvalidArgumentException('One or more services are unavailable for this branch.');
-    // Loyalty card rewards replace legacy points redemption.
     $plan = ($_GET['paymentPlan'] ?? 'deposit') === 'full' ? 'full' : 'deposit';
     echo json_encode(['success' => true, 'quote' => ReservationPayment::quote($services, 0, false, $plan)]);
 } catch (InvalidArgumentException $e) {

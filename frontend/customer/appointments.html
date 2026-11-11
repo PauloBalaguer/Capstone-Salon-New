@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="../shared/theme-tokens.css">
+  <link rel="stylesheet" href="../shared/theme-tokens.css?v=20261111-card-tones">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Leo Mejillano Salon - My Appointments</title>
+  <title>Leo Mejillano Salon - Track Booking</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -64,9 +64,10 @@
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
   <!-- Customer portal shell (sidebar, header, bottom nav); loaded after the shared themes. -->
   <link rel="stylesheet" href="../../frontend/customer/customer-portal.css?v=20261110">
-  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
+  <link rel="stylesheet" href="track-booking.css?v=20261111">
 </head>
-<body data-customer-page="appointments" data-page-title="My Bookings" class="salon-portal bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
+<body data-customer-page="appointments" data-page-title="Track Booking" class="salon-portal bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
 
 
@@ -91,16 +92,84 @@
       <div x-show="!isBooting" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
 
         <div class="p-6 space-y-6 pb-24 md:pb-6" x-init="['appointmentView', 'appointmentSearchQuery', 'appointmentBranchFilter', 'appointmentStatusFilter', 'appointmentDateFrom', 'appointmentDateTo'].forEach(field => $watch(field, () => { appointmentPage = 1; $nextTick(() => { $el.querySelectorAll('details[open]').forEach(details => { details.open = false; }); }); }))">
-          <div data-customer-shell="intro" data-eyebrow="YOUR SALON VISITS" data-title="My" data-accent="bookings" data-text="Everything you need for your upcoming and previous visits." data-action-href="services-promos.html?book=1" data-action-label="New booking"></div>
-          <button type="button" class="cp-text-button cp-track-inline" @click="openTrackModal()"><svg class="cp-icon-sm" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="7"/><path d="m16 16 5 5"/></svg> Track a booking</button>
+          <div data-customer-shell="intro" data-eyebrow="YOUR SALON VISITS" data-title="Track" data-accent="Booking" data-text="Look up your booking and follow its latest status and progress."></div>
+          <section x-show="isTrackingView" id="find-booking" class="cp-tracking-panel" aria-labelledby="find-booking-title">
+            <h2 id="find-booking-title">Find Your Booking</h2>
+            <p x-show="isGuestTracking">Have an account? <a href="../auth/login.html" class="cp-text-button">Sign in</a> to see and manage all your bookings.</p>
+            <p>Enter your booking reference to view its current status and progress. Guest bookings also require the mobile number used to book.</p>
+            <form @submit.prevent="trackBooking()" class="cp-tracking-search" :aria-busy="trackLoading">
+              <div><label for="tracking-reference">Booking reference</label><input id="tracking-reference" x-model="trackForm.reference" required maxlength="80" placeholder="Booking reference" autocomplete="off"></div>
+              <div><label for="tracking-phone">Mobile number <small>(required for guest bookings)</small></label><input id="tracking-phone" type="tel" x-model="trackForm.phone" maxlength="30" autocomplete="tel" placeholder="09XXXXXXXXX" aria-describedby="tracking-error"></div>
+              <button class="cp-btn cp-btn-primary" type="submit" :disabled="trackLoading" x-text="trackLoading ? 'Finding booking…' : 'Find booking'"></button>
+            </form>
+            <p x-show="trackLoading" role="status">Looking up your booking…</p>
+            <p id="tracking-error" x-show="trackError" x-text="trackError" role="alert"></p>
+            <p x-show="trackResult" role="status">Booking found. Tracking details are shown below.</p>
+          </section>
+          <div class="flex flex-wrap items-center gap-3">
+            <p x-show="trackingRefreshError" x-text="trackingRefreshError" role="alert"></p>
+            <p x-show="dashboardLoadError" role="alert"><span x-text="dashboardLoadError"></span> <button type="button" @click="loadDashboardData()" class="cp-text-button">Retry</button></p>
+          </div>
+          <template x-if="isTrackingView && selectedTracking()">
+            <section id="booking-tracking-details" tabindex="-1" class="cp-tracking-panel" aria-labelledby="tracking-details-title">
+              <div class="flex flex-wrap justify-between items-center gap-3"><h2 id="tracking-details-title">Booking Tracking</h2><button type="button" class="cp-text-button" @click="trackingSelection = null; trackResult = null; document.getElementById('tracking-reference').focus()">Close details</button></div>
+              <dl class="cp-tracking-fields">
+                <div><dt>Booking reference</dt><dd x-text="selectedTracking().reference"></dd></div>
+                <div><dt>Service</dt><dd x-text="selectedTracking().services || selectedTracking().event || 'Awaiting details'"></dd></div>
+                <div><dt>Salon branch</dt><dd x-text="selectedTracking().branch || 'To be assigned'"></dd></div>
+                <div><dt>Booking type</dt><dd x-text="selectedTracking().type === 'home_service' ? 'Home Service' : 'In-Salon'"></dd></div>
+                <div><dt>Appointment date</dt><dd x-text="selectedTracking().date || 'Not scheduled'"></dd></div>
+                <div><dt>Appointment time (PH)</dt><dd x-text="selectedTracking().time || 'To be arranged'"></dd></div>
+                <div><dt>Assigned staff</dt><dd x-text="selectedTracking().staffName || 'To be assigned'"></dd></div>
+                <div><dt>Current booking status</dt><dd><span :class="getStatusBadgeClass(selectedTracking().status)" x-text="selectedTracking().status"></span></dd></div>
+                <div x-show="selectedTracking().venue"><dt>Home-service venue</dt><dd x-text="selectedTracking().venue"></dd></div>
+                <div x-show="selectedTracking().requests"><dt>Home-service information</dt><dd class="whitespace-pre-line" x-text="selectedTracking().requests"></dd></div>
+              </dl>
+              <h3>Booking Progress</h3>
+              <ol class="cp-tracking-steps" aria-label="Booking progress">
+                <template x-for="step in trackingSteps(selectedTracking())" :key="step.label"><li :class="{ 'is-current': step.current }" :aria-current="step.current ? 'step' : null"><span aria-hidden="true" class="cp-tracking-dot"></span><span x-text="step.label"></span><strong x-show="step.current">Current status</strong></li></template>
+              </ol>
+              <div aria-live="polite"><h3>Latest Status Update</h3><p x-text="trackingStatusNote(selectedTracking().status)"></p><p x-show="selectedTracking().updatedAt" x-text="'Booking record updated: ' + selectedTracking().updatedAt + ' (PH)'"></p></div>
+              <h3 id="tracking-payment-details" tabindex="-1">Payment Details</h3>
+              <dl class="cp-tracking-fields">
+                <div><dt>Total / quoted total</dt><dd x-text="selectedTracking().price != null ? formatPeso(selectedTracking().price) : 'Awaiting quote'"></dd></div>
+                <div><dt>Payment status</dt><dd x-text="selectedTracking().paymentStatus || 'Contact the branch'"></dd></div>
+                <div><dt>Deposit</dt><dd x-text="selectedTracking().depositAmount != null ? formatPeso(selectedTracking().depositAmount) : 'Not recorded'"></dd></div>
+                <div><dt>Deposit verification</dt><dd x-text="selectedTracking().depositVerified ? 'Verified' : (selectedTracking().depositAmount ? 'Not yet verified' : 'No deposit recorded')"></dd></div>
+                <div><dt>Amount paid</dt><dd x-text="selectedTracking().amountPaid != null ? formatPeso(selectedTracking().amountPaid) : 'Not recorded'"></dd></div>
+                <div><dt>Remaining balance</dt><dd x-text="selectedTracking().remainingBalance != null ? formatPeso(selectedTracking().remainingBalance) : 'Awaiting quote'"></dd></div>
+                <div><dt>Payment method</dt><dd x-text="PortalPresentation.methodLabel(selectedTracking().paymentMethod) || 'Not selected'"></dd></div>
+              </dl>
+              <p x-show="selectedTracking().paymentStatus === 'Awaiting Verification'">Your payment is awaiting verification. If you have already paid, please do not pay again.</p>
+              <div x-show="!isTrackingView" class="space-y-3">
+              <a x-show="selectedTracking().continuePaymentUrl" :href="selectedTracking().continuePaymentUrl" class="cp-btn cp-btn-primary">Continue payment</a>
+              <template x-for="(url, method) in (selectedTracking().payUrls || {})" :key="method"><a :href="url" class="cp-btn cp-btn-primary" x-text="'Pay with ' + PortalPresentation.methodLabel(method)"></a></template>
+              <a x-show="selectedTracking().balancePayUrl" :href="selectedTracking().balancePayUrl" class="cp-btn cp-btn-primary">Pay remaining balance</a>
+              <details x-show="!trackingSelection && selectedTracking().type === 'home_service' && selectedTracking().canReschedule">
+                <summary class="cp-text-button">Reschedule home service</summary>
+                <form @submit.prevent="rescheduleTrackedHomeService()" class="cp-tracking-search">
+                  <div><label for="guest-reschedule-email">Email used for this request</label><input id="guest-reschedule-email" type="email" x-model="guestReschedule.email" required autocomplete="email"></div>
+                  <div><label for="guest-reschedule-date">New date</label><input id="guest-reschedule-date" type="date" x-model="guestReschedule.date" required></div>
+                  <div><label for="guest-reschedule-time">New time (PH)</label><input id="guest-reschedule-time" type="time" x-model="guestReschedule.time" required></div>
+                  <p x-text="'Schedule changes must be at least ' + selectedTracking().rescheduleCutoffDays + ' days ahead. Changes remaining: ' + selectedTracking().reschedulesLeft"></p>
+                  <button type="submit" class="cp-btn cp-btn-primary" :disabled="guestRescheduling" x-text="guestRescheduling ? 'Rescheduling…' : 'Confirm reschedule'"></button>
+                </form>
+              </details>
+              <p x-show="!trackingSelection && selectedTracking().rescheduleNote" x-text="selectedTracking().rescheduleNote"></p>
+              <p role="status" x-show="guestRescheduleMessage" x-text="guestRescheduleMessage"></p>
+              </div>
+              <a x-show="!isGuestTracking" :href="'appointments.html?reference=' + encodeURIComponent(selectedTracking().reference) + '&manage=1'" class="cp-btn cp-btn-secondary">Manage in My Bookings</a>
+            </section>
+          </template>
+          <div x-show="!isTrackingView" class="space-y-6">
           <!-- Compact toolbar: view switch + book, then search + Filters (panel collapsed by default). -->
           <div class="space-y-2.5">
             <div class="flex items-center gap-2">
-              <div role="tablist" aria-label="Appointments" class="flex-1 sm:flex-none grid grid-cols-2 gap-1 p-1 rounded-xl bg-[color:var(--border)]">
-                <button type="button" role="tab" :aria-selected="(appointmentView === 'upcoming').toString()" @click="appointmentView = 'upcoming'"
-                        :class="appointmentView === 'upcoming' ? 'bg-[color:var(--brand)] text-white shadow' : 'text-[color:var(--text-body-color)] hover:bg-[color:var(--border)]'" class="min-h-10 px-4 rounded-lg text-sm font-semibold transition">Upcoming</button>
-                <button type="button" role="tab" :aria-selected="(appointmentView === 'past').toString()" @click="appointmentView = 'past'"
-                        :class="appointmentView === 'past' ? 'bg-[color:var(--brand)] text-white shadow' : 'text-[color:var(--text-body-color)] hover:bg-[color:var(--border)]'" class="min-h-10 px-4 rounded-lg text-sm font-semibold transition">History</button>
+              <div role="group" aria-label="Appointments" class="flex-1 sm:flex-none grid grid-cols-2 gap-1 p-1 rounded-xl bg-[color:var(--border)]">
+                <button type="button" :aria-pressed="(appointmentView === 'upcoming').toString()" @click="appointmentView = 'upcoming'"
+                        :class="appointmentView === 'upcoming' ? 'bg-[color:var(--brand)] text-white shadow' : 'text-[color:var(--text-body-color)] hover:bg-[color:var(--border)]'" class="min-h-10 px-4 rounded-lg text-sm font-semibold transition">Upcoming Appointments</button>
+                <button type="button" :aria-pressed="(appointmentView === 'past').toString()" @click="appointmentView = 'past'"
+                        :class="appointmentView === 'past' ? 'bg-[color:var(--brand)] text-white shadow' : 'text-[color:var(--text-body-color)] hover:bg-[color:var(--border)]'" class="min-h-10 px-4 rounded-lg text-sm font-semibold transition">Booking History</button>
               </div>
             </div>
 
@@ -153,7 +222,7 @@
             <!-- Count + active filters as removable chips -->
             <div class="flex items-center gap-2 flex-wrap text-xs">
               <p class="font-semibold text-[color:var(--text-body-color)]" role="status"
-                 x-text="(appointmentView === 'upcoming' ? getUpcomingAppointments().length : getPastAppointments().length) + ' booking' + ((appointmentView === 'upcoming' ? getUpcomingAppointments().length : getPastAppointments().length) === 1 ? '' : 's')"></p>
+                 x-text="((appointmentView === 'upcoming' ? getUpcomingAppointments().length : getPastAppointments().length) + trackingHomeRequests().length) + ' booking' + ((appointmentView === 'upcoming' ? getUpcomingAppointments().length : getPastAppointments().length) === 1 ? '' : 's')"></p>
               <template x-for="chip in [
                   appointmentBranchFilter && { label: appointmentBranchFilter, clear: () => appointmentBranchFilter = '' },
                   appointmentStatusFilter && { label: getCustomerStatusLabel(appointmentStatusFilter), clear: () => appointmentStatusFilter = '' },
@@ -175,6 +244,8 @@
             <button type="button" @click="changeAppointmentPage(1)" :disabled="currentAppointmentPage() === appointmentPageCount()" class="service-add-button min-h-10">Next →</button>
           </nav>
 
+          <h2 class="text-lg font-semibold" x-text="appointmentView === 'past' ? 'Booking History' : 'Upcoming Appointments'"></h2>
+          <h3 class="font-semibold">In-Salon</h3>
           <div id="appointment-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             <template x-if="appointmentView === 'upcoming'">
               <template x-for="(appt, i) in pagedAppointments()" :key="appt.id">
@@ -192,6 +263,7 @@
                   </p>
                   <p class="text-xs text-[color:var(--text-body-color)]" x-text="[appt.branchName, appt.staffName ? 'with ' + appt.staffName : ''].filter(Boolean).join(' · ')"></p>
                   <p class="text-xs font-mono text-[color:var(--muted)] break-all" x-text="appt.id"></p>
+                  <button type="button" class="cp-btn cp-btn-secondary" @click="viewTracking(appt)" :aria-label="'View tracking for ' + appt.id">View Tracking</button>
 
                   <a x-show="appt.continuePaymentUrl" :href="appt.continuePaymentUrl" class="inline-flex items-center justify-center w-full min-h-10 rounded-lg bg-[color:var(--brand)] hover:bg-[color:var(--brand-dark)] text-white text-sm font-bold transition"
                      x-text="'Continue payment ' + formatPeso(appt.amountDue)"></a>
@@ -244,6 +316,7 @@
                   </p>
                   <p class="text-xs text-[color:var(--text-body-color)]" x-text="[appt.branchName, appt.staffName ? 'with ' + appt.staffName : ''].filter(Boolean).join(' · ')"></p>
                   <p class="text-xs font-mono text-[color:var(--muted)] break-all" x-text="appt.id"></p>
+                  <button type="button" class="cp-btn cp-btn-secondary" @click="viewTracking(appt)" :aria-label="'View tracking for ' + appt.id">View Tracking</button>
                   <p x-show="appt.status === 'Cancelled' && appt.paymentExpired" class="text-xs text-[color:var(--muted)]">Payment wasn't completed within the 30-minute payment window.</p>
                   <p x-show="hasKeptDeposit(appt)" class="text-xs font-semibold rounded-lg p-2 bg-[color:var(--accent-soft)] text-[color:var(--accent-ink)] border border-[color:var(--accent)]"
                      x-text="'Your ' + formatPeso(appt.depositAmount) + ' deposit is non-refundable, but you can still use it. Tap Reschedule to pick a new time.'"></p>
@@ -270,10 +343,92 @@
             </template>
             <template x-if="appointmentView === 'past' && getPastAppointments().length === 0">
               <div class="col-span-full text-center py-12 bg-slate-900/50 rounded-lg" x-transition>
-                <p class="text-slate-400 text-base" x-text="hasAppointmentFilters() ? 'No appointments match your filters.' : 'You have no past appointments.'"></p>
+                <p class="text-slate-400 text-base" x-text="hasAppointmentFilters() ? 'No appointments match your filters.' : 'You have no past in-salon appointments.'"></p>
                 <p x-show="hasAppointmentFilters()" class="text-xs text-slate-500 mt-1">Change or clear the filters to see more bookings.</p>
               </div>
             </template>
+          </div>
+          <section aria-label="Home-service bookings" class="space-y-3"><h3 class="font-semibold">Home Service</h3><p x-show="trackingHomeRequests().length === 0">No home-service bookings in this view.</p>
+            <template x-for="(request, i) in trackingHomeRequests()" :key="request.id">
+              <div :id="'request-' + request.id" class="card-lift stagger-item bg-slate-900 border border-luxury-900 rounded-2xl p-5 flex flex-col gap-3 lg:grid lg:grid-cols-2 lg:gap-x-8 lg:items-start" :style="'animation-delay:' + (i * 70) + 'ms'">
+                <div class="flex justify-between items-start lg:col-span-2">
+                  <div>
+                    <p class="font-serif font-bold text-white" x-text="request.eventType"></p>
+                    <p class="text-xs text-slate-400" x-text="request.address"></p><p class="text-xs font-mono text-[color:var(--muted)] break-all" x-text="request.id"></p>
+                  </div>
+                  <span :class="getHomeServiceStatusBadgeClass(request.status)" class="px-2 py-0.5 rounded text-xs font-bold" x-text="getHomeServiceStatusLabel(request.status)"></span>
+                </div>
+                <button type="button" class="cp-btn cp-btn-secondary lg:col-span-2" @click="viewTracking(request, 'home_service')">View Tracking</button>
+                <div class="space-y-3 min-w-0">
+                <dl class="home-request-fields text-xs border-t border-slate-800 pt-3">
+                  <div x-show="request.weddingPackage"><dt>Package</dt><dd x-text="'Package ' + request.weddingPackage"></dd></div>
+                  <div><dt x-text="homeServiceScheduleWord(request) + ' date'">Date</dt><dd x-text="homeServiceDate(request)"></dd></div>
+                  <div><dt x-text="homeServiceScheduleWord(request) + ' time (PH)'">Time (PH)</dt><dd x-text="homeServiceTime(request)"></dd></div>
+                  <div x-show="homeServiceDetails(request).clients"><dt>Clients</dt><dd x-text="homeServiceDetails(request).clients"></dd></div>
+                </dl>
+                <p x-show="homeServiceCompletedNote(request)" class="text-xs rounded-lg p-3 bg-[color:var(--warn-soft)] text-[color:var(--accent-ink)]" x-text="homeServiceCompletedNote(request)"></p>
+                <details class="home-request-details border border-slate-700 rounded-lg p-3 text-xs">
+                  <summary class="font-bold cursor-pointer">View details</summary>
+                  <dl class="home-request-fields mt-3">
+                    <div><dt>Submitted</dt><dd x-text="formatApptDateLong(request.submittedDate)"></dd></div>
+                    <div x-show="homeServiceDetails(request).services"><dt>Services</dt><dd x-text="homeServiceDetails(request).services"></dd></div>
+                    <div x-show="homeServiceDetails(request).venue"><dt>Venue</dt><dd x-text="homeServiceDetails(request).venue"></dd></div>
+                    <div><dt>Additional requests</dt><dd class="whitespace-pre-line" x-text="homeServiceDetails(request).notes || 'No additional requests.'"></dd></div>
+                  </dl>
+                </details>
+                </div>
+                <div class="space-y-3 min-w-0">
+                <section class="rounded-lg bg-slate-800 p-3 text-xs space-y-3" aria-label="Current quote and payments">
+                  <h4 class="font-bold">Payment summary</h4>
+                  <dl class="home-request-fields">
+                    <div><dt>Quoted total</dt><dd class="font-bold" x-text="request.quotePrice != null ? formatPeso(request.quotePrice) : 'Awaiting quote'"></dd></div>
+                    <div><dt>Paid</dt><dd x-text="formatPeso(request.amountPaid || 0)"></dd></div>
+                    <div x-show="request.quotePrice != null && request.status !== 'Cancelled'"><dt>Balance</dt><dd class="font-bold" x-text="formatPeso(request.balanceDue || 0)"></dd></div>
+                    <div x-show="request.paymentMethod"><dt>Method</dt><dd x-text="PortalPresentation.methodLabel(request.paymentMethod)"></dd></div>
+                    <div><dt>Payment status</dt><dd x-text="homeServicePaymentLabel(request)"></dd></div>
+                  </dl>
+                  <p x-show="homeServiceQuoteChanged(request)" class="text-xs text-[color:var(--warn)]" x-text="'Quote changed from ' + formatPeso(homeServiceDetails(request).originalPrice) + ' to ' + formatPeso(request.quotePrice) + '. Please confirm with the branch.'"></p>
+                </section>
+                <!-- Reservation fee (down payment) set with the quote: GCash, Maya or Card through PayMongo. -->
+                <div x-show="request.status === 'Payment Required' && request.depositAmount && !request.paymentMethod" class="rounded-xl p-3 bg-[color:var(--warn-soft)] border border-[color:var(--accent)] text-[color:var(--accent-ink)] text-xs space-y-2">
+                  <p><strong x-text="'Reservation fee due: ' + formatPeso(request.depositAmount)"></strong> pay it to confirm your booking. The remaining balance is paid on the event day.</p>
+                  <div x-show="request.payUrls" class="grid gap-2">
+                    <template x-for="option in [{value: 'PayMongo-GCash', logo: 'gcash', name: 'GCash'}, {value: 'PayMongo-Maya', logo: 'maya', name: 'Maya'}, {value: 'PayMongo-Card', logo: 'card', name: 'Credit / Debit Card'}]" :key="option.value">
+                      <a :href="request.payUrls?.[option.value]" class="flex items-center gap-3 rounded-lg bg-white border border-[color:var(--accent)] hover:border-[color:var(--brand)] text-[color:var(--brand-dark)] font-bold px-3 py-2 transition">
+                        <span class="pm-logo" :class="'pm-logo--' + option.logo" aria-hidden="true"></span><span x-text="'Pay ' + formatPeso(request.depositAmount) + ' with ' + option.name"></span>
+                      </a>
+                    </template>
+                  </div>
+                  <p x-show="!request.payUrls" class="text-xs">Online payment isn't available for this request, please contact the branch to pay in person.</p>
+                </div>
+                <!-- Remaining balance after the DP -->
+                <div x-show="request.quotePrice != null && request.amountPaid > 0 && request.balanceDue > 0 && !['Cancelled', 'Completed'].includes(request.status)" class="rounded-xl p-3 text-xs space-y-2 border"
+                     :class="request.balanceDue > 0 ? 'bg-[color:var(--warn-soft)] border-[color:var(--accent)] text-[color:var(--accent-ink)]' : 'bg-[color:var(--success-soft)] border-[color:var(--success-soft)] text-[color:var(--success)]'">
+                  <a x-show="request.balancePayUrl" :href="request.balancePayUrl" class="inline-flex items-center justify-center w-full rounded-lg bg-[color:var(--brand)] hover:bg-[color:var(--brand-dark)] text-white font-bold py-2 transition"
+                     x-text="'Pay ' + formatPeso(request.balanceDue) + ' now (GCash, Maya or card)'"></a>
+                  <p x-show="request.balanceDue > 0 && !request.balancePayUrl" class="text-xs">Pay the balance at the branch.</p>
+                </div>
+                <!-- Online reschedule -->
+                <div x-show="!['Completed', 'Cancelled'].includes(request.status)" class="pt-3 border-t border-slate-800 text-xs space-y-2">
+                  <button x-show="request.canReschedule && hsRescheduleId !== request.id" @click="openHomeServiceReschedule(request)"
+                          class="w-full bg-luxury-700 hover:bg-luxury-600 text-white font-semibold py-1.5 rounded-lg transition active:scale-95">Reschedule</button>
+                  <p x-show="!request.canReschedule && request.rescheduleNote" class="text-xs text-slate-500" x-text="request.rescheduleNote"></p>
+                  <div x-show="hsRescheduleId === request.id" class="rounded-xl p-3 bg-[color:var(--bg)] border border-[color:var(--border)] text-[color:var(--text)] space-y-2">
+                    <p class="text-xs text-[color:var(--text-body-color)]" x-text="'Pick a new date at least ' + request.rescheduleCutoffDays + ' days away. Your quote, reservation fee and assigned team carry over (the team must be free then). ' + request.reschedulesLeft + ' online change' + (request.reschedulesLeft === 1 ? '' : 's') + ' left.'"></p>
+                    <div class="grid grid-cols-2 gap-2">
+                      <input type="date" aria-label="New home-service date" x-model="hsRescheduleDate" :min="hsRescheduleMin(request)" class="w-full bg-white text-[color:var(--text)] rounded-lg p-2 border border-[color:var(--border)] focus:outline-none">
+                      <input type="time" aria-label="New home-service time" x-model="hsRescheduleTime" class="w-full bg-white text-[color:var(--text)] rounded-lg p-2 border border-[color:var(--border)] focus:outline-none">
+                    </div>
+                    <div class="flex gap-2">
+                      <button type="button" @click="hsRescheduleId = null" class="flex-1 py-1.5 rounded-lg bg-[color:var(--border)] hover:bg-[color:var(--border)] font-bold">Keep Date</button>
+                      <button type="button" @click="submitHomeServiceReschedule(request)" :disabled="hsRescheduling" class="flex-1 py-1.5 rounded-lg bg-[color:var(--brand)] hover:bg-[color:var(--brand-dark)] text-white font-bold disabled:opacity-50" x-text="hsRescheduling ? 'Moving…' : 'Move Booking'"></button>
+                    </div>
+                  </div>
+                </div>
+                </div>
+              </div>
+            </template>
+          </section>
           </div>
         </div>
 
@@ -449,7 +604,7 @@
     <div x-show="isReviewModalOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" @click.outside="closeReviewModal()" class="bg-slate-900 border border-luxury-800 rounded-2xl max-w-md w-full p-6 space-y-5">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <h3 class="text-base font-serif font-bold text-white" x-text="isEditingReview ? 'Edit Your Review' : 'Leave a Review'"></h3>
-        <button @click="closeReviewModal()" class="text-slate-400 hover:text-white">&times;</button>
+        <button @click="closeReviewModal()" class="ui-close-icon text-slate-400 hover:text-white">&times;</button>
       </div>
 
       <form @submit.prevent="submitReview()" class="space-y-4 text-xs">
@@ -477,71 +632,21 @@
     </div>
   </div>
 
-  <div x-show="isTrackModalOpen" x-transition.opacity class="fixed inset-0 z-[9998] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4" style="display: none;">
-    <div x-show="isTrackModalOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" @click.outside="closeTrackModal()" class="bg-slate-900 border border-luxury-800 rounded-2xl max-w-md w-full p-6 space-y-5">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <h3 class="text-base font-serif font-bold text-white">Track a Booking</h3>
-        <button @click="closeTrackModal()" class="text-slate-400 hover:text-white">&times;</button>
-      </div>
-
-      <p class="prose-justify text-xs text-slate-400">Look up the status of any appointment by its reference code, including one made before you had an account.</p>
-
-      <form @submit.prevent="trackBooking()" class="space-y-3 text-xs">
-        <div>
-          <label class="block text-slate-400 mb-1">Booking Reference</label>
-          <input type="text" x-model="trackForm.reference" required placeholder="LM-DAR-2026-000145" class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500 uppercase">
-        </div>
-        <div>
-          <label class="block text-slate-400 mb-1">Mobile Number Used</label>
-          <input type="tel" x-model="trackForm.phone" required placeholder="09XXXXXXXXX" class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
-        </div>
-
-        <div x-show="trackError" x-text="trackError" class="text-xs text-rose-400 bg-rose-950/50 p-2 rounded-lg text-center" x-transition></div>
-
-        <button type="submit" :disabled="trackLoading" class="w-full bg-gradient-to-r from-luxury-600 to-luxury-800 text-white font-bold py-2.5 rounded-lg transition active:scale-95 disabled:opacity-60" x-text="trackLoading ? 'Checking…' : 'Check Status'"></button>
-      </form>
-
-      <div x-show="trackResult" x-transition class="border-t border-slate-800 pt-4 space-y-2 text-xs">
-        <template x-if="trackResult">
-          <div class="space-y-2">
-            <div class="flex justify-between items-center">
-              <span class="text-slate-500 font-bold uppercase tracking-wide text-xs" x-text="trackResult.type === 'home_service' ? 'Home Service Request' : 'Appointment'"></span>
-              <span :class="getTrackStatusBadgeClass(trackResult.status)" class="px-2 py-0.5 rounded text-xs font-bold" x-text="trackResult.status"></span>
-            </div>
-            <p class="text-white font-semibold" x-text="trackResult.reference"></p>
-            <template x-if="trackResult.type === 'appointment'">
-              <div class="space-y-1 text-slate-300">
-                <p><strong class="text-slate-500 w-20 inline-block">Branch:</strong> <span x-text="trackResult.branch"></span></p>
-                <p><strong class="text-slate-500 w-20 inline-block">Services:</strong> <span x-text="trackResult.services"></span></p>
-                <p><strong class="text-slate-500 w-20 inline-block">Date:</strong> <span x-text="trackResult.date + ' ' + trackResult.time"></span></p>
-                <p x-show="trackResult.price !== null"><strong class="text-slate-500 w-20 inline-block">Total:</strong> <span x-text="formatPeso(trackResult.price)"></span></p>
-              </div>
-            </template>
-            <template x-if="trackResult.type === 'home_service'">
-              <div class="space-y-1 text-slate-300">
-                <p><strong class="text-slate-500 w-20 inline-block">Event:</strong> <span x-text="trackResult.event"></span></p>
-                <p><strong class="text-slate-500 w-20 inline-block">Venue:</strong> <span x-text="trackResult.venue"></span></p>
-                <p><strong class="text-slate-500 w-20 inline-block">Date:</strong> <span x-text="trackResult.date"></span></p>
-              </div>
-            </template>
-          </div>
-        </template>
-      </div>
-    </div>
-  </div>
-
   <!-- App logic, split by concern. Only what this page's markup uses:
        the appointments list/cancel flow, the review modal, and the track-a-
        booking modal. Booking, home service, and profile mixins live on
        their own pages. -->
-  <script src="../../function/customer/customer-shell.js?v=20261110"></script>
+  <script src="../../function/shared/sign-out.js?v=20261111"></script>
+  <script src="../../function/customer/customer-shell.js?v=20261111"></script>
   <script src="../../function/customer/dashboard-helpers.js"></script>
   <script src="../../function/customer/dashboard-state.js"></script>
   <script src="../../function/customer/dashboard-notifications.js"></script>
-  <script src="../../function/customer/dashboard-appointments.js"></script>
+  <script src="../../function/customer/dashboard-appointments.js?v=20261111"></script>
   <script src="../../function/customer/dashboard-reviews.js"></script>
-  <script src="../../function/customer/dashboard-track-booking.js"></script>
+  <script src="../../function/customer/dashboard-home-service.js"></script>
+  <script src="../../function/customer/dashboard-track-booking.js?v=20261111"></script>
   <script src="../../function/shared/live-sync.js?v=20261110"></script>
-  <script src="../../function/customer/dashboard.js"></script>
+  <script src="../../function/customer/dashboard.js?v=20261111"></script>
+<script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

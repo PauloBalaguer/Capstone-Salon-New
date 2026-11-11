@@ -31,6 +31,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $name = trim($_POST['name'] ?? '');
+$updatesNameParts = array_key_exists('firstName', $_POST);
+[$legacyFirst, $legacyLast] = array_pad(explode(' ', $name, 2), 2, '');
+$firstName = trim($_POST['firstName'] ?? $legacyFirst);
+$middleName = trim($_POST['middleName'] ?? '');
+$lastName = trim($_POST['lastName'] ?? $legacyLast);
+$name = implode(' ', array_filter([$firstName, $middleName, $lastName], fn($part) => $part !== ''));
+if ($updatesNameParts && ($firstName === '' || $lastName === '' || mb_strlen($firstName) > 100 || mb_strlen($middleName) > 100 || mb_strlen($lastName) > 100)) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'First and last name are required. Each name must be 100 characters or fewer.']);
+    exit();
+}
 $email = trim($_POST['email'] ?? '');
 $phone = trim($_POST['phone'] ?? '');
 $notifyEmail = filter_var($_POST['notifyEmail'] ?? true, FILTER_VALIDATE_BOOLEAN);
@@ -58,7 +69,6 @@ if ($profilePicture !== null && $profilePicture !== '' && (strlen($profilePictur
     exit();
 }
 
-[$firstName, $lastName] = array_pad(explode(' ', $name, 2), 2, '');
 
 require_once __DIR__ . '/../../backend/shared/config/helpers/Address.php';
 // Omitted address means preserve the legacy value (older clients).
@@ -84,6 +94,10 @@ try {
 
     $params = [$firstName, $lastName, $phone, $notifyEmail ? 1 : 0, $notifySms ? 1 : 0];
     $sql = 'UPDATE customers SET first_name = ?, last_name = ?, phone_number = ?, notify_email = ?, notify_sms = ?';
+    if ($updatesNameParts) {
+        $sql .= ', middle_name = ?';
+        $params[] = $middleName !== '' ? $middleName : null;
+    }
     if ($updatesAddress) {
         $sql .= ', address = ?, structured_address = ?';
         $params[] = $structuredAddress['formatted'] ?? null;
@@ -102,9 +116,12 @@ try {
     // Keep the session in sync so subsequent requireLogin()-style checks and
     // any UI reading session data reflect the change immediately.
     $_SESSION['user_email'] = $email;
-    $_SESSION['user_name'] = trim($firstName . ' ' . $lastName);
+    $_SESSION['user_name'] = $name;
 
     $response = ['success' => true, 'message' => 'Profile and preferences updated successfully!'];
+    if ($updatesNameParts) {
+        $response['nameProfile'] = compact('name', 'firstName', 'middleName', 'lastName');
+    }
     if ($updatesAddress) {
         $response['addressProfile'] = ['address' => $structuredAddress['formatted'] ?? null, 'structuredAddress' => $structuredAddress];
     }

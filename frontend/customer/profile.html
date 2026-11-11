@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="../shared/theme-tokens.css">
+  <link rel="stylesheet" href="../shared/theme-tokens.css?v=20261111-card-tones">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Leo Mejillano Salon - My Profile</title>
@@ -67,7 +67,7 @@
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
   <!-- Customer portal shell (sidebar, header, bottom nav); loaded after the shared themes. -->
   <link rel="stylesheet" href="../../frontend/customer/customer-portal.css?v=20261110">
-  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
 </head>
 <body data-customer-page="profile" data-page-title="My Profile" class="salon-portal bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
@@ -131,8 +131,20 @@
               <form @submit.prevent="saveProfile()" class="space-y-4 text-xs mt-4">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label for="profile-name" class="block text-slate-400 mb-1">Full Name</label>
-                  <input id="profile-name" type="text" autocomplete="name" maxlength="255" x-model="customerProfile.name" required class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                  <label for="profile-name" class="block text-slate-400 mb-1">First Name</label>
+                  <input id="profile-name" type="text" autocomplete="given-name" maxlength="100" x-model="customerProfile.firstName" required class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                </div>
+                <div x-data="{ noMiddleName: false }">
+                  <label for="profile-middle-name" class="block text-slate-400 mb-1">Middle Name (optional)</label>
+                  <input id="profile-middle-name" type="text" autocomplete="additional-name" maxlength="100" x-model="customerProfile.middleName" :disabled="noMiddleName" class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                  <label for="profile-middle-name-na" class="flex items-center gap-2 mt-2 text-slate-400">
+                    <input id="profile-middle-name-na" type="checkbox" x-model="noMiddleName" @change="if ($event.target.checked) customerProfile.middleName = ''">
+                    <span>N/A (no middle name)</span>
+                  </label>
+                </div>
+                <div>
+                  <label for="profile-last-name" class="block text-slate-400 mb-1">Last Name</label>
+                  <input id="profile-last-name" type="text" autocomplete="family-name" maxlength="100" x-model="customerProfile.lastName" required class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
                 </div>
                 <div>
                   <label for="profile-phone" class="block text-slate-400 mb-1">Mobile Number</label>
@@ -277,6 +289,7 @@
        profile picture upload, profile/preferences saving, and password
        change. Appointments, booking, reviews, and home service mixins
        live on their own pages. -->
+  <script src="../../function/shared/sign-out.js?v=20261111"></script>
   <script src="../../function/customer/customer-shell.js?v=20261110"></script>
   <script src="../../function/customer/dashboard-helpers.js"></script>
   <script src="../../function/customer/dashboard-state.js"></script>
@@ -285,5 +298,6 @@
   <script src="../../function/customer/dashboard-profile.js"></script>
   <script src="../../function/shared/live-sync.js?v=20261110"></script>
   <script src="../../function/customer/dashboard.js"></script>
+<script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

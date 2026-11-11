@@ -8,10 +8,8 @@ require_once '../../backend/shared/config/security/AuditLog.php';
 sendCorsHeaders();
 AuditLog::captureRequest();
 
-// config/setup/session.php already started the session (with the project's real
-// save path/cookie settings) -- a plain session_start() here previously read
-// from PHP's default session store instead, so it never saw the real
-// session data and this Time Out step silently never ran.
+// config/setup/session.php already started the session with the real save
+// path/cookie settings, so don't call session_start() again here.
 
 // Signing out ends the session only. A staff member's shift is a separate
 // action (Shift Out in the Staff Portal, backend/staff/shiftAction.php), so an

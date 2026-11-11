@@ -36,10 +36,10 @@ function customerAppointmentsMixin() {
       });
     },
     appointmentFilterBranches() {
-      return [...new Set(this.appointments.map(a => a.branchName).filter(Boolean))].sort();
+      return [...new Set([...this.appointments, ...(this.homeServiceRequests || [])].map(a => a.branchName).filter(Boolean))].sort();
     },
     appointmentFilterStatuses() {
-      return [...new Set(this.appointments.map(a => a.status === 'Reviewed' ? 'Completed' : a.status).filter(Boolean))].sort();
+      return [...new Set([...this.appointments, ...(this.homeServiceRequests || [])].map(a => a.status === 'Reviewed' ? 'Completed' : a.status).filter(Boolean))].sort();
     },
     // Filters panel (branch/status/dates) is collapsed behind a "Filters" button.
     appointmentFiltersOpen: false,
@@ -85,27 +85,19 @@ function customerAppointmentsMixin() {
       return [appt.id, appt.serviceName, appt.branchName, appt.staffName]
         .some(value => String(value || '').toLowerCase().includes(query));
     },
-    getUpcomingAppointments() {
-      const now = new Date();
-      return this.appointments.filter(appt => {
-        const apptDateTime = parseApptDateTime(appt.date, appt.time);
-        // Reschedule Requested bookings are still future and still active --
-        // leaving them out hid them from both Upcoming and History.
-        return apptDateTime >= now && ['Pending', 'Confirmed', 'In Progress', 'Reschedule Requested', 'Reschedule Required'].includes(appt.status)
-          && this.matchesAppointmentSearch(appt);
-      }).sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+    isPastBooking(appt) {
+      if (['Completed', 'Reviewed', 'Cancelled', 'No-Show', 'Rejected'].includes(appt.status)) return true;
+      if (['In Progress', 'Service in Progress', 'Reschedule Requested', 'Reschedule Required'].includes(appt.status)) return false;
+      const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+      return !!appt.date && appt.date < today;
     },
-
+    getUpcomingAppointments() {
+      return this.appointments.filter(a => !this.isPastBooking(a) && this.matchesAppointmentSearch(a))
+        .sort((a, b) => parseApptDateTime(a.date, a.time) - parseApptDateTime(b.date, b.time));
+    },
     getPastAppointments() {
-      const now = new Date();
-      let past = this.appointments.filter(appt => {
-        const apptDateTime = parseApptDateTime(appt.date, appt.time);
-        return apptDateTime < now || ['Completed', 'Cancelled', 'Reviewed'].includes(appt.status);
-      });
-
-      past = past.filter(appt => this.matchesAppointmentSearch(appt));
-
-      return past.sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+      return this.appointments.filter(a => this.isPastBooking(a) && this.matchesAppointmentSearch(a))
+        .sort((a, b) => String(b.date).localeCompare(String(a.date)));
     },
 
     // Dashboard "Next Appointment" card: the soonest future active booking.
@@ -336,10 +328,9 @@ function customerAppointmentsMixin() {
     },
 
     // Uses the same .admin-badge chips as the admin/cashier workspaces
-    // (frontend/admin/admin-theme.css) instead of raw Tailwind color pairs
+    // (frontend/admin/admin-theme.css) instead of raw Tailwind color pairs;
     // those chips are already tuned for readable contrast on the portal's
-    // light cream background; the old bg-indigo-950/text-indigo-400 pairing
-    // in particular rendered near-invisible light text on a light chip.
+    // light cream background.
     getStatusBadgeClass(status) {
       const classes = {
         'Pending': 'admin-badge admin-badge--pending',

@@ -423,15 +423,20 @@ input[type="date"].sp-input { min-width: 0; }
 .sp-week-tag { justify-self: end; }
 
 /* ---------- Profile ---------- */
-.sp-profile-summary { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; gap: 14px; padding: 22px 18px; }
-.sp-profile-avatar-wrap { position: relative; }
-.sp-avatar-edit { position: absolute; right: -2px; bottom: -2px; width: 40px; height: 40px; border-radius: 50%; background: var(--sp-green-700); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 3px solid #fff; }
-.sp-avatar-edit .ico { width: 18px; height: 18px; }
-.sp-profile-id .sp-chip-row { justify-content: center; margin-top: 8px; }
-.sp-profile-name { font-size: 22px; font-weight: 750; line-height: 1.25; overflow-wrap: anywhere; }
-.sp-profile-facts { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; text-align: left; }
+.sp-profile-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }
+.sp-profile-forms { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; min-width: 0; }
+.sp-profile-summary { display: flex; flex-direction: column; align-items: center; text-align: center; overflow: hidden; padding: 0 0 22px !important; }
+.sp-profile-cover { align-self: stretch; height: 112px; background: linear-gradient(130deg, var(--sp-green-900, #0A2E24), var(--sp-green-700, #16604B)); }
+.sp-profile-photo { display: grid; place-items: center; overflow: hidden; width: 88px; height: 88px; margin: -44px auto 10px; border-radius: 50%; border: 4px solid #fff; background: var(--sp-green-700, #16604B); color: #fff; font-size: 26px; font-weight: 800; box-shadow: 0 4px 15px rgba(24,38,31,.13); }
+.sp-profile-photo img { width: 100%; height: 100%; object-fit: cover; }
+.sp-profile-summary .sp-chip-row { justify-content: center; margin-top: 10px; }
+.sp-profile-name { margin: 0 16px; font-size: 22px; font-weight: 750; line-height: 1.25; overflow-wrap: anywhere; }
+.sp-photo-btn { margin: 16px 16px 0; cursor: pointer; }
+.sp-photo-note { margin: 8px 16px 0; }
+.sp-profile-facts { align-self: stretch; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; margin: 20px 20px 0; padding-top: 16px; border-top: 1px solid var(--sp-border); text-align: left; }
 .sp-profile-facts > div { background: var(--bg); border: 1px solid var(--sp-border); border-radius: 12px; padding: 10px 12px; min-width: 0; }
 .sp-profile-facts dd { font-weight: 650; font-size: 14.5px; margin-top: 2px !important; overflow-wrap: anywhere; }
+@media (min-width: 1024px) { .sp-profile-layout { grid-template-columns: 300px minmax(0, 1fr); } }
 .sp-profile .sp-card-head .sp-btn { flex-shrink: 0; }
 
 /* ---------- Notifications ---------- */
@@ -441,6 +446,11 @@ input[type="date"].sp-input { min-width: 0; }
 .sp-notif-list { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .sp-notif-item { padding: 12px 16px; border-bottom: 1px solid var(--sp-border); font-size: 14px; }
 .sp-notif-item.is-unread { background: var(--sp-green-50); box-shadow: inset 3px 0 0 var(--sp-green-600); }
+.sp-notif-clickable { cursor: pointer; transition: background-color .15s ease; outline: none; }
+.sp-notif-clickable:hover { background-color: rgba(22, 96, 75, .06); }
+.sp-notif-clickable:active { background-color: rgba(22, 96, 75, .12); }
+.sp-notif-clickable:focus-visible { box-shadow: inset 0 0 0 2px var(--sp-green-600); }
+.sp-notif-item .sp-notif-title { margin: 0 0 2px; color: inherit; }
 
 /* ---------- Modals (bottom sheet on phones) ---------- */
 .sp-modal { position: fixed; inset: 0; z-index: 50; display: flex; align-items: flex-end; justify-content: center; background: rgba(24, 38, 31, .55); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
@@ -467,8 +477,6 @@ input[type="date"].sp-input { min-width: 0; }
   .sp-stat { padding: 12px; min-height: 108px; }
   .sp-supply-row { grid-template-columns: minmax(0, 1fr) 70px; }
   .sp-supply-row .sp-btn { grid-column: 1 / -1; }
-  .sp-week-row { grid-template-columns: minmax(0, 1fr) auto; }
-  .sp-week-tag { display: none; }
   .sp-date-range { grid-template-columns: minmax(0, 1fr); }
   .sp-modal-actions { grid-template-columns: minmax(0, 1fr); }
   .sp-modal-actions .sp-btn-danger { order: -1; }
@@ -504,9 +512,6 @@ input[type="date"].sp-input { min-width: 0; }
   .sp-att-cards { display: none; }
   .sp-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .sp-form-grid-1 { grid-template-columns: minmax(0, 1fr); max-width: 520px; }
-  .sp-profile-summary { grid-template-columns: auto minmax(0, 1fr); justify-items: start; text-align: left; gap: 18px 24px; align-items: center; padding: 24px; }
-  .sp-profile-id .sp-chip-row { justify-content: flex-start; }
-  .sp-profile-facts { grid-column: 1 / -1; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .sp-shift-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .sp-btn-pair { max-width: 520px; margin: 0 auto; }
   .sp-shift-actions > .sp-btn-block { max-width: 520px; margin: 0 auto; display: flex; }
@@ -517,7 +522,6 @@ input[type="date"].sp-input { min-width: 0; }
    ========================================================== */
 @media (min-width: 1024px) {
   .sp-notif-panel { top: 78px; left: auto; right: 36px; width: 380px; }
-  .sp-profile-facts { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 }
 
 /* ==========================================================
@@ -552,10 +556,11 @@ input[type="date"].sp-input { min-width: 0; }
     border-top: 1px solid var(--sp-border);
     box-shadow: 0 -8px 24px -18px rgba(10, 46, 36, .45);
   }
-  .sp-bottomnav-link { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 0; min-height: 56px; padding: 6px 2px; border-radius: 12px; color: var(--sp-muted); }
+  .sp-bottomnav-link { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 0; min-height: calc(var(--sp-bottomnav) - 5px); padding: 6px 2px; border-radius: 12px; color: var(--sp-muted); }
+  .sp-bottomnav-link > span:first-child { display: flex; align-items: center; justify-content: center; flex: 0 0 22px; }
   .sp-bottomnav-link .ico { width: 22px; height: 22px; }
-  /* Long labels stay inside their own tap target, including narrow phones. */
-  .sp-bottomnav-link span:last-child { min-width: 0; max-width: 100%; white-space: normal; font-size: 11px; line-height: 1.15; font-weight: 700; text-align: center; overflow-wrap: anywhere; word-break: normal; hyphens: none; }
+  /* Compact mobile labels keep all icons and captions on matching baselines. */
+  .sp-bottomnav-link span:last-child { min-width: 0; max-width: 100%; white-space: nowrap; font-size: 11px; line-height: 1.15; font-weight: 700; text-align: center; }
   .sp-bottomnav-link.is-active { color: var(--sp-green-700); }
   .sp-bottomnav-link.is-active span:last-child { font-weight: 800; }
   .sp-bottomnav-link:focus-visible { outline-offset: -3px; }
@@ -588,12 +593,21 @@ input[type="date"].sp-input { min-width: 0; }
   .sp-main { padding: 0 16px 20px; }
   .sp-intro { margin: 22px 0 18px; }
   .sp-intro h1 { font-size: 32px; }
+  .sp-week-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "day tag" "hours hours";
+    gap: 8px 12px;
+    padding: 14px 12px;
+  }
+  .sp-week-day { grid-area: day; min-width: 0; }
+  .sp-week-hours { grid-area: hours; min-width: 0; }
+  .sp-week-hours p > span { white-space: nowrap; }
+  .sp-week-tag { grid-area: tag; align-self: start; }
 }
 
-/* Narrow phones: two-line labels such as "My Appointments" need a taller bar. */
+/* Keep compact labels readable within five equal tap targets on narrow phones. */
 @media (max-width: 479.98px) {
-  :root { --sp-bottomnav: 84px; }
-  .sp-bottomnav-link span:last-child { font-size: 10.5px; }
+  .sp-bottomnav { --type-bottom-nav: 10.5px; }
 }
 
 @media (max-width: 359.98px) {
@@ -601,7 +615,8 @@ input[type="date"].sp-input { min-width: 0; }
   .sp-header-brand span { display: none; }
   .sp-icon-btn { width: 42px; height: 42px; }
   .sp-avatar-sm { width: 38px; height: 38px; }
-  .sp-bottomnav-link span:last-child { font-size: 9.5px; letter-spacing: -.01em; }
+  .sp-bottomnav { --type-bottom-nav: 9.5px; }
+  .sp-bottomnav-link span:last-child { letter-spacing: -.01em; }
   .sp-intro h1 { font-size: 28px; }
 }
 
@@ -619,3 +634,21 @@ input[type="date"].sp-input { min-width: 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* Notifications: same layout as the Customer portal panel. Time and unread
+   dot beside the title, light tint + teal bar for unread, close button. */
+.sp-notif-head { gap: 8px; justify-content: flex-start; }
+.sp-notif-head > p { margin: 0 auto 0 0; }
+.sp-notif-readall { border: 0; background: none; padding: 4px 8px; border-radius: 8px; font: inherit; font-size: 12.5px; font-weight: 700; color: var(--sp-green-600); white-space: nowrap; cursor: pointer; }
+.sp-notif-readall:hover:not(:disabled) { background: rgba(22, 96, 75, .08); }
+.sp-notif-readall:disabled { opacity: .45; cursor: default; }
+.sp-notif-close { flex-shrink: 0; width: 34px; height: 34px; border-radius: 999px; border: 1px solid var(--sp-border); background: #fff; font-size: 20px; line-height: 1; color: inherit; cursor: pointer; display: grid; place-items: center; }
+.sp-notif-close:hover { background: rgba(22, 96, 75, .06); }
+.sp-notif-item { padding: 10px 14px; font-size: 13.5px; }
+.sp-notif-item.is-unread { background: rgba(22, 96, 75, .06); box-shadow: inset 3px 0 0 var(--sp-green-600); }
+.sp-notif-clickable.is-unread:focus-visible { box-shadow: inset 3px 0 0 var(--sp-green-600), inset 0 0 0 2px var(--sp-green-600); }
+.sp-notif-item .sp-notif-title { display: flex; align-items: center; gap: 6px; margin: 0 0 2px; }
+.sp-notif-item .sp-notif-title strong { margin-right: auto; min-width: 0; }
+.sp-notif-dot { width: 8px; height: 8px; flex-shrink: 0; border-radius: 99px; background: var(--sp-green-600); }
+.sp-notif-time { flex-shrink: 0; font-size: 12px; color: var(--sp-muted, #6b7280); white-space: nowrap; }
+.sp-notif-msg { margin: 0; line-height: 1.45; }

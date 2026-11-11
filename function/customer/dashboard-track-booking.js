@@ -1,4 +1,4 @@
-// "Track a Booking" modal, shared by frontend/customer/appointments.html and
+// Inline Track Booking page and the legacy modal shared with
 // frontend/customer/home-service.html. Reuses the public trackBooking.php
 // endpoint (no login required there) so a logged-in customer can look up
 // any booking by reference + phone -- including ones made as a guest
@@ -8,12 +8,123 @@
 function customerTrackBookingMixin() {
   return {
     isTrackModalOpen: false,
+    trackingSelection: null,
+    isTrackingView: new URLSearchParams(window.location.search).get('track') === '1',
+    isGuestTracking: false,
+    trackingLookup: null,
+    guestReschedule: { email: '', date: '', time: '' },
+    guestRescheduling: false,
+    guestRescheduleMessage: '',
+    async rescheduleTrackedHomeService() {
+      if (this.guestRescheduling || !this.trackResult?.canReschedule) return;
+      const reference = this.trackResult.reference;
+      this.guestRescheduling = true;
+      this.guestRescheduleMessage = '';
+      try {
+        const data = new FormData();
+        data.append('reference', reference);
+        for (const [key, value] of Object.entries(this.guestReschedule)) data.append(key, value.trim());
+        const response = await fetch('../../backend/public/rescheduleHomeService.php', { method: 'POST', body: data });
+        const body = await response.json();
+        if (!response.ok || !body.success) throw new Error(body.message || 'Unable to reschedule.');
+        if (this.trackingLookup?.reference.toUpperCase() === reference.toUpperCase()) {
+          this.trackForm = { ...this.trackingLookup };
+          await this.trackBooking();
+        }
+        this.guestRescheduleMessage = body.message || 'Booking rescheduled.';
+      } catch (error) { this.guestRescheduleMessage = error.message || 'Unable to reschedule. Please try again.'; }
+      finally { this.guestRescheduling = false; }
+    },
+    trackingRefreshLoading: false,
+    trackingRefreshError: '',
+    selectedTracking() {
+      if (!this.trackingSelection) return this.trackResult;
+      const source = this.trackingSelection.type === 'home_service' ? this.homeServiceRequests : this.appointments;
+      const row = source.find(a => a.id === this.trackingSelection.id);
+      if (!row) return null;
+      return this.trackingSelection.type === 'home_service'
+        ? { ...row, type: 'home_service', reference: row.id, services: this.homeServiceDetails(row).services || row.eventType,
+            branch: row.branchName, date: row.preferredDate, time: this.homeServiceTime(row), venue: row.address,
+            price: row.quotePrice, remainingBalance: row.balanceDue }
+        : { ...row, type: 'appointment', reference: row.id, services: row.serviceName, branch: row.branchName };
+    },
+    viewTracking(row, type = 'appointment') {
+      if (document.getElementById('find-booking') && !this.isTrackingView) {
+        window.location.href = 'appointments.html?track=1&reference=' + encodeURIComponent(row.id);
+        return;
+      }
+      this.guestRescheduleMessage = '';
+      this.trackingSelection = { id: row.id, type };
+      this.trackResult = null;
+      this.trackError = '';
+      this.$nextTick(() => {
+        // A payment notification (…&focus=payment) lands on that booking's Payment Details.
+        const params = new URLSearchParams(window.location.search);
+        const payment = params.get('focus') === 'payment' && params.get('reference') === row.id && document.getElementById('tracking-payment-details');
+        if (payment) {
+          payment.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          payment.focus({ preventScroll: true });
+          return;
+        }
+        const panel = document.getElementById('booking-tracking-details');
+        panel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        panel?.focus({ preventScroll: true });
+      });
+    },
+    trackingHomeRequests() {
+      return this.homeServiceRequests.filter(r => {
+        const a = { ...r, date: r.preferredDate, serviceName: r.eventType };
+        return this.isPastBooking(a) === (this.appointmentView === 'past') && this.matchesAppointmentSearch(a);
+      });
+    },
+    trackingSteps(booking) {
+      const status = booking.status === 'Reviewed' ? 'Completed' : booking.status;
+      if (['Cancelled', 'No-Show', 'Rejected', 'Reschedule Requested', 'Reschedule Required'].includes(status))
+        return [{ label: status, current: true }];
+      const steps = booking.type === 'home_service'
+        ? ['Pending Review', 'Quote Ready', 'Payment Required', 'Payment Being Verified', 'Confirmed', 'Staff Assigned', 'Service in Progress', 'Completed']
+        : ['Pending', 'Confirmed', 'In Progress', 'Completed'];
+      if (!steps.includes(status)) return [{ label: status, current: true }];
+      return steps.map(label => ({ label, current: label === status }));
+    },
+    trackingStatusNote(status) {
+      return {
+        'Cancelled': 'This booking has been cancelled. See payment details for any retained deposit.',
+        'No-Show': 'The salon marked this appointment as a no-show. Contact the branch for assistance.',
+        'Rejected': 'This request was rejected. Contact the branch for details.',
+        'Reschedule Requested': 'The salon requested a schedule change. Open My Bookings to choose another time.',
+        'Reschedule Required': 'A schedule change is required. Contact the branch for assistance.',
+        'Completed': 'Your service is complete.',
+        'Reviewed': 'Your service is complete and your review has been recorded.'
+      }[status] || 'Latest status reported by the salon. Steps show the workflow, not a dated event history.';
+    },
+    async refreshTracking() {
+      if (this.trackingRefreshLoading) return;
+      if (this.isGuestTracking) { if (this.trackingLookup) { this.trackForm = { ...this.trackingLookup }; return this.trackBooking(); } return; }
+      this.trackingRefreshLoading = true;
+      this.trackingRefreshError = '';
+      try {
+        const response = await fetch('../../backend/customer/getDashboardData.php', { cache: 'no-store' });
+        const body = await response.json();
+        if (!response.ok || !body.success) throw new Error(body.message || 'Unable to refresh. Please sign in again if your session expired.');
+        this.appointments = body.appointments;
+        this.homeServiceRequests = body.homeServiceRequests;
+        this.loadServerNotifications(body.notifications);
+        if (!this.trackingSelection && this.trackResult && this.trackingLookup) { this.trackForm = { ...this.trackingLookup }; await this.trackBooking(); }
+      } catch (error) { this.trackingRefreshError = error.message || 'Unable to refresh. Please try again.'; }
+      finally { this.trackingRefreshLoading = false; }
+    },
     trackForm: { reference: '', phone: '' },
     trackLoading: false,
     trackError: '',
     trackResult: null,
 
     openTrackModal() {
+      if (document.getElementById('find-booking')) {
+        document.getElementById('find-booking').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('tracking-reference')?.focus();
+        return;
+      }
       this.trackForm = { reference: '', phone: this.customerProfile.phone || '' };
       this.trackResult = null;
       this.trackError = '';
@@ -25,20 +136,30 @@ function customerTrackBookingMixin() {
     },
 
     trackBooking() {
+      if (this.trackLoading) return;
+      this.guestRescheduleMessage = '';
+      if (document.getElementById('find-booking')) {
+        const owned = [...this.appointments, ...this.homeServiceRequests].find(a => a.id.toUpperCase() === this.trackForm.reference.trim().toUpperCase());
+        if (owned) { this.viewTracking(owned, owned.preferredDate !== undefined ? 'home_service' : 'appointment'); return; }
+      }
       if (!this.trackForm.reference.trim() || !this.trackForm.phone.trim()) {
+        this.trackResult = null;
+        this.trackingSelection = null;
         this.trackError = 'Enter both the booking reference and the mobile number used for it.';
         return;
       }
+      this.trackingSelection = null;
+      this.trackingLookup = { reference: this.trackForm.reference.trim(), phone: this.trackForm.phone.trim() };
       this.trackLoading = true;
       this.trackError = '';
       this.trackResult = null;
 
       const params = new URLSearchParams({
-        reference: this.trackForm.reference.trim(),
-        phone: this.trackForm.phone.trim()
+        reference: this.trackingLookup.reference,
+        phone: this.trackingLookup.phone
       });
 
-      fetch('../../backend/public/trackBooking.php?' + params.toString())
+      return fetch('../../backend/public/trackBooking.php?' + params.toString(), { cache: 'no-store' })
         .then(response => response.json())
         .then(body => {
           this.trackLoading = false;
@@ -46,7 +167,9 @@ function customerTrackBookingMixin() {
             this.trackError = body.message || 'No booking found for that reference and mobile number.';
             return;
           }
+          if (this.trackingSelection) return;
           this.trackResult = body;
+          this.$nextTick(() => document.getElementById('booking-tracking-details')?.focus());
         })
         .catch(() => {
           this.trackLoading = false;

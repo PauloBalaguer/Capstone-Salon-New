@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="../shared/theme-tokens.css">
+    <link rel="stylesheet" href="../shared/theme-tokens.css?v=20261111-card-tones">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leo Mejillano Salon - Cashier Panel</title>
@@ -83,9 +83,9 @@
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
   <!-- Cashier Panel redesign: loaded last, scoped to body.cp-cashier. -->
-  <link rel="stylesheet" href="../../frontend/cashier/cashier-panel.css?v=20261110d">
+  <link rel="stylesheet" href="../../frontend/cashier/cashier-panel.css?v=20261111-mobile-shared">
   <link rel="stylesheet" href="../../frontend/shared/portal-unify.css?v=20261110b">
-  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
 </head>
 <body class="salon-portal bg-gray-100 font-sans antialiased flex h-screen overflow-hidden">
 
@@ -129,10 +129,6 @@
                     <i class="fa-solid fa-users-gear w-5 text-center text-slate-400"></i>
                     <span class="text-base">Staff Assignments</span>
                 </a>
-                <a href="profile.html" data-nav-page="profile.html" class="nav-item flex items-center space-x-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-all">
-                    <i class="fa-solid fa-user-shield w-5 text-center text-slate-400"></i>
-                    <span class="text-base">Profile &amp; Security</span>
-                </a>
             </nav>
         </div>
 
@@ -158,28 +154,28 @@
         </header>
 
         <section class="flex-1 p-4 sm:p-6 overflow-y-auto space-y-5">
-            <!-- Today at a glance. Each card filters the queue below. -->
+            <!-- Today at a glance. Summary only. -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4" id="statCardsContainer">
-                <button type="button" data-queue-tab="pending" class="stat-card text-justify">
+                <div data-card-tone="warning" class="stat-card stat-card-warning text-justify">
                     <span class="stat-label">Needs confirmation</span>
                     <span class="stat-value" id="statPendingConfirmation">0</span>
                     <span class="stat-hint" id="statPaymentsToVerifyHint">No payments to check</span>
-                </button>
-                <button type="button" data-queue-tab="confirmed" class="stat-card text-justify">
+                </div>
+                <div data-card-tone="success" class="stat-card stat-card-success text-justify">
                     <span class="stat-label">Confirmed, waiting</span>
                     <span class="stat-value" id="statConfirmed">0</span>
                     <span class="stat-hint" id="statTodayAppointments">0 appointments today</span>
-                </button>
-                <button type="button" data-queue-tab="service" class="stat-card text-justify">
+                </div>
+                <div data-card-tone="info" class="stat-card stat-card-info text-justify">
                     <span class="stat-label">In service</span>
                     <span class="stat-value" id="statInProgress">0</span>
                     <span class="stat-hint" id="statWalkInsToday">0 walk-ins today</span>
-                </button>
-                <button type="button" data-queue-tab="pay" class="stat-card stat-card-gold text-justify">
+                </div>
+                <div data-card-tone="gold" class="stat-card stat-card-gold text-justify">
                     <span class="stat-label">Ready to pay</span>
                     <span class="stat-value" id="statReadyForCheckout">0</span>
                     <span class="stat-hint" id="statToCollect">₱0.00 to collect</span>
-                </button>
+                </div>
             </div>
 
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
@@ -209,38 +205,72 @@
     </main>
 
     <!-- New walk-in -->
-    <div id="walkInModal" role="dialog" aria-modal="true" aria-labelledby="walkInTitle" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-end sm:items-center justify-center hidden opacity-0 transition-opacity duration-300 sm:p-4">
-        <div class="modal-panel max-w-md transform scale-95 transition-transform duration-300">
-            <div class="modal-head">
-                <h4 id="walkInTitle" class="font-bold text-lg">New walk-in</h4>
-                <button id="btnCloseModal" type="button" class="modal-close" aria-label="Close">&times;</button>
+    <div id="walkInModal" role="dialog" aria-modal="true" aria-labelledby="walkInTitle" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] items-end sm:items-center justify-center hidden opacity-0 transition-opacity duration-300 sm:p-4">
+        <div class="modal-panel wi-panel max-w-6xl transform scale-95 transition-transform duration-300">
+            <div class="wi-head">
+                <div>
+                    <h4 id="walkInTitle" class="wi-title">New Walk-In</h4>
+                    <p class="wi-sub">Walk-ins start now at this branch. Only the customer's name and mobile number are required.</p>
+                </div>
+                <div class="wi-head-right">
+                    <span class="wi-pill">Walk-in</span>
+                    <button id="btnCloseModal" type="button" class="ui-close-icon wi-close" aria-label="Close">&times;</button>
+                </div>
             </div>
-            <form id="walkInForm" class="p-5 space-y-4 overflow-y-auto">
-                <div>
-                    <label for="inputClientName" class="field-label">Customer full name</label>
-                    <input type="text" id="inputClientName" required placeholder="e.g. Angelo Ramirez" class="field-input">
+            <form id="walkInForm" class="wi-body overflow-y-auto">
+                <div class="wi-steps">
+                    <section class="wi-step">
+                        <h5 class="wi-step-title"><span class="wi-num">1</span>Customer details<span class="wi-done" id="wiDone1" aria-hidden="true"></span></h5>
+                        <div class="wi-name-grid">
+                            <div>
+                                <label for="inputFirstName" class="field-label">First name</label>
+                                <input type="text" id="inputFirstName" required placeholder="First name" autocomplete="given-name" class="field-input">
+                            </div>
+                            <div>
+                                <label for="inputMiddleName" class="field-label">Middle name <span class="wi-optional">(optional)</span></label>
+                                <input type="text" id="inputMiddleName" placeholder="Middle name" autocomplete="additional-name" class="field-input">
+                                <label class="wi-na"><input type="checkbox" id="inputNoMiddle"> N/A (no middle name)</label>
+                            </div>
+                            <div>
+                                <label for="inputLastName" class="field-label">Last name</label>
+                                <input type="text" id="inputLastName" required placeholder="Last name" autocomplete="family-name" class="field-input">
+                            </div>
+                        </div>
+                        <div class="wi-phone">
+                            <label for="inputClientPhone" class="field-label">Mobile number</label>
+                            <input type="tel" id="inputClientPhone" required inputmode="numeric" maxlength="11" pattern="09[0-9]{9}" title="Enter an 11-digit mobile number starting with 09" placeholder="09XXXXXXXXX" class="field-input">
+                        </div>
+                    </section>
+                    <section class="wi-step">
+                        <h5 class="wi-step-title"><span class="wi-num">2</span>Choose services<span class="wi-done" id="wiDone2" aria-hidden="true"></span></h5>
+                        <input type="search" id="wiSvcSearch" class="field-input wi-svc-search" placeholder="Search services…" aria-label="Search services">
+                        <select id="wiSvcSort" class="field-input wi-svc-search" aria-label="Service categories"></select>
+                        <p class="cp-field-hint" id="wiSvcHint">Select one or more services.</p>
+                        <div id="servicesCheckboxContainer" class="wi-svc-list"></div>
+                        <p id="wiSvcNoMatch" class="cp-field-hint hidden">No services match your search.</p>
+                    </section>
+                    <section class="wi-step">
+                        <h5 class="wi-step-title"><span class="wi-num">3</span>Choose staff<span class="wi-done" id="wiDone3" aria-hidden="true"></span></h5>
+                        <div id="selectStylist" class="wi-staff-list" role="radiogroup" aria-label="Available staff"></div>
+                        <button type="button" id="wiStaffMore" class="wi-staff-more hidden"></button>
+                        <div id="wiStaffOff" class="wi-staff-list wi-staff-off hidden"></div>
+                        <p class="cp-field-hint">Only staff on shift can take a walk-in. Overlapping bookings are blocked by the system.</p>
+                    </section>
                 </div>
-                <div>
-                    <label for="inputClientPhone" class="field-label">Mobile number</label>
-                    <input type="tel" id="inputClientPhone" required inputmode="numeric" maxlength="11" pattern="09[0-9]{9}" title="Enter an 11-digit mobile number starting with 09" placeholder="09171234567" class="field-input">
-                </div>
-                <div>
-                    <p class="field-label">Services</p>
-                    <div id="servicesCheckboxContainer" class="bg-gray-50 border border-gray-300 rounded-xl p-3 max-h-48 overflow-y-auto space-y-1"></div>
-                </div>
-                <div>
-                    <label for="selectStylist" class="field-label">Available staff</label>
-                    <select id="selectStylist" required class="field-input"></select>
-                    <p class="cp-field-hint">Only staff on shift can take a walk-in. Overlapping bookings are blocked by the system.</p>
-                </div>
-                <div class="cp-walkin-summary" aria-live="polite">
-                    <div><span class="field-label">Schedule</span><strong id="walkInSchedule">Today, now</strong></div>
-                    <div><span class="field-label">Estimated total</span><strong id="walkInTotal">₱0.00</strong></div>
-                </div>
-                <p class="cp-field-hint">Walk-ins start now at this branch. To book a later date or time, use the regular booking flow.</p>
-                <div class="pt-1 grid grid-cols-2 gap-3">
-                    <button type="button" id="btnCancelModal" class="btn-secondary">Cancel</button>
-                    <button type="submit" class="btn-primary">Add to queue</button>
+                <div class="wi-summary" aria-live="polite">
+                    <h5 class="wi-sum-title">Booking summary</h5>
+                    <dl class="wi-sum-rows">
+                        <div><dt>Branch</dt><dd id="wiSumBranch">—</dd></div>
+                        <div><dt>Services</dt><dd id="wiSumServices"><em>Not selected</em></dd></div>
+                        <div><dt>Duration</dt><dd id="wiSumDuration"><em>Not selected</em></dd></div>
+                        <div><dt>When</dt><dd id="walkInSchedule">Today, now</dd></div>
+                        <div><dt>Stylist</dt><dd id="wiSumStylist"><em>Not selected</em></dd></div>
+                        <div><dt>Customer</dt><dd id="wiSumCustomer"><em>Not entered</em></dd></div>
+                    </dl>
+                    <div class="wi-sum-total"><span>Service total</span><strong id="walkInTotal">₱0.00</strong></div>
+                    <p class="wi-sum-note">Paid at checkout after the service.</p>
+                    <button type="submit" class="wi-submit">Add to queue</button>
+                    <button type="button" id="btnCancelModal" class="wi-cancel">Cancel</button>
                 </div>
             </form>
         </div>
@@ -254,7 +284,7 @@
                     <h4 id="confirmTitle" class="font-bold text-lg">Confirm booking</h4>
                     <p id="confirmRef" class="text-xs font-mono text-white/70 truncate"></p>
                 </div>
-                <button id="btnCloseConfirm" type="button" class="modal-close" aria-label="Close">&times;</button>
+                <button id="btnCloseConfirm" type="button" class="ui-close-icon modal-close" aria-label="Close">&times;</button>
             </div>
             <ol id="confirmSteps" class="grid grid-cols-2 gap-2 px-5 pt-4 text-sm font-semibold" aria-label="Steps">
                 <li data-step-dot="1" class="step-dot"><span>1</span>Booking details</li>
@@ -346,7 +376,7 @@
                     <h4 id="checkoutTitle" class="font-bold text-lg">Checkout · <span id="customerNameDisplay" class="capitalize"></span></h4>
                     <p class="text-xs text-white/70 truncate"><span id="invoiceIdDisplay" class="font-mono"></span> · <span id="ticketStaffName"></span></p>
                 </div>
-                <button id="btnCloseCheckout" type="button" class="modal-close" aria-label="Close">&times;</button>
+                <button id="btnCloseCheckout" type="button" class="ui-close-icon modal-close" aria-label="Close">&times;</button>
             </div>
             <div class="overflow-y-auto">
                 <div class="grid grid-cols-1 lg:grid-cols-2">
@@ -424,12 +454,7 @@
                                     <span id="changeDueDisplay" class="text-2xl font-black text-[color:var(--success)]">₱0.00</span>
                                 </div>
                             </div>
-                            <div class="space-y-2">
-                                <button id="btnProcessPayment" type="button" disabled class="w-full bg-teal-500 hover:bg-teal-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 disabled:bg-[color:var(--border)] disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed">
-                                    <i class="fa-solid fa-receipt"></i><span id="payButtonLabel">Complete payment</span>
-                                </button>
-                                <p id="payHint" role="status" aria-live="polite" class="text-sm text-center text-slate-500 min-h-5"></p>
-                            </div>
+
                         </div>
                         <div id="paymentPaidState" class="hidden py-6 text-center space-y-3">
                             <div class="mx-auto w-14 h-14 rounded-full bg-emerald-100 text-[color:var(--success)] flex items-center justify-center text-2xl"><i class="fa-solid fa-check"></i></div>
@@ -440,6 +465,12 @@
                     </div>
                 </div>
             </div>
+                            <div class="checkout-footer space-y-2">
+                                <button id="btnProcessPayment" type="button" disabled class="w-full bg-teal-500 hover:bg-teal-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 disabled:bg-[color:var(--border)] disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed">
+                                    <i class="fa-solid fa-receipt"></i><span id="payButtonLabel">Complete payment</span>
+                                </button>
+                                <p id="payHint" role="status" aria-live="polite" class="text-sm text-center text-slate-500 min-h-5"></p>
+                            </div>
         </div>
     </div>
 
@@ -448,7 +479,7 @@
         <div class="modal-panel max-w-lg transform scale-95 transition-transform duration-300">
             <div class="modal-head">
                 <h4 id="productTitle" class="font-bold text-lg">Add product</h4>
-                <button id="btnCloseProductModal" type="button" class="modal-close" aria-label="Close">&times;</button>
+                <button id="btnCloseProductModal" type="button" class="ui-close-icon modal-close" aria-label="Close">&times;</button>
             </div>
             <div class="p-5 space-y-3 overflow-y-auto">
                 <div class="relative">
@@ -461,11 +492,13 @@
     </div>
 
     <script src="../../function/shared/live-sync.js?v=20261110"></script>
-    <script src="../../function/cashier/cashier-shell.js?v=20261110c"></script>
+    <script src="../../function/shared/sign-out.js?v=20261111"></script>
+    <script src="../../function/cashier/cashier-shell.js?v=20261111a"></script>
     <script src="../../function/cashier/cashier-common.js?v=20261110"></script>
-    <script src="../../function/shared/appointment-arrival.js"></script>
+    <script src="../../function/shared/appointment-arrival.js?v=20261111-mobile"></script>
     <script src="../../function/shared/confirm-dialog.js"></script>
     <script src="../../function/cashier/checkout-modal.js?v=20261105"></script>
-    <script src="../../function/cashier/dashboard.js?v=20261110"></script>
+    <script src="../../function/cashier/dashboard.js?v=20261111f"></script>
+<script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

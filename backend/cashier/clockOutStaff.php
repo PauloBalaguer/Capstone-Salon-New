@@ -77,6 +77,9 @@ try {
     $by = ($_SESSION['user_name'] ?? '') ?: 'the cashier';
     $pdo->prepare('UPDATE attendance SET clock_out_time = ?, notes = ? WHERE id = ?')
         ->execute([$clockOut, "Clocked out by {$by} staff did not sign out", $shift['id']]);
+    // End a break still running, at the same moment as the shift.
+    $pdo->prepare('UPDATE attendance_breaks SET break_end = GREATEST(break_start, ?) WHERE attendance_id = ? AND break_end IS NULL')
+        ->execute([$clockOut, $shift['id']]);
     $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "ATTENDANCE", ?)')
         ->execute(["{$shift['name']} clocked out by {$by} at " . date('g:i A', strtotime($clockOut)) . '.']);
 

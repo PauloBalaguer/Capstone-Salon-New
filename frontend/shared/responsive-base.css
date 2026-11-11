@@ -9,6 +9,8 @@
   outline-offset: 3px;
 }
 :where(.overflow-x-auto) {
+  min-width: 0;
+  max-width: 100%;
   overscroll-behavior-inline: contain;
   -webkit-overflow-scrolling: touch;
 }
@@ -75,8 +77,8 @@ body.salon-portal .booking-detail-finances dt { font-weight: 700; }
 .portal-notification-panel { max-width: calc(100vw - 2rem); }
 .portal-notification-panel > .overflow-y-auto { min-height: 0; overscroll-behavior: contain; }
 .portal-notification-message { white-space: pre-line; overflow-wrap: anywhere; line-height: 1.5; }
-.portal-notification-unread { background: rgba(0,112,115,.07); box-shadow: inset 3px 0 #006D6F; }
-.portal-notification-read-all { padding: 10px; color: #006D6F; }
+.portal-notification-unread { background: rgba(22,96,75,.07); box-shadow: inset 3px 0 var(--brand); }
+.portal-notification-read-all { padding: 10px; color: var(--brand); }
 .portal-notification-read-all:disabled { opacity: .5; cursor: default; }
 @media (max-width: 640px) {
   .portal-notification-panel { position: fixed !important; top: 4.5rem; right: 1rem; width: calc(100vw - 2rem); max-height: 70dvh; }
@@ -88,7 +90,7 @@ body.salon-portal .booking-detail-finances dt { font-weight: 700; }
 .portal-notification-panel { display: flex; flex-direction: column; }
 .portal-notification-panel > :first-child, .portal-notification-panel > :last-child:not(.overflow-y-auto) { flex-shrink: 0; }
 .portal-notification-panel > .overflow-y-auto, .customer-notification-panel .notification-list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
-.notification-state-badge { display: inline-block; margin-top: 7px; padding: 2px 8px; border: 1px solid #cbbf9f; border-radius: 999px; color: #68541e; background: #f7efd9; font-size: 11px; font-weight: 600; line-height: 1.5; }
+.notification-state-badge { display: inline-block; margin-top: 7px; padding: 2px 8px; border: 1px solid var(--border-strong); border-radius: 999px; color: var(--accent-ink); background: var(--brand-softer); font-size: 11px; font-weight: 600; line-height: 1.5; }
 .portal-notification-service { margin-top: 8px; font-size: 13px; font-weight: 600; }
 .portal-notification-meta { margin-top: 2px; font-size: 12px; line-height: 1.5; }
 .portal-notification-panel > .p-3 { padding: 10px 12px; }

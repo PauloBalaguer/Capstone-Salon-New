@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <link rel="stylesheet" href="../shared/theme-tokens.css">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Create Account, Leo Mejillano Salon &amp; Beauty</title>
@@ -10,21 +11,22 @@
   <link rel="stylesheet" href="../../frontend/shared/output.css?v=20261106">
   <link rel="stylesheet" href="../../frontend/auth/terms-modal.css?v=20261106">
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
-  <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
+  <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261110-mobile-error">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
 </head>
-<body class="auth-page min-h-[100dvh] bg-teal-700 font-auth-body text-ink-auth antialiased">
-  <main class="mx-auto flex min-h-[100dvh] max-w-[1280px] flex-col lg:grid lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-16 lg:px-12 lg:py-12">
+<body class="auth-page min-h-dvh bg-teal-700 font-auth-body text-ink-auth antialiased">
+  <main class="mx-auto flex min-h-dvh max-w-7xl flex-col lg:grid lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-16 lg:px-12 lg:py-12">
 
-    <section class="hidden min-w-0 text-panel lg:block">
+    <section class="auth-intro hidden min-w-0 text-panel lg:block">
       <a href="../../index.html" class="auth-back-site"><span aria-hidden="true">&larr;</span> Back to website</a>
       <div class="flex w-fit items-center gap-3 font-auth-display text-xl" aria-label="Leo Mejillano">
         <span class="grid h-11 w-11 place-items-center rounded-full border border-gold-auth text-base text-sand">LM</span>Leo Mejillano
       </div>
-      <p class="mt-8 max-w-[15ch] font-auth-display text-[clamp(2.2rem,4.4vw,3.8rem)] font-semibold leading-[1.06] [text-wrap:balance]">Book faster with your own account.</p>
-      <div class="mt-5 h-[3px] w-16 rounded bg-gold-auth"></div>
-      <p class="mt-5 max-w-[42ch] leading-relaxed text-[#cfe3e0]">Save your details once, then book any branch, pay deposits online and follow every appointment.</p>
+      <p class="mt-8 max-w-[15ch] font-auth-display text-[clamp(2.2rem,4.4vw,3.8rem)] font-semibold leading-[1.06] text-balance">Book faster with your own account.</p>
+      <div class="mt-5 h-0.75 w-16 rounded bg-gold-auth"></div>
+      <p class="mt-5 max-w-[42ch] leading-relaxed text-[color:var(--border)]">Save your details once, then book any branch, pay deposits online and follow every appointment.</p>
       <ul class="pts">
-        <li><span>1</span><div><b>Fill in your details</b><small>Name, email and mobile number</small></div></li>
+        <li class="on"><span>1</span><div><b>Fill in your details</b><small>Name, email and mobile number</small></div></li>
         <li><span>2</span><div><b>Verify your email</b><small>We send a 6-digit code</small></div></li>
         <li><span>3</span><div><b>Book your first visit</b><small>Pick a branch, service and stylist</small></div></li>
       </ul>
@@ -35,8 +37,7 @@
         <span class="mark" aria-label="Leo Mejillano">LM</span>
         <a href="../../index.html" class="auth-back-site"><span aria-hidden="true">&larr;</span> Back to website</a>
       </div>
-      <h1>Create your salon account</h1>
-      <p>It takes about a minute.</p>
+      <h1>Create an account</h1>
     </header>
 
     <div class="card">
@@ -55,12 +56,22 @@
             <p class="field-error" id="reg-firstname-error"></p>
           </div>
           <div>
-            <label for="reg-lastname">Last name</label>
+            <label for="reg-middlename">Middle name <span style="font-weight:400;opacity:.6">(optional)</span></label>
             <div class="inp plain field-box">
-              <input id="reg-lastname" name="last_name" type="text" autocomplete="family-name" placeholder="Santos">
+              <input id="reg-middlename" name="middle_name" type="text" autocomplete="additional-name" maxlength="100" placeholder="Reyes">
             </div>
-            <p class="field-error" id="reg-lastname-error"></p>
+            <label for="reg-middlename-na" style="display:inline-flex;align-items:center;gap:.4rem;margin-top:.35rem;font-size:.8rem;font-weight:500;cursor:pointer">
+              <input type="checkbox" id="reg-middlename-na" name="middle_name_na" value="1"> N/A (no middle name)
+            </label>
+            <p class="field-error" id="reg-middlename-error"></p>
           </div>
+        </div>
+        <div>
+          <label for="reg-lastname">Last name</label>
+          <div class="inp plain field-box">
+            <input id="reg-lastname" name="last_name" type="text" autocomplete="family-name" placeholder="Santos">
+          </div>
+          <p class="field-error" id="reg-lastname-error"></p>
         </div>
 
         <div>
@@ -163,6 +174,6 @@
   <script src="../../function/auth/common.js?v=2"></script>
   <script src="../../function/auth/auth-ui.js"></script>
   <script src="../../function/shared/late-arrival-rule.js"></script>
-  <script src="../../function/auth/register.js?v=20261106"></script>
+  <script src="../../function/auth/register.js?v=20261110-mobile-validation-3"></script>
 </body>
 </html>

@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="../shared/theme-tokens.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leo Mejillano Salon - Staff Assignments</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { theme: { extend: { colors: { teal: { 50: "#EEF7F2", 100: "#DDF0E6", 200: "#DDF0E6", 300: "#CDD6D0", 400: "#16604B", 500: "#16604B", 700: "#0E3B2F", 900: "#0A2E24" }, gold: { 100: "#FAF2DC", 200: "#FAF2DC", 300: "#E0B84C", 500: "#E0B84C", 600: "#E0B84C", 800: "#6C4C09" }, bronze: "#E2E7E3" } } } };</script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style type="text/tailwindcss">
         /* Converted from assets/css/cashier.css. Tailwind has no utility for
@@ -12,8 +14,8 @@
            else below uses @apply with normal Tailwind classes. */
         ::-webkit-scrollbar { @apply w-1.5 h-1.5; }
         ::-webkit-scrollbar-track { @apply bg-transparent; }
-        ::-webkit-scrollbar-thumb { @apply bg-slate-300 rounded-full; }
-        ::-webkit-scrollbar-thumb:hover { @apply bg-slate-400; }
+        ::-webkit-scrollbar-thumb { @apply bg-[color:var(--border-strong)] rounded-full; }
+        ::-webkit-scrollbar-thumb:hover { @apply bg-[color:var(--muted)]; }
 
         @keyframes fade-up {
             from { opacity: 0; transform: translateY(8px); }
@@ -24,7 +26,7 @@
         .card-lift { @apply transition duration-200 hover:-translate-y-0.5 hover:shadow-lg; }
 
         /* Skeleton placeholder shown while a page's first fetch is in flight. */
-        .skeleton { @apply bg-slate-200 animate-pulse rounded-lg; }
+        .skeleton { @apply bg-[color:var(--border)] animate-pulse rounded-lg; }
         .skeleton-line { @apply h-3.5; }
         .skeleton-row { @apply flex items-center gap-3 p-4; }
         .skeleton-avatar { @apply w-9 h-9 rounded-full shrink-0; }
@@ -40,43 +42,43 @@
         /* Cashier Panel building blocks (one place, reused by the popups).
            In the components layer so a utility class (pl-8, w-full...) still wins. */
         @layer components {
-        .stat-card { @apply flex flex-col gap-0.5 rounded-2xl border border-[#E8DCC8] bg-[#FFFDF9] p-4 shadow-sm hover:border-[#006D6F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006D6F] transition-colors; }
-        .stat-card.is-active { @apply border-[#006D6F] ring-1 ring-[#006D6F]; }
-        .stat-card-gold { @apply border-[#E0B84C] bg-[#FFF6DF]; }
+        .stat-card { @apply flex flex-col gap-0.5 rounded-2xl border border-[color:var(--border)] bg-[color:var(--card)] p-4 shadow-sm hover:border-teal-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 transition-colors; }
+        .stat-card.is-active { @apply border-teal-500 ring-1 ring-teal-500; }
+        .stat-card-gold { @apply border-gold-500 bg-[color:var(--accent-soft)]; }
         .stat-label { @apply text-sm font-semibold text-slate-600; }
         .stat-value { @apply text-3xl font-black text-slate-900 leading-tight; }
         .stat-hint { @apply text-xs text-slate-500; }
-        .queue-tab { @apply shrink-0 whitespace-nowrap rounded-full border border-[#E8DCC8] bg-white px-3.5 py-1.5 text-sm font-semibold text-slate-600 hover:border-[#006D6F]; }
-        .queue-tab span { @apply ml-1 rounded-full bg-[#F7F0E4] px-2 text-xs font-bold text-slate-700; }
-        .queue-tab.is-active { @apply border-[#006D6F] bg-[#E5F2F0] text-[#06464A]; }
+        .queue-tab { @apply shrink-0 whitespace-nowrap rounded-full border border-[color:var(--border)] bg-white px-3.5 py-1.5 text-sm font-semibold text-slate-600 hover:border-teal-500; }
+        .queue-tab span { @apply ml-1 rounded-full bg-[color:var(--bg)] px-2 text-xs font-bold text-slate-700; }
+        .queue-tab.is-active { @apply border-teal-500 bg-teal-100 text-teal-700; }
         .queue-tab.is-active span { @apply bg-white; }
         .modal-panel { @apply bg-white w-full max-h-[92dvh] sm:max-h-[90vh] flex flex-col overflow-hidden rounded-t-2xl sm:rounded-2xl shadow-2xl border border-gray-100; }
         .modal-panel > .overflow-y-auto { @apply min-h-0 flex-1; }
-        .modal-head { @apply bg-[#06464A] px-5 py-4 text-white flex justify-between items-center gap-3 shrink-0; }
+        .modal-head { @apply bg-teal-700 px-5 py-4 text-white flex justify-between items-center gap-3 shrink-0; }
         .modal-close { @apply w-9 h-9 shrink-0 inline-flex items-center justify-center rounded-full text-2xl leading-none text-white/80 hover:bg-white/10 hover:text-white; }
         .field-label { @apply block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5; }
-        .field-input { @apply w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-[#006D6F]; }
-        .btn-primary { @apply inline-flex items-center justify-center gap-1 rounded-xl bg-[#006D6F] hover:bg-[#06464A] px-4 py-3 font-bold text-white shadow-sm disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed; }
-        .btn-secondary { @apply inline-flex items-center justify-center gap-1 rounded-xl border border-[#D9C9B4] bg-white hover:bg-[#F7F0E4] px-4 py-3 font-bold text-slate-700; }
+        .field-input { @apply w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-teal-500; }
+        .btn-primary { @apply inline-flex items-center justify-center gap-1 rounded-xl bg-teal-500 hover:bg-teal-700 px-4 py-3 font-bold text-white shadow-sm disabled:bg-[color:var(--border)] disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed; }
+        .btn-secondary { @apply inline-flex items-center justify-center gap-1 rounded-xl border border-bronze bg-white hover:bg-[color:var(--bg)] px-4 py-3 font-bold text-slate-700; }
         .btn-row { @apply inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2 text-sm font-bold whitespace-nowrap; }
         .step-dot { @apply flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2 text-slate-400; }
         .step-dot span { @apply w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center text-xs; }
-        .step-dot.is-active { @apply border-[#006D6F] bg-[#E5F2F0] text-[#06464A]; }
-        .step-dot.is-active span { @apply border-[#006D6F] bg-[#006D6F] text-white; }
-        .step-dot.is-done { @apply text-emerald-700; }
-        .step-dot.is-done span { @apply border-emerald-600 bg-emerald-600 text-white; }
-        .pay-method-card { @apply flex items-center justify-center gap-2 rounded-xl border border-[#D9C9B4] bg-white py-2.5 text-base font-semibold text-slate-600 cursor-pointer select-none hover:border-[#006D6F]; }
-        .pay-method-card.is-active { @apply border-[#006D6F] bg-[#006D6F]/10 text-[#06464A] ring-1 ring-[#006D6F]; }
-        .chip-btn { @apply rounded-lg border border-[#D9C9B4] bg-white py-2 text-sm font-semibold text-slate-700 hover:border-[#006D6F]; }
-        .chip-btn.is-active { @apply border-[#006D6F] bg-[#006D6F]/10 text-[#06464A] ring-1 ring-[#006D6F]; }
+        .step-dot.is-active { @apply border-teal-500 bg-teal-100 text-teal-700; }
+        .step-dot.is-active span { @apply border-teal-500 bg-teal-500 text-white; }
+        .step-dot.is-done { @apply text-[color:var(--success)]; }
+        .step-dot.is-done span { @apply border-[color:var(--success)] bg-emerald-600 text-white; }
+        .pay-method-card { @apply flex items-center justify-center gap-2 rounded-xl border border-bronze bg-white py-2.5 text-base font-semibold text-slate-600 cursor-pointer select-none hover:border-teal-500; }
+        .pay-method-card.is-active { @apply border-teal-500 bg-teal-500/10 text-teal-700 ring-1 ring-teal-500; }
+        .chip-btn { @apply rounded-lg border border-bronze bg-white py-2 text-sm font-semibold text-slate-700 hover:border-teal-500; }
+        .chip-btn.is-active { @apply border-teal-500 bg-teal-500/10 text-teal-700 ring-1 ring-teal-500; }
         }
 
         @layer components {
-        .card { @apply rounded-2xl border border-[#E8DCC8] bg-white shadow-sm; }
+        .card { @apply rounded-2xl border border-[color:var(--border)] bg-white shadow-sm; }
         .card-head { @apply flex flex-wrap items-start justify-between gap-2 border-b border-gray-100 px-4 sm:px-5 py-4; }
         .card-title { @apply text-lg font-bold text-slate-900; }
         .card-sub { @apply text-sm text-slate-500; }
-        .step-num { @apply w-6 h-6 shrink-0 rounded-full bg-[#006D6F] text-white flex items-center justify-center text-xs font-bold; }
+        .step-num { @apply w-6 h-6 shrink-0 rounded-full bg-teal-500 text-white flex items-center justify-center text-xs font-bold; }
         .avatar { @apply w-11 h-11 shrink-0 rounded-full flex items-center justify-center text-sm font-bold; }
         }
     </style>
@@ -85,10 +87,12 @@
   <link rel="stylesheet" href="../../frontend/shared/portal-colors.css?v=20261103-signout-cream" />
   <script src="../../function/shared/toast.js"></script>
   <script src="../../function/shared/portal-presentation.js"></script>
-  <link rel="stylesheet" href="../../frontend/shared/mobile-nav.css?v=20261103c">
-  <script src="../../function/shared/mobile-nav.js?v=20261103" defer></script>
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
+  <!-- Cashier Panel redesign: loaded last, scoped to body.cp-cashier. -->
+  <link rel="stylesheet" href="../../frontend/cashier/cashier-panel.css?v=20261110d">
+  <link rel="stylesheet" href="../../frontend/shared/portal-unify.css?v=20261110b">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
 </head>
 <body class="salon-portal bg-gray-100 font-sans antialiased flex h-screen overflow-hidden">
 
@@ -141,7 +145,7 @@
 
         <div>
             <div class="px-3 pb-2">
-                <a href="../../backend/auth/logout.php?portal=cashier" id="btnSignOut" class="w-full text-left flex items-center space-x-3 px-4 py-2.5 rounded-lg text-xs transition-all text-rose-400 hover:bg-rose-900/40 hover:text-rose-300"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H5v14h4M13 8l4 4-4 4M9 12h12"/></svg><span>Sign Out</span></a>
+                <a href="../../backend/auth/logout.php?portal=cashier" id="btnSignOut" class="w-full text-justify flex items-center space-x-3 px-4 py-2.5 rounded-lg text-xs transition-all text-rose-400 hover:bg-rose-900/40 hover:text-rose-300"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H5v14h4M13 8l4 4-4 4M9 12h12"/></svg><span>Sign Out</span></a>
             </div>
         </div>
     </aside>
@@ -150,7 +154,7 @@
         <header class="bg-white border-b border-gray-200 min-h-16 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-3 z-10 shrink-0">
             <div class="flex items-center gap-3 min-w-0">
                 <h2 class="font-bold text-xl text-gray-800 truncate">Staff Assignments</h2>
-                <span id="branchLabel" class="hidden md:inline-block bg-amber-50 border border-amber-300 font-bold text-slate-900 text-xs rounded-xl px-3 py-1.5 shadow-sm truncate">Loading branch…</span>
+                <span id="branchLabel" class="hidden md:inline-block bg-amber-50 border border-[#774800]/40 font-bold text-slate-900 text-xs rounded-xl px-3 py-1.5 shadow-sm truncate">Loading branch…</span>
             </div>
             <p class="hidden lg:block text-sm font-semibold text-gray-600" id="liveClock">--</p>
         </header>
@@ -158,22 +162,22 @@
         <section class="flex-1 p-4 sm:p-6 overflow-y-auto space-y-5">
             <!-- Who is free right now. Each card filters the staff list. -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <button type="button" data-status="available" class="stat-card text-left">
+                <button type="button" data-status="available" class="stat-card text-justify">
                     <span class="stat-label">Available now</span>
-                    <span class="stat-value text-emerald-700" id="statAvailable">0</span>
+                    <span class="stat-value text-[color:var(--success)]" id="statAvailable">0</span>
                     <span class="stat-hint">Free to take a client</span>
                 </button>
-                <button type="button" data-status="busy" class="stat-card text-left">
+                <button type="button" data-status="busy" class="stat-card text-justify">
                     <span class="stat-label">Busy</span>
-                    <span class="stat-value text-amber-700" id="statBusy">0</span>
+                    <span class="stat-value text-[color:var(--warn)]" id="statBusy">0</span>
                     <span class="stat-hint">With a client right now</span>
                 </button>
-                <button type="button" data-status="off" class="stat-card text-left">
+                <button type="button" data-status="off" class="stat-card text-justify">
                     <span class="stat-label">Off shift</span>
                     <span class="stat-value text-slate-500" id="statOff">0</span>
                     <span class="stat-hint">Not clocked in today</span>
                 </button>
-                <a href="#assignCard" class="stat-card stat-card-gold text-left">
+                <a href="#assignCard" class="stat-card stat-card-gold text-justify">
                     <span class="stat-label">Bookings to assign</span>
                     <span class="stat-value" id="statToAssign">0</span>
                     <span class="stat-hint" id="statToAssignHint">Confirmed, from today on</span>
@@ -234,6 +238,16 @@
         </section>
     </main>
 
+    <div id="staffDetailsModal" role="dialog" aria-modal="true" aria-labelledby="staffDetailsTitle" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-end sm:items-center justify-center hidden opacity-0 transition-opacity duration-300 sm:p-4">
+        <div class="modal-panel max-w-lg transform scale-95 transition-transform duration-300">
+            <div class="modal-head">
+                <h4 id="staffDetailsTitle" class="font-bold text-lg">Staff details</h4>
+                <button id="btnCloseStaffDetails" type="button" class="modal-close" aria-label="Close">&times;</button>
+            </div>
+            <div class="p-5 overflow-y-auto" id="staffDetailsBody"></div>
+        </div>
+    </div>
+
     <div id="clockOutModal" role="dialog" aria-modal="true" aria-labelledby="clockOutTitle" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-end sm:items-center justify-center hidden opacity-0 transition-opacity duration-300 sm:p-4">
         <div class="modal-panel max-w-sm transform scale-95 transition-transform duration-300">
             <div class="modal-head">
@@ -241,7 +255,7 @@
                 <button id="btnCloseClockOutModal" type="button" class="modal-close" aria-label="Close">&times;</button>
             </div>
             <div class="p-5 space-y-4 overflow-y-auto">
-                <div class="rounded-xl bg-[#FFFDF9] border border-[#E8DCC8] p-3">
+                <div class="rounded-xl bg-[color:var(--card)] border border-[color:var(--border)] p-3">
                     <p class="font-bold text-slate-900 capitalize" id="clockOutName"></p>
                     <p class="text-sm text-slate-500" id="clockOutSince"></p>
                 </div>
@@ -250,7 +264,7 @@
                     <input id="clockOutTime" type="time" class="field-input">
                     <p class="text-xs text-slate-500 mt-1">Leave as is to clock them out now. It must be after they clocked in.</p>
                 </div>
-                <p class="rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-sm p-3">Use this when someone left without signing out. It is saved with your name so the hours can be reviewed.</p>
+                <p class="rounded-xl bg-amber-50 border border-[#774800]/30 text-[color:var(--warn)] text-sm p-3">Use this when someone left without signing out. It is saved with your name so the hours can be reviewed.</p>
                 <div class="grid grid-cols-2 gap-2">
                     <button type="button" onclick="CashierApp.hideModal('clockOutModal')" class="btn-secondary">Cancel</button>
                     <button id="btnConfirmClockOut" type="button" class="btn-primary bg-rose-600 hover:bg-rose-700">Clock out</button>
@@ -259,7 +273,9 @@
         </div>
     </div>
 
-    <script src="../../function/cashier/cashier-common.js"></script>
-    <script src="../../function/cashier/staff.js"></script>
+    <script src="../../function/shared/live-sync.js?v=20261110"></script>
+    <script src="../../function/cashier/cashier-shell.js?v=20261110c"></script>
+    <script src="../../function/cashier/cashier-common.js?v=20261110"></script>
+    <script src="../../function/cashier/staff.js?v=20261110"></script>
 </body>
 </html>

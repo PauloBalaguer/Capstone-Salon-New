@@ -11,60 +11,60 @@
 
 @theme {
   /* Teal primary brand */
-  --color-teal-50: #F4FBFA;
-  --color-teal-100: #E5F2F0;
-  --color-teal-200: #C7E0DD;
-  --color-teal-300: #83B9B8;
-  --color-teal-400: #287F80;
-  --color-teal-500: #006D6F;
-  --color-teal-700: #06464A;
-  --color-teal-900: #043437;
+  --color-teal-50: var(--brand-softer);
+  --color-teal-100: var(--brand-soft);
+  --color-teal-200: var(--brand-soft);
+  --color-teal-300: var(--border-strong);
+  --color-teal-400: var(--brand);
+  --color-teal-500: var(--brand);
+  --color-teal-700: var(--brand-dark);
+  --color-teal-900: var(--brand-deep);
 
   /* Gold accent */
-  --color-gold-100: #FAF2DC;
-  --color-gold-200: #F5E7C4;
-  --color-gold-300: #ECD184;
-  --color-gold-500: #E0B84C;
-  --color-gold-600: #B8933A;
-  --color-gold-800: #805B0B; /* gold text on light backgrounds */
+  --color-gold-100: var(--accent-soft);
+  --color-gold-200: var(--accent-soft);
+  --color-gold-300: var(--accent);
+  --color-gold-500: var(--accent);
+  --color-gold-600: var(--accent);
+  --color-gold-800: var(--accent-ink); /* gold text on light backgrounds */
 
   /* Warm neutrals */
-  --color-cream: #FFF8EE;  /* page background */
-  --color-panel: #FFFDF9;  /* cards */
-  --color-sand: #E8DCC8;   /* borders, soft surfaces */
-  --color-bronze: #D9C9B4;
-  --color-ink: #222222;    /* body text */
-  --color-muted: #475569;  /* secondary text */
+  --color-cream: var(--bg);  /* page background */
+  --color-panel: var(--card);  /* cards */
+  --color-sand: var(--border);   /* borders, soft surfaces */
+  --color-bronze: var(--border);
+  --color-ink: var(--text);    /* body text */
+  --color-muted: var(--muted);  /* secondary text */
 
   /* Status */
-  --color-ok: #166534;
-  --color-ok-text: #17603A;
-  --color-ok-soft: #EDF8F1;
-  --color-danger: #B91C1C;
-  --color-danger-text: #9F2D2D;
-  --color-danger-soft: #FFF0F0;
-  --color-warn-text: #7A5200;
-  --color-warn-soft: #FFF7E2;
+  --color-ok: var(--success);
+  --color-ok-text: var(--success);
+  --color-ok-soft: var(--success-soft);
+  --color-danger: var(--danger);
+  --color-danger-text: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-warn-text: var(--accent-ink);
+  --color-warn-soft: var(--accent-soft);
 
   /* Auth pages keep their own look */
-  --color-gold-auth: #C9A24E;
-  --color-ink-auth: #1F2937;
-  --color-muted-auth: #5B6472;
-  --color-field-auth: #F6F0E6;
-  --color-line-auth: #E4D7C0;
-  --color-ok-auth: #2F7D4F;
-  --color-err-auth: #A12B2B;
-  --color-teal-glow-auth: #0B8C8E;
+  --color-gold-auth: var(--accent);
+  --color-ink-auth: var(--text);
+  --color-muted-auth: var(--muted);
+  --color-field-auth: var(--bg);
+  --color-line-auth: var(--border);
+  --color-ok-auth: var(--success);
+  --color-err-auth: var(--danger);
+  --color-teal-glow-auth: var(--brand);
   /* Dark mode (prefers-color-scheme): the form sheet turns deep teal */
-  --color-sheet-auth: #0E2224;
-  --color-sheet-field-auth: #1D3739;
-  --color-sheet-ink-auth: #FFFDF9;
-  --color-sheet-label-auth: #A9CBC7;
-  --color-sheet-mute-auth: #A9CBC7;
-  --color-sheet-placeholder-auth: #8FB0AD;
-  --color-sheet-link-auth: #E8DCC8;
-  --color-sheet-err-auth: #F2A3A3; /* soft red, readable on the dark teal */
-  --color-sheet-ok-auth: #8BE0AE;
+  --color-sheet-auth: var(--text);
+  --color-sheet-field-auth: var(--text);
+  --color-sheet-ink-auth: var(--card);
+  --color-sheet-label-auth: var(--border-strong);
+  --color-sheet-mute-auth: var(--border-strong);
+  --color-sheet-placeholder-auth: var(--border-strong);
+  --color-sheet-link-auth: var(--border);
+  --color-sheet-err-auth: var(--border-strong); /* soft red, readable on the dark teal */
+  --color-sheet-ok-auth: var(--border-strong);
 
   --font-body: "Segoe UI", Tahoma, Verdana, Arial, sans-serif;
   --font-display: Georgia, Cambria, "Times New Roman", serif;
@@ -95,15 +95,15 @@
 @layer base {
   /* Dark mode for index.html (values from frontend/public/home-theme.css) */
   .dark {
-    --color-teal-500: #20A8AA;
-    --color-gold-500: #E8C56C;
-    --color-gold-200: #3E3318;
-    --color-gold-800: #ECD18F;
-    --color-bronze: #4A5C5A;
-    --color-ink: #EDE9E1;
-    --color-panel: #162121;
-    --color-cream: #0D1616;
-    --color-sand: #1B2828;
+    --color-teal-500: var(--brand);
+    --color-gold-500: var(--accent);
+    --color-gold-200: var(--accent-soft);
+    --color-gold-800: var(--accent-ink);
+    --color-bronze: var(--border-strong);
+    --color-ink: var(--text);
+    --color-panel: var(--card);
+    --color-cream: var(--bg);
+    --color-sand: var(--border);
   }
 
   /* v3 defaults the pages were designed with (Tailwind's official compat rules) */
@@ -114,7 +114,7 @@
     cursor: pointer;
   }
   input::placeholder, textarea::placeholder {
-    color: #9CA3AF;
+    color: var(--muted);
   }
 }
 
@@ -130,10 +130,10 @@
        The mark's mb-auto keeps it at the top, under the notch, and pushes
        the headline down. auth-ui.js adds the swatch fan. On tablets the
        text lines up with the centred form column. */
-    .hero { @apply relative isolate flex min-h-[230px] flex-1 flex-col justify-end overflow-hidden bg-[radial-gradient(120%_110%_at_0%_0%,#0E8C8D_0%,rgba(14,140,141,0)_70%)] px-6 pb-12 pt-[max(16px,calc(env(safe-area-inset-top)+8px))] text-panel sm:px-[max(2.5rem,calc((100%-28rem)/2))] lg:hidden; }
+    .hero { @apply relative isolate flex min-h-[230px] flex-1 flex-col justify-end overflow-hidden bg-[radial-gradient(120%_110%_at_0%_0%,#0E8C8D_0%,rgba(22,96,75,0)_70%)] px-6 pb-12 pt-[max(16px,calc(env(safe-area-inset-top)+8px))] text-panel sm:px-[max(2.5rem,calc((100%-28rem)/2))] lg:hidden; }
     .hero .mark { @apply mb-auto grid h-11 w-11 place-items-center rounded-full border border-gold-auth font-auth-display text-sm text-sand; }
     .hero h1 { @apply mt-5 max-w-[12ch] font-auth-display text-[clamp(1.75rem,8vw,2.4rem)] font-semibold leading-[1.08] [text-wrap:balance]; }
-    .hero p { @apply mt-2 max-w-[24ch] text-[0.95rem] leading-snug text-[#cfe3e0]; }
+    .hero p { @apply mt-2 max-w-[24ch] text-[0.95rem] leading-snug text-[color:var(--border)]; }
 
     /* Card: cream sheet under the teal header on phones. It shares the
        spare height with the header and centres the form in it, so the
@@ -146,7 +146,7 @@
     .logo strong { @apply font-auth-display text-xl; }
     .back { @apply self-start text-sm font-semibold text-teal-500 no-underline; }
     .title { @apply text-center font-auth-display text-3xl font-semibold [text-wrap:balance] max-lg:hidden; }
-    .sub { @apply -mt-1 text-center leading-relaxed text-muted-auth max-lg:text-left max-lg:text-sm; }
+    .sub { @apply -mt-1 text-center leading-relaxed text-muted-auth max-lg:text-justify max-lg:text-sm; }
     .sub b { @apply break-words text-ink-auth; }
     & label { @apply mb-1.5 block text-sm font-medium text-muted-auth; }
     .two { @apply grid grid-cols-2 gap-3; }
@@ -202,7 +202,7 @@
     .steps i { @apply h-1.5 w-7 rounded bg-line-auth; }
     .steps i.on { @apply bg-teal-500; }
 
-    .btn { @apply grid h-14 flex-none place-items-center rounded-2xl bg-teal-500 font-semibold text-panel shadow-[0_14px_28px_-14px_rgba(0,109,111,.9)] transition hover:bg-teal-700 active:scale-[.98] disabled:opacity-60 motion-reduce:transition-none; }
+    .btn { @apply grid h-14 flex-none place-items-center rounded-2xl bg-teal-500 font-semibold text-panel shadow-[0_14px_28px_-14px_rgba(22,96,75,.9)] transition hover:bg-teal-700 active:scale-[.98] disabled:opacity-60 motion-reduce:transition-none; }
     .foot { @apply text-center text-sm text-muted-auth; }
     .badge { @apply mx-auto grid h-16 w-16 place-items-center rounded-full bg-teal-500/10 text-teal-500; }
     .badge.warn { @apply bg-err-auth/10 text-err-auth; }
@@ -212,7 +212,7 @@
     .pts li { @apply flex items-center gap-3 rounded-2xl border border-sand/20 bg-panel/5 px-4 py-3 text-sm backdrop-blur-xs; }
     .pts li > span { @apply grid h-8 w-8 flex-none place-items-center rounded-xl bg-gold-auth/20 text-xs font-semibold text-sand; }
     .pts b { @apply block font-semibold; }
-    .pts small { @apply text-[#a9cbc7]; }
+    .pts small { @apply text-[color:var(--border-strong)]; }
 
     /* Loading spinner (common.js toggles .show). Toasts: function/shared/toast.js */
     .loading { @apply fixed inset-0 z-[70] hidden place-items-center bg-panel/80; }

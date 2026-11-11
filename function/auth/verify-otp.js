@@ -71,6 +71,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (res.body.success) {
           sessionStorage.removeItem('localRegistrationOtp');
+          sessionStorage.removeItem('lmRegisterDraft');
           if (res.body.needsPhoneCode) {
             sessionStorage.setItem('lmPhoneClaim', JSON.stringify({ token: res.body.claimToken, hint: res.body.phoneHint, codeSent: res.body.codeSent }));
             window.location.assign('verify-phone.html?email=' + encodeURIComponent(email));

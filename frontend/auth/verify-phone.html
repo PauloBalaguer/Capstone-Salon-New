@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <link rel="stylesheet" href="../shared/theme-tokens.css">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Confirm Your Number, Leo Mejillano Salon &amp; Beauty</title>
@@ -9,7 +10,8 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,500&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="../../frontend/shared/output.css?v=20261106">
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
-  <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
+  <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261110-steps">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
 </head>
 <body class="auth-page min-h-[100dvh] bg-teal-700 font-auth-body text-ink-auth antialiased">
   <main class="mx-auto flex min-h-[100dvh] max-w-[1280px] flex-col lg:grid lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-16 lg:px-12 lg:py-12">
@@ -21,11 +23,11 @@
       </div>
       <p class="mt-8 max-w-[15ch] font-auth-display text-[clamp(2.2rem,4.4vw,3.8rem)] font-semibold leading-[1.06] [text-wrap:balance]">We found your guest bookings.</p>
       <div class="mt-5 h-[3px] w-16 rounded bg-gold-auth"></div>
-      <p class="mt-5 max-w-[42ch] leading-relaxed text-[#cfe3e0]">Confirm this number is yours and your bookings and loyalty points join your new account.</p>
+      <p class="mt-5 max-w-[42ch] leading-relaxed text-[color:var(--border)]">Confirm this number is yours and your bookings and loyalty points join your new account.</p>
       <ul class="pts">
         <li><span>✓</span><div><b>Account created</b><small>Welcome to Leo Mejillano</small></div></li>
         <li><span>✓</span><div><b>Email verified</b><small>Your address is confirmed</small></div></li>
-        <li><span>3</span><div><b>Confirm your number</b><small>Enter the 6-digit code we texted</small></div></li>
+        <li class="on"><span>3</span><div><b>Confirm your number</b><small>Enter the 6-digit code we texted</small></div></li>
       </ul>
     </section>
 
@@ -35,7 +37,6 @@
         <a href="../../index.html" class="auth-back-site"><span aria-hidden="true">&larr;</span> Back to website</a>
       </div>
       <h1>Confirm your number</h1>
-      <p>Link your guest bookings</p>
     </header>
 
     <div class="card">

@@ -50,7 +50,14 @@ function clone_database(string $name): PDO
     require_once $root . '/backend/shared/config/notifications/EmailOutbox.php';
     (new ReflectionProperty(Database::class, 'db_name'))->setValue(null, $name);
     (new ReflectionProperty(EmailOutbox::class, 'hookRegistered'))->setValue(null, true);
-    return Database::getInstance();
+    $pdo = Database::getInstance();
+    // Booking needs a stylist on duty right now (Scheduling::staffCanTakeBooking),
+    // so in this throwaway copy every active stylist is clocked in, not on a break.
+    $pdo->exec("UPDATE attendance_breaks SET break_end = break_start WHERE break_end IS NULL");
+    $pdo->exec("INSERT INTO attendance (employee_id, clock_in_time)
+        SELECT e.id, NOW() - INTERVAL 1 MINUTE FROM employees e WHERE e.is_active = 1
+          AND NOT EXISTS (SELECT 1 FROM attendance a WHERE a.employee_id = e.id AND a.clock_out_time IS NULL)");
+    return $pdo;
 }
 
 /** Starts an endpoint in a child process; pass the handle to endpoint_result(). */

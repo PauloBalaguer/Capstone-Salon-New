@@ -1,0 +1,184 @@
+/* =====================================================================
+   Guest website -- Customer Portal sizing (customer-portal.css) applied to
+   index.html and frontend/public/payment-result.html.
+
+   Shares: 44-46px buttons and inputs, 10px control radius, 17px card radius,
+   the 36 / 24 / 16px page gutters and the 1024 / 768 / 480 / 360px
+   breakpoints. Never touches colours or fonts: every colour here is one of
+   the site's own Tailwind tokens (plum, bronze, sand, ink...).
+
+   Every rule is scoped to body.gw-site, a class only the guest pages carry,
+   so the Customer, Staff, Cashier and Admin portals are never affected.
+   Load it LAST.
+   ===================================================================== */
+
+/* ---------- Page gutters (Customer Portal: 36 / 24 / 16px) ---------- */
+body.gw-site :is(header, section, footer) .max-w-7xl { padding-left: 36px; padding-right: 36px; }
+@media (max-width: 1023.98px) {
+  body.gw-site :is(header, section, footer) .max-w-7xl { padding-left: 24px; padding-right: 24px; }
+}
+@media (max-width: 767.98px) {
+  body.gw-site :is(header, section, footer) .max-w-7xl { padding-left: 16px; padding-right: 16px; }
+}
+
+/* ---------- Text buttons (CTAs, filters, form actions) ----------
+   Pill and square text buttons become 10px-radius controls at least 44px
+   tall. Round icon buttons (fixed w-/h- sizes) keep their circle. */
+body.gw-site :is(a, button):is(.rounded-full, .rounded-xl, .rounded-lg, .rounded-2xl):not([class*=" w-"]):not([class^="w-"]):not([class*=" h-"]):not([class*="aspect-"]):not(.slot-btn):not(.book-otp-digit):is([class*="px-"], [class*="py-"]) {
+  border-radius: 10px !important;
+  min-height: 44px;
+}
+/* Full-width text buttons (form submits such as "Check status"). */
+body.gw-site :is(a, button).w-full:is(.rounded-full, .rounded-xl, .rounded-lg, .rounded-2xl):not(.slot-btn) { border-radius: 10px !important; min-height: 44px; }
+/* Primary booking calls to action: Customer Portal's 46px primary height. */
+body.gw-site :is(a, button)[onclick*="openBookingModal"]:not([class*=" w-"]) { min-height: 46px; }
+/* Round icon buttons (theme, menu): 44px touch target. */
+body.gw-site #siteHeader :is(#themeToggle, #menuBtn) { width: 44px; height: 44px; }
+
+/* ---------- Inputs (Customer Portal: 44px, 10px radius) ---------- */
+body.gw-site :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]):not(.book-otp-digit), select) {
+  min-height: 44px; border-radius: 10px !important;
+}
+body.gw-site textarea { border-radius: 10px !important; min-height: 88px; }
+body.gw-site .book-otp-digit { border-radius: 10px !important; min-height: 48px; }
+/* 16px text stops iOS zooming the page when a field is focused. */
+@media (max-width: 767.98px) {
+  body.gw-site :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) { font-size: 16px !important; }
+}
+
+/* ---------- Cards (Customer Portal: 17px radius) ---------- */
+body.gw-site main :is(.rounded-2xl, .rounded-3xl):not(a):not(button):not(img),
+body.gw-site section :is(.rounded-2xl, .rounded-3xl):not(a):not(button):not(img),
+body.gw-site > main.rounded-2xl { border-radius: 17px !important; }
+
+/* ---------- Header + navigation ---------- */
+body.gw-site #siteHeader > .max-w-7xl { min-height: 72px; }
+/* Desktop nav: full-height tabs, but keep a 44px minimum hit area. */
+body.gw-site #siteHeader nav .nav-tab-link { min-height: 44px; }
+
+/* Mobile menu (below 1024px): a full-width sheet under the header with
+   48px rows, left-aligned labels and the Book button pinned at the end. */
+@media (max-width: 1023.98px) {
+  body.gw-site #mobileNav {
+    max-height: calc(100dvh - 72px);
+    padding: 8px 24px calc(16px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 18px 40px -24px rgba(0, 0, 0, .45);
+  }
+  body.gw-site #mobileNav > button {
+    min-height: 48px; padding-top: 12px; padding-bottom: 12px;
+    text-align: left !important; justify-content: flex-start;
+  }
+  body.gw-site #mobileNav .mobile-nav-item.is-active { box-shadow: inset 3px 0 0 currentColor; padding-left: 12px; }
+  body.gw-site #mobileNav > button[onclick*="openBookingModal"] {
+    justify-content: center; text-align: center !important;
+    min-height: 48px; margin: 16px 0 8px; border-radius: 10px !important;
+  }
+}
+@media (max-width: 767.98px) {
+  body.gw-site #mobileNav { padding-left: 16px; padding-right: 16px; }
+}
+
+/* ---------- Dialogs: booking, tracking, staff profile, services ----------
+   17px corners on larger screens; on phones they become bottom sheets that
+   use the full width, like the Customer Portal's modals. */
+body.gw-site :is(#bookingModalBox, #trackModalBox) { border-radius: 17px !important; }
+body.gw-site :is(#closeBooking, #closeTrack) {
+  width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center;
+  top: 12px !important; right: 12px !important; border-radius: 10px;
+}
+body.gw-site dialog#servicesPopup { border-radius: 17px; }
+
+@media (max-width: 639.98px) {
+  body.gw-site :is(#bookingModalOverlay, #trackModalOverlay) {
+    align-items: flex-end !important; padding: 12px 0 0 !important;
+  }
+  body.gw-site :is(#bookingModalBox, #trackModalBox) {
+    max-width: none !important; width: 100%;
+    max-height: calc(100dvh - 12px) !important;
+    border-radius: 20px 20px 0 0 !important;
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  body.gw-site dialog#servicesPopup { width: 100%; max-width: none; margin: auto 0 0; border-radius: 20px 20px 0 0; }
+}
+
+/* ---------- Readable text ----------
+   General guest copy stays naturally spaced. Selected explanatory paragraphs
+   and policies opt into justification through clean-theme.css. */
+body.gw-site .text-justify { text-align: left !important; }
+body.gw-site .branch-start-label { font-size: 20px; font-weight: 800; }
+body.gw-site .salon-inside-label { font-size: 20px; font-weight: 800; }
+body.gw-site .client-stories-label { font-size: 20px; }
+body.gw-site .our-artists-label { font-size: 20px; }
+body.gw-site .salon-formulations-label { font-size: 20px; }
+body.gw-site .our-locations-label { font-size: 20px; }
+body.gw-site .event-categories-label { font-size: 20px; }
+body.gw-site .home-service-section-label { font-size: 20px; }
+body.gw-site .our-work-label { font-size: 20px; }
+body.gw-site .hs-progress-break { display: none; }
+@media (max-width: 639.98px) {
+  body.gw-site .hs-progress-break { display: initial; }
+  body.gw-site #hsProgress .hs-prog > span:last-child {
+    font-size: 11px !important;
+    line-height: 1.5;
+    letter-spacing: .02em;
+    text-align: center;
+    white-space: nowrap;
+  }
+}
+/* The light details card sits inside a dark section; use card text colors. */
+html body.gw-site #branchInfo { color: var(--text); }
+html body.gw-site #branchInfo :is(#bTag, #bSpec, #bLandmark, #bHoursNote, #bPhone2Label) {
+  color: var(--text) !important;
+}
+body.gw-site .full-studio-label { font-size: var(--type-helper); line-height: 1.4; }
+body.gw-site #servicesSectionTitle { font-size: var(--type-card) !important; line-height: 1.3 !important; }
+body.gw-site #baKicker { font-size: 20px !important; }
+body.gw-site #svcPromoText { white-space: pre-line; text-align: center; line-height: 1.6; }
+html body.gw-site .gift-certificate-table { border: 1px solid var(--brand) !important; }
+html body.gw-site #weddingPackagesGrid > figure { border: 1px solid var(--brand) !important; }
+html body.gw-site #staffTabs .staff-tab-btn { border: 1px solid var(--brand) !important; }
+@media (max-width: 639.98px) {
+  body.gw-site .gift-certificate-table > .grid { grid-template-columns: minmax(0, 1fr) auto; }
+  body.gw-site .gift-certificate-table > .grid > div { padding-inline: 12px; }
+}
+/* Tracker labels are compact UI text, not the shared 16px body-copy scale. */
+:root:root:root:root body.gw-site .trk-node p {
+  text-align: center;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
+@media (max-width: 639.98px) {
+  :root:root:root:root body.gw-site .trk-node p {
+    font-size: clamp(10px, 2.8vw, 12px) !important;
+    line-height: 1.4;
+    letter-spacing: 0;
+  }
+}
+body.gw-site .branch-pick > p:last-of-type { margin-bottom: 1.5rem; }
+body.gw-site .branch-pick-tags { margin-top: auto; padding-top: 1.25rem; }
+html body.gw-site .branch-pick-tags > span { border: 1px solid var(--brand) !important; }
+body.gw-site .branch-pick-actions { margin-top: 0; }
+body.gw-site .branch-pick { container-type: inline-size; }
+body.gw-site .branch-pick > h3 { font-weight: 700; }
+body.gw-site .branch-pick-header { flex-wrap: nowrap; gap: 6px; }
+body.gw-site .branch-pick-badge,
+body.gw-site .branch-pick-status { white-space: nowrap; font-size: clamp(9px, 3cqw, 12px); }
+body.gw-site .branch-pick-badge { padding-inline: 8px; letter-spacing: .04em; }
+body.gw-site .branch-pick-status { gap: 5px; }
+body.gw-site p:not(.text-center):not(.text-right) { text-align: left; }
+/* home-theme.css justifies the branch and service cards too. */
+body.gw-site :is(.branch-card, .svc-card), body.gw-site :is(.branch-card, .svc-card) [data-justify] { text-align: left; }
+/* Cards: Customer Portal 17px radius. */
+body.gw-site .branch-card { border-radius: 17px; }
+
+/* ---------- Payment result page ---------- */
+body.gw-site.gw-result { padding: 24px 16px; }
+body.gw-site.gw-result > main { box-shadow: 0 12px 34px rgba(24, 38, 31, .06); }
+@media (max-width: 479.98px) {
+  body.gw-site.gw-result > main { padding: 22px 18px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.gw-site :is(#bookingModalBox, #trackModalBox, #mobileNav) { transition: none !important; }
+}

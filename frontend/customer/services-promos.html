@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="stylesheet" href="../shared/theme-tokens.css">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Leo Mejillano Salon - Services & Promotions</title>
@@ -14,11 +15,11 @@
         extend: {
           colors: {
             luxury: {
-              50: '#F4FBFA', 100: '#E5F2F0', 200: '#C7E0DD', 500: '#006D6F',
-              600: '#006D6F', 700: '#06464A', 800: '#06464A', 900: '#06464A', 950: '#FFF8EE',
+              50: '#EEF7F2', 100: '#DDF0E6', 200: '#DDF0E6', 500: '#16604B',
+              600: '#16604B', 700: '#0E3B2F', 800: '#0E3B2F', 900: '#0E3B2F', 950: '#F6F8F7',
             },
             gold: {
-              100: '#fef08a', 400: '#facc15', 500: '#eab308', 600: '#ca8a04',
+              100: '#FAF2DC', 400: '#E0B84C', 500: '#E0B84C', 600: '#E0B84C',
             }
           }
         }
@@ -29,15 +30,15 @@
   <style>
     [x-cloak] { display: none !important; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #FFF8EE; }
-    ::-webkit-scrollbar-thumb { background: #006D6F; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #06464A; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--brand); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--brand-dark); }
 
     @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     .stagger-item { animation: fadeUp .45s cubic-bezier(.16,1,.3,1) both; }
 
     @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-    .skeleton { background: linear-gradient(90deg, #FFF8EE 25%, #E8DCC8 37%, #FFF8EE 63%); background-size: 400% 100%; animation: shimmer 1.4s ease infinite; }
+    .skeleton { background: linear-gradient(90deg, var(--bg) 25%, var(--border) 37%, var(--bg) 63%); background-size: 400% 100%; animation: shimmer 1.4s ease infinite; }
 
     @keyframes gentlePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
     .pulse-badge { animation: gentlePulse 1.6s ease-in-out infinite; }
@@ -46,12 +47,12 @@
     .topbar-shine { background-size: 200% 100%; animation: topbarShine 7s linear infinite; }
 
     .card-lift { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
-    .card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(0, 109, 111, 0.35); }
+    .card-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(22, 96, 75, 0.35); }
   
     /* On/off switch: grey pill when off, green when on, white knob slides across. */
-    .lm-switch { position:relative !important; display:inline-block !important; flex:none !important; width:52px !important; height:30px !important; min-width:52px !important; min-height:0 !important; max-height:30px !important; box-sizing:border-box !important; vertical-align:middle; padding:0 !important; border-radius:999px !important; border:2px solid #cfcfcf !important; background:#d4d4d4 !important; cursor:pointer; transition:background-color .2s, border-color .2s; }
-    .lm-switch.is-on { background:#8bc34a !important; border-color:#8bc34a !important; }
-    .lm-switch:focus-visible { outline:3px solid #006d6f; outline-offset:2px; }
+    .lm-switch { position:relative !important; display:inline-block !important; flex:none !important; width:52px !important; height:30px !important; min-width:52px !important; min-height:0 !important; max-height:30px !important; box-sizing:border-box !important; vertical-align:middle; padding:0 !important; border-radius:999px !important; border:2px solid var(--border-strong) !important; background:var(--border-strong) !important; cursor:pointer; transition:background-color .2s, border-color .2s; }
+    .lm-switch.is-on { background:var(--success) !important; border-color:var(--success) !important; }
+    .lm-switch:focus-visible { outline:3px solid var(--brand); outline-offset:2px; }
     .lm-switch-knob { position:absolute !important; top:0 !important; left:0 !important; width:26px !important; height:26px !important; min-height:0 !important; box-sizing:border-box !important; border-radius:50% !important; background:#fff !important; border:0 !important; box-shadow:0 1px 3px rgba(0,0,0,.3); transform:translateX(0); transition:transform .2s; }
     .lm-switch.is-on .lm-switch-knob { transform:translateX(22px); }
     @media (prefers-reduced-motion: reduce) { .lm-switch, .lm-switch-knob { transition:none; } }
@@ -68,7 +69,8 @@
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
   <!-- Customer portal shell (sidebar, header, bottom nav); loaded after the shared themes. -->
-  <link rel="stylesheet" href="../../frontend/customer/customer-portal.css?v=20261108">
+  <link rel="stylesheet" href="../../frontend/customer/customer-portal.css?v=20261110">
+  <link rel="stylesheet" href="../shared/type-scale.css?v=20261110-size">
 </head>
 <body data-customer-page="services" data-page-title="Explore Services" class="salon-portal services-page bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
@@ -111,7 +113,7 @@
                   <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-full border flex items-center justify-center text-xs sm:text-xs font-bold transition-all duration-300"
                        :class="i === bookingProgressIndex() ? 'bg-gold-500 text-slate-950 border-gold-500 scale-110' : (i < bookingProgressIndex() ? 'bg-luxury-700 text-white border-luxury-700' : 'bg-slate-800 text-slate-500 border-slate-700')"
                        x-text="i + 1"></div>
-                  <span class="text-xs sm:text-xs hidden sm:inline transition-colors duration-300" :class="i === bookingProgressIndex() ? 'text-white font-semibold' : 'text-slate-500'" x-text="label"></span>
+                  <span class="text-xs transition-colors duration-300" :class="i === bookingProgressIndex() ? 'text-white font-semibold' : 'text-slate-500'" x-text="label"></span>
                   <div x-show="i < bookingProgressLabels().length - 1" class="w-3 sm:w-8 h-px bg-slate-700"></div>
                 </div>
               </template>
@@ -121,15 +123,15 @@
               <p x-show="bookingEntry && !showBookingForm && !showBookingSuccess" class="text-sm text-slate-400">Choose a branch, then tap <strong>Book now</strong> on the service you want.</p>
               <!-- Branch: three short pills instead of a dropdown (full name shown below). -->
               <div x-show="!showBookingForm && !showBookingSuccess" class="space-y-1.5">
-                <div role="radiogroup" aria-label="Branch" class="grid grid-cols-3 gap-1 p-1 rounded-xl bg-[#EFE6D6]">
+                <div role="radiogroup" aria-label="Branch" class="grid grid-cols-3 gap-1 p-1 rounded-xl bg-[color:var(--border)]">
                   <template x-for="b in serviceBranches" :key="b.key">
                     <button type="button" role="radio" :aria-checked="(selectedBranchForServices === b.key).toString()" :title="b.name"
                             @click="chooseServiceBranch(b.key)"
-                            :class="selectedBranchForServices === b.key ? 'bg-[#006D6F] text-white shadow' : 'text-[#374151] hover:bg-[#E4D7C0]'"
+                            :class="selectedBranchForServices === b.key ? 'bg-[color:var(--brand)] text-white shadow' : 'text-[color:var(--text-body-color)] hover:bg-[color:var(--border)]'"
                             class="min-h-10 rounded-lg px-2 text-sm font-semibold transition truncate" x-text="b.short"></button>
                   </template>
                 </div>
-                <p class="text-xs text-[#6B7280]" x-text="(serviceBranches.find(b => b.key === selectedBranchForServices) || {}).name"></p>
+                <p class="text-xs text-[color:var(--muted)]" x-text="(serviceBranches.find(b => b.key === selectedBranchForServices) || {}).name"></p>
               </div>
 
               <p x-show="showBookingForm" class="text-xs text-slate-400"><strong>Branch:</strong> <span x-text="{'daraga':'Leo Mejillano Salon (Daraga)','yashano':'Skin Brows (Yashano)','cabangan':'Lash &amp; Brows (Cabangan)'}[selectedBranchForServices]"></span></p>
@@ -140,14 +142,14 @@
                     <div class="flex gap-2 mt-2">
                       <div class="relative flex-1 min-w-0">
                         <label for="service-search" class="sr-only">Search services</label>
-                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-[#6B7280] pointer-events-none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--muted)] pointer-events-none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
                         <input id="service-search" type="search" x-model.debounce.200ms="serviceSearch" @input="servicePage = 1" placeholder="Search services"
-                               class="w-full h-11 pl-9 pr-3 rounded-lg bg-white border border-[#D9C9B4] text-sm text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#006D6F]/30">
+                               class="w-full h-11 pl-9 pr-3 rounded-lg bg-white border border-[color:var(--border)] text-sm text-[color:var(--text)] focus:outline-none focus:ring-2 focus:ring-[#16604B]/30">
                       </div>
                       <div class="w-[42%] max-w-[14rem] shrink-0">
                         <label for="service-category" class="sr-only">Category</label>
                         <select id="service-category" x-model="serviceCategory" @change="servicePage = 1"
-                                class="w-full h-11 px-2.5 rounded-lg bg-white border border-[#D9C9B4] text-sm text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#006D6F]/30">
+                                class="w-full h-11 px-2.5 rounded-lg bg-white border border-[color:var(--border)] text-sm text-[color:var(--text)] focus:outline-none focus:ring-2 focus:ring-[#16604B]/30">
                           <option value="">All categories</option>
                           <template x-for="g in serviceCategoryGroups()" :key="g.group">
                             <optgroup :label="g.group">
@@ -160,26 +162,26 @@
 
                     <div class="flex items-center justify-between gap-2 flex-wrap">
                       <div class="flex items-center gap-2 flex-wrap min-w-0">
-                        <p id="service-catalog-heading" tabindex="-1" class="text-sm font-semibold text-[#374151] focus:outline-none" role="status" x-text="serviceCount()"></p>
+                        <p id="service-catalog-heading" tabindex="-1" class="text-sm font-semibold text-[color:var(--text-body-color)] focus:outline-none" role="status" x-text="serviceCount()"></p>
                         <!-- Active filters as removable chips -->
                         <button type="button" x-show="serviceCategory" @click="serviceCategory = ''; servicePage = 1"
-                                class="inline-flex items-center gap-1 max-w-[12rem] rounded-full bg-[#E0F1EF] text-[#006D6F] text-xs font-semibold pl-2.5 pr-1.5 py-1"
+                                class="inline-flex items-center gap-1 max-w-[12rem] rounded-full bg-[color:var(--brand-softer)] text-[color:var(--brand)] text-xs font-semibold pl-2.5 pr-1.5 py-1"
                                 :aria-label="'Remove category filter ' + serviceCategoryLabel(serviceCategory)">
                           <span class="truncate" x-text="serviceCategoryLabel(serviceCategory)"></span><span aria-hidden="true" class="text-base leading-none">&times;</span>
                         </button>
                         <button type="button" x-show="serviceSearch" @click="serviceSearch = ''; servicePage = 1"
-                                class="inline-flex items-center gap-1 max-w-[12rem] rounded-full bg-[#E0F1EF] text-[#006D6F] text-xs font-semibold pl-2.5 pr-1.5 py-1"
+                                class="inline-flex items-center gap-1 max-w-[12rem] rounded-full bg-[color:var(--brand-softer)] text-[color:var(--brand)] text-xs font-semibold pl-2.5 pr-1.5 py-1"
                                 :aria-label="'Clear search ' + serviceSearch">
                           <span class="truncate" x-text="'“' + serviceSearch + '”'"></span><span aria-hidden="true" class="text-base leading-none">&times;</span>
                         </button>
                       </div>
-                      <div role="radiogroup" aria-label="Layout" class="inline-flex p-0.5 rounded-lg bg-[#EFE6D6]">
+                      <div role="radiogroup" aria-label="Layout" class="inline-flex p-0.5 rounded-lg bg-[color:var(--border)]">
                         <button type="button" role="radio" :aria-checked="(serviceView === 'cards').toString()" @click="setServiceView('cards')" aria-label="Card view" title="Card view"
-                                :class="serviceView === 'cards' ? 'bg-white text-[#006D6F] shadow' : 'text-[#6B7280]'" class="w-10 h-9 inline-flex items-center justify-center rounded-md">
+                                :class="serviceView === 'cards' ? 'bg-white text-[color:var(--brand)] shadow' : 'text-[color:var(--muted)]'" class="w-10 h-9 inline-flex items-center justify-center rounded-md">
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg>
                         </button>
                         <button type="button" role="radio" :aria-checked="(serviceView === 'table').toString()" @click="setServiceView('table')" aria-label="Table view" title="Table view"
-                                :class="serviceView === 'table' ? 'bg-white text-[#006D6F] shadow' : 'text-[#6B7280]'" class="w-10 h-9 inline-flex items-center justify-center rounded-md">
+                                :class="serviceView === 'table' ? 'bg-white text-[color:var(--brand)] shadow' : 'text-[color:var(--muted)]'" class="w-10 h-9 inline-flex items-center justify-center rounded-md">
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 5h18M3 10h18M3 15h18M3 20h18"/></svg>
                         </button>
                       </div>
@@ -188,58 +190,58 @@
                     <!-- Cards: name, price, duration, promo tag, actions. -->
                     <div x-show="serviceView === 'cards'" class="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-3">
                       <template x-for="service in pagedServices()" :key="service.id">
-                        <article class="flex flex-col gap-2 rounded-xl border bg-[#FFFDF9] p-3.5 transition"
-                                 :class="isSelectedForBooking(service) ? 'border-[#006D6F] ring-1 ring-[#006D6F]' : 'border-[#E4D7C0]'">
+                        <article class="flex flex-col gap-2 rounded-xl border bg-[color:var(--card)] p-3.5 transition"
+                                 :class="isSelectedForBooking(service) ? 'border-[color:var(--brand)] ring-1 ring-[color:var(--brand)]' : 'border-[color:var(--border)]'">
                           <div class="flex items-start justify-between gap-3">
-                            <h5 class="font-semibold text-[15px] leading-snug text-[#1F2937] min-w-0" x-text="service.name"></h5>
-                            <p class="shrink-0 font-bold text-[15px] text-[#8B6914]" x-text="formatPeso(service.price)"></p>
+                            <h5 class="font-semibold text-[15px] leading-snug text-[color:var(--text)] min-w-0" x-text="service.name"></h5>
+                            <p class="shrink-0 font-bold text-[15px] text-[color:var(--accent-ink)]" x-text="formatPeso(service.price)"></p>
                           </div>
-                          <p class="flex items-center gap-2 text-xs text-[#6B7280]">
+                          <p class="flex items-center gap-2 text-xs text-[color:var(--muted)]">
                             <span class="inline-flex items-center gap-1">
                               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
                               <span x-text="ServiceDuration.format(service.durationMinutes)"></span>
                             </span>
-                            <span x-show="getPromoForService(service)" class="rounded-full bg-[#FEF3C7] text-[#92400E] font-semibold px-2 py-0.5">Promo</span>
+                            <span x-show="getPromoForService(service)" class="rounded-full bg-[color:var(--warn-soft)] text-[color:var(--accent-ink)] font-semibold px-2 py-0.5">Promo</span>
                           </p>
                           <div class="grid grid-cols-2 gap-2 mt-auto pt-1">
                             <button type="button" @click="toggleServiceSelection(service)" :aria-pressed="isSelectedForBooking(service)"
                                     :aria-label="(isSelectedForBooking(service) ? 'Remove ' : 'Add ') + service.name"
-                                    :class="isSelectedForBooking(service) ? 'bg-[#E0F1EF] border-[#006D6F]' : 'bg-transparent border-[#A9C7C6] hover:bg-[#006D6F]/5'"
-                                    class="min-h-10 rounded-lg border text-sm font-semibold text-[#006D6F] transition" x-text="isSelectedForBooking(service) ? 'Added ✓' : '+ Add'"></button>
-                            <button type="button" @click="bookNowService(service)" class="min-h-10 rounded-lg bg-[#006D6F] hover:bg-[#06464A] text-white text-sm font-bold transition active:scale-95">Book now</button>
+                                    :class="isSelectedForBooking(service) ? 'bg-[color:var(--brand-softer)] border-[color:var(--brand)]' : 'bg-transparent border-[color:var(--border-strong)] hover:bg-[#16604B]/5'"
+                                    class="min-h-10 rounded-lg border text-sm font-semibold text-[color:var(--brand)] transition" x-text="isSelectedForBooking(service) ? 'Added ✓' : '+ Add'"></button>
+                            <button type="button" @click="bookNowService(service)" class="min-h-10 rounded-lg bg-[color:var(--brand)] hover:bg-[color:var(--brand-dark)] text-white text-sm font-bold transition active:scale-95">Book now</button>
                           </div>
                         </article>
                       </template>
                     </div>
 
                     <!-- Table: one row per service; duration folds under the name on phones. -->
-                    <div x-show="serviceView === 'table' && getFilteredServices().length" class="rounded-xl border border-[#E4D7C0] overflow-hidden bg-[#FFFDF9]">
-                      <table class="w-full text-sm text-[#1F2937]">
-                        <thead class="bg-[#F7F1E6] text-xs uppercase tracking-wide text-[#6B7280]">
+                    <div x-show="serviceView === 'table' && getFilteredServices().length" class="cp-service-table-wrap rounded-xl border border-[color:var(--border)] bg-[color:var(--card)]">
+                      <table class="w-full text-sm text-[color:var(--text)]">
+                        <thead class="bg-[color:var(--bg)] text-xs uppercase tracking-wide text-[color:var(--muted)]">
                           <tr>
-                            <th scope="col" class="text-left font-bold px-3 py-2">Service</th>
-                            <th scope="col" class="hidden sm:table-cell text-left font-bold px-3 py-2">Duration</th>
+                            <th scope="col" class="text-justify font-bold px-3 py-2">Service</th>
+                            <th scope="col" class="hidden sm:table-cell text-justify font-bold px-3 py-2">Duration</th>
                             <th scope="col" class="text-right font-bold px-3 py-2">Price</th>
                             <th scope="col" class="px-2 py-2"><span class="sr-only">Actions</span></th>
                           </tr>
                         </thead>
                         <tbody>
                           <template x-for="service in pagedServices()" :key="service.id">
-                            <tr class="border-t border-[#EFE6D6]" :class="isSelectedForBooking(service) ? 'bg-[#E0F1EF]/60' : ''">
+                            <tr class="border-t border-[color:var(--border)]" :class="isSelectedForBooking(service) ? 'bg-[#EEF7F2]/60' : ''">
                               <td class="px-3 py-2.5 align-middle w-full">
                                 <span class="font-semibold leading-snug" x-text="service.name"></span>
-                                <span x-show="getPromoForService(service)" class="ml-1 align-middle rounded-full bg-[#FEF3C7] text-[#92400E] text-[11px] font-semibold px-1.5 py-0.5">Promo</span>
-                                <span class="sm:hidden block text-xs text-[#6B7280]" x-text="ServiceDuration.format(service.durationMinutes)"></span>
+                                <span x-show="getPromoForService(service)" class="ml-1 align-middle rounded-full bg-[color:var(--warn-soft)] text-[color:var(--accent-ink)] text-[11px] font-semibold px-1.5 py-0.5">Promo</span>
+                                <span class="sm:hidden block text-xs text-[color:var(--muted)]" x-text="ServiceDuration.format(service.durationMinutes)"></span>
                               </td>
-                              <td class="hidden sm:table-cell px-3 py-2.5 text-[#4B5563] whitespace-nowrap" x-text="ServiceDuration.format(service.durationMinutes)"></td>
-                              <td class="px-3 py-2.5 text-right font-bold text-[#8B6914] whitespace-nowrap" x-text="formatPeso(service.price)"></td>
+                              <td class="hidden sm:table-cell px-3 py-2.5 text-[color:var(--text-body-color)] whitespace-nowrap" x-text="ServiceDuration.format(service.durationMinutes)"></td>
+                              <td class="px-3 py-2.5 text-right font-bold text-[color:var(--accent-ink)] whitespace-nowrap" x-text="formatPeso(service.price)"></td>
                               <td class="px-2 py-2 whitespace-nowrap text-right">
                                 <div class="inline-flex gap-1.5">
                                   <button type="button" @click="toggleServiceSelection(service)" :aria-pressed="isSelectedForBooking(service)"
                                           :aria-label="(isSelectedForBooking(service) ? 'Remove ' : 'Add ') + service.name" :title="isSelectedForBooking(service) ? 'Remove' : 'Add'"
-                                          :class="isSelectedForBooking(service) ? 'bg-[#006D6F] text-white border-[#006D6F]' : 'text-[#006D6F] border-[#A9C7C6] hover:bg-[#006D6F]/5'"
+                                          :class="isSelectedForBooking(service) ? 'bg-[color:var(--brand)] text-white border-[color:var(--brand)]' : 'text-[color:var(--brand)] border-[color:var(--border-strong)] hover:bg-[#16604B]/5'"
                                           class="shrink-0 w-10 h-10 rounded-lg border text-lg font-bold leading-none" x-text="isSelectedForBooking(service) ? '✓' : '+'"></button>
-                                  <button type="button" @click="bookNowService(service)" :aria-label="'Book ' + service.name" class="shrink-0 h-10 px-3 rounded-lg bg-[#006D6F] hover:bg-[#06464A] text-white text-sm font-bold whitespace-nowrap [overflow-wrap:normal]">Book</button>
+                                  <button type="button" @click="bookNowService(service)" :aria-label="'Book ' + service.name" class="shrink-0 h-10 px-3 rounded-lg bg-[color:var(--brand)] hover:bg-[color:var(--brand-dark)] text-white text-sm font-bold whitespace-nowrap [overflow-wrap:normal]">Book</button>
                                 </div>
                               </td>
                             </tr>
@@ -254,7 +256,7 @@
                     </div>
                     <nav x-show="servicePageCount() > 1" class="flex items-center justify-between gap-3 pt-1" aria-label="Service pages">
                       <button type="button" @click="changeServicePage(-1)" :disabled="servicePage <= 1" class="service-add-button min-h-10">← Previous</button>
-                      <span class="text-xs text-[#4B5563]" x-text="'Page ' + Math.min(servicePage, servicePageCount()) + ' of ' + servicePageCount()"></span>
+                      <span class="text-xs text-[color:var(--text-body-color)]" x-text="'Page ' + Math.min(servicePage, servicePageCount()) + ' of ' + servicePageCount()"></span>
                       <button type="button" @click="changeServicePage(1)" :disabled="servicePage >= servicePageCount()" class="service-add-button min-h-10">Next →</button>
                     </nav>
                   </div>
@@ -271,7 +273,7 @@
                             <p class="text-lg font-bold text-gold-400" x-text="formatPeso(promo.price)"></p>
                             <p class="text-xs text-slate-400 line-through" x-text="formatPeso(promo.originalPrice)"></p>
                           </div>
-                          <button @click="openBookingSection(promo)" class="mt-2 w-full bg-gold-500 hover:bg-gold-600 text-slate-950 text-xs font-bold py-2 rounded-lg transition active:scale-95">Book Now</button>
+                          <button @click="openBookingSection(promo)" class="mt-2 w-full bg-gold-500 hover:bg-gold-600 text-slate-950 text-xs font-bold py-2 rounded-lg transition active:scale-95">Book now</button>
                         </div>
                       </template>
                       <template x-if="getFilteredPromotions().length === 0">
@@ -338,7 +340,7 @@
                             <p id="booking-time-label" class="block font-bold text-slate-400 mb-1">Time</p>
                             <p class="text-slate-500 mb-2">Select a time to see available stylists.</p>
                             <p x-show="slotsLoading || staffAvailabilityLoading" role="status" class="text-slate-500 mb-2">Checking availability...</p>
-                            <div x-show="(slotsError || staffAvailabilityError) && !slotsLoading && !staffAvailabilityLoading" role="alert" class="rounded-lg border border-rose-300 p-3">
+                            <div x-show="(slotsError || staffAvailabilityError) && !slotsLoading && !staffAvailabilityLoading" role="alert" class="rounded-lg border border-[#9C1E15]/40 p-3">
                               <p x-text="slotsError || staffAvailabilityError"></p>
                               <button type="button" @click="refreshAvailableSlots()" class="service-add-button mt-2">Try again</button>
                             </div>
@@ -358,9 +360,9 @@
                             <p class="text-slate-500 mt-2">Only times that are still open for this branch are shown here.</p>
                             <!-- Heads-up: a time inside the online-reschedule cut-off can never be moved online. -->
                             <div x-show="isInsideRescheduleCutoff(bookingForm.date, bookingForm.time)" role="status"
-                                 class="mt-3 flex gap-2.5 rounded-lg bg-[#FFFBEB] border border-[#F5D58A] border-l-4 border-l-[#B45309] p-3 text-[#4B5563]">
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="2" stroke-linecap="round" aria-hidden="true" class="shrink-0 mt-0.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-                              <p class="prose-justify text-sm leading-relaxed"><strong class="text-[#78350F]">This time is less than 24 hours away.</strong>
+                                 class="mt-3 flex gap-2.5 rounded-lg bg-[color:var(--accent-soft)] border border-[color:var(--accent)] border-l-4 border-l-[color:var(--accent-ink)] p-3 text-[color:var(--text-body-color)]">
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6C4C09" stroke-width="2" stroke-linecap="round" aria-hidden="true" class="shrink-0 mt-0.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                              <p class="prose-justify text-sm leading-relaxed"><strong class="text-[color:var(--accent-ink)]">This time is less than 24 hours away.</strong>
                                 You can still book it, but you won't be able to reschedule it online. To change it later, please contact the branch.</p>
                             </div>
                           </div>
@@ -382,13 +384,14 @@
                               <button type="button" class="stylist-choice" :disabled="!staff.available || staffAvailabilityLoading || !!staffAvailabilityError" @click="bookingForm.staffId = staff.id" :aria-pressed="String(bookingForm.staffId) === String(staff.id)">
                                 <strong x-text="staff.name"></strong>
                                 <span class="block text-xs text-slate-500" x-text="staff.role"></span>
-                                <span class="stylist-availability" :class="staff.available ? 'stylist-available-label' : 'stylist-busy-label'" x-text="staff.available ? 'Available' : (staff.busyUntil ? 'Busy until ' + staff.busyUntil : 'Busy')"></span>
+                                <span class="stylist-availability" :class="staff.available ? 'stylist-available-label' : 'stylist-busy-label'" x-text="staff.available ? 'Available' : (staff.busyUntil ? 'Busy until ' + staff.busyUntil : 'Not available')"></span>
                                 <span x-show="staff.currentShift === 'Off Shift'" class="stylist-shift-label">Off duty now</span>
-                                <span x-show="staff.currentShift === 'On Duty'" class="stylist-shift-label">On duty now</span>
-                                <span x-show="staff.currentShift === 'With Client'" class="stylist-shift-label">With a client now</span>
+                                <span x-show="staff.currentShift === 'On Shift'" class="stylist-shift-label">On duty now</span>
+                                <span x-show="staff.currentShift === 'On Break'" class="stylist-shift-label">On a break now</span>
+                                <span x-show="staff.currentShift === 'Busy'" class="stylist-shift-label">With a client now</span>
                                 <span x-show="String(bookingForm.staffId) === String(staff.id)" class="block text-xs font-bold mt-1">Selected</span>
                               </button>
-                              <button type="button" x-show="!staff.available" @click="notifyStylistOpening(staff)" :disabled="isJoiningWaitlist || staffAvailabilityLoading || !!staffAvailabilityError" class="service-add-button">Notify me</button>
+                              <button type="button" x-show="!staff.available && staff.busyUntil" @click="notifyStylistOpening(staff)" :disabled="isJoiningWaitlist || staffAvailabilityLoading || !!staffAvailabilityError" class="service-add-button">Notify me</button>
                             </article>
                           </template>
                         </div>
@@ -412,9 +415,9 @@
                         </dl>
 
                         <div x-show="isInsideRescheduleCutoff(bookingForm.date, bookingForm.time)" role="note"
-                             class="flex gap-2.5 rounded-lg bg-[#FFFBEB] border border-[#F5D58A] border-l-4 border-l-[#B45309] p-3 text-[#4B5563]">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="2" stroke-linecap="round" aria-hidden="true" class="shrink-0 mt-0.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-                          <p class="prose-justify text-sm leading-relaxed"><strong class="text-[#78350F]">No online rescheduling for this booking.</strong>
+                             class="flex gap-2.5 rounded-lg bg-[color:var(--accent-soft)] border border-[color:var(--accent)] border-l-4 border-l-[color:var(--accent-ink)] p-3 text-[color:var(--text-body-color)]">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6C4C09" stroke-width="2" stroke-linecap="round" aria-hidden="true" class="shrink-0 mt-0.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                          <p class="prose-justify text-sm leading-relaxed"><strong class="text-[color:var(--accent-ink)]">No online rescheduling for this booking.</strong>
                             It starts in less than 24 hours, so any change will have to go through the branch.</p>
                         </div>
 
@@ -459,10 +462,10 @@
                               <label class="block font-bold text-slate-400 mb-1">Payment option</label>
                               <div class="grid grid-cols-2 gap-2">
                                 <label class="flex items-center gap-2 bg-slate-950 border rounded-lg p-2.5 cursor-pointer" :class="bookingForm.paymentPlan === 'deposit' ? 'border-gold-500 text-white' : 'border-slate-800 text-slate-300'">
-                                  <input type="radio" value="deposit" x-model="bookingForm.paymentPlan" @change="loadReservationQuote()" class="accent-amber-500"> Deposit
+                                  <input type="radio" value="deposit" x-model="bookingForm.paymentPlan" @change="loadReservationQuote()" class="accent-[color:var(--brand)]"> Deposit
                                 </label>
                                 <label class="flex items-center gap-2 bg-slate-950 border rounded-lg p-2.5 cursor-pointer" :class="bookingForm.paymentPlan === 'full' ? 'border-gold-500 text-white' : 'border-slate-800 text-slate-300'">
-                                  <input type="radio" value="full" x-model="bookingForm.paymentPlan" @change="loadReservationQuote()" class="accent-amber-500"> Full payment
+                                  <input type="radio" value="full" x-model="bookingForm.paymentPlan" @change="loadReservationQuote()" class="accent-[color:var(--brand)]"> Full payment
                                 </label>
                               </div>
                             </div>
@@ -471,7 +474,7 @@
                               <div class="grid grid-cols-2 gap-2">
                                 <template x-for="option in [{value: 'PayMongo-GCash', logo: 'gcash', name: 'GCash'}, {value: 'PayMongo-Maya', logo: 'maya', name: 'Maya'}, {value: 'PayMongo-Card', logo: 'card', name: 'Credit / Debit Card'}, {value: 'Cash', logo: 'cash', name: 'Cash at the branch'}]" :key="option.value">
                                   <label class="flex items-center gap-2 bg-slate-950 border rounded-lg p-2.5 cursor-pointer" :class="bookingForm.paymentMethod === option.value ? 'border-gold-500 text-white' : 'border-slate-800 text-slate-300'">
-                                    <input type="radio" name="bookingPaymentMethod" :value="option.value" x-model="bookingForm.paymentMethod" class="accent-amber-500">
+                                    <input type="radio" name="bookingPaymentMethod" :value="option.value" x-model="bookingForm.paymentMethod" class="accent-[color:var(--brand)]">
                                     <span class="pm-logo" :class="'pm-logo--' + option.logo" aria-hidden="true"></span><span class="font-bold leading-tight" x-text="option.name"></span>
                                   </label>
                                 </template>
@@ -572,13 +575,13 @@
 
               <template x-if="showBookingSuccess">
                 <div class="pt-6 border-t border-slate-800 mt-6 space-y-4 text-center" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
-                  <div class="w-16 h-16 bg-emerald-950 border-4 border-emerald-800 rounded-full flex items-center justify-center mx-auto">
+                  <div class="w-16 h-16 bg-emerald-950 border-4 border-[color:var(--success)] rounded-full flex items-center justify-center mx-auto">
                     <svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                   </div>
                   <h4 class="font-serif text-lg font-bold text-white">Booking Request Received</h4>
                   <p class="text-slate-400 text-base">Your appointment request has been sent. You will receive a confirmation message shortly.</p>
 
-                  <div x-show="bookingSuccessDetails" class="bg-slate-800 rounded-lg p-4 text-left text-xs my-4 space-y-2">
+                  <div x-show="bookingSuccessDetails" class="bg-slate-800 rounded-lg p-4 text-justify text-xs my-4 space-y-2">
                     <p class="text-center font-bold text-gold-400 mb-3">Booking Reference: <span class="font-mono bg-slate-900 px-2 py-1 rounded" x-text="bookingSuccessDetails?.id"></span></p>
                     <div class="flex justify-between items-center"><strong class="text-slate-500">Branch:</strong><span class="text-white text-right" x-text="bookingSuccessDetails?.branchName"></span></div>
                     <div class="flex justify-between items-center"><strong class="text-slate-500">Service(s):</strong><span class="text-white text-right" x-text="bookingSuccessDetails?.serviceName"></span></div>
@@ -590,7 +593,7 @@
                     <div class="flex justify-between items-center"><strong class="text-slate-500">Balance to Pay Later:</strong><span class="text-white" x-text="formatPeso(bookingSuccessDetails?.remainingBalance)"></span></div>
                     <div class="flex justify-between items-center pt-2 border-t border-slate-700"><strong class="text-slate-500">Service Total:</strong><span class="font-bold text-gold-400" x-text="formatPeso(bookingSuccessDetails?.price)"></span></div>
                   </div>
-                  <p x-show="lateArrivalRule" class="bg-slate-800 rounded-lg p-3 text-left text-xs text-slate-300"><strong class="text-slate-200">Late arrival:</strong> <span x-text="lateArrivalRule"></span></p>
+                  <p x-show="lateArrivalRule" class="bg-slate-800 rounded-lg p-3 text-justify text-xs text-slate-300"><strong class="text-slate-200">Late arrival:</strong> <span x-text="lateArrivalRule"></span></p>
 
                   <div class="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3">
                     <button @click="closeBookingSection()" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 transition active:scale-95">Book Another Service</button>
@@ -614,11 +617,12 @@
        browsing services/promos and the booking flow. Appointments,
        reviews, home service, and profile mixins live on their own pages. -->
   <script src="../../function/shared/service-duration.js"></script>
-  <script src="../../function/customer/customer-shell.js?v=20261108"></script>
+  <script src="../../function/customer/customer-shell.js?v=20261110"></script>
   <script src="../../function/customer/dashboard-helpers.js"></script>
   <script src="../../function/customer/dashboard-state.js"></script>
   <script src="../../function/customer/dashboard-notifications.js"></script>
   <script src="../../function/customer/dashboard-booking.js"></script>
+  <script src="../../function/shared/live-sync.js?v=20261110"></script>
   <script src="../../function/customer/dashboard.js"></script>
 </body>
 </html>

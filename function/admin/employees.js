@@ -12,9 +12,12 @@ function adminDefaultStaffForm() {
 function adminStaffApp() {
   return {
     activeTab: 'directory',
-    staffFilterBranch: 'all',
+    staffFilterBranch: AdminUI.param('branch') || 'all',
+    // 'on' = clocked in (available, busy or on break); the Dashboard links here with ?shift=on.
+    staffFilterShift: AdminUI.param('shift') || 'all',
     staffSearchQuery: '',
-    performanceSortBy: 'name',
+    performanceSortBy: 'completed',
+    detailStaff: null,
 
     openStaffModal: false,
     editingStaffId: null,
@@ -23,6 +26,21 @@ function adminStaffApp() {
 
     init() {
       adminHighlightNav();
+      // Keep an open details modal in sync with live refreshes.
+      this.$watch('$store.admin.staffList', (list) => {
+        if (this.detailStaff) this.detailStaff = list.find(s => s.id === this.detailStaff.id) || null;
+      });
+    },
+
+    openDetails(staff) { this.detailStaff = staff; },
+
+    // Position in the current Performance ranking (same metric as that tab).
+    rankLabel(staff) {
+      const list = this.getPerformanceStaff();
+      const index = list.findIndex(s => s.id === staff.id);
+      if (index === -1 || this.performanceSortBy === 'name') return 'See Performance tab';
+      const metric = { completed: 'completed services', rating: 'rating', attendance: 'attendance' }[this.performanceSortBy];
+      return '#' + (index + 1) + ' of ' + list.length + ' by ' + metric;
     },
 
     // Role is free text (see Add/Edit Staff), so this is a light heuristic
@@ -43,14 +61,15 @@ function adminStaffApp() {
     },
 
     getStaffStatusLabel(status) {
-      const labels = { 'On Duty': 'Available', 'With Client': 'Busy', 'Off Shift': 'Off Shift' };
-      return labels[status] || status;
+      // Same four statuses as the Cashier panel (StaffShift::liveStatusSql).
+      return status || 'Off Shift';
     },
 
     getStaffStatusBadgeClass(status) {
       switch (status) {
-        case 'On Duty': return 'admin-badge admin-badge--success';
-        case 'With Client': return 'admin-badge admin-badge--info';
+        case 'On Shift': return 'admin-badge admin-badge--success';
+        case 'Busy': return 'admin-badge admin-badge--info';
+        case 'On Break': return 'admin-badge admin-badge--pending';
         default: return 'admin-badge admin-badge--neutral';
       }
     },
@@ -75,9 +94,11 @@ function adminStaffApp() {
       const store = Alpine.store('admin');
       let list = store.staffList;
       if (this.staffFilterBranch !== 'all') list = list.filter(s => s.branchId === this.staffFilterBranch);
+      if (this.staffFilterShift === 'on') list = list.filter(s => ['On Shift', 'Busy', 'On Break'].includes(s.status));
+      else if (this.staffFilterShift !== 'all') list = list.filter(s => (s.status || 'Off Shift') === this.staffFilterShift);
       if (this.staffSearchQuery.trim()) {
         const q = this.staffSearchQuery.trim().toLowerCase();
-        list = list.filter(s => s.name.toLowerCase().includes(q));
+        list = list.filter(s => [s.name, s.role, s.email].some(v => String(v || '').toLowerCase().includes(q)));
       }
       return list;
     },
@@ -145,9 +166,10 @@ function adminStaffApp() {
       this.openStaffModal = false;
     },
 
-    async removeStaffMember(staffId) {
+    async removeStaffMember(staff) {
+      if (!(await LMConfirm({ title: `Remove ${staff.name}?`, message: 'They will be removed from the active roster and can no longer be assigned.', confirmLabel: 'Remove' }))) return;
       const store = Alpine.store('admin');
-      const result = await store.post('removeStaff.php', { id: staffId });
+      const result = await store.post('removeStaff.php', { id: staff.id });
       if (!result.success) {
         LMToast.show(result.message || 'Failed to remove staff member.', 'error');
         return;

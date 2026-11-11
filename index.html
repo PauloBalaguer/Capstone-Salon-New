@@ -2,6 +2,7 @@
 <html lang="en" class="scroll-smooth">
 
 <head>
+  <link rel="stylesheet" href="frontend/shared/theme-tokens.css">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
   <title>Leo Mejillano Salon & Beauty, Official Web Portal</title>
@@ -36,7 +37,7 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="frontend/public/home-theme.css?v=svc-cards-20261104" />
+  <link rel="stylesheet" href="frontend/public/home-theme.css?v=nav-20261110" />
 <script src="function/shared/booking-validation.js"></script>
   <link rel="stylesheet" href="frontend/shared/responsive-base.css?v=20261103b" />
   <link rel="stylesheet" href="frontend/public/public-colors.css?v=teal-gold-20261021" />
@@ -44,14 +45,15 @@
   <script src="function/shared/portal-presentation.js"></script>
   <style>
     /* Justified text leaves big gaps on narrow phones: left-align there. */
-    @media (min-width: 640px) { [data-justify] { text-align: justify; } }
   </style>
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="frontend/shared/clean-theme.css?v=20261105-booking">
-  <link rel="stylesheet" href="frontend/public/booking-modal.css?v=20261105b">
+  <link rel="stylesheet" href="frontend/public/booking-modal.css?v=20261110b">
+  <link rel="stylesheet" href="frontend/public/public-unify.css?v=20261110d">
+  <link rel="stylesheet" href="frontend/shared/type-scale.css?v=20261110-size">
 </head>
 
-<body class="bg-sand-100 text-ink font-body antialiased">
+<body class="gw-site bg-sand-100 text-ink font-body antialiased">
   <div id="scroll-progress-bar"
     class="fixed top-0 left-0 h-0.75 bg-linear-to-r from-copper-dark via-copper to-plum z-60" style="width: 0%">
   </div>
@@ -59,7 +61,7 @@
   <header id="siteHeader"
     class="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-sand-100/90 border-b border-bronze/15 transition-all duration-300">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 h-19 flex items-center justify-between gap-4">
-      <button onclick="switchTab('home-tab')" class="brand-lockup shrink-0 text-left focus:outline-none"
+      <button onclick="switchTab('home-tab')" class="brand-lockup shrink-0 text-justify focus:outline-none"
         aria-label="Leo Mejillano Salon and Beauty Home">
         <div class="brand-logo-wrap">
           <img id="brandLogo" src="frontend/shared/icon/header-icon.png" alt="Leo Mejillano logo" class="brand-logo" />
@@ -78,7 +80,7 @@
         </button>
         <button onclick="switchTab('services-tab')" id="nav-services-tab"
           class="nav-tab-link h-full flex items-center hover:text-plum transition-colors px-1">
-          Services &amp; Menu
+          Services
         </button>
         <button onclick="switchTab('stylists-tab')" id="nav-stylists-tab"
           class="nav-tab-link h-full flex items-center hover:text-plum transition-colors px-1">
@@ -117,7 +119,7 @@
           </svg>
         </button>
         <button onclick="goToPortalLogin()"
-          class="portal-btn hidden xl:inline-flex items-center gap-2 rounded-full border border-ink/20 text-xs font-bold px-5 py-2.5 hover:border-plum hover:text-plum transition">
+          class="portal-btn hidden lg:inline-flex items-center gap-2 rounded-full border border-ink/20 text-xs font-bold px-4 xl:px-5 py-2.5 hover:border-plum hover:text-plum transition">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
@@ -130,11 +132,15 @@
         </button>
         <button id="menuBtn"
           class="lg:hidden w-10 h-10 rounded-full border border-bronze/30 flex items-center justify-center text-ink"
-          aria-label="Menu" aria-controls="mobileNav" aria-expanded="false">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          aria-label="Navigation" aria-controls="mobileNav" aria-expanded="false">
+          <svg class="menu-icon-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <line x1="3" y1="6" x2="21" y2="6" />
             <line x1="3" y1="12" x2="21" y2="12" />
             <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+          <svg class="menu-icon-close" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <line x1="5" y1="5" x2="19" y2="19" />
+            <line x1="19" y1="5" x2="5" y2="19" />
           </svg>
         </button>
       </div>
@@ -142,50 +148,29 @@
 
     <nav id="mobileNav"
       class="mobile-drawer lg:hidden hidden flex-col bg-panel border-b border-bronze/15 px-5 py-4 gap-1 overflow-y-auto">
-      <button onclick="
-            switchTab('home-tab');
-            setMobileNav(false);
-          " class="py-3 text-left border-b border-bronze/10 font-bold text-xs tracking-widest uppercase text-ink">
+      <button type="button" data-mobile-tab="home-tab" aria-current="page" class="mobile-nav-item is-active py-3 text-justify border-b border-bronze/10 font-bold text-xs tracking-widest uppercase text-ink">
         Home
       </button>
-      <button onclick="
-            switchTab('services-tab');
-            setMobileNav(false);
-          " class="py-3 text-left border-b border-bronze/10 font-bold text-xs tracking-widest uppercase text-ink">
-        Services &amp; Menu
+      <button type="button" data-mobile-tab="services-tab" class="mobile-nav-item py-3 text-justify border-b border-bronze/10 font-bold text-xs tracking-widest uppercase text-ink">
+        Services
       </button>
-      <button onclick="
-            switchTab('stylists-tab');
-            setMobileNav(false);
-          " class="py-3 text-left border-b border-bronze/10 font-bold text-xs tracking-widest uppercase text-ink">
+      <button type="button" data-mobile-tab="stylists-tab" class="mobile-nav-item py-3 text-justify border-b border-bronze/10 font-bold text-xs tracking-widest uppercase text-ink">
         Stylists &amp; Team
       </button>
-      <button onclick="
-            switchTab('products-tab');
-            setMobileNav(false);
-          " class="py-3 text-left border-b border-bronze/10 font-bold text-xs tracking-widest uppercase text-ink">
+      <button type="button" data-mobile-tab="products-tab" class="mobile-nav-item py-3 text-justify border-b border-bronze/10 font-bold text-xs tracking-widest uppercase text-ink">
         Products
       </button>
-      <button onclick="
-            switchTab('branches-tab');
-            setMobileNav(false);
-          " class="py-3 text-left border-b border-bronze/10 font-bold text-xs tracking-widest uppercase text-ink">
+      <button type="button" data-mobile-tab="branches-tab" class="mobile-nav-item py-3 text-justify border-b border-bronze/10 font-bold text-xs tracking-widest uppercase text-ink">
         Branches
       </button>
-      <button onclick="
-            switchTab('homeservice-tab');
-            setMobileNav(false);
-          " class="py-3 text-left border-b border-bronze/10 font-bold text-xs tracking-widest uppercase text-ink">
+      <button type="button" data-mobile-tab="homeservice-tab" class="mobile-nav-item py-3 text-justify border-b border-bronze/10 font-bold text-xs tracking-widest uppercase text-ink">
         Home &amp; Events
       </button>
-      <button onclick="
-            switchTab('gallery-tab');
-            setMobileNav(false);
-          " class="py-3 text-left border-b border-bronze/10 font-bold text-xs tracking-widest uppercase text-ink">
+      <button type="button" data-mobile-tab="gallery-tab" class="mobile-nav-item py-3 text-justify border-b border-bronze/10 font-bold text-xs tracking-widest uppercase text-ink">
         Gallery
       </button>
       <button onclick="goToPortalLogin()"
-        class="py-3 text-left border-b border-bronze/10 font-semibold flex items-center gap-2 text-ink">
+        class="py-3 text-justify border-b border-bronze/10 font-semibold flex items-center gap-2 text-ink">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
           <circle cx="12" cy="7" r="4" />
@@ -193,7 +178,7 @@
         Login
       </button>
       <button onclick="toggleTheme()"
-        class="py-3 text-left border-b border-bronze/10 font-semibold flex items-center gap-2 text-ink">
+        class="py-3 text-justify border-b border-bronze/10 font-semibold flex items-center gap-2 text-ink">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
         </svg>
@@ -203,7 +188,7 @@
             openBookingModal();
             setMobileNav(false);
           " class="mt-5 mb-10 text-center rounded-full bg-plum text-white font-bold py-3.5 text-base">
-        Book a Slot Now
+        Book an Appointment
       </button>
     </nav>
   </header>
@@ -222,31 +207,29 @@
 
       <div id="bookingAccessPanel">
         <h3 class="font-display text-2xl mb-1 text-ink">
-          Book an appointment
+          Book an Appointment
         </h3>
         <p class="prose-justify text-xs text-ink/60 mb-6">
-          Choose your services and schedule, review your details, then verify your email. You can book without creating an account.
+          Book a salon appointment without creating an account. Provide your booking details and complete verification using a code sent to your mobile number or email address.
         </p>
         <div class="grid gap-3">
           <button type="button" onclick="continueAsGuestBooking()"
-            class="rounded-2xl border border-plum/30 bg-plum/5 p-5 text-left hover:border-plum hover:bg-plum/10 transition">
+            class="rounded-2xl border border-plum/30 bg-plum/5 p-5 text-justify hover:border-plum hover:bg-plum/10 transition">
             <span class="block text-xs font-bold tracking-widest uppercase text-plum">New appointment</span>
-            <span class="block font-display text-xl mt-2">Book as a guest</span>
-            <span class="block text-xs text-ink/60 mt-2 leading-relaxed">Choose your branch, date, and time, then
-              enter your name,
-              mobile number, and email.</span>
+            <span class="block font-display text-xl mt-2">Book as a Guest</span>
+            <span class="block text-xs text-ink/60 mt-2 leading-relaxed">Select your preferred branch, services, date, and time. Enter your full name and mobile number to continue. An email address is optional.</span>
           </button>
         </div>
         <div class="mt-5 rounded-xl border border-bronze/30 bg-sand-100 p-4 text-center">
-          <p class="text-base text-ink/60">Already booked as a guest?</p>
+          <p class="text-base text-ink/60">Have an Existing Guest Booking?</p>
           <button type="button" onclick="openTrackModal()"
-            class="mt-2 rounded-full bg-plum text-white font-bold text-base px-6 py-3 hover:brightness-110 transition">Track your booking</button>
-          <p class="text-xs text-ink/60 mt-2">Use your booking reference and mobile number. No login needed.</p>
+            class="mt-2 rounded-full bg-plum text-white font-bold text-base px-6 py-3 hover:brightness-110 transition">Track Your Booking</button>
+          <p class="text-xs text-ink/60 mt-2">Use your booking reference and mobile number to check your appointment status. No account is required.</p>
         </div>
         <div class="mt-5 rounded-xl bg-copper/10 border border-copper/20 p-4 text-xs text-ink/65 leading-relaxed sm:text-justify">
-          <b class="text-copper-dark">Before you book:</b> Available times depend on your selected branch,
-          service, and staff availability. Your booking request will remain
-          <b>Waiting for Confirmation</b> until the branch reviews and confirms it.
+          <b class="block text-copper-dark mb-2">Booking Information</b>
+          Appointment availability depends on your selected branch, services, and staff schedules. Your request will remain under
+          <b>"Waiting for Confirmation"</b> until the branch confirms it.
           A unique booking reference will be generated after submission.
         </div>
       </div>
@@ -255,11 +238,10 @@
         <div class="flex items-center justify-between gap-3 mb-5">
           <div>
             <h3 class="font-display text-2xl mb-1 text-ink">
-              Book an appointment
+              Book an Appointment
             </h3>
             <p id="bookingModeText" class="text-xs text-ink/60">
-              Guest booking, email and mobile number are used for
-              confirmation.
+              Guest Booking: Only your name and mobile number are required.
             </p>
           </div>
           <span id="bookingModeBadge"
@@ -276,12 +258,15 @@
           <span class="text-base font-bold text-ink whitespace-nowrap" id="bookingServicePrice"></span>
         </div>
 
-        <form id="bookingModalForm" class="space-y-4" novalidate>
-          <div>
+        <form id="bookingModalForm" class="bk-layout" novalidate>
+          <div class="bk-main">
+          <section class="bk-sec" id="bkSecBranch" aria-labelledby="bkSecBranchTitle">
+            <h4 class="bk-sec-title" id="bkSecBranchTitle"><span class="bk-sec-num" aria-hidden="true">1</span><span>Choose a branch</span><span class="bk-sec-done" aria-hidden="true">&#10003;</span></h4>
             <label for="bookBranchSelect"
-              class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Select branch</label>
+              class="bk-visually-hidden block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Select branch</label>
+            <div id="bkBranchCards" class="bk-branch-grid" role="radiogroup" aria-label="Branch"></div>
             <select id="bookBranchSelect"
-              class="w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition disabled:opacity-60 disabled:cursor-not-allowed"
+              class="bk-visually-hidden w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition disabled:opacity-60 disabled:cursor-not-allowed"
               required>
               <option value="">Choose a branch...</option>
               <option value="1">Daraga Main – Salon &amp; Make-Up</option>
@@ -289,17 +274,19 @@
               <option value="3">Cabangan – Lash &amp; Brows</option>
             </select>
             <p id="bookBranchLockNote" class="hidden text-xs text-ink/50 mt-1.5"></p>
-          </div>
+          </section>
 
-          <div>
-            <p id="bookServicesLabel" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Services</p>
+          <section class="bk-sec" id="bkSecServices" aria-labelledby="bkSecServicesTitle">
+            <h4 class="bk-sec-title" id="bkSecServicesTitle"><span class="bk-sec-num" aria-hidden="true">2</span><span>Choose services</span><span class="bk-sec-done" aria-hidden="true">&#10003;</span></h4>
+            <p id="bookServicesLabel" class="bk-visually-hidden block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Services</p>
             <div id="bookServiceList" role="group" aria-labelledby="bookServicesLabel"
               class="rounded-xl border border-bronze/50 bg-sand-100 p-3 text-xs text-ink/50">
               Choose a branch to see its services.
             </div>
-          </div>
+          </section>
 
-          <div id="bookScheduleSection" class="space-y-4">
+          <section id="bookScheduleSection" class="bk-sec bk-sec-schedule" aria-labelledby="bookScheduleSectionTitle">
+            <h4 class="bk-sec-title" id="bookScheduleSectionTitle"><span class="bk-sec-num" aria-hidden="true">3</span><span>Pick a date &amp; time</span><span class="bk-sec-done" aria-hidden="true">&#10003;</span></h4>
             <div>
               <label for="bookDate"
                 class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Date</label>
@@ -313,11 +300,14 @@
                 Choose a branch and date to see open times.
               </div>
             </div>
-          </div>
+          </section>
 
+          <section class="bk-sec" id="bkSecStaff" aria-labelledby="bkSecStaffTitle">
+            <h4 class="bk-sec-title" id="bkSecStaffTitle"><span class="bk-sec-num" aria-hidden="true">4</span><span>Choose your stylist</span><span class="bk-sec-done" aria-hidden="true">&#10003;</span></h4>
+          <p id="bkStaffPending" class="rounded-xl border border-bronze/50 bg-sand-100 p-3 text-xs text-ink/50">Choose a date and time first to see who is available.</p>
           <div id="bookStaffSection" class="hidden">
-            <p id="bookStaffLabel" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Select staff</p>
-            <p class="prose-justify text-xs text-ink/60 mb-2">Pick a stylist for each service. <span class="text-[#15803D] font-semibold">Available</span> stylists are free for that service; <span class="text-[#9F1239] font-semibold">Busy</span> ones are still with another client.</p>
+            <p id="bookStaffLabel" class="bk-visually-hidden block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Select staff</p>
+            <p class="prose-justify text-xs text-ink/60 mb-2">Pick a stylist for each service. <span class="text-[color:var(--success)] font-semibold">Available</span> stylists are free for that service; <span class="text-[color:var(--danger)] font-semibold">Busy</span> ones are still with another client.</p>
             <div id="bookStaffList" role="group" aria-labelledby="bookStaffLabel" class="rounded-xl border border-bronze/50 bg-sand-100 p-3 text-xs text-ink/50">
               Choose your branch, services, date, and time to see available staff.
             </div>
@@ -335,7 +325,11 @@
                 class="rounded-full border border-plum text-plum font-bold text-xs px-4 py-2 hover:bg-plum hover:text-white transition disabled:opacity-60">Notify me</button>
             </div>
           </div>
+          </section>
 
+          <section class="bk-sec" id="bkSecPayment" aria-labelledby="bkSecPaymentTitle">
+            <h4 class="bk-sec-title" id="bkSecPaymentTitle"><span class="bk-sec-num" aria-hidden="true">5</span><span>Payment</span><span class="bk-sec-done" aria-hidden="true">&#10003;</span></h4>
+          <p id="bkPaymentPending" class="rounded-xl border border-bronze/50 bg-sand-100 p-3 text-xs text-ink/50">Select a stylist for each service to see your payment options.</p>
           <div id="bookDepositGate" class="hidden rounded-xl border border-plum/30 bg-plum/5 p-4">
             <p class="text-base font-bold text-plum mb-1">Guest reservation payment required</p>
             <p class="text-base text-ink/60 mb-3">Your time is available. Choose how much to pay and how. The branch confirms your booking after verifying your payment.</p>
@@ -401,19 +395,35 @@
             </div>
           </div>
 
-          <div class="pt-2 border-t border-bronze/25">
-            <p class="text-xs font-bold tracking-widest uppercase text-ink/40 pt-4 pb-1">
-              Guest details
-            </p>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          </section>
+
+          <section class="bk-sec space-y-4" id="bkSecDetails" aria-labelledby="bkSecDetailsTitle">
+            <h4 class="bk-sec-title" id="bkSecDetailsTitle"><span class="bk-sec-num" aria-hidden="true">6</span><span>Guest information</span><span class="bk-sec-done" aria-hidden="true">&#10003;</span></h4>
+          <!-- Full name composed from the parts below (main.js); other parts of the form read it. -->
+          <input id="bookName" type="hidden" />
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label for="bookName" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Full
-                name</label>
-              <input id="bookName" type="text" autocomplete="name" maxlength="255" placeholder="Your name"
+              <label for="bookFirstName" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">First name</label>
+              <input id="bookFirstName" type="text" autocomplete="given-name" maxlength="100" placeholder="First name"
                 class="w-full px-4 py-2.5 border border-bronze bg-white text-ink placeholder:text-ink/50 shadow-sm rounded-xl text-base focus:outline-none focus:border-plum transition"
                 required />
             </div>
+            <div>
+              <label for="bookMiddleName" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Middle name <span class="normal-case font-normal tracking-normal text-ink/50">(optional)</span></label>
+              <input id="bookMiddleName" type="text" autocomplete="additional-name" maxlength="100" placeholder="Middle name"
+                class="w-full px-4 py-2.5 border border-bronze bg-white text-ink placeholder:text-ink/50 shadow-sm rounded-xl text-base focus:outline-none focus:border-plum transition disabled:bg-sand-100 disabled:text-ink/40 disabled:cursor-not-allowed" />
+              <label class="mt-1.5 inline-flex items-center gap-2 text-xs text-ink/70 cursor-pointer">
+                <input id="bookMiddleNameNA" type="checkbox" class="accent-plum" /> N/A (no middle name)
+              </label>
+            </div>
+            <div>
+              <label for="bookLastName" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Last name</label>
+              <input id="bookLastName" type="text" autocomplete="family-name" maxlength="100" placeholder="Last name"
+                class="w-full px-4 py-2.5 border border-bronze bg-white text-ink placeholder:text-ink/50 shadow-sm rounded-xl text-base focus:outline-none focus:border-plum transition"
+                required />
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label for="bookPhone"
                 class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Mobile number</label>
@@ -471,13 +481,29 @@
             </label>
           </div>
 
-          <button type="submit" id="bookSubmitBtn"
-            class="btn-sheen w-full rounded-full bg-plum text-white font-bold text-base py-3.5 mt-5 hover:brightness-110 transition disabled:opacity-60 disabled:cursor-not-allowed">
-            Review guest booking
-          </button>
           <p class="text-xs text-ink/40 text-center leading-relaxed">
-            Review your guest details, confirm your request to receive a booking reference (email verification applies when you provide an email). The branch will confirm your appointment separately.
+            Next, review your booking and verify your contact with a one-time code. The branch will confirm your appointment separately.
           </p>
+          </section>
+
+          </div>
+
+          <aside class="bk-aside" aria-labelledby="bkSummaryTitle">
+            <div class="bk-aside-card">
+              <h4 id="bkSummaryTitle" class="bk-aside-title">Booking summary</h4>
+              <div id="bkSummary" aria-live="polite"></div>
+              <button type="submit" id="bookSubmitBtn"
+                class="btn-sheen bk-btn-next bk-btn-block disabled:opacity-60 disabled:cursor-not-allowed">
+                Review &amp; verify booking
+              </button>
+              <p class="bk-aside-note">Next, review your details and verify with a one-time code.</p>
+            </div>
+          </aside>
+
+          <div id="bkMobileBar" class="bk-mobilebar">
+            <div id="bkMobileTotal" class="bk-mobilebar-total" aria-live="polite"></div>
+            <button type="submit" id="bkMobileSubmit" class="btn-sheen bk-btn-next">Review booking</button>
+          </div>
         </form>
       </div>
 
@@ -554,14 +580,14 @@
           <span class="block font-display text-3xl text-ink mt-1.5" id="bookRef"></span>
         </div>
 
-        <div class="mt-5 rounded-2xl border border-bronze/30 bg-sand-100 px-5 py-5 text-left text-base space-y-2"
+        <div class="mt-5 rounded-2xl border border-bronze/30 bg-sand-100 px-5 py-5 text-justify text-base space-y-2"
           id="bookSummary"></div>
 
         <div
-          class="mt-5 rounded-xl bg-plum/5 border border-plum/15 px-4 py-3.5 text-[12.5px] text-plum text-left leading-relaxed"
+          class="mt-5 rounded-xl bg-plum/5 border border-plum/15 px-4 py-3.5 text-[12.5px] text-plum text-justify leading-relaxed"
           id="bookNotifyNote"></div>
 
-        <p data-late-rule class="hidden mt-3 rounded-xl border border-bronze/30 bg-sand-100 px-4 py-3.5 text-[12.5px] text-ink/70 text-left leading-relaxed">
+        <p data-late-rule class="hidden mt-3 rounded-xl border border-bronze/30 bg-sand-100 px-4 py-3.5 text-[12.5px] text-ink/70 text-justify leading-relaxed">
           <b>Late arrival:</b> <span data-late-rule-text></span></p>
 
         <div class="flex flex-col sm:flex-row gap-3 mt-6">
@@ -710,7 +736,7 @@
 
       <button id="staffProfileBookBtn"
         class="btn-sheen w-full mt-6 rounded-full bg-plum text-white font-bold text-base py-3.5 hover:brightness-110 transition">
-        Book an appointment
+        Book an Appointment
       </button>
     </div>
   </div>
@@ -737,7 +763,7 @@
       <line x1="8" y1="2" x2="8" y2="6" />
       <line x1="3" y1="10" x2="21" y2="10" />
     </svg>
-    Book Now
+    Book an Appointment
   </button>
 
   <main class="page-body min-h-screen">
@@ -755,13 +781,13 @@
               <span class="absolute bottom-0 left-0 right-0 h-0.5 bg-copper/70"></span>
             </span>
 
-            <h1 class="font-display text-[2.65rem] sm:text-5xl lg:text-[4.35rem] leading-[.98] mt-6 relative max-w-2xl">
+            <h1 class="font-display text-[2.65rem] sm:text-5xl lg:text-[4.35rem] leading-[.98] mt-6 relative max-w-2xl" style="text-align: left; font-weight: 400">
               <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"
                 class="absolute -top-5 -left-5 salon-sparkle hidden sm:block" aria-hidden="true">
                 <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
               </svg>
               Your beauty,<br />
-              <span class=" shimmer-text font-normal">your signature.</span><br />
+              <span class="shimmer-text font-normal">your signature.</span><br />
               <span class="text-ink">Every visit.</span>
               <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"
                 class="absolute bottom-0 -right-4 salon-sparkle-delayed hidden sm:block" aria-hidden="true">
@@ -769,17 +795,16 @@
               </svg>
             </h1>
 
-            <p class="prose-justify mt-6 text-ink/65 text-[15px] sm:text-[17px] leading-relaxed max-w-xl" data-justify>
+            <p class="mt-6 text-ink/65 text-[15px] sm:text-[17px] leading-relaxed max-w-xl">
               Hair, skin, nails, make-up, brows, lashes, and event styling
-              from
-              <strong class="text-ink/80 whitespace-nowrap">Leo Mejillano Salon &amp; Beauty</strong>
+              from <strong class="text-ink/80">Leo Mejillano Salon &amp; Beauty</strong>
               across three Albay branches, seven days a week.
             </p>
 
             <div class="flex flex-wrap gap-3 mt-8">
               <button onclick="openBookingModal()"
                 class="btn-sheen inline-flex items-center gap-2 rounded-full bg-plum text-white font-bold text-base px-7 py-3.5 hover:brightness-110 transition shadow-lg shadow-plum/15">
-                Book an appointment
+                Book an Appointment
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
                   aria-hidden="true">
                   <path d="M5 12h14M13 5l7 7-7 7" />
@@ -787,7 +812,7 @@
               </button>
               <button onclick="switchTab('services-tab')"
                 class="inline-flex items-center gap-2 rounded-full border border-ink/20 bg-panel/60 font-bold text-base px-7 py-3.5 hover:border-plum hover:text-plum transition">
-                See the menu &amp; prices
+                Explore Services and Rates
               </button>
             </div>
 
@@ -807,7 +832,7 @@
               </div>
               <div class="hero-stat">
                 <b class="font-display text-2xl sm:text-3xl text-plum block" data-count="200" data-suffix="+">200+</b>
-                <span class="text-xs sm:text-xs text-ink/55">services on the menu</span>
+                <span class="text-xs sm:text-xs text-ink/55">services available</span>
               </div>
               <div class="hero-stat">
                 <b class="font-display text-2xl sm:text-3xl text-plum block" data-count="50" data-suffix="+">50+</b>
@@ -823,7 +848,7 @@
 
           <div class="relative hero-visual rounded-4xl p-2 sm:p-3">
             <div
-              class="aspect-[4/4.8] rounded-[26px] overflow-hidden shadow-[0_30px_80px_-28px_rgba(0,109,111,.48)] relative border border-white/70">
+              class="aspect-[4/4.8] rounded-[26px] overflow-hidden shadow-[0_30px_80px_-28px_rgba(22,96,75,.48)] relative border border-white/70">
               <img
                 src="frontend/shared/image/Salon-BG-2.png"
                 alt="Leo Mejillano Salon interior" class="w-full h-full object-cover" />
@@ -854,7 +879,7 @@
             </div>
 
             <div
-              class="absolute -top-3 right-4 sm:-top-4 sm:right-8 bg-copper text-white rounded-full px-4 py-2 text-xs font-bold tracking-[0.13em] uppercase shadow-lg rotate-2">
+              class="absolute -top-3 right-4 sm:-top-4 sm:right-8 bg-copper text-white rounded-full px-4 py-2 text-xs font-bold tracking-[0.13em] uppercase shadow-lg">
               Hair • Skin • Nails • Makeup
             </div>
 
@@ -887,18 +912,17 @@
         <div class="max-w-7xl mx-auto px-5 sm:px-8">
           <div class="sr flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
             <div>
-              <span class="text-xs font-bold tracking-widest uppercase text-copper">Start here</span>
+              <span class="branch-start-label tracking-widest uppercase text-copper">Start here</span>
               <h2 class="font-display text-3xl sm:text-4xl mt-2">
                 Which branch is nearest you?
               </h2>
             </div>
-            <p class="text-ink/60 text-base max-w-xs">
-              Each location has its own specialty. Pick one to see its menu,
-              or book straight into it.
+            <p class="prose-justify text-ink/60 text-base max-w-xs">
+              Each salon branch offers its own unique specialties. Choose your preferred branch to explore available services or book an appointment directly.
             </p>
           </div>
 
-          <div class="grid md:grid-cols-3 gap-5" id="branchPickerGrid"></div>
+          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5" id="branchPickerGrid"></div>
         </div>
       </section>
 
@@ -907,7 +931,7 @@
           <div class="grid lg:grid-cols-[.92fr_1.08fr] gap-10 lg:gap-16 items-center">
             <div class="sr relative">
               <div
-                class="rounded-[28px] overflow-hidden border border-bronze/30 shadow-[0_28px_70px_-40px_rgba(34,34,34,.65)]">
+                class="rounded-[28px] overflow-hidden border border-bronze/30 shadow-[0_28px_70px_-40px_rgba(24,38,31,.65)]">
                 <img
                   src="frontend/shared/image/Salon-BG.png"
                   alt="Stylists working on the salon floor" class="w-full h-full object-cover aspect-[4/4.6]" />
@@ -924,7 +948,7 @@
             </div>
 
             <div class="sr sr-d1">
-              <span class="text-xs font-bold tracking-widest uppercase text-copper">Inside Leo Mejillano</span>
+              <span class="salon-inside-label tracking-widest uppercase text-copper">Inside Leo Mejillano</span>
               <h2 class="font-display text-3xl sm:text-[2.7rem] leading-[1.08] mt-3">
                 Three branches.<br />One name.<br />Beauty made personal.
               </h2>
@@ -979,7 +1003,7 @@
                     Prices on the board
                   </p>
                   <p class="text-xs text-ink/60 mt-1.5 leading-relaxed">
-                    Every rate is published on the menu, so nothing appears at
+                    Every rate is published in the services list, so nothing appears at
                     the counter.
                   </p>
                 </div>
@@ -1067,7 +1091,7 @@
 
           <div class="sr sr-d2 grid lg:grid-cols-[1.35fr_.65fr] gap-8 items-center">
             <div id="baReveal"
-              class="reveal aspect-16/10 sm:aspect-video border border-white/25 shadow-[0_36px_90px_-40px_rgba(0,0,0,.7)]"
+              class="reveal aspect-[4/5] sm:aspect-video border border-white/25 shadow-[0_36px_90px_-40px_rgba(0,0,0,.7)]"
               style="--pos: 50%">
               <img id="baBefore"
                 src="frontend/shared/image/after-rebond.jpg"
@@ -1089,7 +1113,7 @@
               </button>
             </div>
 
-            <div class="text-center lg:text-left">
+            <div class="text-center lg:text-justify">
               <p class="text-xs font-bold tracking-[0.16em] uppercase text-copper" id="baKicker">
                 Hair
               </p>
@@ -1118,12 +1142,12 @@
 
       <section class="py-16 sm:py-24 bg-panel border-b border-bronze/20">
         <div class="max-w-7xl mx-auto px-5 sm:px-8">
-          <div class="sr text-center max-w-3xl mx-auto mb-12">
+          <div class="sr text-center mx-auto mb-12">
             <span class="text-xs font-bold tracking-widest uppercase text-copper">How booking works</span>
             <h2 class="font-display text-3xl sm:text-4xl mt-3">
               Book your appointment your way
             </h2>
-            <p class="prose-justify text-ink/60 text-base mt-4 leading-relaxed">
+            <p class="text-center text-ink/60 text-base mt-4 leading-relaxed">
               Create an account for faster future bookings, or choose guest booking when you want to book without registering.
             </p>
           </div>
@@ -1133,7 +1157,7 @@
               <span class="step-num">01</span>
               <p class="font-display text-lg mt-4">Open the booking form</p>
               <p class="text-xs text-ink/60 mt-2 leading-relaxed" data-justify>
-                Tap Book an Appointment, then choose Book as a guest or sign in
+                Tap Book an Appointment, then choose Book as a Guest or sign in
                 through the Client Portal.
               </p>
             </li>
@@ -1151,8 +1175,8 @@
                 Enter your contact details
               </p>
               <p class="text-xs text-ink/60 mt-2 leading-relaxed" data-justify>
-                Enter or review your name, mobile number, and email address so
-                the branch can reach you.
+                Enter or review your name and mobile number so the branch can
+                reach you. Email is optional.
               </p>
             </li>
             <li class="prose-justify sr sr-d4 step-card">
@@ -1234,7 +1258,7 @@
             </p>
           </div>
 
-          <div class="sr overflow-hidden rounded-3xl border border-bronze/30 bg-panel shadow-sm">
+          <div class="gift-certificate-table sr overflow-hidden rounded-3xl border border-bronze/30 bg-panel shadow-sm">
             <div class="grid grid-cols-2 bg-copper/10 border-b border-bronze/30">
               <div class="px-6 sm:px-8 py-4 text-base font-bold uppercase tracking-widest text-ink">
                 Denomination
@@ -1273,11 +1297,11 @@
 
       <section class="py-16 sm:py-24 bg-panel border-b border-bronze/20">
         <div class="max-w-3xl mx-auto px-5 sm:px-8 text-center">
-          <span class="text-xs font-bold tracking-widest uppercase text-copper">Client stories</span>
+          <span class="client-stories-label font-bold tracking-widest uppercase text-copper">Client stories</span>
           <h2 class="font-display text-3xl sm:text-4xl mt-3">
             What keeps them coming back
           </h2>
-          <p class="text-ink/55 text-base mt-4">
+          <p class="text-center text-ink/55 text-base mt-4">
             Pulled from the rating form we send after every completed
             appointment.
           </p>
@@ -1340,7 +1364,7 @@
         <div class="absolute inset-0 opacity-5 pointer-events-none" aria-hidden="true" style="
               background-image: radial-gradient(
                 circle at 1px 1px,
-                #222 1px,
+                var(--text) 1px,
                 transparent 0
               );
               background-size: 24px 24px;
@@ -1355,14 +1379,14 @@
             Sit down as you are.<br />Walk out as you meant to be.
           </h2>
           <div class="hair-strand-divider max-w-35 mx-auto mt-6"></div>
-          <p class="text-ink/60 text-base sm:text-base mt-6 max-w-2xl mx-auto leading-relaxed">
+          <p class="text-center text-ink/60 text-base sm:text-base mt-6 max-w-2xl mx-auto leading-relaxed">
             Open daily across all three branches. Book online, or call and we'll pencil you in.
           </p>
 
           <div class="flex flex-col sm:flex-row gap-3 justify-center mt-9">
             <button onclick="openBookingModal()"
               class="btn-sheen rounded-full bg-plum text-white font-bold text-base px-8 py-4 hover:brightness-110 transition shadow-lg shadow-plum/20">
-              Book an appointment
+              Book an Appointment
             </button>
             <button onclick="switchTab('homeservice-tab')"
               class="rounded-full border border-ink/25 bg-panel/70 font-bold text-base px-8 py-4 hover:border-plum hover:text-plum transition">
@@ -1377,14 +1401,14 @@
       <section class="py-14 sm:py-20 bg-sand-100 min-h-screen">
         <div class="max-w-7xl mx-auto px-5 sm:px-8">
           <div class="text-center max-w-2xl mx-auto mb-10">
-            <span class="text-xs font-bold tracking-widest uppercase text-copper">Full Studio Menu</span>
-            <h2 class="font-display text-3xl sm:text-4xl mt-3">
+            <span class="full-studio-label font-bold tracking-widest uppercase text-copper">Full Studio Services</span>
+            <h2 id="servicesSectionTitle" class="font-display text-3xl sm:text-4xl mt-3">
               Services &amp; Pricing
             </h2>
             <p class="prose-justify text-ink/60 text-base mt-4 leading-relaxed">
               Prices are set per branch, so pick a location first. Final
               pricing may still vary a little depending on hair length and
-              condition. Tap any item on the menu to open the booking form
+              condition. Tap any service in the list to open the booking form
               with that service already filled in.
             </p>
           </div>
@@ -1431,7 +1455,7 @@
           </div>
 
           <dialog id="servicesPopup" aria-labelledby="servicesPopupTitle"
-            class="p-0 w-[calc(100%_-_2rem)] max-w-4xl max-h-[90dvh] overflow-y-auto rounded-3xl bg-sand-100 text-ink border border-bronze/40 shadow-2xl backdrop:bg-ink/50">
+            class="p-0 w-[calc(100%-2rem)] max-w-4xl max-h-[90dvh] overflow-y-auto rounded-3xl bg-sand-100 text-ink border border-bronze/40 shadow-2xl backdrop:bg-ink/50">
             <div class="sticky top-0 z-10 flex items-center justify-between gap-4 px-5 sm:px-8 py-4 bg-sand-100 border-b border-bronze/20">
               <div>
                 <h3 id="servicesPopupTitle" class="font-display text-xl sm:text-2xl">Services &amp; Pricing</h3>
@@ -1505,11 +1529,11 @@
       <section class="py-14 sm:py-20 bg-sand-100 min-h-screen">
         <div class="max-w-6xl mx-auto px-5 sm:px-8">
           <div class="text-center max-w-4xl mx-auto mb-10">
-            <span class="text-xs font-bold tracking-widest uppercase text-copper">Our Artists</span>
+            <span class="our-artists-label font-bold tracking-widest uppercase text-copper">Our Artists</span>
             <h2 class="font-display text-3xl sm:text-4xl mt-3">
               Stylists &amp; Salon Team
             </h2>
-            <p class="prose-justify text-ink/60 text-base mt-4 leading-relaxed">
+            <p class="text-ink/60 text-base mt-4 leading-relaxed" style="text-align: center">
               Meet our stylists and specialists across our three Albay hubs. Tap any artist card to request a slot with them directly.
             </p>
           </div>
@@ -1540,7 +1564,7 @@
       <section class="py-14 sm:py-20 bg-panel min-h-screen">
         <div class="max-w-7xl mx-auto px-5 sm:px-8">
           <div class="text-center max-w-xl mx-auto mb-12">
-            <span class="text-xs font-bold tracking-widest uppercase text-copper">Salon-Grade Formulations</span>
+            <span class="salon-formulations-label font-bold tracking-widest uppercase text-copper">Salon-Grade Formulations</span>
             <h2 class="font-display text-3xl sm:text-4xl mt-3">
               Professional Products
             </h2>
@@ -1579,7 +1603,7 @@
       <section class="py-10 sm:py-14 bg-plum text-white relative overflow-hidden">
         <div class="max-w-7xl mx-auto px-5 sm:px-8 relative z-10">
           <div class="text-center max-w-3xl mx-auto mb-12">
-            <span class="text-xs font-bold tracking-widest uppercase text-copper">Our Locations</span>
+            <span class="our-locations-label font-bold tracking-widest uppercase text-copper">Our Locations</span>
             <h2 class="font-display text-3xl sm:text-4xl mt-3">
               Beauty Services, Wherever You Are
             </h2>
@@ -1683,7 +1707,7 @@
       <section class="py-14 sm:py-20 bg-sand-100 border-b border-bronze/20">
         <div class="max-w-6xl mx-auto px-5 sm:px-8">
           <div class="text-center max-w-xl mx-auto mb-10">
-            <span class="text-xs font-bold tracking-widest uppercase text-copper">Event Categories</span>
+            <span class="event-categories-label font-bold tracking-widest uppercase text-copper">Event Categories</span>
             <h3 class="font-display text-2xl sm:text-3xl mt-3">
               Services for Your Special Moment
             </h3>
@@ -1765,7 +1789,7 @@
       <section class="py-14 sm:py-20 bg-panel border-b border-bronze/20">
         <div class="max-w-6xl mx-auto px-5 sm:px-8">
           <div class="text-center max-w-xl mx-auto mb-10">
-            <span class="text-xs font-bold tracking-widest uppercase text-copper">The Process</span>
+            <span class="home-service-section-label font-bold tracking-widest uppercase text-copper">The Process</span>
             <h3 class="font-display text-2xl sm:text-3xl mt-3">
               How Home &amp; Event Service Works
             </h3>
@@ -1825,7 +1849,7 @@
       <section id="hsRequest" class="py-14 sm:py-20 bg-sand-100 border-b border-bronze/20 scroll-mt-24">
         <div class="max-w-7xl mx-auto px-5 sm:px-8">
           <div class="text-center max-w-xl mx-auto mb-10">
-            <span class="text-xs font-bold tracking-widest uppercase text-copper">Booking</span>
+            <span class="home-service-section-label font-bold tracking-widest uppercase text-copper">Booking</span>
             <h3 class="font-display text-2xl sm:text-3xl mt-3">
               Home Service Request
             </h3>
@@ -1836,19 +1860,19 @@
               <div class="grid grid-cols-4 gap-2 mb-8" id="hsProgress">
                 <div class="hs-prog" data-p="1">
                   <span class="block h-1 rounded-full bg-bronze/30"></span><span
-                    class="block text-xs font-bold uppercase tracking-widest mt-2 text-ink/40">01 Info</span>
+                    class="block text-xs font-bold uppercase tracking-widest mt-2 text-ink/40">01<br class="hs-progress-break"> Info</span>
                 </div>
                 <div class="hs-prog" data-p="2">
                   <span class="block h-1 rounded-full bg-bronze/30"></span><span
-                    class="block text-xs font-bold uppercase tracking-widest mt-2 text-ink/40">02 Event</span>
+                    class="block text-xs font-bold uppercase tracking-widest mt-2 text-ink/40">02<br class="hs-progress-break"> Event</span>
                 </div>
                 <div class="hs-prog" data-p="3">
                   <span class="block h-1 rounded-full bg-bronze/30"></span><span
-                    class="block text-xs font-bold uppercase tracking-widest mt-2 text-ink/40">03 Services</span>
+                    class="block text-xs font-bold uppercase tracking-widest mt-2 text-ink/40">03<br class="hs-progress-break"> Services</span>
                 </div>
                 <div class="hs-prog" data-p="4">
                   <span class="block h-1 rounded-full bg-bronze/30"></span><span
-                    class="block text-xs font-bold uppercase tracking-widest mt-2 text-ink/40">04 Review</span>
+                    class="block text-xs font-bold uppercase tracking-widest mt-2 text-ink/40">04<br class="hs-progress-break"> Review</span>
                 </div>
               </div>
 
@@ -1856,10 +1880,26 @@
                 <h4 class="font-display text-xl">Your Information</h4>
                 <div class="grid sm:grid-cols-2 gap-4 mt-6">
                   <div class="sm:col-span-2">
-                    <label for="hsName" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1.5">Full
-                      Name</label>
-                    <input id="hsName" type="text" placeholder="Juan Dela Cruz"
-                      class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition" />
+                    <div class="grid sm:grid-cols-3 gap-4">
+                      <div>
+                        <label for="hsFirstName" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1.5">First Name</label>
+                        <input id="hsFirstName" type="text" autocomplete="given-name" maxlength="100" placeholder="Juan" required
+                          class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition" />
+                      </div>
+                      <div>
+                        <label for="hsMiddleInitial" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1.5">Middle Initial <span class="normal-case font-normal tracking-normal">(optional)</span></label>
+                        <input id="hsMiddleInitial" type="text" maxlength="2" placeholder="D."
+                          class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition" />
+                        <label for="hsMiddleInitialNA" class="inline-flex items-center gap-2 mt-2 text-sm text-ink/70 cursor-pointer">
+                          <input id="hsMiddleInitialNA" type="checkbox" class="accent-plum" /> N/A (no middle name)
+                        </label>
+                      </div>
+                      <div>
+                        <label for="hsLastName" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1.5">Last Name</label>
+                        <input id="hsLastName" type="text" autocomplete="family-name" maxlength="100" placeholder="Dela Cruz" required
+                          class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition" />
+                      </div>
+                    </div>
                   </div>
                   <div>
                     <label for="hsPhone" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1.5">Phone
@@ -1997,7 +2037,7 @@
                 </div>
                 <div class="grid sm:grid-cols-2 gap-3 mt-6" id="hsServiceCards" role="group" aria-labelledby="hsServicesHeading">
                   <button type="button" onclick="hsToggleSvc(this)" data-svc="Hair Styling"
-                    class="hs-svc text-left rounded-2xl border border-bronze/30 bg-sand-100 p-5 transition">
+                    class="hs-svc text-justify rounded-2xl border border-bronze/30 bg-sand-100 p-5 transition">
                     <span class="text-xs font-bold uppercase tracking-widest text-copper">Hair</span>
                     <b class="block text-base mt-1.5">Hair Styling</b>
                     <span class="block text-xs text-ink/60 mt-1.5 leading-relaxed">Professional styling prepared
@@ -2005,21 +2045,21 @@
                       event.</span>
                   </button>
                   <button type="button" onclick="hsToggleSvc(this)" data-svc="Event Makeup"
-                    class="hs-svc text-left rounded-2xl border border-bronze/30 bg-sand-100 p-5 transition">
+                    class="hs-svc text-justify rounded-2xl border border-bronze/30 bg-sand-100 p-5 transition">
                     <span class="text-xs font-bold uppercase tracking-widest text-copper">Makeup</span>
                     <b class="block text-base mt-1.5">Event Makeup</b>
                     <span class="block text-xs text-ink/60 mt-1.5 leading-relaxed">Professional makeup for your
                       special occasion.</span>
                   </button>
                   <button type="button" onclick="hsToggleSvc(this)" data-svc="Brow Services"
-                    class="hs-svc text-left rounded-2xl border border-bronze/30 bg-sand-100 p-5 transition">
+                    class="hs-svc text-justify rounded-2xl border border-bronze/30 bg-sand-100 p-5 transition">
                     <span class="text-xs font-bold uppercase tracking-widest text-copper">Brows</span>
                     <b class="block text-base mt-1.5">Brow Services</b>
                     <span class="block text-xs text-ink/60 mt-1.5 leading-relaxed">Professional brow grooming and
                       styling.</span>
                   </button>
                   <button type="button" onclick="hsToggleSvc(this)" data-svc="Lash Services"
-                    class="hs-svc text-left rounded-2xl border border-bronze/30 bg-sand-100 p-5 transition">
+                    class="hs-svc text-justify rounded-2xl border border-bronze/30 bg-sand-100 p-5 transition">
                     <span class="text-xs font-bold uppercase tracking-widest text-copper">Lashes</span>
                     <b class="block text-base mt-1.5">Lash Services</b>
                     <span class="block text-xs text-ink/60 mt-1.5 leading-relaxed">Professional lash enhancement for
@@ -2027,7 +2067,7 @@
                       look.</span>
                   </button>
                   <button type="button" onclick="hsToggleSvc(this)" data-svc="Hair & Makeup Package"
-                    class="hs-svc sm:col-span-2 text-left rounded-2xl border border-bronze/30 bg-sand-100 p-5 transition">
+                    class="hs-svc sm:col-span-2 text-justify rounded-2xl border border-bronze/30 bg-sand-100 p-5 transition">
                     <span class="text-xs font-bold uppercase tracking-widest text-copper">Package</span>
                     <b class="block text-base mt-1.5">Hair &amp; Makeup Package</b>
                     <span class="block text-xs text-ink/60 mt-1.5 leading-relaxed">Coordinated hair and makeup
@@ -2276,7 +2316,7 @@
       <section id="hsTrack" class="py-14 sm:py-20 bg-panel border-b border-bronze/20 scroll-mt-24">
         <div class="max-w-3xl mx-auto px-5 sm:px-8">
           <div class="text-center max-w-xl mx-auto mb-9">
-            <span class="text-xs font-bold tracking-widest uppercase text-copper">Status</span>
+            <span class="home-service-section-label font-bold tracking-widest uppercase text-copper">Status</span>
             <h3 class="font-display text-2xl sm:text-3xl mt-3">
               Track Your Home Service
             </h3>
@@ -2309,7 +2349,7 @@
 
           <!-- How to reschedule + important rules -->
           <div class="mt-8 grid md:grid-cols-2 gap-5">
-            <div class="bg-sand-100 border border-bronze/25 rounded-[24px] p-6">
+            <div class="bg-sand-100 border border-bronze/25 rounded-3xl p-6">
               <span class="text-xs font-bold tracking-widest uppercase text-copper">How to reschedule</span>
               <ol class="mt-3 space-y-2.5 text-xs text-ink/75 leading-relaxed list-decimal list-inside">
                 <li class="prose-justify">Enter your <b>booking reference</b> (e.g. LM-HOM-2026-000041) and the <b>email</b> you used, then tap <b>Track Request</b>.</li>
@@ -2319,7 +2359,7 @@
               </ol>
               <p class="mt-3 text-xs text-ink/55">Have an account? You can also reschedule from <b>My Account → Home Service</b>.</p>
             </div>
-            <div class="bg-copper/10 border border-copper/30 rounded-[24px] p-6">
+            <div class="bg-copper/10 border border-copper/30 rounded-3xl p-6">
               <span class="text-xs font-bold tracking-widest uppercase text-copper-dark">Important reminders &amp; rules</span>
               <ul class="mt-3 space-y-2.5 text-xs text-ink/75 leading-relaxed">
                 <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>Reschedule online at least <b>3 days (72 hours)</b> before your event. Closer than that, please call <b>0918 536 8016</b>.</span></li>
@@ -2338,7 +2378,7 @@
       <section class="py-14 sm:py-20 bg-sand-100 border-b border-bronze/20">
         <div class="max-w-6xl mx-auto px-5 sm:px-8">
           <div class="text-center max-w-xl mx-auto mb-10">
-            <span class="text-xs font-bold tracking-widest uppercase text-copper">Notifications</span>
+            <span class="home-service-section-label font-bold tracking-widest uppercase text-copper">Notifications</span>
             <h3 class="font-display text-2xl sm:text-3xl mt-3">
               Stay Updated on Your Request
             </h3>
@@ -2375,7 +2415,7 @@
       <section class="py-14 sm:py-20 bg-panel border-b border-bronze/20">
         <div class="max-w-6xl mx-auto px-5 sm:px-8">
           <div class="text-center max-w-xl mx-auto mb-10">
-            <span class="text-xs font-bold tracking-widest uppercase text-copper">Off-Site Menu</span>
+            <span class="home-service-section-label font-bold tracking-widest uppercase text-copper">Off-Site Services</span>
             <h3 class="font-display text-2xl sm:text-3xl mt-3">
               What We Can Bring to Your Event
             </h3>
@@ -2499,7 +2539,7 @@
       <section class="py-14 sm:py-20 bg-sand-100 min-h-screen">
         <div class="max-w-6xl mx-auto px-5 sm:px-8">
           <div class="text-center max-w-2xl mx-auto mb-10">
-            <span class="text-xs font-bold tracking-widest uppercase text-copper">Our Work</span>
+            <span class="our-work-label font-bold tracking-widest uppercase text-copper">Our Work</span>
             <h2 class="font-display text-3xl sm:text-4xl mt-3">
               Studio Gallery
             </h2>
@@ -2636,7 +2676,7 @@
               </span>
               Leo Mejillano
             </a>
-            <a href="https://www.facebook.com/share/193e2DePxH/" target="_blank" rel="noopener"
+            <a href="https://www.facebook.com/share/1LeCkdDPPD/" target="_blank" rel="noopener"
               class="inline-flex items-center gap-2.5 rounded-full border border-white/25 pl-2 pr-4 py-2 text-xs font-bold text-white/80 hover:border-copper hover:text-copper transition">
               <span class="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center shrink-0">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
@@ -2645,7 +2685,7 @@
               </span>
               Skin Brows
             </a>
-            <a href="https://www.facebook.com/share/1LeCkdDPPD/" target="_blank" rel="noopener"
+            <a href="https://www.facebook.com/share/193e2DePxH/" target="_blank" rel="noopener"
               class="inline-flex items-center gap-2.5 rounded-full border border-white/25 pl-2 pr-4 py-2 text-xs font-bold text-white/80 hover:border-copper hover:text-copper transition">
               <span class="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center shrink-0">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
@@ -2680,7 +2720,9 @@
   <script src="function/shared/toast.js"></script>
   <script src="function/shared/pending-payment.js"></script>
   <script src="function/shared/late-arrival-rule.js"></script>
-  <script src="function/public/main.js?v=booking-20261105b"></script>
+  <script src="function/shared/live-sync.js?v=20261110"></script>
+  <script src="function/public/main.js?v=bk-20261110c"></script>
+  <script src="function/public/booking-wizard.js?v=20261110b"></script>
 </body>
 
 </html>

@@ -518,6 +518,40 @@ class Scheduling
      * latest overlapping busy period (DateTime) -- i.e. "busy until"; null
      * when they're free for the whole window.
      */
+    /**
+     * True when the employee is scheduled to work for the whole window
+     * [$start, $start + $minutes). Uses staff_schedules (set by Admin); an
+     * employee with no row for that weekday falls back to branch hours,
+     * which booking already enforces, so they count as scheduled.
+     */
+    public static function staffIsScheduled(PDO $pdo, int $employeeId, string $start, int $minutes): bool
+    {
+        $begin = new DateTime($start);
+        $finish = (clone $begin)->modify("+{$minutes} minutes");
+        $stmt = $pdo->prepare('SELECT start_time, end_time, is_rest_day FROM staff_schedules WHERE employee_id = ? AND day_of_week = ?');
+        $stmt->execute([$employeeId, (int) $begin->format('N')]);
+        $row = $stmt->fetch();
+        if (!$row) return true;
+        if ($row['is_rest_day'] || !$row['start_time'] || !$row['end_time']) return false;
+        return $begin->format('H:i:s') >= $row['start_time']
+            && $finish->format('Y-m-d') === $begin->format('Y-m-d')
+            && $finish->format('H:i:s') <= $row['end_time'];
+    }
+
+    /**
+     * Can this stylist take a booking in [$start, $start + $minutes)?
+     * They must be scheduled to work then (staffIsScheduled) AND be on duty
+     * right now -- clocked in and not on a break -- for any date or time, so
+     * customer and guest booking match the Admin, Cashier and Staff panels.
+     * Overlapping clients are checked separately (staffHasConflict).
+     */
+    public static function staffCanTakeBooking(PDO $pdo, int $employeeId, string $start, int $minutes): bool
+    {
+        if (!self::staffIsScheduled($pdo, $employeeId, $start, $minutes)) return false;
+        require_once __DIR__ . '/../helpers/StaffShift.php';
+        return in_array(StaffShift::liveStatus($pdo, $employeeId), [StaffShift::STATUS_ON, StaffShift::STATUS_BUSY], true);
+    }
+
     public static function staffConflictUntil(
         PDO $pdo,
         int $employeeId,

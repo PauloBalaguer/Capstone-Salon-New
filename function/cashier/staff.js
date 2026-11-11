@@ -24,7 +24,8 @@ const STAFF_GROUPS = { available: 0, busy: 1, off: 2 };
 
 function staffGroup(s) {
   if (!s.onShift) return 'off';
-  return s.availability === 'Available' ? 'available' : 'busy';
+  // On Break counts with Busy (clocked in, but can't take a client now).
+  return s.status === 'On Shift' ? 'available' : 'busy';
 }
 
 async function init() {
@@ -32,6 +33,7 @@ async function init() {
   wireStaticEvents();
   updateAssignButton();
   await refreshData();
+  CashierApp.liveSync(refreshData, () => state.branch);
 }
 
 async function refreshData() {
@@ -55,9 +57,9 @@ async function refreshData() {
 /* Same status colours as the staff portal. Off Shift is neutral: it's normal, not an error. */
 function availabilityBadgeStyle(s) {
   const group = staffGroup(s);
-  if (group === 'available') return 'background:#DCFCE7;color:#166534;border:1px solid #86EFAC';
-  if (group === 'busy') return 'background:#FEF3C7;color:#92400E;border:1px solid #FCD34D';
-  return 'background:#F1F5F9;color:#334155;border:1px solid #CBD5E1';
+  if (group === 'available') return 'background:#E6F4EC;color:#115C39;border:1px solid #E6F4EC';
+  if (group === 'busy') return 'background:#FFF3D6;color:#6C4C09;border:1px solid #E0B84C';
+  return 'background:#F6F8F7;color:#38443E;border:1px solid #CDD6D0';
 }
 
 function renderStaffControls(staff) {
@@ -98,9 +100,9 @@ function friendlyNext(label) {
 }
 
 const AVATAR_STYLE = {
-  available: 'bg-emerald-100 text-emerald-800',
-  busy: 'bg-amber-100 text-amber-900',
-  off: 'bg-slate-100 text-slate-500'
+  available: 'bg-emerald-100 text-[color:var(--success)]',
+  busy: 'bg-amber-100 text-[color:var(--warn)]',
+  off: 'bg-[color:var(--bg)] text-slate-500'
 };
 
 // Available first, since that's who a cashier is usually looking for.
@@ -130,24 +132,29 @@ function renderStaff() {
         <div class="flex items-start gap-3">
           <span aria-hidden="true" class="avatar ${AVATAR_STYLE[group]}">${escapeHtml(initials(s.name))}</span>
           <div class="flex-1 min-w-0">
-            <p class="font-bold text-slate-900 capitalize truncate">${escapeHtml(s.name)}</p>
+            <button type="button" data-staff-details="${escapeHtml(s.id)}" class="cp-link-btn font-bold text-slate-900 capitalize truncate" aria-label="View details for ${escapeHtml(s.name)}">${escapeHtml(s.name)}</button>
             <p class="text-sm text-slate-500 truncate">${escapeHtml(s.role || 'Staff')}</p>
           </div>
           <span class="shrink-0 px-2.5 py-0.5 rounded-full text-xs font-bold whitespace-nowrap${s.availability.startsWith('Busy') ? ' badge-live' : ''}" style="${availabilityBadgeStyle(s)}">${escapeHtml(s.availability)}</span>
         </div>
         <dl class="grid grid-cols-2 gap-2 text-sm">
-          <div class="rounded-lg bg-[#FFFDF9] border border-[#F0E6D6] px-3 py-2">
+          <div class="rounded-lg bg-[color:var(--card)] border border-[color:var(--border)] px-3 py-2">
             <dt class="text-xs text-slate-500">Today</dt>
             <dd class="font-semibold text-slate-800">${s.todaysWorkload} booking${s.todaysWorkload === 1 ? '' : 's'}</dd>
           </div>
-          <div class="rounded-lg bg-[#FFFDF9] border border-[#F0E6D6] px-3 py-2 min-w-0">
+          <div class="rounded-lg bg-[color:var(--card)] border border-[color:var(--border)] px-3 py-2 min-w-0">
             <dt class="text-xs text-slate-500">Next</dt>
             <dd class="font-semibold text-slate-800 leading-snug" title="${escapeHtml(s.nextAppointment || '')}">${s.nextAppointment ? escapeHtml(friendlyNext(s.nextAppointment)) : 'Nothing booked'}</dd>
           </div>
         </dl>
         <div class="flex items-center justify-between gap-2 text-sm">
           <span class="text-slate-500"><i class="fa-regular fa-clock mr-1"></i>${s.onShift ? (s.clockInTime ? 'Clocked in ' + escapeHtml(s.clockInTime) : 'On shift') : 'Not clocked in'}</span>
-          ${s.onShift ? `<button type="button" data-clockout="${escapeHtml(s.id)}" class="btn-row border border-rose-200 text-rose-700 hover:bg-rose-50 py-1.5 px-3"><i class="fa-solid fa-right-from-bracket"></i>Clock out</button>` : ''}
+          <span class="text-slate-600 font-semibold">${openAssignments(s).length} open assignment${openAssignments(s).length === 1 ? '' : 's'}</span>
+        </div>
+        <div class="cp-staff-actions">
+          <button type="button" data-staff-details="${escapeHtml(s.id)}" class="btn-row cp-btn-ghost">Details</button>
+          <a href="#assignCard" class="btn-row cp-btn-outline"><i class="fa-solid fa-user-check" aria-hidden="true"></i>Assign Booking</a>
+          ${s.onShift ? `<button type="button" data-clockout="${escapeHtml(s.id)}" class="btn-row border border-[#9C1E15]/30 text-[color:var(--danger)] hover:bg-rose-50"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>Clock out</button>` : ''}
         </div>
       </div>`;
   }).join('') : `
@@ -156,6 +163,46 @@ function renderStaff() {
       <span class="text-sm text-slate-500">${emptyMessage}</span>
     </div>
   `;
+}
+
+/* Bookings this person is assigned to that are not finished yet. */
+function openAssignments(s) {
+  return (state.data?.bookings || []).filter(b => String(b.staffId) === String(s.id)
+    && ['Pending', 'Confirmed', 'In Progress', 'Reschedule Requested'].includes(b.status));
+}
+
+function openStaffDetails(staffId) {
+  const s = (state.data?.staffList || []).find(x => String(x.id) === String(staffId));
+  if (!s) return;
+  const open = openAssignments(s).sort((a, b) => String(a.startDateTime || '').localeCompare(String(b.startDateTime || '')));
+  const item = (label, value) => `<div><dt class="field-label mb-0.5">${label}</dt><dd class="text-slate-800 font-semibold">${value}</dd></div>`;
+  document.getElementById('staffDetailsTitle').textContent = titleCase(s.name);
+  document.getElementById('staffDetailsBody').innerHTML = `
+    <div class="space-y-4">
+      <div class="flex items-center gap-3">
+        <span aria-hidden="true" class="avatar ${AVATAR_STYLE[staffGroup(s)]}">${escapeHtml(initials(s.name))}</span>
+        <div class="min-w-0"><p class="font-bold text-lg text-slate-900 capitalize">${escapeHtml(s.name)}</p><p class="text-sm text-slate-500">${escapeHtml(s.role || 'Staff')}</p></div>
+        <span class="ml-auto shrink-0 px-2.5 py-0.5 rounded-full text-xs font-bold" style="${availabilityBadgeStyle(s)}">${escapeHtml(s.availability)}</span>
+      </div>
+      <dl class="grid grid-cols-2 gap-3 text-sm rounded-xl border border-gray-200 bg-[color:var(--card)] p-4">
+        ${item('Branch', escapeHtml(document.getElementById('sidebarBranchTitle')?.textContent || ''))}
+        ${item('Shift status', s.onShift ? (s.clockInTime ? 'Clocked in ' + escapeHtml(s.clockInTime) : 'On shift') : 'Not clocked in')}
+        ${item('Completed services', escapeHtml(s.completedCount ?? 0))}
+        ${item('Average rating', s.rating ? escapeHtml(s.rating) + ' / 5' : 'No ratings yet')}
+        ${item('Attendance', escapeHtml(s.attendance ?? '-') + (typeof s.attendance === 'number' ? '%' : ''))}
+        ${item('Tips received', CashierApp.formatCurrency(s.totalTips || 0))}
+        <div class="col-span-2"><dt class="field-label mb-0.5">Services offered</dt><dd class="text-slate-800">${escapeHtml(s.specialties || '')}</dd></div>
+      </dl>
+      <div>
+        <p class="font-bold text-slate-800 mb-2">Assigned bookings (${open.length})</p>
+        ${open.length ? `<ul class="space-y-2">${open.map(b => `
+          <li class="rounded-xl border border-gray-200 p-3 flex flex-wrap justify-between gap-2 text-sm">
+            <span class="min-w-0"><span class="font-semibold text-slate-900 capitalize">${escapeHtml(b.clientName)}</span><span class="block text-slate-500">${escapeHtml(b.serviceName || '')} · <span class="font-mono">${escapeHtml(b.id)}</span></span></span>
+            <span class="text-right"><span class="block font-semibold">${escapeHtml(b.date || '')} ${escapeHtml(b.time || '')}</span><span class="cp-badge ${statusBadgeClass(b.status)}">${escapeHtml(b.status)}</span></span>
+          </li>`).join('')}</ul>` : '<p class="text-sm text-slate-500">No open bookings assigned.</p>'}
+      </div>
+    </div>`;
+  CashierApp.showModal('staffDetailsModal');
 }
 
 /* Step 1: Confirmed bookings from today onward, soonest first. Missed bookings
@@ -180,10 +227,10 @@ function formatDuration(minutes) {
 }
 
 function selectableClass(selected) {
-  return selected ? 'border-[#006D6F] bg-[#E5F2F0] ring-1 ring-[#006D6F]' : 'border-[#E8DCC8] bg-[#FFFDF9] hover:border-[#006D6F]';
+  return selected ? 'border-teal-500 bg-teal-100 ring-1 ring-teal-500' : 'border-[color:var(--border)] bg-[color:var(--card)] hover:border-teal-500';
 }
 
-const SELECTED_CHECK = '<span aria-hidden="true" class="shrink-0 w-5 h-5 rounded-full flex items-center justify-center" style="background:#006D6F;color:#FFFFFF"><svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path></svg></span>';
+const SELECTED_CHECK = '<span aria-hidden="true" class="shrink-0 w-5 h-5 rounded-full flex items-center justify-center" style="background:var(--brand);color:#FFFFFF"><svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path></svg></span>';
 
 function renderTicketOptions() {
   const list = document.getElementById('assignTicketList');
@@ -197,15 +244,15 @@ function renderTicketOptions() {
     const selected = t.id === state.selectedTicket;
     const day = new Date(t.date + 'T00:00:00');
     const details = [formatDuration(t.durationMinutes), t.staffName ? 'Current: ' + titleCase(t.staffName) : 'Unassigned'].filter(Boolean).join(' · ');
-    return `<button type="button" role="radio" aria-checked="${selected}" data-ticket="${escapeHtml(t.id)}" class="w-full flex items-center gap-3 rounded-xl border p-3 text-left ${selectableClass(selected)}">
-      <span class="shrink-0 w-[4.75rem] rounded-lg py-1.5 text-center bg-white border border-[#E8DCC8] text-[#06464A]">
+    return `<button type="button" role="radio" aria-checked="${selected}" data-ticket="${escapeHtml(t.id)}" class="w-full flex items-center gap-3 rounded-xl border p-3 text-justify ${selectableClass(selected)}">
+      <span class="shrink-0 w-[4.75rem] rounded-lg py-1.5 text-center bg-white border border-[color:var(--border)] text-teal-700">
         <span class="block text-xs font-bold uppercase">${escapeHtml(day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }))}</span>
         <span class="block text-xs whitespace-nowrap">${escapeHtml(t.time)}</span>
       </span>
       <span class="flex-1 min-w-0">
         <span class="block font-bold text-slate-900 truncate">${escapeHtml(titleCase(t.clientName))}</span>
         <span class="block text-sm text-slate-600 truncate">${escapeHtml(t.serviceName || 'No service')}</span>
-        <span class="block text-xs ${t.staffName ? 'text-slate-500' : 'text-amber-700 font-semibold'} truncate">${escapeHtml(details)}</span>
+        <span class="block text-xs ${t.staffName ? 'text-slate-500' : 'text-[color:var(--warn)] font-semibold'} truncate">${escapeHtml(details)}</span>
       </span>
       ${selected ? SELECTED_CHECK : ''}
     </button>`;
@@ -214,10 +261,10 @@ function renderTicketOptions() {
 
 function renderStaffOptions(message) {
   const list = document.getElementById('assignStaffList');
-  list.innerHTML = message ? `<p class="py-4 px-3 text-center text-sm font-semibold rounded-xl bg-amber-50 text-amber-900">${escapeHtml(message)}</p>` : state.qualifiedStaff.map(s => {
+  list.innerHTML = message ? `<p class="py-4 px-3 text-center text-sm font-semibold rounded-xl bg-amber-50 text-[color:var(--warn)]">${escapeHtml(message)}</p>` : state.qualifiedStaff.map(s => {
     const selected = String(s.id) === String(state.selectedStaff);
-    return `<button type="button" role="radio" aria-checked="${selected}" data-staff="${escapeHtml(s.id)}" class="w-full flex items-center gap-3 rounded-xl border p-3 text-left ${selectableClass(selected)}">
-      <span aria-hidden="true" class="avatar w-10 h-10 bg-white border border-[#E8DCC8] text-[#06464A]">${escapeHtml(initials(s.name))}</span>
+    return `<button type="button" role="radio" aria-checked="${selected}" data-staff="${escapeHtml(s.id)}" class="w-full flex items-center gap-3 rounded-xl border p-3 text-justify ${selectableClass(selected)}">
+      <span aria-hidden="true" class="avatar w-10 h-10 bg-white border border-[color:var(--border)] text-teal-700">${escapeHtml(initials(s.name))}</span>
       <span class="flex-1 min-w-0">
         <span class="block font-bold text-slate-900 truncate">${escapeHtml(titleCase(s.name))}</span>
         <span class="block text-sm text-slate-500 truncate">${escapeHtml(s.role)}</span>
@@ -263,8 +310,8 @@ function flashStaffCard(staffId) {
   const card = document.getElementById(`staff-card-${staffId}`);
   if (!card) return;
   card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  card.classList.add('bg-amber-50', 'border-amber-300', 'shadow-lg');
-  setTimeout(() => card.classList.remove('bg-amber-50', 'border-amber-300', 'shadow-lg'), 900);
+  card.classList.add('bg-amber-50', 'border-[#774800]/40', 'shadow-lg');
+  setTimeout(() => card.classList.remove('bg-amber-50', 'border-[#774800]/40', 'shadow-lg'), 900);
 }
 
 async function assignStaffToTicket() {
@@ -316,6 +363,11 @@ async function confirmClockOut() {
 }
 
 function wireStaticEvents() {
+  document.getElementById('staffContainerGrid').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-staff-details]');
+    if (btn) openStaffDetails(btn.dataset.staffDetails);
+  });
+  document.getElementById('btnCloseStaffDetails').addEventListener('click', () => CashierApp.hideModal('staffDetailsModal'));
   document.getElementById('staffStatusFilters').addEventListener('click', (e) => {
     const btn = e.target.closest('[data-status]');
     if (!btn) return;

@@ -71,10 +71,9 @@ try {
         SELECT e.id, CONCAT(e.first_name, ' ', e.last_name) AS name, e.position AS role
         FROM employees e
         WHERE e.branch_id = ? AND e.is_active = 1
-        AND (DATE(?) <> CURDATE() OR EXISTS (SELECT 1 FROM attendance att WHERE att.employee_id = e.id AND DATE(att.clock_in_time) = CURDATE() AND att.clock_out_time IS NULL))
         ORDER BY e.first_name, e.last_name
     ");
-    $stmt->execute([$branchId, $appointment['appointment_datetime']]);
+    $stmt->execute([$branchId]);
     $onShiftStaff = $stmt->fetchAll();
 
     if (!empty($requiredServiceIds)) {
@@ -89,6 +88,12 @@ try {
             if ((int) $stmt->fetchColumn() !== count($requiredServiceIds)) {
                 continue; // Doesn't cover every service on this booking.
             }
+        }
+
+        // Immediate bookings need the stylist clocked in and not on a break;
+        // later ones need them scheduled (same rule as customer booking).
+        if (!Scheduling::staffCanTakeBooking($pdo, (int) $staff['id'], $appointment['appointment_datetime'], $durationMinutes)) {
+            continue;
         }
 
         if (Scheduling::staffHasConflict($pdo, (int) $staff['id'], $appointment['appointment_datetime'], $durationMinutes, $appointment['id'])) {

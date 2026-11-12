@@ -120,7 +120,8 @@ try {
     $stmt = $pdo->prepare("
         SELECT
             f.id,
-            CONCAT(c.first_name, ' ', c.last_name) AS clientName,
+            -- Client names are left out on purpose: staff see their own
+            -- feedback anonymously, only the Admin sees who wrote it.
             f.rating,
             f.comments AS comment,
             DATE_FORMAT(f.created_at, '%Y-%m-%d') AS date,

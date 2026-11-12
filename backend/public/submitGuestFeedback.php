@@ -79,7 +79,7 @@ try {
 
     if ($appt) {
         $pdo->beginTransaction();
-        $ins = $pdo->prepare('INSERT INTO feedback (appointment_id, customer_id, rating, comments, is_public, created_at) VALUES (?, ?, ?, ?, 1, NOW())');
+        $ins = $pdo->prepare('INSERT INTO feedback (appointment_id, customer_id, rating, comments, is_public, created_at) VALUES (?, ?, ?, ?, 0, NOW())');
         $ins->execute([$appt['id'], $appt['customer_id'], $rating, $fullComment]);
 
         $pdo->prepare("UPDATE appointments SET status = 'Reviewed' WHERE id = ?")->execute([$appt['id']]);
@@ -100,7 +100,7 @@ try {
     $hs = $stmt->fetch();
 
     if ($hs) {
-        $ins = $pdo->prepare('INSERT INTO feedback (home_service_request_id, customer_id, rating, comments, is_public, created_at) VALUES (?, ?, ?, ?, 1, NOW())');
+        $ins = $pdo->prepare('INSERT INTO feedback (home_service_request_id, customer_id, rating, comments, is_public, created_at) VALUES (?, ?, ?, ?, 0, NOW())');
         $ins->execute([$hs['id'], $hs['customer_id'], $rating, $fullComment]);
 
         echo json_encode(['success' => true, 'message' => 'Thank you your rating has been sent to the branch.']);

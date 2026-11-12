@@ -152,3 +152,7 @@
     transform: scale(.96) !important;
   }
 }
+
+/* Edge adds its own eye button to password fields; the site already has one. */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear { display: none; }

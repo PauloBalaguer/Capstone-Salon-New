@@ -184,7 +184,7 @@ function renderQueue() {
   const today = todayISO();
   const list = queueBookings().filter(b => inTab(b, state.tab) && (!search
     || b.clientName.toLowerCase().includes(search)
-    || b.id.toLowerCase().includes(search)));
+    || b.id.toLowerCase().includes(search))).sort(newestBookingFirst);
   const todays = list.filter(b => b.date === today);
   // Still open from earlier days: show them instead of hiding them.
   const earlier = list.filter(b => (b.date || '') < today);

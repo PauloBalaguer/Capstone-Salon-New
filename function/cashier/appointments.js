@@ -140,18 +140,7 @@ function filteredBookings() {
         || (b.clientPhone || '').includes(search)
         || b.id.toLowerCase().includes(search)))
     // Newest submission first (when the booking was made), not appointment date.
-    .sort((a, b) => submittedKey(b).localeCompare(submittedKey(a)) || String(b.id).localeCompare(String(a.id)));
-}
-
-/* submittedAt arrives as "YYYY-MM-DD hh:mm AM" (getDashboardData.php); turn it
-   into a sortable "YYYY-MM-DD HH:mm" key. */
-function submittedKey(b) {
-  const m = String(b.submittedAt || '').match(/^(\d{4}-\d{2}-\d{2}) (\d{1,2}):(\d{2}) ?(AM|PM)?/i);
-  if (!m) return '';
-  let h = Number(m[2]) % 12;
-  if (m[4] && m[4].toUpperCase() === 'PM') h += 12;
-  if (!m[4]) h = Number(m[2]);
-  return `${m[1]} ${String(h).padStart(2, '0')}:${m[3]}`;
+    .sort(newestBookingFirst);
 }
 
 /* "today, 4:58 PM" / "yesterday, 9:10 AM" / "Nov 11, 4:58 PM" (adds the year

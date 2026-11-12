@@ -54,6 +54,22 @@ function needsPaymentVerification(b) {
     && !['Pending', 'Cancelled', 'Completed'].includes(b.status);
 }
 
+/* submittedAt arrives as "YYYY-MM-DD hh:mm AM" (getDashboardData.php); turn it
+   into a sortable "YYYY-MM-DD HH:mm" key. */
+function submittedKey(b) {
+  const m = String(b.submittedAt || '').match(/^(\d{4}-\d{2}-\d{2}) (\d{1,2}):(\d{2}) ?(AM|PM)?/i);
+  if (!m) return '';
+  let h = Number(m[2]) % 12;
+  if (m[4] && m[4].toUpperCase() === 'PM') h += 12;
+  if (!m[4]) h = Number(m[2]);
+  return `${m[1]} ${String(h).padStart(2, '0')}:${m[3]}`;
+}
+
+/* Newest booking first (when it was made), not by appointment time. */
+function newestBookingFirst(a, b) {
+  return submittedKey(b).localeCompare(submittedKey(a)) || String(b.id).localeCompare(String(a.id));
+}
+
 const CashierApp = {
   async get(endpoint, params) {
     const query = new URLSearchParams();

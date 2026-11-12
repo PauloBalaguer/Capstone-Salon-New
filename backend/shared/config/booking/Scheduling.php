@@ -16,12 +16,14 @@ require_once __DIR__ . '/../setup/env.php';
 class Scheduling
 {
     const DEFAULT_DURATION_MINUTES = 30;
+    // Bookable start times are offered every this many minutes (timeSlots()).
+    const SLOT_INTERVAL_MINUTES = 30;
     const SLOT_UNAVAILABLE_MESSAGE = 'Selected time slot is unavailable. Please choose another schedule.';
 
     public static function cleaningBufferMinutes(): int
     {
         $value = env('SALON_CLEANING_BUFFER_MINUTES');
-        return ctype_digit($value) ? (int) $value : 30;
+        return ctype_digit($value) ? (int) $value : 15;
     }
 
     /** Persistent rows serialize writes even when no appointments exist yet. */
@@ -432,7 +434,7 @@ class Scheduling
         $slots = [];
         while ($cursor < $closing) {
             $slots[] = $cursor->format('h:i A');
-            $cursor->modify('+30 minutes');
+            $cursor->modify('+' . self::SLOT_INTERVAL_MINUTES . ' minutes');
         }
         return $slots;
     }
@@ -903,6 +905,68 @@ class Scheduling
             $windows[] = ['start' => $window['start'], 'end' => $window['end'], 'appointment_id' => 0];
         }
         return $windows;
+    }
+
+    /**
+     * How full one stylist's day is, for the admin Staff page and the staff
+     * portal: clients booked, minutes of service booked (cleaning buffer not
+     * counted), and the working minutes available that day -- their own
+     * staff_schedules hours, or their branch's hours when they have none.
+     * Uses staffBusyWindows(), so shared bookings, per-service stylists and
+     * confirmed home visits count exactly as they do for availability.
+     *
+     * @return array{date: string, clients: int, bookedMinutes: int, workMinutes: int, freeMinutes: int, offReason: ?string}
+     */
+    public static function staffDayLoad(PDO $pdo, int $employeeId, string $dateYmd): array
+    {
+        $offReason = null;
+        $workMinutes = 0;
+        if (self::staffLeaveOn($pdo, $employeeId, $dateYmd)) {
+            $offReason = 'On leave';
+        } else {
+            $stmt = $pdo->prepare('SELECT start_time, end_time, is_rest_day FROM staff_schedules WHERE employee_id = ? AND day_of_week = ?');
+            $stmt->execute([$employeeId, (int) (new DateTime($dateYmd))->format('N')]);
+            $row = $stmt->fetch();
+            $stmt = $pdo->prepare('SELECT b.branch_key FROM employees e JOIN branches b ON b.id = e.branch_id WHERE e.id = ?');
+            $stmt->execute([$employeeId]);
+            $branchKey = $stmt->fetchColumn() ?: null;
+            if ($row && ($row['is_rest_day'] || !$row['start_time'] || !$row['end_time'])) {
+                $offReason = 'Day off';
+            } elseif ($branchKey && self::isBranchClosed($branchKey, $dateYmd)) {
+                $offReason = 'Branch closed';
+            } else {
+                if ($row && !($branchKey && self::branchHoliday($branchKey, $dateYmd))) {
+                    [$from, $to] = [$row['start_time'], $row['end_time']];
+                } elseif ($branchKey) {
+                    [$from, $to] = self::operatingHours($branchKey, $dateYmd);
+                } else {
+                    [$from, $to] = [null, null];
+                }
+                if ($from && $to) {
+                    $workMinutes = max(0, (int) round((strtotime("2000-01-01 {$to}") - strtotime("2000-01-01 {$from}")) / 60));
+                }
+            }
+        }
+
+        $buffer = self::cleaningBufferMinutes();
+        $clients = [];
+        $booked = 0;
+        foreach (self::staffBusyWindows($pdo, $employeeId, $dateYmd) as $i => $window) {
+            if ($window['start']->format('Y-m-d') !== $dateYmd) continue;
+            $minutes = (int) round(($window['end']->getTimestamp() - $window['start']->getTimestamp()) / 60) - $buffer;
+            $booked += max(0, $minutes);
+            // Several windows of one booking (back-to-back services) are one client.
+            $clients[$window['appointment_id'] ? 'a' . $window['appointment_id'] : 'h' . $i] = true;
+        }
+
+        return [
+            'date' => $dateYmd,
+            'clients' => count($clients),
+            'bookedMinutes' => $booked,
+            'workMinutes' => $workMinutes,
+            'freeMinutes' => max(0, $workMinutes - $booked),
+            'offReason' => $offReason,
+        ];
     }
 
     /**

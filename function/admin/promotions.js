@@ -173,6 +173,32 @@ function adminPromotionsApp() {
     groupIcon(group) {
       return ({ hair: '✂', nails: '💅', lash: '👁', facial: '✿', wax: '✦', aesth: '✚', body: '❋', makeup: '💄', promo: '%', other: '•' })[this.groupKey(group)];
     },
+    serviceIcon(service) {
+      const name = String(service.name || '').toLowerCase();
+      let key = this.groupKey(service.group);
+      if (/\b(lip|lips|blush)\b/.test(name)) key = 'lips';
+      else if (/facial|diamond peel|face|aqua facial/.test(name)) key = 'facial';
+      else if (/lash|brow|microblad/.test(name)) key = 'lash';
+      else if (/nail|manicure|pedicure|gel polish|foot spa/.test(name)) key = 'nails';
+      else if (/hair|rebond|keratin|blow\s?dry|brazilian/.test(name)) key = 'hair';
+      else if (/make.?up/.test(name)) key = 'makeup';
+      else if (/wax|laser/.test(name)) key = 'wax';
+      else if (/massage|scrub/.test(name)) key = 'body';
+      const paths = {
+        hair: '<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="m8 8 13 13M8 16 21 3M14 10l7-7"/>',
+        nails: '<path d="M8 10V6a4 4 0 0 1 8 0v4M7 10h10l1 11H6L7 10Z"/><path d="M9 14h6"/>',
+        lash: '<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12ZM5 7 3 4m9 2V2m7 5 2-3"/><circle cx="12" cy="12" r="3"/>',
+        facial: '<path d="M6 9c0-5 12-5 12 0v5c0 5-6 8-6 8s-6-3-6-8V9ZM8 4l4-2 4 2M8 11h2m4 0h2m-6 6h4"/>',
+        lips: '<path d="M2 12s5-7 8-5l2 1 2-1c3-2 8 5 8 5s-4 7-10 7S2 12 2 12Z"/><path d="M2 12c6 2 14 2 20 0"/>',
+        wax: '<path d="m14 3 1.5 5.5L21 10l-5.5 1.5L14 17l-1.5-5.5L7 10l5.5-1.5L14 3ZM5 15v6m-3-3h6"/>',
+        aesth: '<path d="M12 3c-2 4-7 8-7 12a7 7 0 0 0 14 0c0-4-5-8-7-12Z"/><path d="M9 16a3 3 0 0 0 3 3"/>',
+        body: '<path d="M12 20C4 20 2 14 2 10c5 0 8 3 10 10Zm0 0c8 0 10-6 10-10-5 0-8 3-10 10Zm0-3C7 12 9 6 12 3c3 3 5 9 0 14Z"/>',
+        makeup: '<path d="M8 12h8v10H8V12Zm1 0V5l6-3v10M8 17h8"/>',
+        promo: '<path d="M3 3h8l10 10-8 8L3 11V3Z"/><circle cx="7.5" cy="7.5" r="1"/>',
+        other: '<path d="M5 5h14v16H5V5Zm3-3h8v6H8V2Zm0 10h8m-8 4h6"/>'
+      };
+      return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (paths[key] || paths.other) + '</svg>';
+    },
     /* Top 3 most-booked services of this branch (at least 3 bookings). */
     isPopular(service) {
       const top = [...this.branchServices()].sort((a, b) => (b.bookingCount || 0) - (a.bookingCount || 0)).slice(0, 3);
@@ -192,6 +218,31 @@ function adminPromotionsApp() {
       if (!m) return '—';
       const h = Math.floor(m / 60), r = m % 60;
       return [h ? h + ' hr' : '', r ? r + ' min' : ''].filter(Boolean).join(' ');
+    },
+    /* Most clients one stylist can take per day doing only this service:
+       the stylist is busy for the service plus the cleaning buffer, the next
+       client starts at the next bookable start time, and the last service
+       must end by branch closing (same rules as Scheduling.php). */
+    maxPerDay(service) {
+      const store = Alpine.store('admin');
+      const branch = (store.branches || []).find(b => b.id === service.branchId);
+      const toMin = t => { const [h, m] = String(t || '').split(':').map(Number); return h * 60 + (m || 0); };
+      if (!branch || !branch.openingTime || !branch.closingTime) return null;
+      let open = toMin(branch.closingTime) - toMin(branch.openingTime);
+      if (open <= 0) open += 24 * 60;
+      const d = Number(service.durationMinutes) || 0;
+      if (!d) return null;
+      if (d > open) return 0;
+      const rules = store.bookingRules || {};
+      const interval = Number(rules.slotIntervalMinutes) || 30;
+      const step = Math.ceil((d + (Number(rules.cleaningBufferMinutes) || 0)) / interval) * interval;
+      return Math.floor((open - d) / step) + 1;
+    },
+    maxPerDayTitle(service) {
+      const rules = Alpine.store('admin').bookingRules || {};
+      return 'Most clients one stylist can take per day doing only this service, within branch hours, with a '
+        + (rules.cleaningBufferMinutes ?? 15) + '-min cleaning buffer and start times every '
+        + (rules.slotIntervalMinutes ?? 30) + ' min. Each branch also serves at most its booking capacity at the same time.';
     },
     /* Disable / Delete now live in the Edit dialog. */
     editingService() {

@@ -323,6 +323,11 @@ body.lm-admin .admin-tier--silver { background: var(--brand-softer); color: var(
 .lm-table .lm-actions-cell .lm-actions { justify-content: flex-end; flex-wrap: nowrap; }
 .lm-cell-main { display: block; font-weight: 600; color: var(--lm-ink); }
 .lm-cell-sub { display: block; font-size: 12.5px; color: var(--lm-muted); margin-top: 2px; }
+/* Staff directory "Today": clients, booked time and a small load bar. */
+.lm-load { display: block; min-width: 120px; }
+.lm-load-main { font-weight: 600; color: var(--lm-ink); }
+.lm-load-bar { display: block; height: 6px; margin-top: 6px; border-radius: 999px; background: var(--lm-teal-soft); overflow: hidden; max-width: 160px; }
+.lm-load-bar span { display: block; height: 100%; border-radius: inherit; background: var(--lm-teal); }
 .lm-ref { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 700; font-size: 13px; color: var(--lm-gold-ink); overflow-wrap: anywhere; }
 .lm-name-btn { background: none; border: 0; padding: 0; font: inherit; font-weight: 600; color: var(--lm-teal); cursor: pointer; text-align: left; display: inline-flex; align-items: center; gap: 10px; }
 .lm-name-btn:hover span { text-decoration: underline; }

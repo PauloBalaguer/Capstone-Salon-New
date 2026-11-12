@@ -46,7 +46,7 @@
 
       <section class="lm-card lm-card--flush" x-show="!$store.admin.loading" aria-label="Service menu">
         <div class="lm-card-head">
-          <div><h2 x-text="'Service menu · ' + $store.admin.getBranchName(serviceFilterBranch)"></h2><p>Most frequently booked services are listed first.</p></div>
+          <div><h2 x-text="'Service menu · ' + $store.admin.getBranchName(serviceFilterBranch)"></h2><p>Most frequently booked services are listed first. <b>Max / day</b> is the most clients one stylist can take doing only that service, based on its duration, a <span x-text="($store.admin.bookingRules || {}).cleaningBufferMinutes ?? 15"></span>-minute cleaning buffer and this branch's hours.</p></div>
         </div>
         <div class="lm-toolbar" style="padding:0 20px 14px">
           <label class="lm-field lm-field--grow"><span>Search services</span>
@@ -62,14 +62,14 @@
         </div>
         <div class="lm-table-wrap">
           <table class="lm-table lm-table--stack lm-svc-table">
-            <colgroup><col style="width:34%"><col style="width:26%"><col style="width:16%"><col style="width:14%"><col style="width:10%"></colgroup>
-            <thead><tr><th scope="col">Service</th><th scope="col">Category</th><th scope="col">Price</th><th scope="col">Duration</th><th scope="col" class="num">Action</th></tr></thead>
+            <colgroup><col style="width:30%"><col style="width:24%"><col style="width:15%"><col style="width:12%"><col style="width:10%"><col style="width:9%"></colgroup>
+            <thead><tr><th scope="col">Service</th><th scope="col">Category</th><th scope="col">Price</th><th scope="col">Duration</th><th scope="col" title="Most clients one stylist can take per day doing only this service">Max / day</th><th scope="col" class="num">Action</th></tr></thead>
             <tbody>
               <template x-for="service in $store.pager.slice('services', getFilteredServices())" :key="service.id">
                 <tr :class="!service.active ? 'lm-row-muted' : ''">
                   <td data-label="Service">
                     <div class="lm-svc-who">
-                      <span class="lm-svc-icon" :class="'g-' + groupKey(service.group)" aria-hidden="true" x-text="groupIcon(service.group)"></span>
+                      <span class="lm-svc-icon" :class="'g-' + groupKey(service.group)" aria-hidden="true" x-html="serviceIcon(service)"></span>
                       <div>
                         <span class="lm-svc-name"><span x-text="service.name"></span>
                           <span class="lm-svc-tag lm-svc-tag--hot" x-show="isPopular(service)">Popular</span>
@@ -81,12 +81,13 @@
                   <td data-label="Category"><span class="lm-svc-pill" :class="'g-' + groupKey(service.group)" x-text="service.group || 'Other'"></span><span class="lm-cell-sub" x-show="sectionOf(service.category) && sectionOf(service.category) !== service.group" x-text="sectionOf(service.category)"></span></td>
                   <td data-label="Price"><strong class="lm-svc-price" x-text="$store.admin.formatCurrency(service.price)"></strong><span class="lm-svc-tag" x-text="paymentShort(service.paymentRequirement)"></span></td>
                   <td data-label="Duration" class="lm-nowrap"><span class="lm-svc-dur"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span x-text="durationShort(service.durationMinutes)"></span></span></td>
+                  <td data-label="Max / day" class="lm-nowrap" :title="maxPerDayTitle(service)"><span class="lm-svc-dur" x-text="maxPerDay(service) === null ? '—' : maxPerDay(service) + ' / stylist'"></span></td>
                   <td class="lm-actions-cell"><div class="lm-actions">
                     <button type="button" class="lm-btn lm-btn--sm" @click="openEditService(service)" :aria-label="'Edit ' + service.name">Edit</button>
                   </div></td>
                 </tr>
               </template>
-              <tr x-show="getFilteredServices().length === 0" class="lm-empty-row"><td colspan="5" class="lm-empty-cell"><div class="lm-empty"><h3>No services found</h3><p>No services match this branch, category or search. Use “Add service” to create one.</p></div></td></tr>
+              <tr x-show="getFilteredServices().length === 0" class="lm-empty-row"><td colspan="6" class="lm-empty-cell"><div class="lm-empty"><h3>No services found</h3><p>No services match this branch, category or search. Use “Add service” to create one.</p></div></td></tr>
             </tbody>
           </table>
         </div>
@@ -236,7 +237,7 @@
 <script src="../../function/shared/live-sync.js?v=20261110"></script>
 <script src="../../function/admin/shared-data.js?v=20261111"></script>
 <script src="../../function/shared/service-duration.js"></script>
-<script src="../../function/admin/promotions.js?v=20261111-svcdesign"></script>
+<script src="../../function/admin/promotions.js?v=20261112-service-icons"></script>
 <script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

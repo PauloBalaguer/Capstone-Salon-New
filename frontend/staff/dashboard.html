@@ -259,6 +259,15 @@
                   <span class="sp-stat-label">Scheduled shift</span>
                 </button>
               </div>
+              <div class="sp-dayload" x-show="$store.staff.dayLoad" x-cloak>
+                <div class="sp-dayload-head">
+                  <span class="sp-dayload-title">My day</span>
+                  <span class="sp-dayload-text" x-text="$store.staff.dayLoadLabel()"></span>
+                </div>
+                <div class="sp-dayload-bar" role="progressbar" aria-label="Today's working time booked" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="$store.staff.dayLoadPercent()">
+                  <span :style="'width:' + $store.staff.dayLoadPercent() + '%'"></span>
+                </div>
+              </div>
             </article>
 
             <!-- Upcoming Appointments -->

@@ -154,7 +154,7 @@
         '<span class="text-[10px] font-bold uppercase tracking-widest text-copper">' + p.cat + '</span>' +
         '<h4 class="font-bold text-sm text-ink mt-1">' + p.name + '</h4>' +
         (Number.isFinite(p.price) ? '<p class="text-sm font-bold mt-2">' + new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(p.price) + '</p>' : '') +
-        '<p class="text-xs text-ink/60 mt-2">' + (Number.isFinite(p.stock) ? (p.stock <= 0 ? 'Out of stock' : p.stock <= 5 ? 'Low stock' : 'In stock') : 'Check branch availability') + '</p>' +
+        (Number.isFinite(p.stock) ? '<p class="text-xs text-ink/60 mt-2">' + (p.stock <= 0 ? 'Out of stock' : p.stock <= 5 ? 'Low stock' : 'In stock') + '</p>' : '') +
       '</div>';
     }).join('');
 
@@ -1828,19 +1828,19 @@
   const BRANCH_PICKER_CARDS = [
     {
       key: 'daraga', delay: 'sr-d1', badge: 'Hair & Beauty Studio', name: 'Daraga Main',
-      address: 'Hair, Beauty &amp; Makeup Studio · Regidor St.',
+      address: '2nd Floor, Luna Building, Regidor Street, Daraga, Albay',
       blurb: 'Our Daraga Main branch provides a range of salon and beauty services, including hair treatments, nail care, skincare, lash and brow services, and makeup for special occasions.',
       tags: ['Hair', 'Nails', 'Skin', 'Make-up'], hours: '8:00 AM – 8:00 PM, daily'
     },
     {
       key: 'yashano', delay: 'sr-d2', badge: 'Skin &amp; Brow Studio', name: 'Yashano Mall',
-      address: "Facial &amp; Brow Services · 2nd Floor, beside Angel's Pizza",
+      address: "2nd Floor, Yashano Mall, Legazpi City, Albay<br>Beside Angel's Pizza",
       blurb: 'Our Yashano Mall branch offers facial treatments, skin peeling services, and eyebrow care, with a focus on skincare and brow grooming.',
       tags: ['Skin', 'Brows', 'Lashes'], hours: '9:30 AM – 8:00 PM, daily'
     },
     {
       key: 'cabangan', delay: 'sr-d3', badge: 'Lash, Brow &amp; Hair', name: 'Cabangan',
-      address: 'Lash, Brow &amp; Hair Services · Rizal St., Brgy. 18',
+      address: 'Brgy. 18, Rizal Street, Cabangan, Legazpi City, Albay',
       blurb: 'Our Cabangan branch provides eyelash extensions, lash lifts, and eyebrow shaping, along with haircuts, hair coloring, and hair rebonding services.',
       tags: ['Lashes', 'Brows', 'Hair'], hours: '8:00 AM – 8:00 PM, daily'
     }
@@ -1860,7 +1860,7 @@
           </span>
         </div>
         <h3 class="font-display text-[1.6rem] leading-tight mt-5">${b.name}</h3>
-        <p class="text-[13px] text-ink/55 mt-1.5">${b.address}</p>
+        <p class="branch-pick-address text-[13px] mt-1.5">${b.address}</p>
         <p class="prose-justify text-sm text-ink/70 mt-4 leading-relaxed">${b.blurb}</p>
         <div class="branch-pick-tags flex flex-wrap gap-2">
           ${b.tags.map(t => `<span class="text-[11px] font-semibold rounded-full border border-bronze/40 px-3 py-1.5">${t}</span>`).join('')}
@@ -1885,6 +1885,16 @@
   })();
 
   (function () {
+    fetch('backend/public/getSiteStats.php', { cache: 'no-store' })
+      .then(response => { if (!response.ok) throw new Error('Statistics unavailable'); return response.json(); })
+      .then(data => {
+        if (!data.success) return;
+        document.querySelectorAll('[data-live-stat]').forEach(el => {
+          const value = data[el.dataset.liveStat];
+          if (Number.isInteger(value) && value >= 0) el.textContent = value.toLocaleString('en-PH');
+        });
+      })
+      .catch(() => {});
     const stats = document.querySelectorAll('.hero-stat b[data-count]');
     if (!stats.length) return;
     const run = el => {
@@ -1998,7 +2008,7 @@
     const nodes = document.querySelectorAll('.trk-node');
     const msg = document.getElementById('trkMsg');
     const COPY = [
-      'Request received. The Daraga front desk is checking the slot.',
+      'Request received. The Daraga branch is verifying your payment.',
       'Confirmed for 20 December, 8:00 AM. A reminder text goes out the day before.',
       'Your stylist has started. Sit back this is the good part.',
       'All done. A short rating form is waiting for you it takes about twenty seconds.'
@@ -2013,26 +2023,6 @@
     msg.textContent = COPY[i];
   })();
 
-  (function () {
-    const slides = document.querySelectorAll('.testi-slide');
-    const dots = document.querySelectorAll('.testi-dot');
-    const box = document.getElementById('testiBox');
-    if (!slides.length) return;
-    let i = 0, timer = null;
-
-    const go = n => {
-      i = (n + slides.length) % slides.length;
-      slides.forEach((s, k) => s.classList.toggle('on', k === i));
-      dots.forEach((d, k) => d.classList.toggle('on', k === i));
-    };
-    const play = () => { timer = setInterval(() => go(i + 1), 6000); };
-    const stop = () => { clearInterval(timer); };
-
-    dots.forEach(d => d.addEventListener('click', () => { stop(); go(parseInt(d.dataset.i, 10)); play(); }));
-    box?.addEventListener('mouseenter', stop);
-    box?.addEventListener('mouseleave', play);
-    play();
-  })();
 
 
   /* ============================================================

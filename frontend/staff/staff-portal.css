@@ -295,6 +295,13 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 .sp-overview-card .sp-card-title { margin-bottom: 14px; }
 .sp-stat-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+/* "My day": today's booked time vs. working time, under the overview tiles. */
+.sp-dayload { margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: var(--bg); border: 1px solid var(--sp-border); }
+.sp-dayload-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; margin-bottom: 8px; }
+.sp-dayload-title { font-weight: 700; color: var(--sp-text); }
+.sp-dayload-text { color: var(--sp-muted); font-size: 0.875rem; }
+.sp-dayload-bar { height: 8px; border-radius: 999px; background: var(--sp-green-100); overflow: hidden; }
+.sp-dayload-bar span { display: block; height: 100%; border-radius: inherit; background: var(--sp-green-700); transition: width .3s ease; }
 .sp-stat { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 14px; border-radius: 14px; background: var(--bg) !important; border: 1px solid var(--sp-border) !important; text-align: left; min-height: 116px; min-width: 0; }
 button.sp-stat:hover { border-color: var(--sp-green-600) !important; background: var(--sp-green-50) !important; }
 .sp-stat-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px; }
@@ -345,7 +352,7 @@ button.sp-stat:hover { border-color: var(--sp-green-600) !important; background:
 .sp-appt-meta .ico, .sp-appt-card-body .sp-muted .ico { width: 15px; height: 15px; }
 .sp-appt-card-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
 .sp-appt-card-actions .sp-btn { flex: 1 1 auto; }
-.sp-appt-card-actions .sp-btn-ghost { flex: 0 0 auto; }
+.sp-appt-card-actions .sp-btn-ghost { flex: 0 0 auto; margin-left: auto; }
 .sp-appt-more { border-top: 1px dashed var(--sp-border-strong); padding-top: 12px; display: flex; flex-direction: column; gap: 12px; }
 .sp-detail-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .sp-detail-list dd { font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
@@ -414,7 +421,7 @@ input[type="date"].sp-input { min-width: 0; }
 
 /* ---------- Schedule ---------- */
 .sp-week { display: flex; flex-direction: column; }
-.sp-week-row { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr) auto; align-items: center; gap: 10px; padding: 12px 10px; border-top: 1px solid var(--sp-border); border-radius: 10px; }
+.sp-week-row { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr) 90px; align-items: center; gap: 10px; padding: 12px 10px; border-top: 1px solid var(--sp-border); border-radius: 10px; }
 .sp-week-row:first-child { border-top: 0; }
 .sp-week-row.is-today { background: var(--sp-green-50); border-top-color: transparent; box-shadow: inset 4px 0 0 var(--sp-green-600); }
 .sp-week-row.is-today + .sp-week-row { border-top-color: transparent; }

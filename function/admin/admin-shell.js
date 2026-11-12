@@ -29,7 +29,7 @@
     ['promotions.html', 'Services & Promos', 'services'],
     ['reports.html', 'Reports', 'reports'],
     ['customers.html', 'Customers', 'customers'],
-    ['feedback.html', 'Guest Feedback', 'feedback'],
+    ['feedback.html', 'Customer Feedback', 'feedback'],
     ['settings.html', 'Settings', 'settings']
   ];
   const BOTTOM_COUNT = 4; // phone bottom bar: first four sections + Menu (rest live in the drawer)

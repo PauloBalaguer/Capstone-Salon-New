@@ -24,6 +24,7 @@ document.addEventListener('alpine:init', () => {
     notifications: [],
     lateGraceMinutes: null,
     availability: { busyUntil: null, busyMinutesLeft: 0 },
+    dayLoad: null,
     // Five-status live status from the server (StaffShift): {status, statusLabel, statusColor}.
     liveStatus: null,
     homeVisits: [],
@@ -57,6 +58,7 @@ document.addEventListener('alpine:init', () => {
         this.schedule = data.schedule;
         this.lateGraceMinutes = data.lateGraceMinutes;
         this.availability = data.availability;
+        this.dayLoad = data.dayLoad || null;
         this.liveStatus = data.liveStatus || null;
         this.homeVisits = data.homeVisits || [];
         this.appointments = data.appointments;
@@ -218,6 +220,27 @@ document.addEventListener('alpine:init', () => {
     todayISO() {
       const parts = new Intl.DateTimeFormat('en-CA', { timeZone: STAFF_TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(this.now);
       return parts; // en-CA formats as YYYY-MM-DD
+    },
+
+    /* "4 hr 30 min" style label for a number of minutes. */
+    minutesLabel(minutes) {
+      const m = Math.max(0, Math.round(Number(minutes) || 0));
+      const h = Math.floor(m / 60), r = m % 60;
+      return [h ? h + ' hr' : '', r || !h ? r + ' min' : ''].filter(Boolean).join(' ');
+    },
+
+    /* Share of today's working time already booked, 0-100. */
+    dayLoadPercent() {
+      const d = this.dayLoad;
+      if (!d || !d.workMinutes) return 0;
+      return Math.min(100, Math.round(d.bookedMinutes / d.workMinutes * 100));
+    },
+
+    dayLoadLabel() {
+      const d = this.dayLoad;
+      if (!d) return '';
+      if (d.offReason) return d.offReason;
+      return `${d.clients} client${d.clients === 1 ? '' : 's'} · ${this.minutesLabel(d.bookedMinutes)} booked · ${this.minutesLabel(d.freeMinutes)} free`;
     },
 
     scheduleTodayLabel() {

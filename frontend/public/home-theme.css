@@ -499,6 +499,8 @@ button, input:not([type="checkbox"]):not([type="radio"]), select { min-height: 2
 }
 #siteHeader .portal-btn, #siteHeader .btn-sheen { white-space: nowrap; overflow-wrap: normal; }
 #themeToggle, #menuBtn { width: 2.75rem; height: 2.75rem; flex-shrink: 0; }
+/* Phones/tablets: the header theme button is hidden; the menu drawer keeps its Dark mode switch. */
+@media (max-width: 1023.98px) { #themeToggle { display: none; } }
 .page-body { padding-top: 5rem; }
 .mobile-drawer { height: calc(100dvh - 5rem); }
 .hero-fill { min-height: calc(100vh - 5rem); }

@@ -42,6 +42,16 @@ html body li[data-late-rule] {
   text-align-last: start;
   overflow-wrap: break-word;
 }
+/* Narrow phone columns: justified lines open wide gaps between words. */
+@media (max-width: 640px) {
+  html body p.prose-justify,
+  html body li.prose-justify:not(.step-card),
+  html body p[data-justify],
+  html body p[data-late-rule],
+  html body li[data-late-rule] {
+    text-align: left !important;
+  }
+}
 
 /* Keep the sign-up introduction's short lines naturally spaced. */
 html body.auth-page .auth-intro p {

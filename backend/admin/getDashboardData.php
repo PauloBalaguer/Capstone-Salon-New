@@ -300,7 +300,8 @@ try {
     // Live status: the shared rule in StaffShift::liveStatusSql() -- a stable
     // key (available / busy / busy_home_service / on_break / off_shift) plus
     // its label and dot colour -- the same one every other panel uses.
-    $staffList = array_map(function ($row) {
+    $loadDate = $pdo->query('SELECT CURDATE()')->fetchColumn();
+    $staffList = array_map(function ($row) use ($pdo, $loadDate) {
         $status = $row['liveStatus'];
         return [
             'id' => (string) $row['id'],
@@ -320,6 +321,8 @@ try {
             'missedSignOuts' => (int) $row['missedSignOuts'],
             'serviceIds' => $row['serviceIdsRaw'] ? explode(',', $row['serviceIdsRaw']) : [],
             'specialties' => $row['specialties'] ?: 'No specialties set',
+            // Today's clients / booked time vs. working time (Scheduling::staffDayLoad).
+            'todayLoad' => Scheduling::staffDayLoad($pdo, (int) $row['id'], $loadDate),
         ];
     }, $stmt->fetchAll());
 
@@ -610,6 +613,11 @@ try {
         'homeServiceDefaults' => [
             'fallbackServiceMinutes' => Scheduling::HOME_SERVICE_DURATION_MINUTES,
             'cleaningBufferMinutes' => Scheduling::cleaningBufferMinutes(),
+        ],
+        // Used by Services & Promos to show each service's max clients per stylist per day.
+        'bookingRules' => [
+            'cleaningBufferMinutes' => Scheduling::cleaningBufferMinutes(),
+            'slotIntervalMinutes' => Scheduling::SLOT_INTERVAL_MINUTES,
         ],
         'feedback' => $feedback,
         'notifications' => $notifications,

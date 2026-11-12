@@ -282,6 +282,8 @@ try {
         'shift' => $shift,
         'schedule' => $schedule,
         'availability' => $availability,
+        // How full today is: clients, booked time, working time (Scheduling::staffDayLoad).
+        'dayLoad' => Scheduling::staffDayLoad($pdo, $employeeId, $pdo->query('SELECT CURDATE()')->fetchColumn()),
         // Same five-status live source as Admin, Cashier and the booking forms.
         'liveStatus' => StaffShift::statusPayload(StaffShift::liveStatus($pdo, $employeeId)),
         'homeVisits' => $homeVisits,

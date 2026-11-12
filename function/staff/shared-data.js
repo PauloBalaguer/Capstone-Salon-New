@@ -416,7 +416,7 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
-    /* ---------- Profile and password ---------- */
+    /* ---------- Profile ---------- */
 
     async saveProfile(fields) {
       this.busy = true;
@@ -433,30 +433,6 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
-    // Step 1 of 2: checks the current password and the new password's rules,
-    // then emails a confirmation code. Nothing changes yet.
-    async changePassword(fields) {
-      this.busy = true;
-      try {
-        return await this.post('backend/staff/changePassword.php', fields);
-      } catch {
-        return { success: false, message: 'Could not reach the server. Your password was not changed.' };
-      } finally {
-        this.busy = false;
-      }
-    },
-
-    // Step 2 of 2: the emailed code plus the same new password applies it.
-    async confirmPasswordChange(fields) {
-      this.busy = true;
-      try {
-        return await this.post('backend/staff/confirmPasswordChange.php', fields);
-      } catch {
-        return { success: false, message: 'Could not reach the server. Your password was not changed.' };
-      } finally {
-        this.busy = false;
-      }
-    },
 
     /* ---------- Notifications ---------- */
 

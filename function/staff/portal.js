@@ -95,13 +95,6 @@ function staffPortal() {
     profileForm: { phone: '', email: '' },
     profileErrors: { phone: '', email: '' },
     photoPreview: '',
-    passwordOpen: false,
-    passwordStep: 'form',
-    passwordForm: { currentPassword: '', newPassword: '', confirmPassword: '' },
-    passwordCode: '',
-    showPasswords: false,
-    passwordError: '',
-    passwordSuccess: '',
     signingOut: false,
 
     // Below 1024px the sidebar is a Menu drawer opened from the bottom bar (as in the Customer Portal).
@@ -416,7 +409,6 @@ function staffPortal() {
 
     leaveProfile() {
       this.editing = false;
-      this.cancelPassword();
     },
 
     startEdit() {
@@ -500,75 +492,6 @@ function staffPortal() {
 
     avatarSrc() {
       return this.photoPreview || this.store.profile.profilePicture || '';
-    },
-
-    // Same rules as backend/shared/config/security/PasswordPolicy.php.
-    passwordRules() {
-      const v = this.passwordForm.newPassword;
-      return [
-        { label: 'At least 8 characters', met: v.length >= 8 },
-        { label: 'One uppercase letter (A–Z)', met: /[A-Z]/.test(v) },
-        { label: 'One lowercase letter (a–z)', met: /[a-z]/.test(v) },
-        { label: 'One number (0–9)', met: /[0-9]/.test(v) },
-        { label: 'One special character (e.g. @ # $ -)', met: /[^A-Za-z0-9\s]/.test(v) },
-      ];
-    },
-
-    passwordProblems() {
-      const { currentPassword, newPassword, confirmPassword } = this.passwordForm;
-      if (!currentPassword || !newPassword || !confirmPassword) return 'Fill in all three password fields.';
-      if (!this.passwordRules().every(r => r.met)) return 'Your new password does not meet all the requirements.';
-      if (newPassword !== confirmPassword) return 'New password and confirmation do not match.';
-      if (newPassword === currentPassword) return 'Your new password must be different from your current password.';
-      return '';
-    },
-
-    openPassword() {
-      this.passwordOpen = true;
-      this.passwordStep = 'form';
-      this.passwordError = '';
-      this.passwordSuccess = '';
-      this.$nextTick(() => document.getElementById('pw-current')?.focus());
-    },
-
-    cancelPassword() {
-      this.passwordOpen = false;
-      this.passwordStep = 'form';
-      this.passwordForm = { currentPassword: '', newPassword: '', confirmPassword: '' };
-      this.passwordCode = '';
-      this.showPasswords = false;
-      this.passwordError = '';
-    },
-
-    async submitPassword() {
-      this.passwordSuccess = '';
-      this.passwordError = this.passwordProblems();
-      if (this.passwordError) return;
-      const res = await this.store.changePassword(this.passwordForm);
-      if (!res.success) {
-        this.passwordError = res.message || 'Your password could not be changed.';
-        return;
-      }
-      this.passwordError = '';
-      this.passwordCode = '';
-      this.passwordStep = 'verify';
-      this.$nextTick(() => document.getElementById('pw-code')?.focus());
-    },
-
-    async submitPasswordCode() {
-      const code = this.passwordCode.trim();
-      if (!/^\d{6}$/.test(code)) {
-        this.passwordError = 'Enter the 6-digit code from your email.';
-        return;
-      }
-      const res = await this.store.confirmPasswordChange({ code, newPassword: this.passwordForm.newPassword, confirmPassword: this.passwordForm.confirmPassword });
-      if (!res.success) {
-        this.passwordError = res.message || 'Your password could not be changed.';
-        return;
-      }
-      this.cancelPassword();
-      this.passwordSuccess = res.message || 'Password updated successfully.';
-      this.store.toast(this.passwordSuccess, 'success');
     },
 
     openSignOut() {

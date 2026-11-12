@@ -713,70 +713,21 @@
             </form>
           </article>
 
-          <!-- Password & Security -->
+          <!-- Security: staff passwords are set and reset by the admin (like cashier accounts). -->
           <article class="sp-card" aria-labelledby="ps-title">
             <div class="sp-card-head">
               <div>
-                <h3 id="ps-title" class="sp-card-title">Password &amp; Security</h3>
-                <p class="sp-muted sp-small">Use a strong password you don't use anywhere else.</p>
+                <h3 id="ps-title" class="sp-card-title">Security</h3>
               </div>
-              <button type="button" class="sp-btn sp-btn-secondary" x-show="!passwordOpen" @click="openPassword()">
-                <span x-html="$icon('lock')"></span><span>Change Password</span>
-              </button>
             </div>
-
-            <div class="sp-alert sp-alert-success" x-show="passwordSuccess && !passwordOpen" x-cloak role="status">
-              <span x-html="$icon('checkCircle')"></span><p x-text="passwordSuccess"></p>
+            <div class="sp-alert sp-alert-info" role="note">
+              <span x-html="$icon('lock')"></span>
+              <p><strong>Password.</strong> Only the admin can change or reset a staff password. If you forget yours, ask the owner or admin to set a new one.</p>
             </div>
-
-            <form class="sp-form" x-show="passwordOpen && passwordStep === 'form'" x-cloak @submit.prevent="submitPassword()" novalidate>
-              <div class="sp-form-grid sp-form-grid-1">
-                <div class="sp-field">
-                  <label for="pw-current" class="sp-label">Current Password</label>
-                  <input id="pw-current" :type="showPasswords ? 'text' : 'password'" autocomplete="current-password" class="sp-input" x-model="passwordForm.currentPassword">
-                </div>
-                <div class="sp-field">
-                  <label for="pw-new" class="sp-label">New Password</label>
-                  <input id="pw-new" :type="showPasswords ? 'text' : 'password'" autocomplete="new-password" class="sp-input" x-model="passwordForm.newPassword" aria-describedby="pw-rules">
-                </div>
-                <div class="sp-field">
-                  <label for="pw-confirm" class="sp-label">Confirm New Password</label>
-                  <input id="pw-confirm" :type="showPasswords ? 'text' : 'password'" autocomplete="new-password" class="sp-input" x-model="passwordForm.confirmPassword">
-                  <p class="sp-error" x-show="passwordForm.confirmPassword && passwordForm.confirmPassword !== passwordForm.newPassword">Passwords do not match.</p>
-                </div>
-              </div>
-              <label class="sp-check">
-                <input type="checkbox" x-model="showPasswords"><span>Show passwords</span>
-              </label>
-              <ul id="pw-rules" class="sp-rules" aria-label="Password requirements">
-                <template x-for="rule in passwordRules()" :key="rule.label">
-                  <li :class="rule.met && 'is-met'"><span x-html="$icon(rule.met ? 'checkCircle' : 'info')"></span><span x-text="rule.label"></span></li>
-                </template>
-                <li :class="passwordForm.newPassword && passwordForm.newPassword !== passwordForm.currentPassword && 'is-met'">
-                  <span x-html="$icon(passwordForm.newPassword && passwordForm.newPassword !== passwordForm.currentPassword ? 'checkCircle' : 'info')"></span><span>Different from your current password</span>
-                </li>
-              </ul>
-              <div class="sp-alert sp-alert-error" x-show="passwordError" x-cloak role="alert"><span x-html="$icon('alert')"></span><p x-text="passwordError"></p></div>
-              <div class="sp-form-actions">
-                <button type="button" class="sp-btn sp-btn-secondary" @click="cancelPassword()" :disabled="$store.staff.busy">Cancel</button>
-                <button type="submit" class="sp-btn sp-btn-primary" :disabled="$store.staff.busy" x-text="$store.staff.busy ? 'Checking…' : 'Update Password'"></button>
-              </div>
-            </form>
-
-            <form class="sp-form" x-show="passwordOpen && passwordStep === 'verify'" x-cloak @submit.prevent="submitPasswordCode()" novalidate>
-              <div class="sp-alert sp-alert-info" role="status"><span x-html="$icon('mail')"></span>
-                <p>We emailed a 6-digit code to <strong x-text="$store.staff.profile.email"></strong>. Enter it to finish changing your password. The code expires in 10 minutes.</p>
-              </div>
-              <div class="sp-field sp-field-code">
-                <label for="pw-code" class="sp-label">Confirmation Code</label>
-                <input id="pw-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" class="sp-input sp-input-code" x-model="passwordCode">
-              </div>
-              <div class="sp-alert sp-alert-error" x-show="passwordError" x-cloak role="alert"><span x-html="$icon('alert')"></span><p x-text="passwordError"></p></div>
-              <div class="sp-form-actions">
-                <button type="button" class="sp-btn sp-btn-secondary" @click="cancelPassword()" :disabled="$store.staff.busy">Cancel</button>
-                <button type="submit" class="sp-btn sp-btn-primary" :disabled="$store.staff.busy" x-text="$store.staff.busy ? 'Updating…' : 'Update Password'"></button>
-              </div>
-            </form>
+            <ul class="sp-muted sp-small" style="margin:12px 0 0;padding-left:18px;list-style:disc">
+              <li>Sign out when you use a shared phone or computer.</li>
+              <li>Never share your login. Shifts and services are saved under your name.</li>
+            </ul>
           </article>
           </div>
           </div>

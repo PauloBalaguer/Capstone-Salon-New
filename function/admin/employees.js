@@ -8,7 +8,9 @@ function adminDefaultStaffForm() {
     role: '',
     email: '',
     phone: '',
-    serviceIds: []
+    serviceIds: [],
+    newPassword: '',
+    confirmPassword: ''
   };
 }
 
@@ -243,7 +245,7 @@ function adminStaffApp() {
       const firstName = staff.firstName || first;
       const lastName = staff.lastName || rest.join(' ');
       const middleName = staff.middleName || '';
-      this.staffForm = { firstName, middleName, noMiddleName: !middleName, lastName, branchId: staff.branchId, role: staff.role, email: '', phone: '', serviceIds: [...(staff.serviceIds || [])] };
+      this.staffForm = { firstName, middleName, noMiddleName: !middleName, lastName, branchId: staff.branchId, role: staff.role, email: '', phone: '', serviceIds: [...(staff.serviceIds || [])], newPassword: '', confirmPassword: '' };
       this.svcSearch = ''; this.svcGroup = 'all';
       this.openStaffModal = true;
     },
@@ -294,6 +296,10 @@ function adminStaffApp() {
     },
 
     async saveStaff() {
+      if (this.staffForm.newPassword !== this.staffForm.confirmPassword) {
+        LMToast.show('New password and confirmation do not match.', 'error');
+        return;
+      }
       const store = Alpine.store('admin');
       this.savingStaff = true;
       const result = await store.post('saveStaff.php', {
@@ -305,13 +311,18 @@ function adminStaffApp() {
         role: this.staffForm.role,
         email: this.staffForm.email,
         phone: this.staffForm.phone,
-        services: this.staffForm.serviceIds
+        services: this.staffForm.serviceIds,
+        newPassword: this.editingStaffId ? this.staffForm.newPassword : '',
+        confirmPassword: this.editingStaffId ? this.staffForm.confirmPassword : ''
       });
       this.savingStaff = false;
       if (!result.success) {
         LMToast.show(result.message || 'Failed to save staff member.', 'error');
         return;
       }
+      if (this.staffForm.newPassword) LMToast.show(result.message || 'Staff password updated.', 'success');
+      this.staffForm.newPassword = '';
+      this.staffForm.confirmPassword = '';
       await store.refresh();
       this.openStaffModal = false;
     },

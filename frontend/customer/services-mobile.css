@@ -1,0 +1,70 @@
+/* Keep the service catalog usable without horizontal scrolling on phones. */
+@media (max-width: 639.98px) {
+  html body.cp-portal.services-page main > header.cp-header {
+    background: #fff !important;
+  }
+
+  html body.cp-portal.services-page .cp-service-filters {
+    flex-direction: column;
+  }
+
+  html body.cp-portal.services-page .cp-service-filters > div {
+    width: 100%;
+    max-width: none;
+  }
+
+  html body.cp-portal.services-page .cp-service-table-wrap table,
+  html body.cp-portal.services-page .cp-service-table-wrap tbody {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Visually hide the column headings, retaining them for assistive tools. */
+  html body.cp-portal.services-page .cp-service-table-wrap thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  html body.cp-portal.services-page .cp-service-table-wrap tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 8px 12px;
+    padding: 14px 12px;
+  }
+
+  html body.cp-portal.services-page .cp-service-table-wrap td {
+    min-width: 0;
+    padding: 0;
+  }
+
+  html body.cp-portal.services-page .cp-service-table-wrap td:first-child {
+    width: auto;
+    overflow-wrap: anywhere;
+    text-align: left;
+  }
+
+  html body.cp-portal.services-page .cp-service-table-wrap td:last-child {
+    grid-column: 1 / -1;
+    white-space: normal;
+  }
+
+  html body.cp-portal.services-page .cp-service-table-wrap td:last-child > div {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 8px;
+    width: 100%;
+  }
+
+  html body.cp-portal.services-page .cp-service-table-wrap td:last-child button {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+  }
+}

@@ -71,6 +71,7 @@
   <!-- Customer portal shell (sidebar, header, bottom nav); loaded after the shared themes. -->
   <link rel="stylesheet" href="../../frontend/customer/customer-portal.css?v=20261110">
   <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
+  <link rel="stylesheet" href="services-mobile.css?v=20261112">
 </head>
 <body data-customer-page="services" data-page-title="Explore Services" class="salon-portal services-page bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
       x-data="customerApp()" x-init="init()" x-cloak>
@@ -139,7 +140,7 @@
                 <div>
                   <div class="space-y-3">
                     <!-- Compact toolbar: search + category on one row, then count + view switch. -->
-                    <div class="flex gap-2 mt-2">
+                    <div class="cp-service-filters flex gap-2 mt-2">
                       <div class="relative flex-1 min-w-0">
                         <label for="service-search" class="sr-only">Search services</label>
                         <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--muted)] pointer-events-none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>

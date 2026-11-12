@@ -82,7 +82,7 @@
       <section class="lm-card lm-card--flush" x-show="activeTab === 'directory' && !$store.admin.loading" aria-label="Staff directory">
         <div class="lm-table-wrap">
           <table class="lm-table lm-table--stack">
-            <thead><tr><th scope="col">Staff member</th><th scope="col">Branch</th><th scope="col">Role</th><th scope="col">Shift status</th><th scope="col" class="num">Actions</th></tr></thead>
+            <thead><tr><th scope="col">Staff member</th><th scope="col">Branch</th><th scope="col">Role</th><th scope="col">Shift status</th><th scope="col">Today</th><th scope="col" class="num">Actions</th></tr></thead>
             <tbody>
               <template x-for="staff in $store.pager.slice('staff-directory', getDirectoryStaff())" :key="staff.id">
                 <tr>
@@ -90,10 +90,11 @@
                   <td data-label="Branch" x-text="$store.admin.getBranchName(staff.branchId)"></td>
                   <td data-label="Role" x-text="staff.role || '—'"></td>
                   <td data-label="Shift"><span :class="getStaffStatusBadgeClass(staff.status)"><span class="live-status-dot" aria-hidden="true"></span><span x-text="getStaffStatusLabel(staff.status)"></span></span></td>
+                  <td data-label="Today"><span class="lm-load"><span class="lm-load-main" x-text="todayLoadMain(staff)"></span><span class="lm-cell-sub" x-text="todayLoadSub(staff)"></span><span class="lm-load-bar" x-show="staff.todayLoad && !staff.todayLoad.offReason" aria-hidden="true"><span :style="'width:' + todayLoadPercent(staff) + '%'"></span></span></span></td>
                   <td class="lm-actions-cell"><div class="lm-actions"><button type="button" class="lm-btn lm-btn--sm" @click="openEditStaff(staff)" :aria-label="'Edit ' + staff.name">Edit</button></div></td>
                 </tr>
               </template>
-              <tr x-show="getDirectoryStaff().length === 0" class="lm-empty-row"><td colspan="5" class="lm-empty-cell"><div class="lm-empty"><h3>No staff match these filters</h3><p>Change the branch, shift status or search.</p></div></td></tr>
+              <tr x-show="getDirectoryStaff().length === 0" class="lm-empty-row"><td colspan="6" class="lm-empty-cell"><div class="lm-empty"><h3>No staff match these filters</h3><p>Change the branch, shift status or search.</p></div></td></tr>
             </tbody>
           </table>
         </div>

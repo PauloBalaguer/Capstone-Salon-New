@@ -136,6 +136,29 @@ function adminStaffApp() {
       return liveStatusLabel(status);
     },
 
+    /* Today's load from Scheduling::staffDayLoad(): clients and booked time. */
+    minutesLabel(minutes) {
+      const m = Math.max(0, Math.round(Number(minutes) || 0));
+      const h = Math.floor(m / 60), r = m % 60;
+      return [h ? h + ' hr' : '', r || !h ? r + ' min' : ''].filter(Boolean).join(' ');
+    },
+    todayLoadMain(staff) {
+      const d = staff.todayLoad;
+      if (!d) return '—';
+      if (d.offReason) return d.offReason;
+      return d.clients + ' client' + (d.clients === 1 ? '' : 's');
+    },
+    todayLoadSub(staff) {
+      const d = staff.todayLoad;
+      if (!d || d.offReason) return '';
+      return this.minutesLabel(d.bookedMinutes) + ' of ' + this.minutesLabel(d.workMinutes) + ' booked';
+    },
+    todayLoadPercent(staff) {
+      const d = staff.todayLoad;
+      if (!d || !d.workMinutes) return 0;
+      return Math.min(100, Math.round(d.bookedMinutes / d.workMinutes * 100));
+    },
+
     getStaffStatusBadgeClass(status) {
       return liveStatusClass(status);
     },

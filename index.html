@@ -49,7 +49,7 @@
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="frontend/shared/clean-theme.css?v=20261105-booking">
   <link rel="stylesheet" href="frontend/public/booking-modal.css?v=20261110b">
-  <link rel="stylesheet" href="frontend/public/public-unify.css?v=20261110d">
+  <link rel="stylesheet" href="frontend/public/public-unify.css?v=20261112-address-gray">
   <link rel="stylesheet" href="frontend/shared/type-scale.css?v=20261111-branch-label-4">
   <link rel="stylesheet" href="frontend/public/branches.css?v=20261111-mobilelogin2">
 </head>
@@ -230,7 +230,7 @@
         <div class="mt-5 rounded-xl bg-copper/10 border border-copper/20 p-4 text-xs text-ink/65 leading-relaxed sm:text-justify">
           <b class="block text-copper-dark mb-2">Booking Information</b>
           Appointment availability depends on your selected branch, services, and staff schedules. Your request will remain under
-          <b>"Waiting for Confirmation"</b> until the branch confirms it.
+          <b>"Pending"</b> until the branch confirms it.
           A unique booking reference will be generated after submission.
         </div>
       </div>
@@ -513,12 +513,12 @@
         <p class="text-base text-ink/60 mb-6">Check your guest appointment and contact details before continuing.</p>
         <div id="bookingReviewSummary" class="rounded-xl border border-bronze/40 bg-sand-100 p-4 text-base space-y-2"></div>
         <p class="text-xs text-ink/60 mt-5" id="bookReviewNextNote">Your request will remain pending until the branch confirms your appointment and deposit.</p>
-        <button type="button" id="bookReviewConfirm" class="w-full rounded-full bg-plum text-white font-bold text-base py-3.5 mt-5">Continue to email verification</button>
+        <button type="button" id="bookReviewConfirm" class="w-full rounded-full bg-plum text-white font-bold text-base py-3.5 mt-5">Continue to verification</button>
         <button type="button" id="bookReviewEdit" class="btn-text w-full mt-2 rounded-full text-plum text-base py-3 hover:bg-plum/5 transition">Edit booking details</button>
       </div>
 
       <div id="bookingOtpPanel" class="hidden">
-        <h3 id="bookOtpHeading" class="font-display text-2xl mb-1 text-ink">Verify your email</h3>
+        <h3 id="bookOtpHeading" class="font-display text-2xl mb-1 text-ink">Verify your booking</h3>
         <p class="prose-justify text-xs text-ink/60 mb-6">
           We sent a 6-digit code to
           <span id="bookOtpEmailLabel" class="font-bold text-ink"></span>.
@@ -832,11 +832,11 @@
                 <span class="text-xs sm:text-xs text-ink/55">Albay branches</span>
               </div>
               <div class="hero-stat">
-                <b class="font-display text-2xl sm:text-3xl text-plum block" data-count="200" data-suffix="+">200+</b>
+                <b class="font-display text-2xl sm:text-3xl text-plum block" data-live-stat="services">—</b>
                 <span class="text-xs sm:text-xs text-ink/55">services available</span>
               </div>
               <div class="hero-stat">
-                <b class="font-display text-2xl sm:text-3xl text-plum block" data-count="50" data-suffix="+">50+</b>
+                <b class="font-display text-2xl sm:text-3xl text-plum block" data-live-stat="professionals">—</b>
                 <span class="text-xs sm:text-xs text-ink/55">beauty professionals</span>
               </div>
               <div class="hero-stat">
@@ -1066,7 +1066,7 @@
 
         <div class="max-w-7xl mx-auto px-5 sm:px-8 relative z-10">
           <div class="sr text-center max-w-3xl mx-auto mb-10">
-            <span class="text-xs font-bold tracking-widest uppercase text-copper">See it for yourself</span>
+            <span class="text-lg sm:text-xl font-bold tracking-widest uppercase text-copper">See it for yourself</span>
             <h2 class="font-display text-3xl sm:text-4xl mt-3">
               Drag to see the difference
             </h2>
@@ -1144,7 +1144,7 @@
       <section class="py-16 sm:py-24 bg-panel border-b border-bronze/20">
         <div class="max-w-7xl mx-auto px-5 sm:px-8">
           <div class="sr text-center mx-auto mb-12">
-            <span class="text-xs font-bold tracking-widest uppercase text-copper">How booking works</span>
+            <span class="section-size-label font-bold tracking-widest uppercase text-copper">How booking works</span>
             <h2 class="font-display text-3xl sm:text-4xl mt-3">
               Book your appointment your way
             </h2>
@@ -1154,46 +1154,45 @@
           </div>
 
           <ol class="grid sm:grid-cols-2 lg:grid-cols-5 gap-5">
-            <li class="prose-justify sr sr-d1 step-card">
+            <li class="sr sr-d1 step-card">
               <span class="step-num">01</span>
               <p class="font-display text-lg mt-4">Open the booking form</p>
-              <p class="text-xs text-ink/60 mt-2 leading-relaxed" data-justify>
-                Tap Book an Appointment, then choose Book as a Guest or sign in
-                through the Client Portal.
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed">
+                Tap Book an Appointment and choose Book as a Guest. Have an
+                account? Log in to book from the Client Portal.
               </p>
             </li>
-            <li class="prose-justify sr sr-d2 step-card">
+            <li class="sr sr-d2 step-card">
               <span class="step-num">02</span>
-              <p class="font-display text-lg mt-4">Choose services and schedule</p>
-              <p class="text-xs text-ink/60 mt-2 leading-relaxed" data-justify>
-                Choose your branch and services, then select an available date
-                and time.
+              <p class="font-display text-lg mt-4">Choose your appointment</p>
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed">
+                Pick your branch, services, an available date and time, and
+                your stylist.
               </p>
             </li>
-            <li class="prose-justify sr sr-d3 step-card">
+            <li class="sr sr-d3 step-card">
               <span class="step-num">03</span>
-              <p class="font-display text-lg mt-4">
-                Enter your contact details
-              </p>
-              <p class="text-xs text-ink/60 mt-2 leading-relaxed" data-justify>
-                Enter or review your name and mobile number so the branch can
-                reach you. Email is optional.
+              <p class="font-display text-lg mt-4">Pay the reservation</p>
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed">
+                Pay a deposit or the full amount by GCash, Maya or card, or
+                choose Cash and pay at the branch.
               </p>
             </li>
-            <li class="prose-justify sr sr-d4 step-card">
+            <li class="sr sr-d4 step-card">
               <span class="step-num">04</span>
-              <p class="font-display text-lg mt-4">Review and submit</p>
-              <p class="text-xs text-ink/60 mt-2 leading-relaxed" data-justify>
-                Review your details. For guest bookings, verify your email before
-                submitting. Your request stays pending until the branch confirms it.
+              <p class="font-display text-lg mt-4">Enter details and verify</p>
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed">
+                Enter your name and mobile number (email optional), agree to the
+                Terms, then enter the one-time code sent to your email or mobile
+                number.
               </p>
             </li>
-            <li class="prose-justify sr sr-d5 step-card">
+            <li class="sr sr-d5 step-card">
               <span class="step-num">05</span>
               <p class="font-display text-lg mt-4">Track your booking</p>
-              <p class="text-xs text-ink/60 mt-2 leading-relaxed" data-justify>
+              <p class="text-xs text-ink/60 mt-2 leading-relaxed">
                 Track a guest booking with your reference and mobile number,
-                or view your bookings in the Client Portal.
+                or view it in the Client Portal.
               </p>
               <button type="button" onclick="openTrackModal()"
                 class="mt-3 inline-flex items-center gap-1 text-xs font-bold text-plum underline underline-offset-2 hover:brightness-110">
@@ -1212,7 +1211,7 @@
                   Reference <span class="text-plum">LM-DAR-2026-000128</span>
                 </p>
               </div>
-              <span class="text-xs text-ink/45">Sample this is what you'll see after booking.</span>
+              <span class="text-xs text-ink/45">Sample: this is what you'll see after booking.</span>
             </div>
 
             <div class="trk-rail">
@@ -1240,7 +1239,7 @@
             </div>
 
             <p id="trkMsg" class="text-base text-ink/65 mt-7 text-center">
-              Request received. The Daraga front desk is checking the slot.
+              Request received. The Daraga branch is verifying your payment.
             </p>
           </div>
         </div>
@@ -1249,11 +1248,8 @@
       <section class="py-16 sm:py-20 bg-sand-100 border-b border-bronze/20">
         <div class="max-w-7xl mx-auto px-5 sm:px-8">
           <div class="sr text-center max-w-xl mx-auto mb-10">
-            <span class="text-xs font-bold tracking-widest uppercase text-copper">Gift Certificates</span>
-            <h2 class="font-display text-3xl sm:text-4xl mt-3">
-              Gift Certificates
-            </h2>
-            <p class="text-ink/60 text-base mt-4 leading-relaxed">
+            <span class="section-size-label font-bold tracking-widest uppercase text-copper">Gift Certificates</span>
+            <p class="text-center text-ink/60 text-base mt-4 leading-relaxed">
               Give the gift of beauty with a Leo Mejillano Salon gift
               certificate.
             </p>
@@ -1296,71 +1292,6 @@
         </div>
       </section>
 
-      <section class="py-16 sm:py-24 bg-panel border-b border-bronze/20">
-        <div class="max-w-3xl mx-auto px-5 sm:px-8 text-center">
-          <span class="client-stories-label font-bold tracking-widest uppercase text-copper">Client stories</span>
-          <h2 class="font-display text-3xl sm:text-4xl mt-3">
-            What keeps them coming back
-          </h2>
-          <p class="text-center text-ink/55 text-base mt-4">
-            Pulled from the rating form we send after every completed
-            appointment.
-          </p>
-
-          <div id="testiBox" class="relative mt-10 min-h-57.5 sm:min-h-52.5">
-            <figure class="testi-slide on" data-i="0">
-              <div class="testi-stars">★★★★★</div>
-              <blockquote class="font-display text-xl sm:text-[1.6rem] leading-snug mt-4">
-                The rebonding held up for months and the colour match was
-                exactly what I asked for, first time that's happened
-                anywhere.
-              </blockquote>
-              <figcaption class="text-base text-ink/50 mt-5 font-semibold">
-                Regular guest · Daraga Main
-              </figcaption>
-            </figure>
-            <figure class="testi-slide" data-i="1">
-              <div class="testi-stars">★★★★★</div>
-              <blockquote class="font-display text-xl sm:text-[1.6rem] leading-snug mt-4">
-                Booked home service for my wedding and the team stayed for
-                touch-ups through the whole reception. Worth every peso.
-              </blockquote>
-              <figcaption class="text-base text-ink/50 mt-5 font-semibold">
-                Bride · Home &amp; event service
-              </figcaption>
-            </figure>
-            <figure class="testi-slide" data-i="2">
-              <div class="testi-stars">★★★★★</div>
-              <blockquote class="font-display text-xl sm:text-[1.6rem] leading-snug mt-4">
-                I booked on my break at the mall and they texted the
-                confirmation before I finished my coffee. Brows done the same
-                afternoon.
-              </blockquote>
-              <figcaption class="text-base text-ink/50 mt-5 font-semibold">
-                Walk-in turned regular · Yashano Mall
-              </figcaption>
-            </figure>
-            <figure class="testi-slide" data-i="3">
-              <div class="testi-stars">★★★★★</div>
-              <blockquote class="font-display text-xl sm:text-[1.6rem] leading-snug mt-4">
-                My lash tech remembered the shape I liked from three visits
-                ago. Small thing, but it's why I stopped shopping around.
-              </blockquote>
-              <figcaption class="text-base text-ink/50 mt-5 font-semibold">
-                Monthly client · Cabangan
-              </figcaption>
-            </figure>
-          </div>
-
-          <div id="testiDots" class="flex justify-center gap-2.5 mt-8">
-            <button class="testi-dot on" data-i="0" aria-label="Story 1"></button>
-            <button class="testi-dot" data-i="1" aria-label="Story 2"></button>
-            <button class="testi-dot" data-i="2" aria-label="Story 3"></button>
-            <button class="testi-dot" data-i="3" aria-label="Story 4"></button>
-          </div>
-        </div>
-      </section>
-
       <section class="py-16 sm:py-24 bg-sand-200 text-ink relative overflow-hidden border-t border-bronze/40">
         <div class="absolute inset-0 opacity-5 pointer-events-none" aria-hidden="true" style="
               background-image: radial-gradient(
@@ -1375,7 +1306,7 @@
         <div class="absolute -left-32 -bottom-28 w-96 h-96 rounded-full bg-plum/10 blur-3xl pointer-events-none"
           aria-hidden="true"></div>
         <div class="max-w-4xl mx-auto px-5 sm:px-8 text-center relative z-10">
-          <span class="text-xs font-bold tracking-widest uppercase text-copper-dark">Ready when you are</span>
+          <span class="section-size-label font-bold tracking-widest uppercase text-copper-dark">Ready when you are</span>
           <h2 class="font-display text-3xl sm:text-[2.9rem] leading-tight mt-4">
             Sit down as you are.<br />Walk out as you meant to be.
           </h2>
@@ -1511,7 +1442,7 @@
 
           <div class="mt-20 max-w-6xl mx-auto border-t border-bronze/20 pt-16">
             <div class="text-center max-w-xl mx-auto mb-10">
-              <span class="text-xs font-bold tracking-widest uppercase text-copper">Bridal &amp; Event
+              <span class="section-size-label font-bold tracking-widest uppercase text-copper">Bridal &amp; Event
                 Styling</span>
               <h3 class="font-display text-2xl sm:text-3xl mt-3">
                 Wedding Packages
@@ -1569,7 +1500,7 @@
             <h2 class="font-display text-3xl sm:text-4xl mt-3">
               Professional Products
             </h2>
-            <p class="text-ink/60 text-base mt-4">
+            <p class="text-center text-ink/60 text-base mt-4">
               Explore salon-grade products available at our branches.
             </p>
           </div>
@@ -1659,10 +1590,10 @@
                   <span class="br2-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-7.5H16l.4-3H13.5V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.8 1.4-3.8 3.9v2.3H8v3h2.5V21z"/></svg></span>
                   <div class="br2-social"><span class="br2-label">Facebook pages</span>
                     <div class="br2-social-grid">
-                      <a href="https://www.facebook.com/share/19B4rtQkgC/" target="_blank" rel="noopener noreferrer" class="br2-social-btn"><img class="br2-social-icon" src="frontend/shared/image/facebook-circle.svg" alt="" width="26" height="26" aria-hidden="true" /><span>Leo Mejillano</span><span aria-hidden="true">↗</span></a>
-                      <a href="https://www.facebook.com/share/1LeCkdDPPD/" target="_blank" rel="noopener noreferrer" class="br2-social-btn"><img class="br2-social-icon" src="frontend/shared/image/facebook-circle.svg" alt="" width="26" height="26" aria-hidden="true" /><span>Skin Brows</span><span aria-hidden="true">↗</span></a>
-                      <a href="https://www.facebook.com/share/193e2DePxH/" target="_blank" rel="noopener noreferrer" class="br2-social-btn"><img class="br2-social-icon" src="frontend/shared/image/facebook-circle.svg" alt="" width="26" height="26" aria-hidden="true" /><span>Lash &amp; Brows</span><span aria-hidden="true">↗</span></a>
-                      <a href="https://www.facebook.com/share/1EKTJ9AfYa" target="_blank" rel="noopener noreferrer" class="br2-social-btn"><img class="br2-social-icon" src="frontend/shared/image/facebook-circle.svg" alt="" width="26" height="26" aria-hidden="true" /><span>Aesthetics</span><span aria-hidden="true">↗</span></a>
+                      <a href="https://www.facebook.com/share/19B4rtQkgC/" target="_blank" rel="noopener noreferrer" class="br2-social-btn"><span class="br2-social-icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h2.5l.5-3h-3v-2c0-.6.4-1 1-1z" /></svg></span><span>Leo Mejillano</span></a>
+                      <a href="https://www.facebook.com/share/1LeCkdDPPD/" target="_blank" rel="noopener noreferrer" class="br2-social-btn"><span class="br2-social-icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h2.5l.5-3h-3v-2c0-.6.4-1 1-1z" /></svg></span><span>Skin Brows</span></a>
+                      <a href="https://www.facebook.com/share/193e2DePxH/" target="_blank" rel="noopener noreferrer" class="br2-social-btn"><span class="br2-social-icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h2.5l.5-3h-3v-2c0-.6.4-1 1-1z" /></svg></span><span>Lash &amp; Brows</span></a>
+                      <a href="https://www.facebook.com/share/1EKTJ9AfYa" target="_blank" rel="noopener noreferrer" class="br2-social-btn"><span class="br2-social-icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h2.5l.5-3h-3v-2c0-.6.4-1 1-1z" /></svg></span><span>Aesthetics</span></a>
                     </div>
                   </div>
                 </div>
@@ -1682,7 +1613,7 @@
         <div
           class="max-w-7xl mx-auto px-5 sm:px-8 py-14 sm:py-20 grid lg:grid-cols-12 gap-10 items-center relative z-10">
           <div class="lg:col-span-6">
-            <span class="text-xs font-bold tracking-widest uppercase text-copper">Home &amp; Event Service</span>
+            <span class="section-size-label font-bold tracking-widest uppercase text-copper">Home &amp; Event Service</span>
             <h2 class="font-display text-3xl sm:text-5xl mt-3 leading-tight">
               Beauty, Wherever Your Event Takes You.
             </h2>
@@ -2745,7 +2676,7 @@
   <script src="function/shared/pending-payment.js"></script>
   <script src="function/shared/late-arrival-rule.js"></script>
   <script src="function/shared/live-sync.js?v=20261110"></script>
-  <script src="function/public/main.js?v=bk-20261111c"></script>
+  <script src="function/public/main.js?v=20261112-live-stats"></script>
   <script src="function/public/booking-wizard.js?v=20261111c"></script>
 <script src="function/shared/select-dropdown.js?v=20261111e"></script>
 </body>

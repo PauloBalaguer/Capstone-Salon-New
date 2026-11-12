@@ -65,8 +65,8 @@ final class ScheduleExceptions
                 ORDER BY h.preferred_time");
             $stmt->execute([$branchId, $date]);
             foreach ($stmt->fetchAll() as $h) {
-                $window = Scheduling::homeServiceWindow($pdo, $h);
-                if ($type === 'closed' || !self::fits($window['start'], $window['occupiedEnd'], $date, $open, $close)) $affected[] = self::homeRow($pdo, $h);
+                // Home visits ignore salon hours, so only a full closure affects them.
+                if ($type === 'closed') $affected[] = self::homeRow($pdo, $h);
             }
         } catch (PDOException $e) {
             // branch_id not added yet (migration 062): no home visits to list.
@@ -127,8 +127,9 @@ final class ScheduleExceptions
             ORDER BY h.preferred_date, h.preferred_time");
         $stmt->execute([$employeeId, $employeeId]);
         foreach ($stmt->fetchAll() as $h) {
-            $window = Scheduling::homeServiceWindow($pdo, $h);
-            if (!$fits($window['start'], $window['occupiedEnd'])) $affected[] = self::homeRow($pdo, $h);
+            // Home visits ignore working hours; only a new day off affects them.
+            $start = new DateTime($h['preferred_date'] . ' ' . $h['preferred_time']);
+            if (($byDow[(int) $start->format('N')]['mode'] ?? 'branch') === 'off') $affected[] = self::homeRow($pdo, $h);
         }
         return $affected;
     }

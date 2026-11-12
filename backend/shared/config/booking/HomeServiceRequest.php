@@ -104,7 +104,9 @@ class HomeServiceRequest
                 $covers = array_values(array_intersect($needs, $skills[$id] ?? []));
                 // Day off, leave or a closed branch day blocks the stylist for the
                 // whole occupied window (travel out + setup + service + return).
-                if ($covers && Scheduling::staffScheduleBlock($pdo, $id, $window['start']->format('Y-m-d H:i:s'), $window['minutes']) === null
+                // Salon opening hours don't: events (early weddings, evening
+                // debuts) happen off-site, outside the salon's hours.
+                if ($covers && in_array(Scheduling::staffScheduleBlock($pdo, $id, $window['start']->format('Y-m-d H:i:s'), $window['minutes']), [null, 'outside_hours'], true)
                     && !Scheduling::homeServiceStaffHasConflict($pdo,$id,$demand,(int) ($request['id'] ?? 0))) $candidates[$id] = $covers;
             }
             if ($index === 0 && $fixedTeam !== null && count($candidates) !== count($fixedTeam)) return ['available'=>false,'message'=>'Every selected team member must be active, qualified for a requested service, and available.'];
@@ -178,11 +180,10 @@ class HomeServiceRequest
 
     /**
      * Why the responsible branch can't take this visit, or null. Checks the
-     * branch offers home service, isn't closed for a holiday that day, and
-     * that the whole occupied window -- outbound travel and setup before the
-     * start, service and return travel after it -- fits that branch's
-     * effective hours for the date (holiday special hours included). So a
-     * visit may need an earlier start than the salon's closing time suggests.
+     * branch offers home service and isn't closed for a holiday that day.
+     * The salon's opening hours don't apply: a visit happens off-site and may
+     * start early or run into the evening. The team is still blocked by
+     * leave, days off and other bookings (availability()).
      * Requests without a branch (older rows) return null.
      */
     public static function branchProblem(PDO $pdo, array $request): ?string
@@ -192,23 +193,8 @@ class HomeServiceRequest
         $key = Scheduling::branchKeyForId($pdo, $branchId);
         if ($key === null) return 'Please choose a valid branch.';
         if (!Scheduling::branchOffersHomeService($key)) return 'This branch does not take home service requests. Please choose another branch.';
-        $date = $request['preferred_date'];
-        if (Scheduling::isBranchClosed($key, $date)) return 'The branch is closed on that date (holiday). Please choose another date.';
-        [$open, $close] = Scheduling::operatingHours($key, $date);
-        $window = Scheduling::homeServiceWindow($pdo, $request);
-        $start = $window['start'];
-        $back = $window['occupiedEnd'];
-        if ($start->format('Y-m-d') === $date && $start->format('H:i:s') >= $open
-            && $back->format('Y-m-d') === $date && $back->format('H:i:s') <= $close) return null;
-        $lead = $window['travel'] + $window['setup'];
-        $tail = $window['service'] + $window['return'];
-        $earliest = (new DateTime("$date $open"))->modify("+{$lead} minutes");
-        $latest = (new DateTime("$date $close"))->modify("-{$tail} minutes");
-        $range = $earliest <= $latest
-            ? ' Start times from ' . $earliest->format('g:i A') . ' to ' . $latest->format('g:i A') . ' fit.'
-            : ' No start time fits that day.';
-        return 'The full visit, including travel, must fit the branch hours on that date ('
-            . date('g:i A', strtotime($open)) . '–' . date('g:i A', strtotime($close)) . ').' . $range;
+        if (Scheduling::isBranchClosed($key, $request['preferred_date'])) return 'The branch is closed on that date (holiday). Please choose another date.';
+        return null;
     }
 
     /**
@@ -339,8 +325,8 @@ class HomeServiceRequest
         // The checks below run in the caller's transaction; staffConflictUntil()
         // locks each stylist's employees row (FOR UPDATE), so a concurrent booking
         // for the same stylist waits. On failure the caller rolls back and the
-        // original date, time and team stay as they were. The new time must also
-        // fit the responsible branch's hours/holidays (availability -> branchProblem).
+        // original date, time and team stay as they were. The new date must also
+        // be one the responsible branch isn't closed (availability -> branchProblem).
 
         $zone = new DateTimeZone('Asia/Manila');
         $day = DateTimeImmutable::createFromFormat('!Y-m-d', $date, $zone);

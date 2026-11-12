@@ -612,9 +612,17 @@
 
         <div>
           <label class="block text-slate-400 mb-1">Rating</label>
-          <div class="flex space-x-1 text-2xl text-slate-600">
+          <div class="flex items-center gap-1 text-slate-600">
             <template x-for="star in [1, 2, 3, 4, 5]" :key="star">
-              <button type="button" @click="reviewForm.rating = star" :class="reviewForm.rating >= star ? 'text-gold-400 scale-110' : 'hover:text-gold-500'" class="transition-all duration-150">★</button>
+              <button type="button" @click="reviewForm.rating = Number(reviewForm.rating) === star ? star - 1 : star"
+                :aria-label="star + ' out of 5 stars'" :aria-pressed="reviewForm.rating >= star"
+                :class="reviewForm.rating >= star ? 'text-gold-400' : 'hover:text-gold-500'"
+                class="flex flex-1 items-center justify-center min-w-0 cursor-pointer rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                style="font-size: clamp(48px, 12vw, 64px); line-height: 1.2; min-height: 64px; touch-action: manipulation; transition: none;">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="display: block; width: 56px !important; height: 56px !important; min-width: 40px; flex-shrink: 0;">
+                  <path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2Z"/>
+                </svg>
+              </button>
             </template>
           </div>
         </div>

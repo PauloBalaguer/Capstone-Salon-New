@@ -21,7 +21,7 @@ class Scheduling
     public static function cleaningBufferMinutes(): int
     {
         $value = env('SALON_CLEANING_BUFFER_MINUTES');
-        return ctype_digit($value) ? (int) $value : 30;
+        return ctype_digit($value) ? (int) $value : 15;
     }
 
     /** Persistent rows serialize writes even when no appointments exist yet. */

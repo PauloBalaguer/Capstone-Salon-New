@@ -34,7 +34,7 @@ document.addEventListener('alpine:init', () => {
     promotions: [],
     weddingPackages: [],
     eventDurations: [],
-    homeServiceDefaults: { fallbackServiceMinutes: 120, cleaningBufferMinutes: 30 },
+    homeServiceDefaults: { fallbackServiceMinutes: 120, cleaningBufferMinutes: 15 },
     feedback: [],
     notifications: [],
     notificationsReadBusy: false,

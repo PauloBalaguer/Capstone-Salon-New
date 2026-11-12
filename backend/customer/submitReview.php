@@ -95,7 +95,7 @@ try {
             exit();
         }
 
-        $ins = $pdo->prepare('INSERT INTO feedback (appointment_id, customer_id, rating, comments, is_public, created_at) VALUES (?, ?, ?, ?, 1, NOW())');
+        $ins = $pdo->prepare('INSERT INTO feedback (appointment_id, customer_id, rating, comments, is_public, created_at) VALUES (?, ?, ?, ?, 0, NOW())');
         $ins->execute([$appointmentId, $customerId, $rating, $comment]);
         $feedbackId = $pdo->lastInsertId();
 

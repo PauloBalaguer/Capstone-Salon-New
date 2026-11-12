@@ -5,10 +5,10 @@
  * page's own reload function whenever it changes, so a change made on one
  * device/browser/account shows up everywhere without a manual refresh.
  *
- * Server-Sent Events first (one ~25 s stream at a time, reopened by the
- * browser); if the stream can't be held open (e.g. a host that buffers it),
- * it falls back to light polling every few seconds. Paused while the tab is
- * hidden; on return it checks immediately.
+ * Polls once a minute. Paused while the tab is hidden; on return it checks
+ * immediately. Server-Sent Events are off by default: each stream kept a
+ * server function running and the serverless database awake around the
+ * clock, which is billed. Pass { sse: true } to opt a page back in.
  *
  *   LiveSync.start({ branch: 'daraga' | 'all' | () => key, onChange: fn })
  *
@@ -21,7 +21,7 @@
   const script = document.currentScript;
   const ROOT = script && script.src ? new URL('../../', script.src).href : '../../';
   const ENDPOINT = ROOT + 'backend/public/getSyncVersion.php';
-  const POLL_MS = 5000;
+  const POLL_MS = 60000;
 
   function start(options) {
     const opts = options || {};
@@ -36,7 +36,7 @@
     let source = null;
     let pollTimer = null;
     let sseFailures = 0;
-    let useSse = typeof window.EventSource === 'function' && opts.sse !== false;
+    let useSse = typeof window.EventSource === 'function' && opts.sse === true;
     let running = false;
     let pending = false;
     let stopped = false;

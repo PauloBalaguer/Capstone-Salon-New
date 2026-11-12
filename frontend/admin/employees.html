@@ -347,6 +347,17 @@
         </template>
         <small class="lm-hint">This staff member can only be booked or assigned for the services selected here.</small>
       </section>
+
+      <template x-if="editingStaffId">
+        <section class="lm-bd-section" aria-label="Login password">
+          <h3 class="lm-bd-heading">Change staff password (optional)</h3>
+          <p class="lm-hint">Staff can't change their own password. If they forget it, set a new one here and tell them.</p>
+          <div class="lm-form-row">
+            <label class="lm-field"><span>New password</span><input class="lm-input" type="password" autocomplete="new-password" x-model="staffForm.newPassword" minlength="8" maxlength="72"><small class="lm-hint">Leave blank to keep the current password. At least 8 characters with uppercase, lowercase, a number and a special character.</small></label>
+            <label class="lm-field"><span>Confirm new password</span><input class="lm-input" type="password" autocomplete="new-password" x-model="staffForm.confirmPassword" :required="!!staffForm.newPassword" maxlength="72"></label>
+          </div>
+        </section>
+      </template>
       <button type="submit" class="lm-btn lm-btn--primary lm-btn--block" :disabled="savingStaff" x-text="savingStaff ? 'Saving…' : (editingStaffId ? 'Save changes' : 'Add staff member')"></button>
       <div class="lm-danger-zone" x-show="editingStaffId">
         <div><strong>Remove staff member</strong><p>Takes them off the active roster. They can no longer be assigned bookings.</p></div>

@@ -1,6 +1,6 @@
 <?php
 /**
- * Staff Portal: logging supplies, photos, the password email, shift actions.
+ * Staff Portal: logging supplies, photos, shift actions.
  *
  * 1. Supplies logged at the same moment keep the stock right, and every log
  *    belongs to a recent booking of this stylist.
@@ -70,13 +70,7 @@ check('a 300 KB photo saves', ($r['success'] ?? false) === true && $saved === $s
 $r = $call('saveProfile', ['phone' => $phone, 'email' => $email, 'profilePicture' => $photo(1536 * 1024)]);
 check('a 1.5 MB photo gets a clear refusal, not a crash', ($r['field'] ?? '') === 'profilePicture' && !str_starts_with((string) ($r['message'] ?? ''), 'Not JSON'));
 
-// ---- 3. Password confirmation email ------------------------------------------
-// No email keys in tests, so the code can't be sent here.
-$password = 'OldPass#123';
-$pdo->prepare('UPDATE users SET password = ? WHERE id = ?')->execute([password_hash($password, PASSWORD_DEFAULT), $staff['user_id']]);
-$r = $call('changePassword', ['currentPassword' => $password, 'newPassword' => 'NewPass#456', 'confirmPassword' => 'NewPass#456']);
-$pending = (int) $pdo->query("SELECT COUNT(*) FROM password_change_verifications WHERE user_id = {$staff['user_id']}")->fetchColumn();
-check('an email that can\'t be sent is reported, and no code stays waiting', ($r['success'] ?? true) === false && $pending === 0);
+// ---- 3. Password: staff can't change it themselves; see admin_staff_password_test.php.
 
 // ---- 4. Shift actions --------------------------------------------------------
 $failedRounds = 0;

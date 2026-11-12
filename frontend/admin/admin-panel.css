@@ -529,6 +529,12 @@ body.lm-admin .lm-modal-box :is(.text-white, .text-slate-100, .text-slate-200, .
   .lm-table--stack td.lm-empty-cell { display: block; }
   .lm-table--stack td.lm-empty-cell::before { display: none; }
   .lm-table--stack tr.lm-empty-row { border-style: dashed; box-shadow: none; }
+  /* Second lines (email, "29 bookings total", "50% down") stay under the value, not the label;
+     badges keep their own width instead of stretching across the card. */
+  .lm-table--stack:not(.lm-booking-table) td[data-label]:not([data-label=""]) { row-gap: 2px; }
+  .lm-table--stack:not(.lm-booking-table) td[data-label]:not([data-label=""]) > * { grid-column: 2; min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+  .lm-table--stack td[data-label] > :is(span, button) { justify-self: start; }
+  body.lm-admin .lm-table.lm-table--stack td:first-child { padding-left: 0; }
 
   .lm-modal { padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)); align-items: center; }
   .lm-modal-box, dialog.lm-dialog .lm-modal-box { min-width: 0; max-width: none; max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); border-radius: 18px; }

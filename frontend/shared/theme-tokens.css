@@ -69,7 +69,7 @@
 }
 :root:root body:is(.lm-admin, .cp-cashier, .sp-body, .cp-portal)
   :is(.lm-card, .lm-stat, .stat-card, .sp-card, .sp-stat, .cp-card, .cp-feature-card) {
-  border: 5px solid var(--card-outline, var(--card-border)) !important;
+  border: 2px solid var(--card-outline, var(--card-border)) !important;
 }
 :root:root body.cp-cashier .stat-card:has(#statPendingConfirmation),
 :root:root body.sp-body .sp-stat:has(.sp-stat-icon.is-amber) {

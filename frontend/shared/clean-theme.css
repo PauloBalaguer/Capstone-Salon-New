@@ -444,3 +444,21 @@ html.dark body footer.bg-plum [class~="text-white/85"] { color: var(--text) !imp
 /* Auth side panel: highlight the step the visitor is on. */
 .pts li.on { border-color: rgb(224 184 76 / .55); background: rgb(255 255 255 / .12); }
 .pts li.on > span { background: var(--accent); color: var(--text); }
+
+/* Sign-in pages in dark mode: the fields are the same colour as the card, so
+   give them a visible outline (light mode already shows them by their fill). */
+@media (prefers-color-scheme: dark) {
+  html body.auth-page .inp input,
+  html body.auth-page .otp input,
+  html body.auth-page .card select,
+  html body.auth-page .card textarea {
+    border: 2px solid rgba(255, 255, 255, .28) !important;
+  }
+  html body.auth-page .inp input:focus,
+  html body.auth-page .otp input:focus,
+  html body.auth-page .card select:focus,
+  html body.auth-page .card textarea:focus {
+    border-color: #E0B84C !important;
+  }
+  html body.auth-page .inp.is-wrong input { border-color: rgba(244, 160, 151, .85) !important; }
+}

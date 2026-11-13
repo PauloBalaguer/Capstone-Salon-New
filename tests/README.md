@@ -36,6 +36,7 @@ C:\xampp\php\php.exe tests\guest_otp_test.php
 C:\xampp\php\php.exe tests\arrival_request_test.php
 C:\xampp\php\php.exe tests\staff_portal_test.php
 C:\xampp\php\php.exe tests\admin_staff_password_test.php
+C:\xampp\php\php.exe tests\guest_home_service_account_test.php
 C:\xampp\php\php.exe tests\remember_me_test.php
 C:\xampp\php\php.exe tests\guest_signup_test.php
 C:\xampp\php\php.exe tests\trusted_device_test.php
@@ -64,6 +65,7 @@ Each test takes about 5–15 seconds, mostly to copy the database. Lines like
 | `arrival_request_test.php` | **Late or absent customers: the stylist asks, the cashier decides.** A no-show request is only accepted past the grace period and changes nothing by itself, and it reaches only that branch's cashiers. The cashier's No-Show is refused inside the grace period, for future bookings, for visits already checked out and for other branches, and keeps the deposit once. |
 | `staff_portal_test.php` | **Staff Portal.** Supplies logged at the same moment keep the stock right, and only count against a recent booking of that stylist. A photo too large for MySQL gets a clear refusal. Parallel Start Breaks give one break and no false error. |
 | `admin_staff_password_test.php` | **Staff passwords.** Staff can't change their own password; only the admin sets a new one from the Staff page. Weak or mismatched passwords are refused and the password never appears in the response. |
+| `guest_home_service_account_test.php` | **Guest home service with an account's number.** Refused with a different email; accepted with that account's own email, and the request goes into that account. Numbers without an account work as before. |
 | `remember_me_test.php` | **"Remember me" on the login page.** Whether the browser is still signed in, which dashboard that leads to, and that sessions last as long as the 30-day cookie. Reads no database rows. |
 | `guest_signup_test.php` | **Signing up with a number that has guest bookings.** A number with its own account stays blocked. A guest number can sign up, but its bookings and points only join the account after the email code and then a texted code. Covers wrong, expired and repeated codes, a stolen or missing token, coming back through login, the number being taken meanwhile, and finishing with a different number. |
 | `trusted_device_test.php` | **"Remember me" recognising a customer's browser.** Only the right cookie with the right email signs in without a password. It ends on expiry, a password change, deactivation or "Not you?". Customers only, nothing usable is stored, and a problem with this feature never blocks a normal login. |

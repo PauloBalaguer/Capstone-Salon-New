@@ -22,6 +22,7 @@ require_once '../../backend/shared/config/helpers/LoyaltyTier.php';
 require_once '../../backend/shared/config/helpers/StaffMetrics.php';
 require_once '../../backend/shared/config/payments/RevenueReport.php';
 require_once '../../backend/shared/config/booking/Scheduling.php';
+require_once '../../backend/shared/config/booking/HomeServiceRequest.php';
 require_once '../../backend/shared/config/helpers/StaffShift.php';
 require_once __DIR__ . '/../../backend/shared/config/helpers/Schema.php';
 
@@ -54,6 +55,9 @@ try {
     $offersSql = Schema::select($pdo, 'branches', 'offers_home_service', 'br.offers_home_service', 'offersHomeService', '1');
     $apFollowSql = Schema::select($pdo, 'appointments', 'needs_followup', 'a.needs_followup', 'needsFollowup');
     $hsFollowSql = Schema::select($pdo, 'home_service_requests', 'needs_followup', 'h.needs_followup', 'needsFollowup');
+    // Estimate saved at submit (migration 065): where the admin's quote starts.
+    $hsEstimateSql = Schema::select($pdo, 'home_service_requests', 'estimated_total', 'h.estimated_total', 'estimatedTotal')
+        . ', ' . Schema::select($pdo, 'home_service_requests', 'travel_fee', 'h.travel_fee', 'travelFee');
     $wpReturnSql = Schema::select($pdo, 'wedding_packages', 'return_travel_minutes', 'return_travel_minutes', 'return_travel_minutes');
     $edReturnSql = Schema::select($pdo, 'event_type_durations', 'return_travel_minutes', 'return_travel_minutes', 'return_travel_minutes');
     $stmt = $pdo->query("
@@ -180,6 +184,7 @@ try {
             h.address AS address,
             h.requests AS requestNotes,
             h.quote_price AS quotePrice,
+            {$hsEstimateSql},
             h.employee_id AS staffId,
             COALESCE((SELECT GROUP_CONCAT(CONCAT(te.first_name, ' ', te.last_name) ORDER BY t.id SEPARATOR ', ') FROM home_service_staff t JOIN employees te ON te.id = t.employee_id WHERE t.home_service_request_id = h.id),
                      CASE WHEN e.id IS NOT NULL THEN CONCAT(e.first_name, ' ', e.last_name) END) AS staffName,
@@ -241,6 +246,8 @@ try {
             'bookingType' => 'Home Service',
             'price' => null,
             'quotePrice' => $quotePrice,
+            'estimatedTotal' => $row['estimatedTotal'] !== null ? (float) $row['estimatedTotal'] : null,
+            'travelFee' => $row['travelFee'] !== null ? (float) $row['travelFee'] : null,
             'remainingBalance' => $remainingBalance,
             'depositAmount' => $depositAmount,
             'paymentMethod' => $row['paymentMethod'],
@@ -434,6 +441,18 @@ try {
     ");
     $eventDurations = array_map(fn($row) => ['eventType' => $row['event_type']] + $durationFields($row), $stmt->fetchAll());
 
+    // Home service price list (migration 065) for Settings > Event durations.
+    $homeServicePrices = ['rates' => [], 'travelFees' => []];
+    if (Schema::hasColumn($pdo, 'home_service_requests', 'estimated_total')) {
+        $rates = $pdo->query('SELECT service_name, price_per_client FROM home_service_rates')->fetchAll(PDO::FETCH_KEY_PAIR);
+        foreach (HomeServiceRequest::SERVICES as $service) {
+            $homeServicePrices['rates'][] = ['service' => $service, 'price' => isset($rates[$service]) ? (float) $rates[$service] : null];
+        }
+        foreach ($pdo->query('SELECT city_code, city_name, fee FROM home_service_travel_fees ORDER BY fee, city_name')->fetchAll() as $row) {
+            $homeServicePrices['travelFees'][] = ['code' => $row['city_code'], 'city' => $row['city_name'], 'fee' => (float) $row['fee']];
+        }
+    }
+
     $stmt = $pdo->query("
         SELECT f.id, br.branch_key AS branchId,
                COALESCE(ap.reference_code, hs.reference_code) AS bookingReference,
@@ -610,6 +629,7 @@ try {
         'promotions' => $promotions,
         'weddingPackages' => $weddingPackages,
         'eventDurations' => $eventDurations,
+        'homeServicePrices' => $homeServicePrices,
         'homeServiceDefaults' => [
             'fallbackServiceMinutes' => Scheduling::HOME_SERVICE_DURATION_MINUTES,
             'cleaningBufferMinutes' => Scheduling::cleaningBufferMinutes(),

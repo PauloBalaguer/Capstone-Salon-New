@@ -168,6 +168,31 @@
         <div class="lm-empty" x-show="!$store.admin.eventDurations.length"><h3>No event types found</h3><p>Run database/migrations/054_event_durations.sql.</p></div>
       </section>
 
+      <!-- Home service price list (migration 065): the request forms show an estimate from these. -->
+      <section class="lm-card" x-show="settingsTab === 'durations' && !$store.admin.loading" aria-labelledby="hsPriceTitle">
+        <div class="lm-card-head"><div><h2 id="hsPriceTitle">Home service prices &amp; travel fees</h2><p>Customers see an estimate while they fill in a request: each service's price × number of clients (weddings use the package price), plus the travel fee for the venue's city. Your quote is final. <b>The amounts in the database start as placeholders</b>; replace them with the salon's real prices.</p></div></div>
+        <form class="lm-form" @submit.prevent="saveHomeServicePrices()" x-show="$store.admin.homeServicePrices.rates.length">
+          <div class="lm-grid lm-grid--2">
+            <div class="lm-panel">
+              <strong>Price per client</strong>
+              <template x-for="rate in $store.admin.homeServicePrices.rates" :key="rate.service">
+                <label class="lm-field"><span x-text="rate.service"></span><input class="lm-input" type="number" min="0" max="1000000" step="0.01" required x-model.number="rate.price"></label>
+              </template>
+            </div>
+            <div class="lm-panel">
+              <strong>Travel fee by city / municipality (Albay)</strong>
+              <div class="lm-form-row">
+                <template x-for="zone in $store.admin.homeServicePrices.travelFees" :key="zone.code">
+                  <label class="lm-field"><span x-text="zone.city"></span><input class="lm-input" type="number" min="0" max="1000000" step="0.01" required x-model.number="zone.fee"></label>
+                </template>
+              </div>
+            </div>
+          </div>
+          <div class="lm-actions" style="justify-content:flex-end"><button type="submit" class="lm-btn lm-btn--primary">Save prices</button></div>
+        </form>
+        <div class="lm-empty" x-show="!$store.admin.homeServicePrices.rates.length"><h3>No price list yet</h3><p>Run database/migrations/065_home_service_estimate.sql.</p></div>
+      </section>
+
       <div class="lm-grid lm-grid--2" x-show="settingsTab === 'account' && !$store.admin.loading">
         <section class="lm-card lm-profile-card" aria-labelledby="profileTitle">
           <div class="lm-profile-cover" aria-hidden="true"></div>
@@ -275,8 +300,8 @@
 <script src="../../function/admin/admin-shell.js?v=20261111-np"></script>
 <script src="../../function/shared/password-card.js"></script>
 <script src="../../function/shared/live-sync.js?v=20261113"></script>
-<script src="../../function/admin/shared-data.js?v=20261111"></script>
-<script src="../../function/admin/settings.js?v=20261111-access"></script>
+<script src="../../function/admin/shared-data.js?v=20261113-hs-prices"></script>
+<script src="../../function/admin/settings.js?v=20261113-hs-prices"></script>
 <script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

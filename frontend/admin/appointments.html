@@ -206,7 +206,7 @@
         <section class="lm-bd-section" aria-label="Payment">
           <h3 class="lm-bd-heading">Payment <span class="lm-bd-paystate" :class="booking.remainingBalance > 0 ? 'is-due' : 'is-paid'" x-text="PortalPresentation.paymentStatus(booking.paymentStatus) || 'Not recorded'"></span></h3>
           <div class="lm-bd-money">
-            <div><span>Total</span><strong x-text="totalAmount(booking) === null ? 'Quote not set' : $store.admin.formatCurrency(totalAmount(booking))"></strong></div>
+            <div><span>Total</span><strong x-text="totalAmount(booking) !== null ? $store.admin.formatCurrency(totalAmount(booking)) : (booking.estimatedTotal ? 'Estimate ' + $store.admin.formatCurrency(booking.estimatedTotal) : 'Quote not set')"></strong></div>
             <div><span>Paid</span><strong class="lm-text-success" x-text="$store.admin.formatCurrency(amountPaid(booking))"></strong></div>
             <div><span>Balance</span><strong :class="booking.remainingBalance > 0 ? 'lm-text-gold' : ''" x-text="booking.remainingBalance === null ? '—' : $store.admin.formatCurrency(booking.remainingBalance)"></strong></div>
           </div>
@@ -336,6 +336,7 @@
     <div class="lm-modal-head"><div><h2 id="quoteTitle">Set final quote</h2><p x-text="quoteBooking ? quoteBooking.id + ' · ' + (quoteBooking.eventType || '') : ''"></p></div><button type="button" class="ui-close-icon lm-close" @click="openHomeServiceQuoteModal = false" aria-label="Close">&times;</button></div>
     <form class="lm-modal-body lm-form" @submit.prevent="submitHomeServiceQuote()">
       <div class="lm-alert lm-alert--info" x-show="quoteBooking && quoteBooking.weddingPackage"><p>Wedding Package <strong x-text="quoteBooking?.weddingPackage"></strong> selected. Check Services &amp; Promos for its configured price and reservation fee.</p></div>
+      <p class="lm-hint" x-show="quoteBooking && quoteBooking.estimatedTotal" x-text="'Customer saw an estimate of ' + $store.admin.formatCurrency(quoteBooking?.estimatedTotal) + (quoteBooking?.travelFee ? ' (incl. ' + $store.admin.formatCurrency(quoteBooking.travelFee) + ' travel fee)' : '') + '. Adjust it for the venue, team and requests.'"></p>
       <label class="lm-field"><span>Final quote price (PHP)</span><input class="lm-input" type="number" step="0.01" min="0.01" x-model="quotePrice" required></label>
       <label class="lm-field"><span>Required reservation fee (PHP), 0 if none</span><input class="lm-input" type="number" step="0.01" min="0" x-model="reservationFee"><small class="lm-hint">Not applied automatically. Enter any package fee here explicitly.</small></label>
       <button type="submit" class="lm-btn lm-btn--primary lm-btn--block" :disabled="!quotePrice">Save quote</button>
@@ -398,10 +399,10 @@
 <script src="../../function/shared/sign-out.js?v=20261111"></script>
 <script src="../../function/admin/admin-shell.js?v=20261111-np"></script>
 <script src="../../function/shared/live-sync.js?v=20261113"></script>
-<script src="../../function/admin/shared-data.js?v=20261111"></script>
+<script src="../../function/admin/shared-data.js?v=20261113-hs-prices"></script>
 <script src="../../function/shared/service-duration.js"></script>
 <script src="../../function/shared/appointment-arrival.js?v=20261111-mobile"></script>
-<script src="../../function/admin/appointments.js?v=20261111-filters"></script>
+<script src="../../function/admin/appointments.js?v=20261113-hs-prices"></script>
 <script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

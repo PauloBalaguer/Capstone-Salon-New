@@ -176,12 +176,15 @@ try {
     $ins = $pdo->prepare('
         INSERT INTO home_service_requests (
             reference_code, customer_id, branch_id, contact_email, address, structured_address, event_type, wedding_package, preferred_date, preferred_time,
-            requests, number_of_clients, terms_accepted_at
+            requests, number_of_clients, travel_fee, estimated_total, terms_accepted_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
     ');
+    // Recalculated here from the price list; the admin's quote starts from it.
+    $estimate = HomeServiceRequest::estimate($pdo, $eventType, (string) $weddingPackage, $services, (int) $clients, (string) $structuredAddress['city']);
     $ins->execute([
         $referenceCode, $customerId, $homeBranchId, $email, $address, json_encode($structuredAddress), $eventType, $eventType === 'Wedding' ? $weddingPackage : null, $date, $time, $fullRequests, (int) $clients,
+        $estimate['travelFee'], $estimate['total'],
     ]);
     $requestId = $pdo->lastInsertId();
     // Guest updates (quote, payment link, reschedules) go out by email.

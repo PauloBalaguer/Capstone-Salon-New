@@ -34,6 +34,7 @@ document.addEventListener('alpine:init', () => {
     promotions: [],
     weddingPackages: [],
     eventDurations: [],
+    homeServicePrices: { rates: [], travelFees: [] }, // migration 065
     homeServiceDefaults: { fallbackServiceMinutes: 120, cleaningBufferMinutes: 15 },
     bookingRules: { cleaningBufferMinutes: 15, slotIntervalMinutes: 30 },
     feedback: [],
@@ -114,6 +115,7 @@ document.addEventListener('alpine:init', () => {
         this.promotions = data.promotions;
         this.weddingPackages = data.weddingPackages;
         this.eventDurations = data.eventDurations || [];
+        this.homeServicePrices = data.homeServicePrices || this.homeServicePrices;
         this.homeServiceDefaults = data.homeServiceDefaults || this.homeServiceDefaults;
         this.bookingRules = data.bookingRules || this.bookingRules;
         this.feedback = data.feedback;

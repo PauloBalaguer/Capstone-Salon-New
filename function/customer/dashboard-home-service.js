@@ -108,6 +108,51 @@ function customerHomeServiceMixin() {
         if (seq === this.eventAvailabilityRequest) this.eventAvailabilityMessage = 'Availability could not be checked. We will check again when you submit.';
       } finally { if (seq === this.eventAvailabilityRequest) this.eventAvailabilityLoading = false; }
     },
+    // Home service price list (migration 065, admin-edited) for the live estimate;
+    // backend/customer/submitHomeServiceRequest.php recalculates it on submit.
+    hsPrices: null,
+    async loadHomeServicePrices() {
+      if (this.hsPrices) return;
+      try {
+        const body = await (await fetch('../../backend/public/getHomeServicePrices.php')).json();
+        if (body.success) this.hsPrices = body;
+      } catch (_) { /* no estimate; the quote still comes after review */ }
+    },
+    hsServicePrice(service) {
+      const price = this.hsPrices?.rates?.[service];
+      return price === undefined ? '' : 'Starts at ' + this.formatPeso(price) + ' per client';
+    },
+    // Services (package price, or per-client prices x clients) + the travel fee
+    // for the venue's city = estimated total; DP = fixed fee or a percent of it.
+    hsEstimate() {
+      const f = this.homeServiceForm || {};
+      if (!this.hsPrices) return null;
+      let services = 0;
+      let fixedFee = null;
+      if (f.eventType === 'Wedding') {
+        const pkg = HS_WEDDING_PACKAGES[f.weddingPackage];
+        if (!pkg) return null;
+        services = pkg.price;
+        fixedFee = pkg.fee || null;
+      } else {
+        const clients = parseInt(f.clients, 10) || 0;
+        if (!f.services.length || clients < 1) return null;
+        let perClient = 0;
+        for (const service of f.services) {
+          if (this.hsPrices.rates[service] === undefined) return null;
+          perClient += Number(this.hsPrices.rates[service]);
+        }
+        services = perClient * clients;
+      }
+      void f.address; // re-run when the address (and its city) changes
+      const city = document.getElementById('service-address-city');
+      const travel = this.hsPrices.travelFees[city?.value || ''];
+      const cityName = city?.value ? city.selectedOptions[0]?.textContent || '' : '';
+      if (travel === undefined) return { services, travel: null, cityName, total: null, dp: fixedFee, fixed: fixedFee !== null, balance: null };
+      const total = services + Number(travel);
+      const dp = fixedFee !== null ? fixedFee : Math.round((total * this.hsPrices.dpPercent) / 100 / 100) * 100;
+      return { services, travel: Number(travel), cityName, total, dp, fixed: fixedFee !== null, balance: Math.max(0, total - dp) };
+    },
     hsEstimatedDp() {
       const form = this.homeServiceForm || {};
       if (form.eventType !== 'Wedding') return null;

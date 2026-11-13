@@ -256,7 +256,7 @@
             <template x-for="service in ['Hair Styling', 'Event Makeup', 'Brow Services', 'Lash Services', 'Hair & Makeup Package']" :key="service">
               <label class="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-lg p-3 cursor-pointer">
                 <input type="checkbox" x-model="homeServiceForm.services" :value="service" class="accent-gold-500">
-                <span x-text="service" class="text-slate-300"></span>
+                <span class="text-slate-300"><span x-text="service"></span><small x-show="hsServicePrice(service)" x-text="hsServicePrice(service)" class="block text-gold-400"></small></span>
               </label>
             </template>
           </div>
@@ -306,7 +306,27 @@
           </div>
         </div>
 
-        <p x-show="homeServiceForm.eventType !== 'Wedding'" class="text-slate-500 bg-slate-900 border border-slate-700 rounded-lg p-3">Price and deposit are confirmed after review.</p>
+        <!-- Live estimate (dashboard-home-service.js hsEstimate); the server recalculates it on submit. -->
+        <div x-init="loadHomeServicePrices()" class="text-slate-300 bg-slate-900 border border-slate-700 rounded-lg p-3 space-y-1.5" aria-live="polite">
+          <p class="font-semibold text-white uppercase tracking-wider">Estimated cost</p>
+          <template x-if="!hsEstimate()">
+            <p class="text-slate-500" x-text="hsPrices ? (homeServiceForm.eventType === 'Wedding' ? 'Choose a wedding package to see an estimate.' : 'Choose your services and the number of clients to see an estimate.') : 'Price and deposit are confirmed after review.'"></p>
+          </template>
+          <template x-if="hsEstimate()">
+            <div class="space-y-1.5">
+              <p class="flex justify-between gap-3"><span class="text-slate-500">Services</span><span x-text="formatPeso(hsEstimate().services)"></span></p>
+              <p class="flex justify-between gap-3"><span class="text-slate-500" x-text="'Travel fee' + (hsEstimate().cityName ? ' · ' + hsEstimate().cityName : '')"></span><span x-text="hsEstimate().travel === null ? 'Choose the service address' : (hsEstimate().travel === 0 ? 'Free' : formatPeso(hsEstimate().travel))"></span></p>
+              <template x-if="hsEstimate().total !== null">
+                <div class="space-y-1.5">
+                  <p class="flex justify-between gap-3"><span class="text-slate-500">Estimated total</span><strong class="text-white" x-text="formatPeso(hsEstimate().total)"></strong></p>
+                  <p class="flex justify-between gap-3"><span class="text-slate-500" x-text="'Reservation fee (DP)' + (hsEstimate().fixed ? ', fixed' : ', about ' + hsPrices.dpPercent + '%')"></span><span x-text="formatPeso(hsEstimate().dp)"></span></p>
+                  <p class="flex justify-between gap-3"><span class="text-slate-500">Remaining balance (event day)</span><span x-text="formatPeso(hsEstimate().balance)"></span></p>
+                </div>
+              </template>
+              <p class="text-slate-500">An estimate only. Your final price is in the quote we send after review.</p>
+            </div>
+          </template>
+        </div>
 
         <div>
           <label for="hsBranchKey" class="block font-bold text-slate-400 mb-1">Responsible branch</label>
@@ -501,7 +521,7 @@
   <script src="../../function/customer/dashboard-state.js?v=20261111"></script>
   <script src="../../function/customer/dashboard-notifications.js"></script>
   <script src="../../function/shared/address-form.js"></script>
-  <script src="../../function/customer/dashboard-home-service.js?v=20261111"></script>
+  <script src="../../function/customer/dashboard-home-service.js?v=20261113-estimate"></script>
   <script src="../../function/customer/dashboard-track-booking.js?v=20261113-track-ref"></script>
   <script src="../../function/shared/live-sync.js?v=20261113"></script>
   <script src="../../function/customer/dashboard.js"></script>

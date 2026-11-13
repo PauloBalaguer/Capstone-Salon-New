@@ -136,12 +136,15 @@ try {
     $ins = $pdo->prepare('
         INSERT INTO home_service_requests (
             customer_id, branch_id, contact_email, address, structured_address, event_type, wedding_package, preferred_date, preferred_time,
-            requests, number_of_clients, terms_accepted_at
+            requests, number_of_clients, travel_fee, estimated_total, terms_accepted_at
         )
-        VALUES (?, ?, (SELECT email FROM users WHERE id = ?), ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        VALUES (?, ?, (SELECT email FROM users WHERE id = ?), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
     ');
+    // Recalculated here from the price list; the admin's quote starts from it.
+    $estimate = HomeServiceRequest::estimate($pdo, $eventType, (string) $weddingPackage, $services, (int) $clients, (string) $structuredAddress['city']);
     $ins->execute([
         $customerId, $homeBranchId, $_SESSION['user_id'], $address, json_encode($structuredAddress), $eventType, $eventType === 'Wedding' ? $weddingPackage : null, $preferredDate, $preferredTime, $fullRequests, (int) $clients,
+        $estimate['travelFee'], $estimate['total'],
     ]);
     $requestId = $pdo->lastInsertId();
     $refStmt = $pdo->prepare('SELECT reference_code FROM home_service_requests WHERE id = ?');

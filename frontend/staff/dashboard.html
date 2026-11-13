@@ -335,14 +335,17 @@
                     <p class="sp-appt-client" x-text="visit.clientName"></p>
                     <p class="sp-appt-service"><span x-html="$icon('scissors')"></span><span x-text="visit.service"></span></p>
                     <p class="sp-muted sp-small">Leave the salon by <strong x-text="visit.leaveBy.replace(/^0/, '')"></strong> · back by <strong x-text="visit.backBy.replace(/^0/, '')"></strong></p>
+                    <p class="sp-small sp-appt-meta"><span><span x-html="$icon('pin')"></span><span x-text="visit.address"></span></span></p>
                     <p class="sp-muted sp-small sp-appt-meta">
-                      <span><span x-html="$icon('pin')"></span><span x-text="visit.branchName"></span></span>
                       <span x-text="visit.id"></span>
+                      <span x-show="visit.branchName && visit.branchName !== 'Branch not set'" x-text="visit.branchName"></span>
                     </p>
-                    <p class="sp-small" x-text="visit.address"></p>
                     <p class="sp-muted sp-small" x-show="visit.clientPhone"><span>Contact: </span><span x-text="visit.clientPhone"></span> · <span x-text="visit.clients + ' client(s)'"></span></p>
                     <p class="sp-muted sp-small" x-show="visit.team">Team: <span x-text="visit.team"></span></p>
-                    <p class="sp-muted sp-small" style="white-space: pre-line" x-show="visit.notes" x-text="visit.notes"></p>
+                    <details class="sp-visit-notes" x-show="visit.notes">
+                      <summary>Request details</summary>
+                      <p class="sp-muted sp-small" style="white-space: pre-line" x-text="visit.notes"></p>
+                    </details>
                   </div>
                 </article>
               </template>

@@ -735,3 +735,8 @@ html body.cp-portal .cp-drawer-close { display: none; }
   html body.cp-portal :is(.cp-side-link, .cp-icon-btn, .cp-btn, .cp-quick-card, .cp-teaser) { transition: none; }
   html body.cp-portal :is(.cp-quick-card, .cp-teaser):hover { transform: none; }
 }
+
+/* Home service "Request received" details: label column + value column, no justified gaps. */
+.hs-done-details { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 8px 16px; margin: 0; }
+.hs-done-details dt { font-weight: 700; color: var(--muted, #6b7772); }
+.hs-done-details dd { margin: 0; text-align: left; overflow-wrap: anywhere; }

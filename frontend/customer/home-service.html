@@ -60,7 +60,7 @@
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
   <!-- Customer portal shell (sidebar, header, bottom nav); loaded after the shared themes. -->
-  <link rel="stylesheet" href="../../frontend/customer/customer-portal.css?v=20261110">
+  <link rel="stylesheet" href="../../frontend/customer/customer-portal.css?v=20261113-hsdone">
   <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
 </head>
 <body data-customer-page="home-service" data-page-title="Home Service" class="salon-portal bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
@@ -419,21 +419,22 @@
   </div>
 
   <div x-show="isHomeServiceSuccess" x-transition.opacity class="fixed inset-0 z-[9998] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4" style="display: none;">
-    <div x-show="isHomeServiceSuccess" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" @click.outside="isHomeServiceSuccess = false" class="bg-slate-900 border border-luxury-800 rounded-2xl max-w-sm w-full p-6 space-y-5 text-center">
+    <div x-show="isHomeServiceSuccess" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" @click.outside="isHomeServiceSuccess = false" class="bg-slate-900 border border-luxury-800 rounded-2xl max-w-md w-full max-h-[calc(100dvh-2rem)] overflow-y-auto p-6 space-y-5 text-center">
       <div class="w-16 h-16 bg-emerald-950 border-4 border-[color:var(--success)] rounded-full flex items-center justify-center mx-auto">
         <svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
       </div>
       <h3 class="text-base font-serif font-bold text-white">Home Service Request Received</h3>
-      <div class="text-xs text-justify text-slate-300 bg-slate-800 border border-slate-700 rounded-lg p-3 space-y-1">
-        <p><strong class="text-slate-500 inline-block w-28">Reference Number:</strong> <span class="font-mono text-purple-300 break-all" x-text="homeServiceRequests[0]?.id"></span></p>
-        <p><strong class="text-slate-500 inline-block w-28">Event Type:</strong> <span x-text="homeServiceRequests[0]?.eventType"></span></p>
-        <p x-show="homeServiceRequests[0]?.weddingPackage"><strong class="text-slate-500 inline-block w-28">Package:</strong> <span x-text="'Package ' + homeServiceRequests[0]?.weddingPackage"></span></p>
-        <p><strong class="text-slate-500 inline-block w-28">Venue:</strong> <span x-text="homeServiceRequests[0]?.address"></span></p>
-        <p><strong class="text-slate-500 inline-block w-28">Preferred Date:</strong> <span x-text="homeServiceRequests[0]?.preferredDate"></span></p>
-        <p><strong class="text-slate-500 inline-block w-28">Preferred Time:</strong> <span x-text="homeServiceRequests[0]?.preferredTime"></span></p>
-        <p><strong class="text-slate-500 inline-block w-28">Status:</strong> <span class="text-amber-400 font-bold">Under Review</span></p>
-      </div>
-      <p class="prose-justify text-xs text-slate-400">Our team will review your request and contact you about availability, pricing, staff assignment, and any required reservation payment. We'll reach you at <strong class="text-white" x-text="customerProfile.phone"></strong>.</p>
+      <dl class="hs-done-details text-sm text-left text-slate-300 bg-slate-800 border border-slate-700 rounded-lg p-4">
+        <dt>Reference</dt><dd class="font-mono text-purple-300 break-all" x-text="homeServiceRequests[0]?.id"></dd>
+        <dt>Event</dt><dd x-text="homeServiceRequests[0]?.eventType"></dd>
+        <template x-if="homeServiceRequests[0]?.weddingPackage"><dt>Package</dt></template>
+        <template x-if="homeServiceRequests[0]?.weddingPackage"><dd x-text="'Package ' + homeServiceRequests[0]?.weddingPackage"></dd></template>
+        <dt>Venue</dt><dd x-text="homeServiceRequests[0]?.address"></dd>
+        <dt>Date</dt><dd x-text="formatApptDateLong(homeServiceRequests[0]?.preferredDate)"></dd>
+        <dt>Time</dt><dd x-text="(t => { if (!t) return ''; const [h, m] = t.split(':').map(Number); return ((h % 12) || 12) + ':' + String(m).padStart(2, '0') + (h < 12 ? ' AM' : ' PM'); })(homeServiceRequests[0]?.preferredTime)"></dd>
+        <dt>Status</dt><dd class="text-amber-400 font-bold">Under Review</dd>
+      </dl>
+      <p class="text-sm text-left text-slate-400">Our team will review your request and contact you about availability, pricing, staff assignment, and any required reservation payment. We'll reach you at <strong class="text-white" x-text="customerProfile.phone"></strong>.</p>
 
       <div class="pt-4 flex justify-center">
         <button type="button" @click="isHomeServiceSuccess = false" class="px-6 py-2 bg-gradient-to-r from-luxury-600 to-luxury-800 text-white font-bold rounded-lg hover:shadow-lg hover:shadow-luxury-600/20 transition text-xs active:scale-95">Done</button>

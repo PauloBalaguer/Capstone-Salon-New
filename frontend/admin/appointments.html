@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
 </head>
 <body class="lm-admin" x-data="adminBookingsApp()" x-init="init()"
-      x-effect="AdminUI.lockScroll(openStaffAssignModal || openHomeServiceQuoteModal || openDepositModal || openCheckoutModalFlag || !!collectBalanceBooking)">
+      x-effect="AdminUI.lockScroll(openStaffAssignModal || openHomeServiceQuoteModal || openDepositModal || openCheckoutModalFlag || !!collectBalanceBooking || !!salonCancelBooking)">
 <div class="lm-shell">
   <aside class="lm-sidebar" data-lm-sidebar></aside>
 
@@ -252,7 +252,7 @@
         <template x-if="!booking.isHomeService">
           <div class="lm-actions lm-actions--end" style="width:100%">
             <button type="button" class="lm-btn" x-show="['Pending','Confirmed','Reschedule Requested','Reschedule Required'].includes(booking.status) || (booking.status === 'Cancelled' && ['Forfeited','Refund Due'].includes(booking.paymentStatus) && booking.depositAmount > 0)" @click="updateBookingStatus(booking.id, 'In Progress')">Review schedule</button>
-            <button type="button" class="lm-btn lm-btn--danger" x-show="['Pending','Confirmed','Reschedule Requested','Reschedule Required'].includes(booking.status)" @click="updateBookingStatus(booking.id, 'Cancelled')">Cancel booking</button>
+            <button type="button" class="lm-btn lm-btn--danger" x-show="['Pending','Confirmed','Reschedule Requested','Reschedule Required'].includes(booking.status)" @click="openSalonCancel(booking)">Cancel booking</button>
             <button type="button" class="lm-btn lm-btn--danger" x-show="booking.status === 'Confirmed' && (booking.date || '') <= AdminUI.today()" @click="updateBookingStatus(booking.id, 'No-Show')">Mark as no-show</button>
             <button type="button" class="lm-btn lm-btn--primary" x-show="booking.status === 'Pending'" @click="openConfirmDeposit(booking)">Review payment &amp; confirm</button>
             <button type="button" class="lm-btn lm-btn--primary" x-show="booking.status === 'Confirmed' && (booking.date || '') <= AdminUI.today()" @click="updateBookingStatus(booking.id, 'In Progress')">Review check-in</button>
@@ -331,6 +331,31 @@
 </div>
 
 <!-- Home service quote -->
+<!-- Salon cancellation: the admin must choose refund or reschedule (non-refundable deposit exception). -->
+<div class="lm-modal" x-show="salonCancelBooking" x-cloak @keydown.escape.window="salonCancelBooking = null" role="dialog" aria-modal="true" aria-labelledby="salonCancelTitle">
+  <div class="lm-modal-box" @click.outside="salonCancelBooking = null">
+    <div class="lm-modal-head"><div><h2 id="salonCancelTitle">Cancel booking (salon)</h2><p x-text="salonCancelBooking ? salonCancelBooking.id + ' · ' + (salonCancelBooking.clientName || '') : ''"></p></div><button type="button" class="ui-close-icon lm-close" @click="salonCancelBooking = null" aria-label="Close">&times;</button></div>
+    <form class="lm-modal-body lm-form" @submit.prevent="submitSalonCancel()">
+      <p class="lm-hint">Deposits are non-refundable when the <b>customer</b> cancels. When the <b>salon</b> cancels (for example, the stylist is absent), choose what happens to the booking:</p>
+      <div class="lm-form" role="radiogroup" aria-labelledby="salonCancelChoice">
+        <h3 id="salonCancelChoice" class="lm-bd-heading">What happens to the booking</h3>
+        <label class="lm-svc-opt" :class="{ 'is-on': salonCancelAction === 'refund' }">
+          <input type="radio" name="salon-cancel-action" value="refund" x-model="salonCancelAction">
+          <span><strong>Cancel and refund the deposit</strong><br>
+            <span class="lm-cell-sub" x-text="salonCancelBooking && salonCancelBooking.depositAmount > 0 ? 'The ' + $store.admin.formatCurrency(salonCancelBooking.depositAmount) + ' deposit becomes Refund Due. Then refund it through PayMongo, or record a manual refund.' : 'No verified deposit; the booking is just cancelled.'"></span></span>
+        </label>
+        <label class="lm-svc-opt" :class="{ 'is-on': salonCancelAction === 'reschedule' }">
+          <input type="radio" name="salon-cancel-action" value="reschedule" x-model="salonCancelAction">
+          <span><strong>Reschedule instead</strong><br>
+            <span class="lm-cell-sub">The booking stays open as "Reschedule Requested" and the customer picks a new time (no 24-hour limit). Any deposit carries over.</span></span>
+        </label>
+      </div>
+      <label class="lm-field"><span>Reason (the customer sees this)</span><textarea class="lm-input" rows="2" maxlength="255" required x-model="salonCancelReason" placeholder="e.g. Your stylist is absent today"></textarea></label>
+      <button type="submit" class="lm-btn lm-btn--danger lm-btn--block" :disabled="salonCancelSaving || !salonCancelAction" x-text="salonCancelSaving ? 'Saving…' : (salonCancelAction === 'reschedule' ? 'Ask the customer to reschedule' : 'Cancel booking')"></button>
+    </form>
+  </div>
+</div>
+
 <div class="lm-modal" x-show="openHomeServiceQuoteModal" x-cloak @keydown.escape.window="openHomeServiceQuoteModal = false" role="dialog" aria-modal="true" aria-labelledby="quoteTitle">
   <div class="lm-modal-box" @click.outside="openHomeServiceQuoteModal = false">
     <div class="lm-modal-head"><div><h2 id="quoteTitle">Set final quote</h2><p x-text="quoteBooking ? quoteBooking.id + ' · ' + (quoteBooking.eventType || '') : ''"></p></div><button type="button" class="ui-close-icon lm-close" @click="openHomeServiceQuoteModal = false" aria-label="Close">&times;</button></div>
@@ -402,7 +427,7 @@
 <script src="../../function/admin/shared-data.js?v=20261113-hs-prices"></script>
 <script src="../../function/shared/service-duration.js"></script>
 <script src="../../function/shared/appointment-arrival.js?v=20261111-mobile"></script>
-<script src="../../function/admin/appointments.js?v=20261113-hs-prices"></script>
+<script src="../../function/admin/appointments.js?v=20261114-salon-cancel"></script>
 <script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

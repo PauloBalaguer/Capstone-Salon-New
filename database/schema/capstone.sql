@@ -969,3 +969,8 @@ INSERT IGNORE INTO `home_service_travel_fees` (`city_code`, `city_name`, `fee`) 
 ALTER TABLE `home_service_requests`
   ADD COLUMN IF NOT EXISTS `travel_fee` DECIMAL(10,2) NULL AFTER `quote_price`,
   ADD COLUMN IF NOT EXISTS `estimated_total` DECIMAL(10,2) NULL AFTER `travel_fee`;
+
+-- Salon cancellation reason (database/migrations/066_salon_cancel_reason.sql).
+ALTER TABLE `appointments`
+  ADD COLUMN IF NOT EXISTS `cancel_reason` VARCHAR(255) NULL DEFAULT NULL AFTER `cancelled_at`,
+  ADD COLUMN IF NOT EXISTS `cancelled_by` INT UNSIGNED NULL DEFAULT NULL AFTER `cancel_reason`;

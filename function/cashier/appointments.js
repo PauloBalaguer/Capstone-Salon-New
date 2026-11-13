@@ -452,15 +452,38 @@ async function askCustomerToReschedule() {
   }
 }
 
-async function cancelBooking(ref) {
+// Cancel: the cashier picks refund (salon), reschedule (salon) or "customer asked"
+// (deposit kept), with a reason -- backend/cashier/updateStatus.php checks both.
+let cancelRef = null;
+function cancelBooking(ref) {
   const b = state.data.bookings.find(x => x.id === ref);
-  const depositNote = b && b.depositAmount && ['Down Payment Verified', 'Fully Paid'].includes(b.paymentStatus)
-    ? `\n\nThe ${CashierApp.formatCurrency(b.depositAmount)} deposit is NON-REFUNDABLE. Consider "Reschedule" instead the customer can also reschedule later to use it.`
-    : '';
-  if (!(await LMConfirm({ title: 'Cancel this booking?', message: ('This cannot be undone.' + depositNote), confirmLabel: 'Cancel Booking', cancelLabel: 'Keep Booking' }))) return;
-  const result = await CashierApp.post('updateStatus.php', { id: ref, status: 'Cancelled' });
-  CashierApp.toast(result.message || (result.success ? 'Booking cancelled.' : 'Failed to cancel booking.'), result.success ? 'success' : 'error');
-  if (result.success) await refreshData();
+  cancelRef = ref;
+  document.querySelectorAll('#cancelModal input[name="cancelAction"]').forEach(r => { r.checked = false; });
+  document.getElementById('cancelReason').value = '';
+  document.getElementById('cancelError').classList.add('hidden');
+  document.getElementById('cancelInfo').textContent = ref + (b && b.clientName ? ' · ' + b.clientName : '');
+  const held = b && b.depositAmount && ['Down Payment Verified', 'Fully Paid'].includes(b.paymentStatus);
+  document.getElementById('cancelRefundNote').textContent = held
+    ? 'The ' + CashierApp.formatCurrency(b.depositAmount) + ' deposit becomes Refund Due; an admin returns it through PayMongo or records a manual refund.'
+    : 'No verified deposit; the booking is just cancelled.';
+  CashierApp.showModal('cancelModal');
+}
+
+async function confirmCancelBooking() {
+  const action = document.querySelector('#cancelModal input[name="cancelAction"]:checked')?.value || '';
+  const reason = document.getElementById('cancelReason').value.trim();
+  const error = document.getElementById('cancelError');
+  const fail = text => { error.textContent = text; error.classList.remove('hidden'); };
+  if (!action) return fail('Choose what happens to the booking.');
+  if (reason.length < 3) return fail('Give a reason (at least 3 characters). The customer will see it.');
+  const button = document.getElementById('btnConfirmCancel');
+  button.disabled = true;
+  const result = await CashierApp.post('updateStatus.php', { id: cancelRef, status: 'Cancelled', cancelAction: action, reason });
+  button.disabled = false;
+  if (!result.success) return fail(result.message || 'Failed to cancel the booking.');
+  CashierApp.hideModal('cancelModal');
+  CashierApp.toast(action === 'reschedule' ? 'The customer was asked to pick a new time.' : 'Booking cancelled.', 'success');
+  await refreshData();
 }
 
 async function markNoShow(ref) {
@@ -512,6 +535,8 @@ function wireStaticEvents() {
   document.getElementById('btnConfirmReassign').addEventListener('click', confirmReassign);
 
   document.getElementById('btnCloseRescheduleModal').addEventListener('click', () => CashierApp.hideModal('rescheduleModal'));
+  document.getElementById('btnCloseCancelModal').addEventListener('click', () => CashierApp.hideModal('cancelModal'));
+  document.getElementById('btnConfirmCancel').addEventListener('click', confirmCancelBooking);
   document.getElementById('rescheduleDate').addEventListener('change', loadRescheduleSlots);
   document.getElementById('rescheduleSlots').addEventListener('click', (e) => {
     const btn = e.target.closest('.reschedule-slot');

@@ -4,10 +4,19 @@ require_once __DIR__ . '/../notifications/CustomerNotifier.php';
 require_once __DIR__ . '/../payments/PaymentLog.php';
 require_once __DIR__ . '/Waitlist.php';
 require_once __DIR__ . '/../payments/PayMongo.php';
+require_once __DIR__ . '/../security/AuditLog.php';
 
 /**
  * Reservation deposit policy (shown to customers in the booking Terms, the
  * booking confirmation, and the cancel dialog): deposits are NON-REFUNDABLE.
+ *
+ * Exception: when the SALON cancels (e.g. the stylist is absent), staff
+ * must choose (admin and cashier, staffCancelError()/closeByStaff()): refund
+ * the deposit (trigger SALON_REFUND -> 'Refund Due', refunded in Admin >
+ * Bookings through PayMongo's refund API or recorded as a manual refund) or
+ * reschedule the booking ('Reschedule Requested', which the customer can
+ * move without the 24-hour cut-off; deposit carried over). The cashier can
+ * also record that the CUSTOMER asked to cancel (deposit kept).
  *
  *   - Need a different time? Reschedule instead (backend/shared/config/booking/Reschedule.php):
  *     the booking keeps its deposit. Customers can do it online up to
@@ -32,6 +41,8 @@ final class CancellationPolicy
 
     public const BY_CUSTOMER = 'customer';
     public const BY_SALON = 'salon';
+    /** Salon cancellation where the admin chose to refund the deposit. */
+    public const SALON_REFUND = 'salon_refund';
     public const NO_SHOW = 'no_show';
 
     /** Columns apply()/preview() need from the appointments row. */
@@ -42,7 +53,8 @@ final class CancellationPolicy
     {
         $hours = self::FREE_CANCEL_HOURS;
         return "Deposit policy: deposits are non-refundable, but they carry over if you reschedule at least {$hours} hours before, or through the branch. "
-            . "If you cancel or miss your appointment, you can still reschedule later using the deposit.";
+            . "If you cancel or miss your appointment, you can still reschedule later using the deposit. "
+            . "If the salon has to cancel your booking (for example, your stylist is absent), we will either refund your deposit in full or reschedule your booking with the deposit carried over.";
     }
 
     /** "Booking received" message (in-app + email) with the booking details, payment instructions, and the policy. */
@@ -59,6 +71,57 @@ final class CancellationPolicy
         return $message . "\n\n" . self::summary();
     }
 
+    /** Staff cancellation choices: salon refund, salon reschedule, or the customer asked (cashier only). */
+    public const STAFF_CANCEL_ACTIONS = ['refund', 'reschedule', 'customer'];
+
+    /** Why a staff cancellation request is invalid, or null. Every choice needs a reason the customer sees. */
+    public static function staffCancelError(string $action, string $reason, bool $allowCustomer): ?string
+    {
+        $allowed = $allowCustomer ? self::STAFF_CANCEL_ACTIONS : ['refund', 'reschedule'];
+        if (!in_array($action, $allowed, true)) {
+            return $allowCustomer
+                ? 'Choose what happens: refund the deposit, reschedule, or the customer asked to cancel.'
+                : 'Choose whether to refund the deposit or reschedule the booking.';
+        }
+        if (mb_strlen($reason) < 3 || mb_strlen($reason) > 255) {
+            return 'Give a reason for the cancellation (3 to 255 characters). The customer will see it.';
+        }
+        return null;
+    }
+
+    /**
+     * After staff moved the booking to Cancelled ('refund' / 'customer') or
+     * Reschedule Requested ('reschedule'): saves the reason, applies the
+     * deposit rule, sends ONE email + SMS to the customer and audits it.
+     */
+    public static function closeByStaff(PDO $pdo, array $appointment, string $action, string $reason): void
+    {
+        $reference = $appointment['reference_code'];
+        $customerId = (int) $appointment['customer_id'];
+        if ($action === 'reschedule') {
+            CustomerNotifier::notify($pdo, $customerId, 'RESCHEDULE',
+                "We're sorry, the salon can't keep your appointment {$reference} at its current time. Reason: {$reason}."
+                . "\n\nPlease choose a new time from My Appointments (or Track your booking), or contact the branch. Any deposit you paid stays with this booking.", $reference);
+            AuditLog::record($pdo, 'booking/salon_cancel', 'Cancelled by the salon (rescheduling instead)', $reference, $reason);
+            return;
+        }
+        $pdo->prepare('UPDATE appointments SET cancel_reason = ?, cancelled_by = ? WHERE id = ?')
+            ->execute([$reason, $_SESSION['user_id'] ?? null, $appointment['id']]);
+        if ($action === 'refund') {
+            $refundNote = self::apply($pdo, $appointment, self::SALON_REFUND, $reason);
+            CustomerNotifier::notify($pdo, $customerId, 'SALON_CANCELLED',
+                "We're sorry, the salon had to cancel your appointment {$reference}. Reason: {$reason}."
+                . ($refundNote !== '' ? "\n\n{$refundNote}" : '')
+                . "\n\nIf you'd like to book again, we'll be happy to find you a new time.", $reference);
+            AuditLog::record($pdo, 'booking/salon_cancel', 'Cancelled by the salon (deposit refunded)', $reference, $reason);
+            return;
+        }
+        // The customer asked at the counter: the non-refundable rule applies (apply() sends the deposit notice).
+        CustomerNotifier::notify($pdo, $customerId, 'CANCELLED', "Your appointment {$reference} was cancelled as you requested. Note: {$reason}.", $reference);
+        self::apply($pdo, $appointment, self::BY_CUSTOMER);
+        AuditLog::record($pdo, 'booking/customer_cancel', 'Cancelled at the customer\'s request', $reference, $reason);
+    }
+
     public static function holdsDeposit(array $appointment): bool
     {
         if (in_array($appointment['payment_status'], ['Down Payment Verified', 'Fully Paid'], true)) return true;
@@ -73,10 +136,15 @@ final class CancellationPolicy
         return (float) $stmt->fetchColumn();
     }
 
-    /** The payment status a cancellation would produce, or null when the deposit isn't affected. Deposits are non-refundable. */
+    /**
+     * The payment status a cancellation would produce, or null when the
+     * deposit isn't affected. Deposits are non-refundable, except when the
+     * salon cancels and the admin chose a refund.
+     */
     public static function outcome(PDO $pdo, array $appointment, string $trigger): ?string
     {
-        return self::holdsDeposit($appointment) ? 'Forfeited' : null;
+        if (!self::holdsDeposit($appointment)) return null;
+        return $trigger === self::SALON_REFUND ? 'Refund Due' : 'Forfeited';
     }
 
     /** No automatic lateness/no-show threshold: absence is a staff decision. */
@@ -106,7 +174,7 @@ final class CancellationPolicy
      * customer, and alerts anyone waitlisted for the freed stylist. Returns a
      * customer-facing sentence about the deposit ('' when unaffected).
      */
-    public static function apply(PDO $pdo, array $appointment, string $trigger): string
+    public static function apply(PDO $pdo, array $appointment, string $trigger, ?string $reason = null): string
     {
         $close = $pdo->prepare("UPDATE appointments SET cancelled_at = NOW() WHERE id = ? AND cancelled_at IS NULL AND status IN ('Cancelled', 'No-Show')");
         $close->execute([$appointment['id']]);
@@ -125,6 +193,15 @@ final class CancellationPolicy
         $amount = (float) $appointment['deposit_amount'];
         $peso = '₱' . number_format($amount, 2);
         $reference = $appointment['reference_code'];
+
+        if ($outcome === 'Refund Due') {
+            // Recorded against the payment: amount, reason, admin and (created_at) date.
+            PaymentLog::record($pdo, 'refund_due', (int) $appointment['id'], $reference, null, $amount, $outcome,
+                ['trigger' => $trigger, 'reason' => $reason, 'by_user_id' => $_SESSION['user_id'] ?? null, 'method' => $appointment['deposit_method']]);
+            // The caller sends one cancellation notice that includes this sentence.
+            return "Your {$peso} reservation deposit will be refunded in full"
+                . (PayMongo::isOnline($appointment['deposit_method']) ? ' to your original GCash, Maya or card payment.' : '. The branch will contact you to return it.');
+        }
 
         PaymentLog::record($pdo, 'deposit_forfeited', (int) $appointment['id'], $reference,
             null, $amount, $outcome, ['trigger' => $trigger, 'method' => $appointment['deposit_method']]);

@@ -27,6 +27,12 @@ function adminBookingsApp() {
     depositAmount: '',
     depositMethod: '',
 
+    // Salon cancellation: refund the deposit or reschedule (backend/admin/updateBookingStatus.php).
+    salonCancelBooking: null,
+    salonCancelAction: '',
+    salonCancelReason: '',
+    salonCancelSaving: false,
+
     openHomeServiceQuoteModal: false,
     quoteBooking: null,
     quotePrice: '',
@@ -233,6 +239,29 @@ function adminBookingsApp() {
       const result = await store.post('refundDeposit.php', { reference: booking.id });
       LMToast.show(result.message || (result.success ? 'Done.' : 'Failed to refund the deposit.'), result.success ? 'success' : 'error');
       if (result.success) await store.refresh();
+    },
+
+    openSalonCancel(booking) {
+      this.salonCancelBooking = booking;
+      this.salonCancelAction = '';
+      this.salonCancelReason = '';
+    },
+
+    async submitSalonCancel() {
+      const booking = this.salonCancelBooking;
+      if (!booking) return;
+      if (!this.salonCancelAction) { LMToast.show('Choose whether to refund the deposit or reschedule the booking.', 'error'); return; }
+      if (this.salonCancelReason.trim().length < 3) { LMToast.show('Give a reason for the cancellation (at least 3 characters).', 'error'); return; }
+      const store = Alpine.store('admin');
+      this.salonCancelSaving = true;
+      const result = await store.post('updateBookingStatus.php', { id: booking.id, status: 'Cancelled', salonAction: this.salonCancelAction, reason: this.salonCancelReason.trim() });
+      this.salonCancelSaving = false;
+      if (!result.success) { LMToast.show(result.message || 'Failed to cancel the booking.', 'error'); return; }
+      LMToast.show(this.salonCancelAction === 'refund'
+        ? 'Booking cancelled. Use "' + this.refundButtonLabel({ ...booking, paymentStatus: 'Refund Due' }) + '" to return the deposit.'
+        : 'The customer was asked to choose a new time. Their deposit stays with the booking.', 'success');
+      this.salonCancelBooking = null;
+      await store.refresh();
     },
 
     async updateBookingStatus(id, newStatus) {

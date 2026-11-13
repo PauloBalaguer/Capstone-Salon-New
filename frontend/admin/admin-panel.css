@@ -515,7 +515,7 @@ body.lm-admin .lm-modal-box :is(.text-white, .text-slate-100, .text-slate-200, .
   .lm-table--stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
   .lm-table--stack, .lm-table--stack tbody, .lm-table--stack tr, .lm-table--stack td { display: block; width: 100%; }
   .lm-table--stack tbody { display: flex; flex-direction: column; gap: 12px; padding: 12px; }
-  .lm-table--stack tr { border: 1px solid var(--lm-border); border-radius: 14px; background: var(--lm-card); padding: 6px 14px; box-shadow: var(--lm-shadow); }
+  .lm-table--stack tr { border: 2px solid var(--card-border, var(--lm-border)); border-radius: 14px; background: var(--lm-card); padding: 6px 14px; box-shadow: var(--lm-shadow); }
   .lm-table--stack tbody tr:hover td { background: transparent; }
   .lm-table--stack td { display: grid; grid-template-columns: minmax(96px, 38%) minmax(0, 1fr); gap: 10px; align-items: start; padding: 9px 0; border-bottom: 1px solid var(--border); text-align: left !important; }
   .lm-table--stack td::before { content: attr(data-label); font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--lm-muted); padding-top: 2px; }
@@ -535,6 +535,7 @@ body.lm-admin .lm-modal-box :is(.text-white, .text-slate-100, .text-slate-200, .
   .lm-table--stack:not(.lm-booking-table) td[data-label]:not([data-label=""]) > * { grid-column: 2; min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
   .lm-table--stack td[data-label] > :is(span, button) { justify-self: start; }
   body.lm-admin .lm-table.lm-table--stack td:first-child { padding-left: 0; }
+  body.lm-admin .lm-table.lm-table--stack td:last-child { padding-right: 0; }
 
   .lm-modal { padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)); align-items: center; }
   .lm-modal-box, dialog.lm-dialog .lm-modal-box { min-width: 0; max-width: none; max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); border-radius: 18px; }
@@ -875,6 +876,8 @@ body.lm-admin .lm-modal-box :is(.text-white, .text-slate-100, .text-slate-200, .
 
 /* Settings: tabs, branch cards, section boxes, Sunday switch, sticky save bar. */
 .lm-settings-tabs { align-self: flex-start; flex-wrap: wrap; }
+/* Same outline as the cards around it. */
+.lm-settings-tabs { border: 2px solid var(--card-border, var(--lm-border)); }
 @media (max-width: 767.98px) {
   .lm-settings-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
   .lm-settings-tabs .lm-seg-btn { min-width: 0; min-height: 44px; white-space: normal; }
@@ -905,4 +908,8 @@ body.lm-admin .lm-modal-box :is(.text-white, .text-slate-100, .text-slate-200, .
 /* Settings > Staff access: branch heading rows inside the tables. */
 .lm-table .lm-group-row th { padding: 10px 20px !important; background: rgba(22, 96, 75, .06); text-align: left; font-size: 13px; font-weight: 800; letter-spacing: .02em; text-transform: none; color: var(--lm-teal-800); border-top: 1px solid var(--lm-border); }
 .lm-table .lm-group-row th small { margin-left: 6px; font-weight: 600; color: var(--lm-muted); }
-@media (max-width: 767.98px) { .lm-table--stack .lm-group-row { display: block; } .lm-table--stack .lm-group-row th { display: block; } }
+@media (max-width: 767.98px) {
+  .lm-table--stack .lm-group-row { display: block; padding: 0; border: 0; background: none; box-shadow: none; }
+  /* Branch headings wrap instead of widening the table past the screen. */
+  .lm-table--stack .lm-group-row th { display: block; width: 100%; padding: 10px 14px !important; border: 0; border-radius: 12px; white-space: normal; overflow-wrap: anywhere; letter-spacing: .02em; }
+}

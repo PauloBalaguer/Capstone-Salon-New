@@ -1223,9 +1223,12 @@
       ]
     }
   ];
-  let hsFeedbackRef = '';
-  let hsFeedbackEmail = '';
-  const hsRatings = { service: 0, staff: 0 };
+  let hsLastSubmitted = null; // the request just sent, so "Track Request" can show its full details
+  function hsTrackSubmitted() {
+    if (hsLastSubmitted) openTrackModal(hsLastSubmitted.ref, hsLastSubmitted.phone, hsLastSubmitted.email);
+    else openTrackModal();
+  }
+
   function hsJump(id) {
     switchTab('homeservice-tab');
     setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior:'smooth', block:'start' }), 120);
@@ -1674,8 +1677,7 @@
         ];
         document.getElementById('hsSummary').innerHTML = submittedSummary
           .map(r => '<p><span class="text-ink/50">' + r[0] + ':</span> <b>' + escAttr(r[1]) + '</b></p>').join('');
-        document.getElementById('trkRef').value = ref;
-        document.getElementById('trkEmail').value = email; // pre-fill the tracker (reference + email)
+        hsLastSubmitted = { ref, phone, email }; // "Track Request" opens the tracker with these
         hsGo(5);
       })
       .catch(() => {
@@ -1709,81 +1711,6 @@
     hsGo(1);
   }
 
-  function hsTrack() {
-    const ref = document.getElementById('trkRef').value.trim().toUpperCase();
-    // Home services are tracked with reference + the email given on the request.
-    const email = document.getElementById('trkEmail').value.trim();
-    const box = document.getElementById('trkResult');
-    const fb = document.getElementById('hsFeedback');
-    box.classList.remove('hidden');
-
-    if (!ref || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      box.innerHTML = '<div class="rounded-xl bg-copper/12 border border-copper/30 text-copper-dark p-4 text-[13px]">Enter your reference number and the email address you used for the request.</div>';
-      fb.classList.add('hidden');
-      return;
-    }
-
-    box.innerHTML = '<div class="text-[13px] text-ink/50">Looking up your request…</div>';
-    fb.classList.add('hidden');
-
-    fetch('backend/public/trackBooking.php?reference=' + encodeURIComponent(ref) + '&email=' + encodeURIComponent(email))
-      .then(r => r.json())
-      .then(res => {
-        if (!res.success) {
-          box.innerHTML = '<div class="rounded-xl bg-copper/12 border border-copper/30 text-copper-dark p-4 text-[13px]">' + escAttr(res.message) + '</div>';
-          return;
-        }
-        res.email = email; // proves ownership again if the guest reschedules from here
-        box.innerHTML = renderTrackingResult(res);
-
-        if (res.canReview) {
-          hsFeedbackRef = res.reference;
-          hsFeedbackEmail = email;
-          hsRatings.service = 0; hsRatings.staff = 0;
-          document.querySelectorAll('#hsFeedback .fb-star').forEach(s => { s.className = 'fb-star text-bronze/40 hover:text-copper transition'; });
-          document.getElementById('fbFor').textContent = 'For booking ' + res.reference + ' ' + (res.event || res.services || '') + '.';
-          fb.classList.remove('hidden');
-        } else {
-          fb.classList.add('hidden');
-        }
-      })
-      .catch(() => {
-        box.innerHTML = '<div class="rounded-xl bg-copper/12 border border-copper/30 text-copper-dark p-4 text-[13px]">A network error occurred. Please try again.</div>';
-      });
-  }
-
-  function hsStar(btn, value) {
-    const group = btn.closest('[data-stars]');
-    const key = group.dataset.stars;
-    hsRatings[key] = value;
-    group.querySelectorAll('.fb-star').forEach((s, i) => {
-      s.className = 'fb-star transition ' + (i < value ? 'text-copper' : 'text-bronze/40 hover:text-copper');
-    });
-  }
-
-  function hsSubmitFeedback() {
-    if (!hsRatings.service) { showToast('Please rate your experience first'); return; }
-    if (!hsFeedbackRef || !hsFeedbackEmail) { showToast('Please look up your request again.'); return; }
-
-    const formData = new FormData();
-    formData.append('reference', hsFeedbackRef);
-    formData.append('email', hsFeedbackEmail);
-    formData.append('rating', hsRatings.service);
-    if (hsRatings.staff) formData.append('staff_rating', hsRatings.staff);
-    formData.append('comment', document.getElementById('fbText').value.trim());
-
-    fetch('backend/public/submitGuestFeedback.php', { method: 'POST', body: formData })
-      .then(r => r.json())
-      .then(res => {
-        showToast(res.message, res.success ? 'success' : 'error');
-        if (!res.success) return;
-        document.getElementById('fbText').value = '';
-        hsRatings.service = 0; hsRatings.staff = 0;
-        document.querySelectorAll('#hsFeedback .fb-star').forEach(s => { s.className = 'fb-star text-bronze/40 hover:text-copper transition'; });
-        document.getElementById('hsFeedback').classList.add('hidden');
-      })
-      .catch(() => showToast('A network error occurred. Please try again.'));
-  }
 
 
 
@@ -2094,10 +2021,10 @@
     const detail = isHome
       ? [['Type', 'Home &amp; event service'], ['Event', escAttr(res.event)],
          [HS_CONFIRMED_STATUSES.includes(res.status) ? 'Confirmed date' : 'Preferred date', hsFmtDate(res.date) + (res.time ? ' · ' + escAttr(res.time) : '')],
-         ['Location', escAttr(res.venue)],
+         ...(res.venue ? [['Location', escAttr(res.venue)]] : []), // hidden when tracked by reference only
          ...(res.quote ? [['Quote', peso(res.quote)]] : []),
          ...(res.reservationFee ? [['Reservation fee', peso(res.reservationFee) + (res.feePaid ? ' paid' : ' not yet paid')]] : []),
-         ['Details', escAttr(res.requests || '').replace(/\n/g, '<br>')]]
+         ...(res.requests ? [['Details', escAttr(res.requests).replace(/\n/g, '<br>')]] : [])]
       : [['Type', 'In-salon appointment'], ['Branch', escAttr(res.branch || '')],
          ['Service', escAttr(res.services) + (res.price ? ' · ₱' + Number(res.price).toFixed(0) : '')],
          ['Date', fmtApptDate(res.date) + ' · ' + escAttr(res.time)]];
@@ -3086,15 +3013,16 @@
   let apptFbPhone = null;
   let apptRatings = { service: 0, staff: 0 };
 
-  function openTrackModal(prefillRef, prefillPhone) {
+  // Tracking needs only the reference. Right after booking we also know the
+  // contact (phone or email), which unlocks the full view: rescheduling and reviews.
+  let trackProof = null; // { ref, phone, email }
+  function openTrackModal(prefillRef, prefillPhone, prefillEmail) {
     closeBookingModal();
     trackModalOverlay.classList.remove('opacity-0', 'pointer-events-none');
     trackModalBox.classList.remove('scale-95');
     if (prefillRef && prefillRef !== '') {
       document.getElementById('apptTrkRef').value = prefillRef;
-    }
-    if (prefillPhone) {
-      document.getElementById('apptTrkPhone').value = prefillPhone;
+      trackProof = (prefillPhone || prefillEmail) ? { ref: prefillRef.trim().toUpperCase(), phone: prefillPhone || '', email: prefillEmail || '' } : null;
     }
   }
   function closeTrackModal() {
@@ -3106,13 +3034,15 @@
 
   function apptTrack() {
     const ref = document.getElementById('apptTrkRef').value.trim().toUpperCase();
-    const phone = document.getElementById('apptTrkPhone').value.trim();
+    const proof = trackProof && trackProof.ref === ref ? trackProof : null;
+    const phone = proof ? proof.phone : '';
+    const email = proof ? proof.email : '';
     const box = document.getElementById('apptTrkResult');
     const fb = document.getElementById('apptTrkFeedback');
     box.classList.remove('hidden');
 
-    if (!ref || !phone) {
-      box.innerHTML = '<div class="rounded-xl bg-copper/12 border border-copper/30 text-copper-dark p-4 text-[13px]">Enter both the booking reference and the mobile number used for it.</div>';
+    if (!ref) {
+      box.innerHTML = '<div class="rounded-xl bg-copper/12 border border-copper/30 text-copper-dark p-4 text-[13px]">Please enter your booking reference.</div>';
       fb.classList.add('hidden');
       return;
     }
@@ -3120,7 +3050,7 @@
     box.innerHTML = '<div class="text-[13px] text-ink/50">Looking up your booking…</div>';
     fb.classList.add('hidden');
 
-    fetch('backend/public/trackBooking.php?reference=' + encodeURIComponent(ref) + '&phone=' + encodeURIComponent(phone))
+    fetch('backend/public/trackBooking.php?' + new URLSearchParams({ reference: ref, phone, email }))
       .then(r => r.json())
       .then(res => {
         if (!res.success) {
@@ -3128,6 +3058,7 @@
           return;
         }
         res.phone = phone; // proves ownership again if the guest reschedules from here
+        if (email) res.email = email;
         box.innerHTML = renderTrackingResult(res);
 
         // Feedback is offered only once the service is finished and hasn't been rated yet.

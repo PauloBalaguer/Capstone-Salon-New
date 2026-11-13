@@ -456,10 +456,6 @@
           <label class="block font-bold text-slate-400 mb-1">Booking Reference</label>
           <input type="text" x-model="trackForm.reference" required placeholder="LM-DAR-2026-000145" class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500 uppercase">
         </div>
-        <div>
-          <label class="block font-bold text-slate-400 mb-1">Mobile Number Used</label>
-          <input type="tel" x-model="trackForm.phone" required placeholder="09XXXXXXXXX" class="w-full bg-slate-950 text-slate-200 rounded-lg p-2.5 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-500">
-        </div>
 
         <div x-show="trackError" x-text="trackError" class="text-xs text-rose-400 bg-rose-950/50 p-2 rounded-lg text-center" x-transition></div>
 
@@ -485,7 +481,7 @@
             <template x-if="trackResult.type === 'home_service'">
               <div class="space-y-1 text-slate-300">
                 <p><strong class="text-slate-500 w-20 inline-block">Event:</strong> <span x-text="trackResult.event"></span></p>
-                <p><strong class="text-slate-500 w-20 inline-block">Venue:</strong> <span x-text="trackResult.venue"></span></p>
+                <p x-show="trackResult.venue"><strong class="text-slate-500 w-20 inline-block">Venue:</strong> <span x-text="trackResult.venue"></span></p>
                 <p><strong class="text-slate-500 w-20 inline-block">Date:</strong> <span x-text="trackResult.date"></span></p>
               </div>
             </template>
@@ -506,7 +502,7 @@
   <script src="../../function/customer/dashboard-notifications.js"></script>
   <script src="../../function/shared/address-form.js"></script>
   <script src="../../function/customer/dashboard-home-service.js?v=20261111"></script>
-  <script src="../../function/customer/dashboard-track-booking.js"></script>
+  <script src="../../function/customer/dashboard-track-booking.js?v=20261113-track-ref"></script>
   <script src="../../function/shared/live-sync.js?v=20261113"></script>
   <script src="../../function/customer/dashboard.js"></script>
 <script src="../../function/shared/select-dropdown.js?v=20261111e"></script>

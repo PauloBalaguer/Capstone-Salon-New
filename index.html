@@ -624,8 +624,8 @@
 
       <h3 class="font-display text-2xl mb-1 text-ink">Track your booking</h3>
       <p class="prose-justify text-xs text-ink/60 mb-6">
-        Enter your booking reference and the mobile number you used to book.
-        No account or login needed. You can also track home &amp; event requests here.
+        Enter your booking reference. No account or login needed.
+        You can also track home &amp; event requests here.
       </p>
 
       <div class="space-y-4">
@@ -634,12 +634,6 @@
             reference</label>
           <input id="apptTrkRef" type="text" placeholder="LM-DAR-2026-000145"
             class="w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-base uppercase focus:outline-none focus:border-plum transition" />
-        </div>
-        <div>
-          <label for="apptTrkPhone"
-            class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Mobile number used</label>
-          <input id="apptTrkPhone" type="tel" inputmode="numeric" placeholder="09XXXXXXXXX" maxlength="11"
-            class="numbers-only w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition" />
         </div>
         <button onclick="apptTrack()"
           class="btn-sheen w-full rounded-full bg-plum text-white font-bold text-base py-3.5 hover:brightness-110 transition">
@@ -1644,7 +1638,7 @@
                 class="btn-sheen rounded-full bg-copper text-white text-xs font-bold px-7 py-3.5 hover:brightness-110 transition">
                 Request Home Service
               </button>
-              <button onclick="hsJump('hsTrack')"
+              <button onclick="openTrackModal()"
                 class="rounded-full border border-white/30 text-xs font-bold px-7 py-3.5 hover:bg-white/10 transition">
                 Track My Request
               </button>
@@ -2160,7 +2154,7 @@
                       <ol class="list-decimal list-inside space-y-1 leading-relaxed">
                         <li><b>No payment now</b> just submit this request.</li>
                         <li>We review it and email your <b>quote</b> with a <b>reservation fee (DP)</b>.</li>
-                        <li class="prose-justify">Pay the DP <b>online via GCash, Maya or card</b> (PayMongo) from the email link or <b>Track Your Home Service</b> your request is then <b>confirmed automatically</b>.</li>
+                        <li class="prose-justify">Pay the DP <b>online via GCash, Maya or card</b> (PayMongo) from the email link or <b>Track your booking</b> your request is then <b>confirmed automatically</b>.</li>
                         <li>Pay the <b>remaining balance on the event day</b>.</li>
                       </ol>
                       <div class="rounded-xl bg-panel border border-plum/20 p-3">
@@ -2228,7 +2222,7 @@
                   <div class="text-base mt-3 space-y-1.5" id="hsSummary"></div>
                 </div>
                 <div class="flex flex-wrap gap-3 justify-center mt-7">
-                  <button onclick="hsJump('hsTrack')"
+                  <button onclick="hsTrackSubmitted()"
                     class="rounded-full bg-plum text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 hover:brightness-110 transition">
                     Track Request
                   </button>
@@ -2282,59 +2276,34 @@
       </section>
 
       <section id="hsTrack" class="py-14 sm:py-20 bg-panel border-b border-bronze/20 scroll-mt-24">
-        <div class="max-w-3xl mx-auto px-5 sm:px-8">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8">
           <div class="text-center max-w-xl mx-auto mb-9">
-            <span class="home-service-section-label font-bold tracking-widest uppercase text-copper">Status</span>
+            <span class="home-service-section-label font-bold tracking-widest uppercase text-copper">After you request</span>
             <h3 class="font-display text-2xl sm:text-3xl mt-3">
-              Track Your Home Service
+              Rescheduling &amp; Reminders
             </h3>
-            <p class="prose-justify text-base text-ink/60 mt-3 leading-relaxed">
-              Check your request's status, pay your reservation fee, or move it to a new date, using the
-              reference number and the email address you gave when you requested.
-            </p>
-          </div>
-          <div class="bg-sand-100 border border-bronze/25 rounded-[28px] p-6 sm:p-8 shadow-sm">
-            <div class="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label for="trkRef" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1.5">Booking
-                  Reference</label>
-                <input id="trkRef" type="text" placeholder="LM-HOM-2026-000041"
-                  class="w-full px-4 py-3 border border-bronze/50 bg-panel rounded-xl text-base uppercase focus:outline-none focus:border-plum transition" />
-              </div>
-              <div>
-                <label for="trkEmail" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1.5">Email
-                  Address</label>
-                <input id="trkEmail" type="email" placeholder="you@example.com" autocomplete="email"
-                  class="w-full px-4 py-3 border border-bronze/50 bg-panel rounded-xl text-base focus:outline-none focus:border-plum transition" />
-              </div>
-            </div>
-            <button onclick="hsTrack()"
-              class="w-full mt-5 rounded-full bg-plum text-white text-xs font-bold uppercase tracking-widest py-3.5 hover:brightness-110 transition">
-              Track Request
-            </button>
-            <div id="trkResult" class="hidden mt-7 pt-7 border-t border-bronze/25"></div>
           </div>
 
           <!-- How to reschedule + important rules -->
-          <div class="mt-8 grid md:grid-cols-2 gap-5">
-            <div class="bg-sand-100 border border-bronze/25 rounded-3xl p-6">
+          <div class="grid md:grid-cols-2 gap-5">
+            <div class="bg-sand-100 border border-bronze/25 rounded-3xl p-6 sm:p-8">
               <span class="text-xs font-bold tracking-widest uppercase text-copper">How to reschedule</span>
-              <ol class="mt-3 space-y-2.5 text-xs text-ink/75 leading-relaxed list-decimal list-inside">
-                <li class="prose-justify">Enter your <b>booking reference</b> (e.g. LM-HOM-2026-000041) and the <b>email</b> you used, then tap <b>Track Request</b>.</li>
-                <li>Open <b>“Need a different date? Reschedule online”</b> below your request.</li>
+              <ol class="mt-4 space-y-3 text-sm text-ink/75 leading-relaxed list-decimal list-outside pl-5">
+                <li><b>Log in</b> and open <b>My Account → Home Service</b>.</li>
+                <li>Open <b>“Need a different date? Reschedule online”</b> on your request.</li>
                 <li>Pick a <b>new date and time</b> at least <b>3 days</b> away, then tap <b>Move my booking</b>.</li>
                 <li>You'll get an <b>email confirmation</b> of the new schedule. Your assigned team is notified too.</li>
               </ol>
-              <p class="mt-3 text-xs text-ink/55">Have an account? You can also reschedule from <b>My Account → Home Service</b>.</p>
+              <p class="mt-4 text-sm text-ink/55">No account? Call <b>0918 536 8016</b> to move your request. To check its status, tap <b>Track your booking</b> and enter your reference (e.g. LM-HOM-2026-000041).</p>
             </div>
-            <div class="bg-copper/10 border border-copper/30 rounded-3xl p-6">
+            <div class="bg-copper/10 border border-copper/30 rounded-3xl p-6 sm:p-8">
               <span class="text-xs font-bold tracking-widest uppercase text-copper-dark">Important reminders &amp; rules</span>
-              <ul class="mt-3 space-y-2.5 text-xs text-ink/75 leading-relaxed">
+              <ul class="mt-4 space-y-3 text-sm text-ink/75 leading-relaxed">
                 <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>Reschedule online at least <b>3 days (72 hours)</b> before your event. Closer than that, please call <b>0918 536 8016</b>.</span></li>
                 <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>You can move a request online up to <b>2 times</b>. After that, contact the branch.</span></li>
                 <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>If stylists are already assigned, the <b>whole team must be free</b> on the new date, otherwise pick another date.</span></li>
                 <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>Your <b>quote and reservation fee carry over</b> to the new date. Reservation fees are <b>non-refundable</b> reschedule instead of cancelling.</span></li>
-                <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>Your request is <b>confirmed only after the reservation fee is paid</b> (pay online via GCash, Maya or card from this page).</span></li>
+                <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>Your request is <b>confirmed only after the reservation fee is paid</b> (pay online via GCash, Maya or card from the email link or <b>Track your booking</b>).</span></li>
                 <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>Requests already <b>in progress, completed or cancelled</b> can't be rescheduled online.</span></li>
                 <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>All updates, quote, payment link and schedule changes, are sent to your <b>email</b>. Check your spam folder if you don't see them.</span></li>
               </ul>
@@ -2426,81 +2395,6 @@
         </div>
       </section>
 
-      <section id="hsFeedback" class="hidden py-14 sm:py-20 bg-sand-100">
-        <div class="max-w-2xl mx-auto px-5 sm:px-8">
-          <div class="text-center mb-9">
-            <span class="text-xs font-bold tracking-widest uppercase text-copper">Post-Service</span>
-            <h3 class="font-display text-2xl sm:text-3xl mt-3">
-              How Was Your Home Service Experience?
-            </h3>
-            <p class="text-xs text-ink/55 mt-3" id="fbFor"></p>
-          </div>
-          <div class="bg-panel border border-bronze/25 rounded-[28px] p-7 sm:p-8 shadow-sm">
-            <div>
-              <label class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-2">Rate Your
-                Experience</label>
-              <div class="flex gap-1.5 text-3xl" data-stars="service">
-                <button type="button" onclick="hsStar(this, 1)"
-                  class="fb-star text-bronze/40 hover:text-copper transition">
-                  ★
-                </button>
-                <button type="button" onclick="hsStar(this, 2)"
-                  class="fb-star text-bronze/40 hover:text-copper transition">
-                  ★
-                </button>
-                <button type="button" onclick="hsStar(this, 3)"
-                  class="fb-star text-bronze/40 hover:text-copper transition">
-                  ★
-                </button>
-                <button type="button" onclick="hsStar(this, 4)"
-                  class="fb-star text-bronze/40 hover:text-copper transition">
-                  ★
-                </button>
-                <button type="button" onclick="hsStar(this, 5)"
-                  class="fb-star text-bronze/40 hover:text-copper transition">
-                  ★
-                </button>
-              </div>
-            </div>
-            <div class="mt-6">
-              <label class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-2">Rate Your Beauty
-                Professional</label>
-              <div class="flex gap-1.5 text-3xl" data-stars="staff">
-                <button type="button" onclick="hsStar(this, 1)"
-                  class="fb-star text-bronze/40 hover:text-copper transition">
-                  ★
-                </button>
-                <button type="button" onclick="hsStar(this, 2)"
-                  class="fb-star text-bronze/40 hover:text-copper transition">
-                  ★
-                </button>
-                <button type="button" onclick="hsStar(this, 3)"
-                  class="fb-star text-bronze/40 hover:text-copper transition">
-                  ★
-                </button>
-                <button type="button" onclick="hsStar(this, 4)"
-                  class="fb-star text-bronze/40 hover:text-copper transition">
-                  ★
-                </button>
-                <button type="button" onclick="hsStar(this, 5)"
-                  class="fb-star text-bronze/40 hover:text-copper transition">
-                  ★
-                </button>
-              </div>
-            </div>
-            <div class="mt-6">
-              <label class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-2">Tell Us About Your
-                Experience</label>
-              <textarea id="fbText" rows="4" placeholder="Share your feedback..."
-                class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition resize-none"></textarea>
-            </div>
-            <button onclick="hsSubmitFeedback()"
-              class="w-full mt-6 rounded-full bg-copper text-white text-xs font-bold uppercase tracking-widest py-3.5 hover:brightness-110 transition">
-              Submit Feedback
-            </button>
-          </div>
-        </div>
-      </section>
     </div>
 
     <div id="gallery-tab" class="app-page">
@@ -2688,7 +2582,7 @@
   <script src="function/shared/toast.js"></script>
   <script src="function/shared/pending-payment.js"></script>
   <script src="function/shared/late-arrival-rule.js"></script>
-  <script src="function/public/main.js?v=20261112-live-stats"></script>
+  <script src="function/public/main.js?v=20261113-track-ref"></script>
   <script src="function/public/booking-wizard.js?v=20261111c"></script>
 <script src="function/shared/select-dropdown.js?v=20261111e"></script>
 </body>

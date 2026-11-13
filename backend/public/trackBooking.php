@@ -3,18 +3,23 @@
 /**
  * Public: Track a Booking
  *
- * No login required. Looks up a guest's salon appointment or home &
- * event service request by reference code + the mobile number on file,
- * for the "Track your booking" flow on the public landing page. Both
- * reference and phone are required a booking's reference alone isn't
- * treated as sufficient proof of ownership, since it's shown on screen
- * and could be shoulder-surfed or shared.
+ * No login required. Looks up a salon appointment or home & event
+ * service request by its reference code ("Track your booking").
+ *
+ * The reference alone shows the status view: status, date and time,
+ * branch, services, stylists, amounts and pay links. References are
+ * numbered in order, so anything personal or that changes the booking
+ * needs proof of ownership as well -- the mobile number (or, for home
+ * services, the email) on file: the home-service venue and notes,
+ * online rescheduling and leaving a review. Lookups by reference alone
+ * are rate limited per IP to slow down guessing.
  */
 
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/booking/HomeServiceRequest.php';
 require_once '../../backend/shared/config/payments/PayMongo.php';
+require_once '../../backend/shared/config/security/RateLimiter.php';
 
 date_default_timezone_set('Asia/Manila');
 
@@ -27,10 +32,21 @@ $phone = trim($_GET['phone'] ?? '');
 // Home services are tracked with reference + the EMAIL given on the request.
 $email = strtolower(trim($_GET['email'] ?? ''));
 
-if ($reference === '' || ($phone === '' && $email === '')) {
+if ($reference === '') {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Enter both the booking reference and the ' . (str_starts_with($reference, 'LM-HOM') ? 'email address' : 'mobile number') . ' used for it.']);
+    echo json_encode(['success' => false, 'message' => 'Please enter your booking reference.']);
     exit();
+}
+// Reference only: the status view, without personal details or actions.
+$proofGiven = $phone !== '' || $email !== '';
+if (!$proofGiven) {
+    $lookupLimiter = new RateLimiter(RateLimiter::getIpAddress(), 'track_reference_only', 30, 600);
+    if ($lookupLimiter->isExceeded()) {
+        http_response_code(429);
+        echo json_encode(['success' => false, 'message' => 'Too many lookups. Please wait a few minutes and try again.']);
+        exit();
+    }
+    $lookupLimiter->record();
 }
 
 try {
@@ -61,7 +77,7 @@ try {
     $appt = $stmt->fetch();
 
     if ($appt) {
-        if ($phone === '' || $appt['phone'] !== $phone) {
+        if ($proofGiven && $appt['phone'] !== $phone) {
             http_response_code(404);
             echo json_encode(['success' => false, 'message' => 'No booking found for that reference and mobile number.']);
             exit();
@@ -85,7 +101,7 @@ try {
             'price' => $appt['total_price'] !== null ? (float) $appt['total_price'] : null,
             'date' => date('Y-m-d', strtotime($appt['appointment_datetime'])),
             'time' => date('h:i A', strtotime($appt['appointment_datetime'])),
-            'canReview' => $appt['status'] === 'Completed' && !$appt['has_feedback'],
+            'canReview' => $proofGiven && $appt['status'] === 'Completed' && !$appt['has_feedback'],
             // GCash / Maya / Card links while an online reservation payment is unpaid (e.g. it failed or expired on PayMongo).
             'payUrls' => $appt['status'] === 'Pending' && !(int) $appt['deposit_paid'] && PayMongo::isOnline($appt['preferred_payment_method'])
                 ? PayMongo::payUrls($appt['online_payment_token'], $appt['reference'], (float) $appt['reservation_amount_due'], 'guest') : null,
@@ -116,7 +132,7 @@ try {
     if ($hs) {
         $emailMatches = $email !== '' && $hs['contact_email'] && strcasecmp($hs['contact_email'], $email) === 0;
         $phoneMatches = $phone !== '' && $hs['phone'] === $phone;
-        if (!$emailMatches && !$phoneMatches) {
+        if ($proofGiven && !$emailMatches && !$phoneMatches) {
             http_response_code(404);
             echo json_encode(['success' => false, 'message' => 'No booking found for those details.']);
             exit();
@@ -137,8 +153,9 @@ try {
             'paymentMethod' => $hs['deposit_method'],
             'remainingBalance' => $hs['quote_price'] !== null ? max(0, round((float) $hs['quote_price'] - (float) $hs['amount_paid'], 2)) : null,
             'date' => $hs['preferred_date'],
-            'venue' => $hs['address'],
-            'requests' => $hs['requests'],
+            // Personal: the event address and notes (they include the contact email).
+            'venue' => $proofGiven ? $hs['address'] : null,
+            'requests' => $proofGiven ? $hs['requests'] : null,
             'quote' => $hs['quote_price'] !== null ? (float) $hs['quote_price'] : null,
             'reservationFee' => $hs['deposit_amount'] !== null ? (float) $hs['deposit_amount'] : null,
             'feePaid' => (int) $hs['deposit_paid'] === 1,
@@ -149,11 +166,11 @@ try {
             'amountPaid' => (float) $hs['amount_paid'],
             'balanceDue' => $hs['quote_price'] !== null ? max(0, round((float) $hs['quote_price'] - (float) $hs['amount_paid'], 2)) : null,
             'balancePayUrl' => $hs['quote_price'] !== null && (float) $hs['quote_price'] > (float) $hs['amount_paid'] ? $hs['balance_checkout_url'] : null,
-            'canReview' => $hs['status'] === 'Completed' && !$hs['has_feedback'],
+            'canReview' => $proofGiven && $hs['status'] === 'Completed' && !$hs['has_feedback'],
             // Online rescheduling (backend/public/rescheduleHomeService.php).
             'time' => $hs['preferred_time'] ? date('h:i A', strtotime($hs['preferred_time'])) : null,
-            'canReschedule' => ($rescheduleBlocked = HomeServiceRequest::rescheduleBlockedReason($hs)) === null,
-            'rescheduleNote' => $rescheduleBlocked,
+            'canReschedule' => $proofGiven && ($rescheduleBlocked = HomeServiceRequest::rescheduleBlockedReason($hs)) === null,
+            'rescheduleNote' => $proofGiven ? $rescheduleBlocked : 'To move it online, log in and open My Account → Home Service.',
             'reschedulesLeft' => max(0, HomeServiceRequest::MAX_ONLINE_RESCHEDULES - (int) $hs['reschedule_count']),
             'rescheduleCutoffDays' => HomeServiceRequest::RESCHEDULE_CUTOFF_HOURS / 24,
         ]);
@@ -161,7 +178,7 @@ try {
     }
 
     http_response_code(404);
-    echo json_encode(['success' => false, 'message' => 'No booking found for that reference and mobile number.']);
+    echo json_encode(['success' => false, 'message' => 'No booking found with that reference.']);
 } catch (PDOException $e) {
     http_response_code(500);
     error_log('trackBooking error: ' . $e->getMessage());

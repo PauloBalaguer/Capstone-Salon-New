@@ -162,3 +162,15 @@ html.dark .mobile-login-btn, [data-theme="dark"] .mobile-login-btn { background:
 }
 html.dark .mobile-login-btn, [data-theme="dark"] .mobile-login-btn { background: transparent; color: #e8efe9; border-color: rgba(232, 239, 233, .25); }
 html.dark .mobile-login-btn svg, [data-theme="dark"] .mobile-login-btn svg { color: #9fd3bc; }
+
+/* Phones (also with large system text): branch picker stays on one line and
+   the Book / Directions buttons stack instead of squeezing into 3 lines. */
+@media (max-width: 520px) {
+  .br2-tabs-inner { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  #branchTabs .branch-tab-btn.br2-tab { flex: 1 0 auto; white-space: nowrap; }
+  .br2-actions { flex-direction: column; }
+  .br2-btn { width: 100%; white-space: nowrap; }
+}
+/* Floating Book button steps aside while another Book button is on screen. */
+#floatBook { transition: opacity .2s, transform .2s; }
+#floatBook.is-tucked { opacity: 0; transform: translateY(16px); pointer-events: none; }

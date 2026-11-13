@@ -756,7 +756,7 @@
   </div>
 
 
-  <button onclick="openBookingModal()"
+  <button id="floatBook" onclick="openBookingModal()"
     class="lg:hidden fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 bg-plum text-white pl-4 pr-5 py-3 rounded-full shadow-xl shadow-plum/40 text-xs font-bold uppercase tracking-wide active:scale-90 transition-transform animate-pulse-ring">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -766,6 +766,19 @@
     </svg>
     Book an Appointment
   </button>
+  <script>
+    // Phones: hide the floating Book button while another Book button is on screen, so it never covers it.
+    document.addEventListener('DOMContentLoaded', function () {
+      var fab = document.getElementById('floatBook');
+      if (!fab || !('IntersectionObserver' in window)) return;
+      var seen = new Set();
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) { e.isIntersecting ? seen.add(e.target) : seen.delete(e.target); });
+        fab.classList.toggle('is-tucked', seen.size > 0);
+      });
+      document.querySelectorAll('[data-hides-float]').forEach(function (el) { io.observe(el); });
+    });
+  </script>
 
   <main class="page-body min-h-screen">
     <div id="home-tab" class="app-page active-page">
@@ -803,7 +816,7 @@
             </p>
 
             <div class="flex flex-wrap gap-3 mt-8">
-              <button onclick="openBookingModal()"
+              <button data-hides-float onclick="openBookingModal()"
                 class="btn-sheen inline-flex items-center gap-2 rounded-full bg-plum text-white font-bold text-base px-7 py-3.5 hover:brightness-110 transition shadow-lg shadow-plum/15">
                 Book an Appointment
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
@@ -1316,7 +1329,7 @@
           </p>
 
           <div class="flex flex-col sm:flex-row gap-3 justify-center mt-9">
-            <button onclick="openBookingModal()"
+            <button data-hides-float onclick="openBookingModal()"
               class="btn-sheen rounded-full bg-plum text-white font-bold text-base px-8 py-4 hover:brightness-110 transition shadow-lg shadow-plum/20">
               Book an Appointment
             </button>
@@ -1558,7 +1571,7 @@
               <p class="br2-spec" id="bSpec"></p>
 
               <div class="br2-actions">
-                <button type="button" class="br2-btn br2-btn--primary" id="bBook"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg><span id="bBookText">Book at this branch</span></button>
+                <button type="button" class="br2-btn br2-btn--primary" id="bBook" data-hides-float><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg><span id="bBookText">Book at this branch</span></button>
                 <a id="bDirections" href="https://maps.app.goo.gl/AutS4d9MxWHk8giG7?g_st=ac" target="_blank" rel="noopener noreferrer" class="br2-btn br2-btn--ghost"
                   aria-label="Get directions to Daraga Main on Google Maps (opens in a new tab)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg>Get directions</a>
               </div>

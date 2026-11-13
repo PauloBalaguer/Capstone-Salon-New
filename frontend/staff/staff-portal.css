@@ -296,7 +296,8 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .sp-overview-card .sp-card-title { margin-bottom: 14px; }
 .sp-stat-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 /* "My day": today's booked time vs. working time, under the overview tiles. */
-.sp-dayload { margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: var(--bg); border: 1px solid var(--sp-border); }
+/* Same outline as the stat cards above it (theme-tokens.css card outline). */
+.sp-dayload { margin-top: 12px; padding: 14px; border-radius: 14px; background: var(--bg); border: 2px solid var(--card-border-success, var(--sp-border)); }
 .sp-dayload-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; margin-bottom: 8px; }
 .sp-dayload-title { font-weight: 700; color: var(--sp-text); }
 .sp-dayload-text { color: var(--sp-muted); font-size: 0.875rem; }
@@ -659,3 +660,8 @@ input[type="date"].sp-input { min-width: 0; }
 .sp-notif-dot { width: 8px; height: 8px; flex-shrink: 0; border-radius: 99px; background: var(--sp-green-600); }
 .sp-notif-time { flex-shrink: 0; font-size: 12px; color: var(--sp-muted, #6b7280); white-space: nowrap; }
 .sp-notif-msg { margin: 0; line-height: 1.45; }
+
+/* Home-service request notes: folded so the visit card stays short. */
+.sp-visit-notes { margin-top: 8px; padding: 10px 12px; border: 1px solid var(--sp-border); border-radius: 12px; background: var(--bg); }
+.sp-visit-notes summary { cursor: pointer; font-weight: 700; font-size: 0.875rem; color: var(--sp-green-700, #16604B); }
+.sp-visit-notes[open] summary { margin-bottom: 6px; }

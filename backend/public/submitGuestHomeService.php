@@ -25,15 +25,15 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-// Limit: 5 home service requests per IP address per hour.
+// Limit: 5 home service requests per IP address per 30 seconds (stops rapid repeat submits).
 $ip_address = RateLimiter::getIpAddress();
-$request_limiter = new RateLimiter($ip_address, 'submit_home_service', 5, 3600);
+$request_limiter = new RateLimiter($ip_address, 'submit_home_service', 5, 30);
 
 if ($request_limiter->isExceeded()) {
     http_response_code(429);
     echo json_encode([
         'success' => false,
-        'message' => 'You have submitted too many requests. Please wait an hour before trying again.'
+        'message' => 'You have submitted too many requests. Please wait 30 seconds before trying again.'
     ]);
     exit();
 }

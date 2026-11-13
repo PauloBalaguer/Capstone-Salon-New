@@ -42,11 +42,13 @@
     el('resultIcon').innerHTML = '<svg class="w-7 h-7' + (kind === 'loading' ? ' animate-spin' : '') + '" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">' + path + '</svg>';
   }
 
-  // Successful payment: 10-second countdown, then guests go home and registered customers to their portal.
+  // Successful payment: 10-second countdown, then guests go home and customers who booked
+  // from their portal go back to it. Only "from=customer" counts: every guest booking also
+  // has a customers row (data.registered), and its number may match someone's account.
   let redirectTimer = null;
   function startRedirect(data) {
     if (redirectTimer) return;
-    const portal = fromCustomer || data.registered;
+    const portal = fromCustomer;
     const target = portal
       ? (data.type === 'home_service' ? '../../frontend/customer/home-service.html' : '../../frontend/customer/dashboard.html')
       : '../../index.html';

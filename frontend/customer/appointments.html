@@ -96,10 +96,9 @@
           <section x-show="isTrackingView" id="find-booking" class="cp-tracking-panel" aria-labelledby="find-booking-title">
             <h2 id="find-booking-title">Find Your Booking</h2>
             <p x-show="isGuestTracking">Have an account? <a href="../auth/login.html" class="cp-text-button">Sign in</a> to see and manage all your bookings.</p>
-            <p>Enter your booking reference to view its current status and progress. Guest bookings also require the mobile number used to book.</p>
+            <p>Enter your booking reference to view its current status and progress.</p>
             <form @submit.prevent="trackBooking()" class="cp-tracking-search" :aria-busy="trackLoading">
               <div><label for="tracking-reference">Booking reference</label><input id="tracking-reference" x-model="trackForm.reference" required maxlength="80" placeholder="Booking reference" autocomplete="off"></div>
-              <div><label for="tracking-phone">Mobile number <small>(required for guest bookings)</small></label><input id="tracking-phone" type="tel" x-model="trackForm.phone" maxlength="30" autocomplete="tel" placeholder="09XXXXXXXXX" aria-describedby="tracking-error"></div>
               <button class="cp-btn cp-btn-primary" type="submit" :disabled="trackLoading" x-text="trackLoading ? 'Finding booking…' : 'Find booking'"></button>
             </form>
             <p x-show="trackLoading" role="status">Looking up your booking…</p>
@@ -652,7 +651,7 @@
   <script src="../../function/customer/dashboard-appointments.js?v=20261111"></script>
   <script src="../../function/customer/dashboard-reviews.js"></script>
   <script src="../../function/customer/dashboard-home-service.js"></script>
-  <script src="../../function/customer/dashboard-track-booking.js?v=20261111"></script>
+  <script src="../../function/customer/dashboard-track-booking.js?v=20261113-track-ref"></script>
   <script src="../../function/shared/live-sync.js?v=20261113"></script>
   <script src="../../function/customer/dashboard.js?v=20261111"></script>
 <script src="../../function/shared/select-dropdown.js?v=20261111e"></script>

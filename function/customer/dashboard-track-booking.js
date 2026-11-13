@@ -142,14 +142,16 @@ function customerTrackBookingMixin() {
         const owned = [...this.appointments, ...this.homeServiceRequests].find(a => a.id.toUpperCase() === this.trackForm.reference.trim().toUpperCase());
         if (owned) { this.viewTracking(owned, owned.preferredDate !== undefined ? 'home_service' : 'appointment'); return; }
       }
-      if (!this.trackForm.reference.trim() || !this.trackForm.phone.trim()) {
+      // Only the reference is asked for; the account's own mobile number (set in
+      // trackForm.phone) is sent along so a guest booking made with it shows in full.
+      if (!this.trackForm.reference.trim()) {
         this.trackResult = null;
         this.trackingSelection = null;
-        this.trackError = 'Enter both the booking reference and the mobile number used for it.';
+        this.trackError = 'Please enter your booking reference.';
         return;
       }
       this.trackingSelection = null;
-      this.trackingLookup = { reference: this.trackForm.reference.trim(), phone: this.trackForm.phone.trim() };
+      this.trackingLookup = { reference: this.trackForm.reference.trim(), phone: (this.trackForm.phone || '').trim() };
       this.trackLoading = true;
       this.trackError = '';
       this.trackResult = null;
@@ -164,7 +166,7 @@ function customerTrackBookingMixin() {
         .then(body => {
           this.trackLoading = false;
           if (!body.success) {
-            this.trackError = body.message || 'No booking found for that reference and mobile number.';
+            this.trackError = body.message || 'No booking found with that reference.';
             return;
           }
           if (this.trackingSelection) return;

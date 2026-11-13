@@ -78,6 +78,10 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
     foreach (['CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET'] as $key) {
         echo str_pad($key, 26) . (env($key) !== '' ? 'set' : 'not set (photos stay on this server)') . "\n";
     }
+    // Optional: Pusher live updates (see setup/live-updates.php).
+    foreach (['PUSHER_APP_ID', 'PUSHER_KEY', 'PUSHER_SECRET', 'PUSHER_CLUSTER'] as $key) {
+        echo str_pad($key, 26) . (env($key) !== '' ? 'set' : 'not set (panels check once a minute)') . "\n";
+    }
     echo $missing ? "\n{$missing} setting(s) missing; those features stay switched off.\n" : "\nAll settings present.\n";
     exit($missing ? 1 : 0);
 }

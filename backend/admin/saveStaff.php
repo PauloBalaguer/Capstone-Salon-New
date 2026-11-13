@@ -19,6 +19,7 @@
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
+require_once '../../backend/shared/config/setup/live-updates.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/setup/url.php';
 require_once '../../backend/shared/config/setup/mail.php';
@@ -26,6 +27,7 @@ require_once '../../backend/shared/config/security/AccountSetup.php';
 require_once '../../backend/shared/config/security/PasswordPolicy.php';
 
 sendCorsHeaders();
+LiveUpdates::afterThisRequest(); // Pusher: open panels refresh after this save (setup/live-updates.php)
 AuditLog::captureRequest();
 header('Content-Type: application/json');
 

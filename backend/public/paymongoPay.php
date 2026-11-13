@@ -13,11 +13,13 @@
 
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/database.php';
+require_once '../../backend/shared/config/setup/live-updates.php';
 require_once '../../backend/shared/config/security/RateLimiter.php';
 require_once '../../backend/shared/config/payments/PayMongo.php';
 require_once '../../backend/shared/config/payments/PaymentLog.php';
 
 sendCorsHeaders();
+LiveUpdates::afterThisRequest(); // Pusher: open panels refresh after this save (setup/live-updates.php)
 header('Content-Type: application/json');
 
 $reference = trim($_POST['ref'] ?? '');

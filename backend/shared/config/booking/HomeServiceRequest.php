@@ -27,6 +27,18 @@ class HomeServiceRequest
 
     const UNAVAILABLE = 'Schedule unavailable. Please choose another date or time. Your request has not been moved.';
 
+    /** New requests need this many days' notice: time to send the quote, collect the reservation fee and prepare the team (same as the 3-day reschedule cutoff). */
+    const MIN_NOTICE_DAYS = 3;
+
+    /** Why a NEW request's date is too soon (today or in the past), or null when it's far enough ahead. */
+    public static function noticeProblem(string $preferredDate): ?string
+    {
+        $earliest = (new DateTime('today'))->modify('+' . self::MIN_NOTICE_DAYS . ' day')->format('Y-m-d');
+        return $preferredDate < $earliest
+            ? 'Home and event services need at least ' . self::MIN_NOTICE_DAYS . (self::MIN_NOTICE_DAYS === 1 ? " day's" : " days'") . ' notice to prepare. Please choose ' . date('F j, Y', strtotime($earliest)) . ' or later.'
+            : null;
+    }
+
     /** Qualifications come from existing staff_services and active catalog services. */
     public static function serviceSkills(string $name): array
     {
@@ -76,6 +88,8 @@ class HomeServiceRequest
     {
         $services = self::requestedServices($request);
         if (!$services || array_diff($services, self::SERVICES)) return ['available'=>false, 'message'=>'Please review the requested event services before checking availability.'];
+        // New requests only: existing ones (with an id) keep their own reschedule/confirm rules.
+        if (empty($request['id']) && $fixedTeam === null && ($problem = self::noticeProblem((string) ($request['preferred_date'] ?? '')))) return ['available'=>false, 'message'=>$problem];
         // Responsible branch: its hours, holidays and home-service eligibility
         // (older requests without a branch skip this until Admin sets one).
         if ($problem = self::branchProblem($pdo, $request)) return ['available'=>false, 'message'=>$problem];

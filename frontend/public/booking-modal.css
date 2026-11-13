@@ -16,7 +16,7 @@
 
 /* Text-only buttons keep a clear background while disabled (countdowns,
    sending states) instead of the beige fill used for form fields. */
-#bookingModalBox button.btn-text:disabled {
+:where(#bookingModalBox) button.btn-text:disabled {
   background-color: transparent;
   border-color: transparent;
   color: var(--muted);
@@ -60,7 +60,7 @@
    The modal box is the only scroll container (no nested scrollbars). Phones:
    full-screen sheet, sections stacked, sticky bottom bar. >=1024px: wide
    modal, two columns, summary sticky in the right column. */
-#bookingModalBox { overflow-x: hidden; }
+:where(#bookingModalBox) { overflow-x: hidden; }
 #bookingModalBox.bk-is-form { max-width: 72rem; }
 @media (min-width: 640px) and (max-width: 1023px) { #bookingModalBox { max-width: 44rem; } }
 @media (max-width: 639px) {
@@ -188,3 +188,12 @@
 .dark .bk-btn-next { background: var(--brand-dark); color: #FFFFFF; }
 .dark .bk-chip.is-on, .dark .bk-card-check, .dark .bk-staff-check, .dark .bk-staff-card.is-selected .bk-staff-avatar { color: var(--brand-deep); }
 .dark .bk-service-card:has(input:checked) .bk-service-tick { color: var(--brand-deep); }
+
+/* Stronger outlines so every section, card and field stands out
+   (they were faint bronze lines on a near-white panel). */
+:where(#bookingModalBox) .bk-sec,
+:where(#bookingModalBox) .bk-aside-card { border: 2px solid rgb(var(--c-bronze) / .7); }
+:where(#bookingModalBox) :is(.bk-branch-card, .bk-service-card, .bk-staff-card) { border: 2px solid rgb(var(--c-bronze) / .75); }
+:where(#bookingModalBox) :is(.bk-search, .bk-chip, select, input[type="text"], input[type="tel"], input[type="email"], input[type="date"], textarea) { border: 2px solid rgb(var(--c-bronze) / .75); }
+:where(#bookingModalBox) .bk-service-tick { border: 2px solid rgb(var(--c-bronze)); }
+:where(#bookingModalBox) :is(.bk-search, select, input, textarea):focus { border-color: var(--bk-teal); }

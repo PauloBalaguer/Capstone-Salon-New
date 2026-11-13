@@ -84,9 +84,9 @@
 
     topbar.classList.add('lm-header');
     topbar.innerHTML = `
-      <a href="dashboard.html" class="lm-header-brand" aria-label="Leo Mejillano Admin Portal, Dashboard">
+      <div class="lm-header-brand">
         <span class="lm-brand-mark" aria-hidden="true">LM</span><span class="lm-header-brand-name">LEO MEJILLANO</span>
-      </a>
+      </div>
       <p class="lm-header-title"><span>ADMIN PORTAL</span><b aria-hidden="true">/</b><strong>${esc(titleText)}</strong></p>
       <div class="lm-header-actions"></div>`;
     const actions = topbar.querySelector('.lm-header-actions');

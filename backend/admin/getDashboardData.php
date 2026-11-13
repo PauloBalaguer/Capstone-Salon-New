@@ -46,12 +46,8 @@ try {
     $appointmentWhere = $selection === null ? '' : 'WHERE a.id IN (' . implode(',', array_map('intval', $selection['salonIds']) ?: [0]) . ')';
     $homeServiceWhere = $selection === null ? '' : 'WHERE h.id IN (' . implode(',', array_map('intval', $selection['homeIds']) ?: [0]) . ')';
 
-    if (!isset($_GET['bookingsOnly']) || $selection === null) {
-    foreach ($pdo->query('SELECT id FROM branches')->fetchAll(PDO::FETCH_COLUMN) as $branchIdToSettle) {
-        Scheduling::autoCloseBranchAttendance($pdo, (int) $branchIdToSettle);
-    }
-    $revenueTotals = RevenueReport::totals($pdo);
-    // Migration 062 columns are optional: safe defaults until it is applied.
+    // Optional columns (migrations 062, 065): safe defaults until applied. Defined before the
+    // bookings-only branch below, because the paged booking list (bookingsOnly) uses them too.
     $offersSql = Schema::select($pdo, 'branches', 'offers_home_service', 'br.offers_home_service', 'offersHomeService', '1');
     $apFollowSql = Schema::select($pdo, 'appointments', 'needs_followup', 'a.needs_followup', 'needsFollowup');
     $hsFollowSql = Schema::select($pdo, 'home_service_requests', 'needs_followup', 'h.needs_followup', 'needsFollowup');
@@ -60,6 +56,11 @@ try {
         . ', ' . Schema::select($pdo, 'home_service_requests', 'travel_fee', 'h.travel_fee', 'travelFee');
     $wpReturnSql = Schema::select($pdo, 'wedding_packages', 'return_travel_minutes', 'return_travel_minutes', 'return_travel_minutes');
     $edReturnSql = Schema::select($pdo, 'event_type_durations', 'return_travel_minutes', 'return_travel_minutes', 'return_travel_minutes');
+    if (!isset($_GET['bookingsOnly']) || $selection === null) {
+    foreach ($pdo->query('SELECT id FROM branches')->fetchAll(PDO::FETCH_COLUMN) as $branchIdToSettle) {
+        Scheduling::autoCloseBranchAttendance($pdo, (int) $branchIdToSettle);
+    }
+    $revenueTotals = RevenueReport::totals($pdo);
     $stmt = $pdo->query("
         SELECT
             br.id, br.branch_key AS branchKey, br.branch_name AS name,

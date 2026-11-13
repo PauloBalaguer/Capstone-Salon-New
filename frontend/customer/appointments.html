@@ -587,7 +587,7 @@
       <h3 class="text-base font-serif font-bold text-white">Confirm Cancellation</h3>
       <p class="text-xs text-slate-400">Are you sure you want to cancel this appointment? This action cannot be undone.</p>
       <p x-show="cancelDepositWarning()" x-text="cancelDepositWarning()" class="text-xs font-semibold rounded-lg p-2.5 bg-[color:var(--danger-soft)] text-[color:var(--danger)] border border-[color:var(--danger-soft)]"></p>
-      <p class="prose-justify text-xs text-slate-500">Policy: reservation deposits are non-refundable. Need a different time? Reschedule instead, your deposit carries over.</p>
+      <p class="prose-justify text-xs text-slate-500">Policy: reservation deposits are non-refundable. Need a different time? Reschedule instead, your deposit carries over. If the salon has to cancel your booking, we refund your deposit or reschedule it for you.</p>
 
       <div class="pt-4 flex flex-col gap-2">
         <button type="button" x-show="cancelAppointmentForReschedule() && canReschedule(cancelAppointmentForReschedule())" @click="rescheduleInsteadOfCancel()" class="w-full px-6 py-2 bg-luxury-700 hover:bg-luxury-600 text-white font-bold rounded-lg transition text-xs active:scale-95">Reschedule Instead</button>

@@ -41,6 +41,7 @@ final class CustomerNotifier
         'CONFIRMED' => 'Your appointment is confirmed',
         'RESCHEDULE' => 'Appointment schedule update',
         'CANCELLED' => 'Your appointment was cancelled',
+        'SALON_CANCELLED' => 'We had to cancel your appointment',
         'SERVICE_FINISHED' => 'Your service is finished',
         'COMPLETED' => 'Thank you for visiting us',
         'WAITLIST_OPENING' => 'Your preferred stylist has an opening',
@@ -94,7 +95,7 @@ final class CustomerNotifier
             $body = 'Hello ' . trim($customer['first_name'].' '.$customer['last_name']) . ",\n\n" . $emailMessage . ($lateRule ? "\n\nLate arrival: {$lateRule}" : '') . ($customer['user_id']
                 ? "\n\nView your appointment anytime in your Leo Mejillano account."
                 : (!empty($details['homeService'])
-                    ? "\n\nTrack, pay or reschedule anytime in Track Your Home Service (Home & Events) on our website using reference {$reference} and this email address."
+                    ? "\n\nTrack and pay anytime with Track your booking on our website using reference {$reference}."
                     : "\n\nCheck your booking anytime with Track a Booking on our website" . ($reference ? " using reference {$reference}." : '.')));
             $subject = $type === 'PAYMENT_VERIFIED' && ($details['paymentStatus'] ?? '') === 'Fully Paid' ? 'Your full payment was received' : self::EMAIL_SUBJECTS[$type];
             EmailOutbox::queue($pdo, $customer['email'], $subject . ($reference ? " ({$reference})" : ''), $body, $reference);

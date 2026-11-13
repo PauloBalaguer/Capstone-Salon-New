@@ -154,6 +154,21 @@ try {
         exit();
     }
 
+    // The salon cancelling (e.g. the stylist is absent) is the one exception to
+    // the non-refundable deposit: the admin must choose to refund it or to
+    // reschedule the booking (deposit carried over), and give a reason.
+    $salonAction = trim((string) ($_POST['salonAction'] ?? ''));
+    $cancelReason = trim(preg_replace('/\s+/', ' ', (string) ($_POST['reason'] ?? '')));
+    if ($status === 'Cancelled') {
+        if ($error = CancellationPolicy::staffCancelError($salonAction, $cancelReason, false)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => $error]);
+            exit();
+        }
+        // Reschedule keeps the booking (and its deposit) open; the customer picks a new time.
+        if ($salonAction === 'reschedule') $status = 'Reschedule Requested';
+    }
+
     // Confirming a reservation requires recording a deposit -- an unpaid Pending
     // booking stays soft/adjustable, but a deposit "locks" it and gives it
     // priority over any other unpaid claim on the same stylist/time.
@@ -271,12 +286,9 @@ try {
     } else {
         $pdo->prepare('UPDATE appointments SET status = ? WHERE id = ?')->execute([$status, $appointment['id']]);
         if ($status === 'Cancelled') {
-            CustomerNotifier::notify($pdo, $appointmentCustomerId, 'CANCELLED', "Your appointment {$referenceCode} has been cancelled by the salon.");
+            if ($isNewClosure) CancellationPolicy::closeByStaff($pdo, $appointment, $salonAction, $cancelReason);
             if ($appointment['employee_id'] !== null) {
                 StaffNotifier::notify($pdo, (int) $appointment['employee_id'], 'APPOINTMENT_CANCELLED', "Appointment {$referenceCode} was cancelled.");
-            }
-            if ($isNewClosure) {
-                CancellationPolicy::apply($pdo, $appointment, CancellationPolicy::BY_SALON);
             }
         } elseif ($status === 'No-Show') {
             if ($isNewClosure) {
@@ -285,7 +297,12 @@ try {
         } elseif ($status === 'Completed') {
             CustomerNotifier::notify($pdo, $appointmentCustomerId, 'SERVICE_FINISHED', "Your service for {$referenceCode} is finished. Please proceed to the cashier to complete your visit.");
         } elseif (in_array($status, ['Reschedule Requested', 'Reschedule Required'], true)) {
-            CustomerNotifier::notify($pdo, $appointmentCustomerId, 'RESCHEDULE', "Your appointment {$referenceCode} needs a schedule change. Please check the details.");
+            if ($salonAction === 'reschedule') {
+                // The salon can't keep this time: the booking and its deposit stay; the customer picks a new time.
+                CancellationPolicy::closeByStaff($pdo, $appointment, 'reschedule', $cancelReason);
+            } else {
+                CustomerNotifier::notify($pdo, $appointmentCustomerId, 'RESCHEDULE', "Your appointment {$referenceCode} needs a schedule change. Please check the details.");
+            }
             if ($appointment['employee_id'] !== null) {
                 StaffNotifier::notify($pdo, (int) $appointment['employee_id'], 'SCHEDULE_CHANGED', "Appointment {$referenceCode}'s schedule needs a change.");
             }

@@ -63,6 +63,20 @@ if ($referenceCode === '' || (!$paymentAttentionOnly && !$paymentVerifyOnly &&!i
     exit();
 }
 
+// Cancelling needs a choice and a reason (CancellationPolicy::closeByStaff): the salon
+// cancels and refunds, the salon cancels and the customer reschedules, or the customer
+// asked to cancel (deposit kept -- the non-refundable rule).
+$cancelAction = trim((string) ($_POST['cancelAction'] ?? ''));
+$cancelReason = trim(preg_replace('/\s+/', ' ', (string) ($_POST['reason'] ?? '')));
+if ($status === 'Cancelled') {
+    if ($error = CancellationPolicy::staffCancelError($cancelAction, $cancelReason, true)) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => $error]);
+        exit();
+    }
+    if ($cancelAction === 'reschedule') $status = 'Reschedule Requested';
+}
+
 // Confirming a reservation (e.g. the "Admit Client" action) requires
 // recording a deposit -- same policy as backend/admin/updateBookingStatus.php.
 $allowedDepositMethods = ['Cash', 'GCash', 'Maya', PayMongo::LEGACY_METHOD, ...PayMongo::METHODS];
@@ -224,9 +238,8 @@ try {
         if ($status === 'Completed') {
             CustomerNotifier::notify($pdo, $appointmentCustomerId, 'SERVICE_FINISHED', "Your service for {$referenceCode} is finished. Please proceed to the cashier to complete your visit.");
         } elseif ($status === 'Cancelled') {
-            CustomerNotifier::notify($pdo, $appointmentCustomerId, 'CANCELLED', "Your appointment {$referenceCode} has been cancelled by the salon.");
             if ($appointment['status'] !== 'Cancelled') {
-                CancellationPolicy::apply($pdo, $appointment, CancellationPolicy::BY_SALON);
+                CancellationPolicy::closeByStaff($pdo, $appointment, $cancelAction, $cancelReason);
             }
         } elseif ($status === 'No-Show') {
             CustomerNotifier::notify($pdo, $appointmentCustomerId, 'NO_SHOW', "Your appointment {$referenceCode} was marked as missed. Please contact the branch if this is a mistake.");
@@ -235,7 +248,8 @@ try {
                 StaffNotifier::notify($pdo, (int) $appointment['employee_id'], 'SCHEDULE_CHANGED', "{$referenceCode} was marked as No-Show. That time is free again.");
             }
         } elseif ($status === 'Reschedule Requested') {
-            CustomerNotifier::notify($pdo, $appointmentCustomerId, 'RESCHEDULE', "Your appointment {$referenceCode} needs a schedule change. Please check the details.");
+            if ($cancelAction === 'reschedule') CancellationPolicy::closeByStaff($pdo, $appointment, 'reschedule', $cancelReason);
+            else CustomerNotifier::notify($pdo, $appointmentCustomerId, 'RESCHEDULE', "Your appointment {$referenceCode} needs a schedule change. Please check the details.");
         }
     }
 

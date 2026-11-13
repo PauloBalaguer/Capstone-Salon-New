@@ -54,7 +54,7 @@ try {
     $pdo = Database::getInstance();
     $pdo->beginTransaction();
     $stmt = $pdo->prepare('
-        SELECT id, customer_id, reference_code, payment_status, deposit_amount, deposit_method, deposit_reference, paymongo_refund_id
+        SELECT id, customer_id, reference_code, payment_status, deposit_amount, deposit_method, deposit_reference, paymongo_refund_id, cancel_reason
         FROM appointments WHERE reference_code = ? LIMIT 1 FOR UPDATE
     ');
     $stmt->execute([$reference]);
@@ -85,7 +85,7 @@ try {
                 $refund = PayMongo::refundPayment($appointment['deposit_reference'], $amount, "Deposit refund for booking {$reference}");
                 $pdo->prepare('UPDATE appointments SET paymongo_refund_id = ? WHERE id = ?')->execute([$refund['id'], $appointmentId]);
                 PaymentLog::record($pdo, 'refund_requested', $appointmentId, $reference, $refund['id'], $amount, $refund['status'],
-                    ['payment_id' => $appointment['deposit_reference'], 'by_user_id' => $_SESSION['user_id']]);
+                    ['payment_id' => $appointment['deposit_reference'], 'by_user_id' => $_SESSION['user_id'], 'reason' => $appointment['cancel_reason']]);
             }
         } catch (RuntimeException $e) {
             // Keep any refund id already saved above; nothing else changed.
@@ -115,10 +115,10 @@ try {
     $pdo->prepare('UPDATE appointments SET payment_status = ? WHERE id = ?')->execute([$newStatus, $appointmentId]);
     if ($changed && $newStatus === 'Refunded') {
         PaymentLog::record($pdo, 'refunded', $appointmentId, $reference, $viaPaymongo ? $refund['id'] : null, $amount, 'Refunded',
-            ['method' => $viaPaymongo ? $appointment['deposit_method'] : 'manual', 'by_user_id' => $_SESSION['user_id']]);
+            ['method' => $viaPaymongo ? $appointment['deposit_method'] : 'manual', 'by_user_id' => $_SESSION['user_id'], 'reason' => $appointment['cancel_reason']]);
         CustomerNotifier::notify($pdo, (int) $appointment['customer_id'], 'PAYMENT_REFUNDED',
             'Your ₱' . number_format($amount, 2) . " reservation deposit for {$reference} has been refunded"
-            . ($viaPaymongo ? ' to your original payment method. It may take a few business days to appear.' : '.'));
+            . ($viaPaymongo ? ' to your original payment method. It may take a few business days to appear.' : '.'), $reference);
     }
     $pdo->commit();
 

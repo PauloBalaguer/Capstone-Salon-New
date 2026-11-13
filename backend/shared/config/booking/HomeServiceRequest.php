@@ -39,6 +39,70 @@ class HomeServiceRequest
             : null;
     }
 
+    /** DP estimate when there's no fixed reservation fee: this % of the estimated total, rounded to ₱100. */
+    const DP_ESTIMATE_PERCENT = 30;
+
+    /**
+     * Price list for the request forms (migration 065, admin-edited):
+     * per-client service prices and the travel fee per Albay city code.
+     * Empty lists when the migration isn't applied yet.
+     *
+     * @return array{rates: array<string, float>, travelFees: array<string, float>}
+     */
+    public static function priceList(PDO $pdo): array
+    {
+        try {
+            $rates = $pdo->query('SELECT service_name, price_per_client FROM home_service_rates')->fetchAll(PDO::FETCH_KEY_PAIR);
+            $fees = $pdo->query('SELECT city_code, fee FROM home_service_travel_fees')->fetchAll(PDO::FETCH_KEY_PAIR);
+        } catch (PDOException $e) {
+            return ['rates' => [], 'travelFees' => []];
+        }
+        return ['rates' => array_map('floatval', $rates), 'travelFees' => array_map('floatval', $fees)];
+    }
+
+    /**
+     * The estimate shown in the forms, recalculated on the server from the
+     * database (never from browser totals): a wedding package's price, or the
+     * per-client price of each selected service x number of clients, plus the
+     * travel fee for the venue's city. DP = the package's fixed reservation
+     * fee, otherwise DP_ESTIMATE_PERCENT of the total. Null parts when a
+     * price isn't set; the admin's quote is final either way.
+     *
+     * @return array{servicesTotal: ?float, travelFee: ?float, total: ?float, dp: ?float, dpFixed: bool, balance: ?float}
+     */
+    public static function estimate(PDO $pdo, string $eventType, string $weddingPackage, array $services, int $clients, string $cityCode): array
+    {
+        $prices = self::priceList($pdo);
+        $servicesTotal = null;
+        $fixedFee = null;
+        if ($eventType === 'Wedding') {
+            $stmt = $pdo->prepare('SELECT price, reservation_fee FROM wedding_packages WHERE package_name = ? AND is_active = 1');
+            $stmt->execute(['Package ' . $weddingPackage]);
+            if ($package = $stmt->fetch()) {
+                $servicesTotal = (float) $package['price'];
+                $fixedFee = $package['reservation_fee'] !== null ? (float) $package['reservation_fee'] : null;
+            }
+        } elseif ($services && $clients > 0) {
+            $perClient = 0.0;
+            foreach (array_unique($services) as $service) {
+                if (!isset($prices['rates'][$service])) { $perClient = null; break; }
+                $perClient += $prices['rates'][$service];
+            }
+            $servicesTotal = $perClient === null ? null : round($perClient * $clients, 2);
+        }
+        $travelFee = $prices['travelFees'][$cityCode] ?? null;
+        $total = $servicesTotal !== null && $travelFee !== null ? round($servicesTotal + $travelFee, 2) : null;
+        $dp = $fixedFee ?? ($total !== null ? round($total * self::DP_ESTIMATE_PERCENT / 100 / 100) * 100 : null);
+        return [
+            'servicesTotal' => $servicesTotal,
+            'travelFee' => $travelFee,
+            'total' => $total,
+            'dp' => $dp,
+            'dpFixed' => $fixedFee !== null,
+            'balance' => $total !== null && $dp !== null ? max(0, round($total - $dp, 2)) : null,
+        ];
+    }
+
     /** Qualifications come from existing staff_services and active catalog services. */
     public static function serviceSkills(string $name): array
     {

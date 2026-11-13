@@ -40,7 +40,7 @@ function clone_database(string $name): PDO
     if ($code !== 0) exit("Could not clone the database.\n");
     // Newer migrations may not be applied to the dev database yet; all are safe to run twice.
     // 057 first: on a dev database that ran 056, 053 can't place its columns until 057 puts paymongo_checkout_url back.
-    foreach (['057_restore_paymongo.sql', '053_paymongo_separate_methods.sql', '054_event_durations.sql', '055_digital_loyalty_card.sql', '058_paymongo_gcash_sources.sql', '058_staff_shift_breaks_schedule.sql', '059_guest_account_claims.sql', '060_trusted_devices.sql'] as $migration) {
+    foreach (['057_restore_paymongo.sql', '053_paymongo_separate_methods.sql', '054_event_durations.sql', '055_digital_loyalty_card.sql', '058_paymongo_gcash_sources.sql', '058_staff_shift_breaks_schedule.sql', '059_guest_account_claims.sql', '060_trusted_devices.sql', '065_home_service_estimate.sql'] as $migration) {
         passthru(TEST_MYSQL . " {$name} < \"{$root}\\database\\migrations\\{$migration}\"");
     }
     register_shutdown_function(fn() => passthru(TEST_MYSQL . " -e \"DROP DATABASE IF EXISTS {$name}\""));

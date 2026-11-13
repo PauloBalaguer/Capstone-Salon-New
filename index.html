@@ -2038,6 +2038,8 @@
                   </button>
                 </div>
                 <p id="hsNonWeddingPricingNote" class="text-[12.5px] text-ink/55 mt-4">Final price and reservation payment will be confirmed after review.</p>
+                <!-- Live estimate (function/public/main.js hsRenderEstimate) -->
+                <div id="hsEstimate" class="hidden mt-6 rounded-2xl border border-copper/35 bg-copper/10 p-5" aria-live="polite"></div>
                 <div class="mt-6">
                   <label for="hsNotes" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1.5">Additional
                     Requirements</label>
@@ -2582,7 +2584,7 @@
   <script src="function/shared/toast.js"></script>
   <script src="function/shared/pending-payment.js"></script>
   <script src="function/shared/late-arrival-rule.js"></script>
-  <script src="function/public/main.js?v=20261113-track-ref"></script>
+  <script src="function/public/main.js?v=20261113-hs-estimate"></script>
   <script src="function/public/booking-wizard.js?v=20261111c"></script>
 <script src="function/shared/select-dropdown.js?v=20261111e"></script>
 </body>

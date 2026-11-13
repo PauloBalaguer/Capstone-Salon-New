@@ -1291,10 +1291,93 @@
     return { amount: Math.round((Number(pkg.price) * HS_DP_ESTIMATE_RATE) / 100) * 100, fixed: false };
   }
 
+  // Home service price list (migration 065, admin-edited): per-client service
+  // prices, the travel fee per Albay city and the DP percent. Only for the
+  // estimate shown here; the server recalculates it on submit.
+  let hsPrices = null;
+  fetch('backend/public/getHomeServicePrices.php')
+    .then(r => r.json())
+    .then(data => {
+      if (!data.success) return;
+      hsPrices = data;
+      document.querySelectorAll('#hsServiceCards .hs-svc').forEach(btn => {
+        const price = data.rates[btn.dataset.svc];
+        if (price === undefined) return;
+        const tag = btn.querySelector('.hs-price') || btn.appendChild(Object.assign(document.createElement('span'), { className: 'hs-price block text-xs font-bold text-plum mt-2' }));
+        tag.textContent = 'Starts at ' + hsPeso(price) + ' per client';
+      });
+      hsRenderEstimate();
+    })
+    .catch(() => {});
+
+  // Services (package price, or per-client prices x clients) + travel fee for
+  // the venue's city = estimated total; DP = the package's fixed fee or a
+  // percent of the total. Null when something isn't chosen yet.
+  function hsEstimate() {
+    if (!hsPrices) return null;
+    const isWedding = document.getElementById('hsEventType').value === 'Wedding';
+    const clients = parseInt(document.getElementById('hsClients').value, 10) || 0;
+    let services = 0;
+    let fixedFee = null;
+    let label = '';
+    if (isWedding) {
+      if (!hsSelectedWeddingPackage) return null;
+      services = Number(hsSelectedWeddingPackage.price);
+      if (hsSelectedWeddingPackage.reservationFee !== null && hsSelectedWeddingPackage.reservationFee !== undefined) fixedFee = Number(hsSelectedWeddingPackage.reservationFee);
+      label = hsSelectedWeddingPackage.name;
+    } else {
+      if (!hsSelectedServices.length || clients < 1) return null;
+      let perClient = 0;
+      for (const service of hsSelectedServices) {
+        if (hsPrices.rates[service] === undefined) return null;
+        perClient += Number(hsPrices.rates[service]);
+      }
+      services = perClient * clients;
+      label = hsPeso(perClient) + ' × ' + clients + ' client' + (clients === 1 ? '' : 's');
+    }
+    const citySelect = document.getElementById('guest-service-address-city');
+    const travel = hsPrices.travelFees[citySelect?.value || ''];
+    const city = citySelect?.value ? citySelect.selectedOptions[0]?.textContent || '' : '';
+    if (travel === undefined) return { services, label, travel: null, city, total: null, dp: fixedFee, fixed: fixedFee !== null, balance: null };
+    const total = services + Number(travel);
+    const dp = fixedFee !== null ? fixedFee : Math.round((total * hsPrices.dpPercent) / 100 / 100) * 100;
+    return { services, label, travel: Number(travel), city, total, dp, fixed: fixedFee !== null, balance: Math.max(0, total - dp) };
+  }
+
+  function hsRenderEstimate() {
+    const box = document.getElementById('hsEstimate');
+    if (!box) return;
+    const est = hsEstimate();
+    box.classList.toggle('hidden', !hsPrices);
+    if (!est) {
+      box.innerHTML = '<p class="text-ink/60">Choose ' + (document.getElementById('hsEventType').value === 'Wedding' ? 'a wedding package' : 'your services and the number of clients') + ' to see an estimate.</p>';
+      hsRenderDpEstimate();
+      return;
+    }
+    const row = (name, value, strong) => '<p class="flex justify-between gap-3"><span class="text-ink/60">' + name + '</span>' + (strong ? '<b>' + value + '</b>' : '<span>' + value + '</span>') + '</p>';
+    box.innerHTML = '<span class="text-xs font-bold uppercase tracking-widest text-copper-dark">Estimated cost</span>' +
+      '<div class="mt-3 space-y-1.5 text-[13.5px]">' +
+        row('Services (' + escAttr(est.label) + ')', hsPeso(est.services)) +
+        row('Travel fee' + (est.city ? ' · ' + escAttr(est.city) : ''), est.travel === null ? 'Choose the venue address' : (est.travel === 0 ? 'Free' : hsPeso(est.travel))) +
+        (est.total === null ? '' :
+          row('Estimated total', hsPeso(est.total), true) +
+          row('Reservation fee (DP)' + (est.fixed ? ', fixed' : ', about ' + hsPrices.dpPercent + '%'), hsPeso(est.dp)) +
+          row('Remaining balance (event day)', hsPeso(est.balance))) +
+      '</div>' +
+      '<p class="text-xs text-ink/50 mt-3">An estimate only. Your final price is in the quote we send after review.</p>';
+    hsRenderDpEstimate();
+  }
+
   // The "How payment works" box's estimate line (review step).
   function hsRenderDpEstimate() {
     const el = document.getElementById('hsDpEstimate');
     if (!el) return;
+    const est = hsEstimate();
+    if (est && est.total !== null) {
+      el.innerHTML = 'Estimated DP: <b class="text-plum text-[15px]">' + (est.fixed ? '' : 'about ') + hsPeso(est.dp) + '</b> ' +
+        '<span class="text-ink/50">' + (est.fixed ? '(fixed reservation fee)' : '(≈' + hsPrices.dpPercent + '% of the estimated ' + hsPeso(est.total) + ')') + '</span>';
+      return;
+    }
     const isWedding = document.getElementById('hsEventType').value === 'Wedding';
     const dp = isWedding ? hsEstimatedDp(hsSelectedWeddingPackage) : null;
     el.innerHTML = dp
@@ -1306,12 +1389,14 @@
   function hsFillWeddingSummary(selector) {
     if (!hsSelectedWeddingPackage) return;
     const pkg = hsSelectedWeddingPackage;
-    const dp = hsEstimatedDp(pkg);
+    const est = hsEstimate();
+    const dp = est && est.total !== null ? { amount: est.dp, fixed: est.fixed } : hsEstimatedDp(pkg);
+    const balance = est && est.total !== null ? est.balance : pkg.price - dp.amount;
     const values = {
       name: pkg.name,
-      price: hsPeso(pkg.price),
+      price: hsPeso(pkg.price) + (est && est.travel ? ' + ' + hsPeso(est.travel) + ' travel fee' : ''),
       fee: dp.fixed ? hsPeso(dp.amount) : 'about ' + hsPeso(dp.amount) + ' (estimate confirmed in your quote)',
-      balance: (dp.fixed ? '' : 'about ') + hsPeso(pkg.price - dp.amount) + ' (paid on the event day)',
+      balance: (dp.fixed ? '' : 'about ') + hsPeso(balance) + ' (paid on the event day)',
       venue: document.getElementById('hsVenue').value.trim() || '',
       date: hsFmtDate(document.getElementById('hsDate').value),
       time: hsFmtTime(document.getElementById('hsTime').value)
@@ -1555,6 +1640,7 @@
   }
 
   async function hsRefreshAvailability() {
+    hsRenderEstimate(); // every change that re-checks availability can change the estimate too
     const seq = ++hsAvailSeq;
     hsAvailability = null;
     const params = hsSelectionParams();
@@ -1586,6 +1672,8 @@
   });
   document.getElementById('hsEventType')?.addEventListener('change', () => { hsSyncWeddingPackages(); hsRefreshAvailability(); });
   document.getElementById('hsOtherEvent')?.addEventListener('change', hsRefreshAvailability);
+  // Number of clients and the venue's city change the estimate.
+  ['hsClients', 'hsVenue'].forEach(id => document.getElementById(id)?.addEventListener('input', hsRenderEstimate));
 
   function hsBuildReview() {
     const email = document.getElementById('hsEmail').value.trim();

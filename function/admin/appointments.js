@@ -295,7 +295,8 @@ function adminBookingsApp() {
 
     openHomeServiceQuote(booking) {
       this.quoteBooking = booking;
-      this.quotePrice = booking.quotePrice || '';
+      // A new quote starts from the estimate saved when the customer submitted (migration 065).
+      this.quotePrice = booking.quotePrice || booking.estimatedTotal || '';
       this.reservationFee = booking.depositAmount || '';
       this.openHomeServiceQuoteModal = true;
     },

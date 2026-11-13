@@ -244,6 +244,18 @@ function adminSettingsApp() {
       this.loadBranchForm();
     },
 
+    // Home service price list (migration 065): per-client service prices and travel fees.
+    async saveHomeServicePrices() {
+      const store = Alpine.store('admin');
+      const prices = {
+        rates: Object.fromEntries(store.homeServicePrices.rates.map(r => [r.service, r.price])),
+        travelFees: Object.fromEntries(store.homeServicePrices.travelFees.map(f => [f.code, f.fee]))
+      };
+      const result = await store.post('saveHomeServicePrices.php', { prices: JSON.stringify(prices) });
+      LMToast.show(result.message || (result.success ? 'Home service prices saved.' : 'Failed to save the prices.'), result.success ? 'success' : 'error');
+      if (result.success) await store.refresh();
+    },
+
     async saveEventDuration(row) {
       const store = Alpine.store('admin');
       const result = await store.post('saveEventDuration.php', {

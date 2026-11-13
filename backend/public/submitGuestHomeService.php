@@ -143,19 +143,19 @@ try {
         exit();
     }
 
-    // This form has no OTP/verification step at all, so unlike
-    // submitGuestBooking.php there's no way to confirm the submitter owns a
-    // phone number. Reusing a phone that already belongs to a registered
-    // account would silently attach the request to that person's real
-    // account refuse instead of guessing.
+    // This form has no OTP step, so a phone number alone doesn't prove the
+    // submitter owns it. A number that belongs to a registered account is
+    // accepted only together with that account's login email; the request
+    // then goes into that account (its portal shows it). Anyone else gets a
+    // clear refusal instead of attaching a request to a stranger's account.
     $stmt = $pdo->prepare('SELECT c.id, u.email FROM customers c LEFT JOIN users u ON u.id = c.user_id WHERE c.phone_number = ?');
     $stmt->execute([$contact]);
     $existingCustomer = $stmt->fetch();
 
-    if ($existingCustomer && $existingCustomer['email'] !== null) {
+    if ($existingCustomer && $existingCustomer['email'] !== null && strcasecmp($existingCustomer['email'], $email) !== 0) {
         $pdo->rollBack();
         http_response_code(409);
-        echo json_encode(['success' => false, 'message' => 'This mobile number is linked to an existing account. Please log in to submit a request, or use a different mobile number.']);
+        echo json_encode(['success' => false, 'message' => 'This mobile number already has an account. Enter the email address of that account, log in to submit the request, or use a different mobile number.']);
         exit();
     }
 

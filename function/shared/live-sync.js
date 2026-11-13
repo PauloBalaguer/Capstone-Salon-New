@@ -14,6 +14,14 @@
  *
  * onChange may return a Promise; calls never overlap, and a burst of changes
  * collapses into one reload.
+ *
+ * Pusher (optional): when backend/public/getLiveConfig.php returns a Pusher
+ * key, the page also listens on the "salon-live" channel. A save anywhere
+ * (backend/shared/config/setup/live-updates.php) sends a "changed" message
+ * there, and the page checks its version at once instead of waiting up to a
+ * minute. While Pusher is connected the minute check slows to every 5
+ * minutes as a safety net. Without Pusher keys, or if Pusher can't be
+ * reached, everything works exactly as before.
  */
 (function () {
   'use strict';
@@ -22,6 +30,63 @@
   const ROOT = script && script.src ? new URL('../../', script.src).href : '../../';
   const ENDPOINT = ROOT + 'backend/public/getSyncVersion.php';
   const POLL_MS = 60000;
+  const PUSHER_POLL_MS = 300000;
+  const CONFIG_ENDPOINT = ROOT + 'backend/public/getLiveConfig.php';
+  const PUSHER_JS = 'https://js.pusher.com/8.4.0/pusher.min.js';
+  const PUSHER_CHANNEL = 'salon-live';
+  const PUSHER_EVENT = 'changed';
+
+  // One Pusher connection per page, shared by every LiveSync.start() on it.
+  let pusherPromise = null;
+  const pusherListeners = new Set();
+  let pusherConnected = false;
+
+  function readCachedConfig() {
+    try { return JSON.parse(sessionStorage.getItem('salonLiveConfig') || 'null'); } catch (_) { return null; }
+  }
+
+  async function liveConfig() {
+    const cached = readCachedConfig();
+    if (cached) return cached;
+    const res = await fetch(CONFIG_ENDPOINT, { credentials: 'same-origin' });
+    const data = await res.json();
+    // Only a working config is remembered, so keys added later are picked up on the next page.
+    if (data && data.enabled) { try { sessionStorage.setItem('salonLiveConfig', JSON.stringify(data)); } catch (_) {} }
+    return data;
+  }
+
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const tag = document.createElement('script');
+      tag.src = src;
+      tag.async = true;
+      tag.onload = resolve;
+      tag.onerror = reject;
+      document.head.appendChild(tag);
+    });
+  }
+
+  function connectPusher() {
+    if (pusherPromise) return pusherPromise;
+    pusherPromise = (async () => {
+      const config = await liveConfig();
+      if (!config || !config.enabled || !config.key || !config.cluster) return null;
+      if (typeof window.Pusher !== 'function') await loadScript(PUSHER_JS);
+      const pusher = new window.Pusher(config.key, { cluster: config.cluster, forceTLS: true });
+      pusher.connection.bind('state_change', (states) => {
+        pusherConnected = states.current === 'connected';
+        pusherListeners.forEach((listener) => listener.onState(pusherConnected));
+      });
+      pusher.subscribe(PUSHER_CHANNEL).bind(PUSHER_EVENT, () => {
+        pusherListeners.forEach((listener) => listener.onMessage());
+      });
+      return pusher;
+    })().catch((err) => {
+      console.warn('Live updates (Pusher) are off; using the minute check.', err);
+      return null;
+    });
+    return pusherPromise;
+  }
 
   function start(options) {
     const opts = options || {};
@@ -100,9 +165,25 @@
       if (useSse) openSse();
       else {
         poll();
-        pollTimer = setInterval(poll, POLL_MS);
+        pollTimer = setInterval(poll, pusherConnected ? PUSHER_POLL_MS : POLL_MS);
       }
     }
+
+    // Pusher: a save anywhere -> check this page's version now. A burst of
+    // messages within half a second becomes one check.
+    let pushTimer = null;
+    pusherListeners.add({
+      onMessage() {
+        if (stopped || document.hidden) return;
+        clearTimeout(pushTimer);
+        pushTimer = setTimeout(poll, 500);
+      },
+      onState() {
+        // Connected: slow the safety-net check. Lost: back to every minute.
+        if (!stopped && !document.hidden && !useSse) resume();
+      }
+    });
+    connectPusher();
 
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) { closeAll(); return; }

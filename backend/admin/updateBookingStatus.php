@@ -3,6 +3,7 @@
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
+require_once '../../backend/shared/config/setup/live-updates.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/notifications/CustomerNotifier.php';
 require_once '../../backend/shared/config/notifications/StaffNotifier.php';
@@ -12,6 +13,7 @@ require_once '../../backend/shared/config/booking/HomeServiceRequest.php';
 require_once '../../backend/shared/config/payments/ReservationPayment.php';
 
 sendCorsHeaders();
+LiveUpdates::afterThisRequest(); // Pusher: open panels refresh after this save (setup/live-updates.php)
 AuditLog::captureRequest();
 header('Content-Type: application/json');
 

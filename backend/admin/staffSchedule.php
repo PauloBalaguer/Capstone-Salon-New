@@ -10,6 +10,9 @@
  * POST action=previewLeave employeeId, startDate, endDate
  * POST action=addLeave    employeeId, startDate, endDate, reason, confirmed=1
  * POST action=deleteLeave leaveId
+ * POST action=leaveBookings employeeId, startDate, endDate -> { bookings[] }; each salon one lists
+ *      the same-branch stylists free to take it over (replacements)
+ * POST action=reassignLeaveBooking employeeId (the absent stylist), reference, staffId
  *
  * Adding leave never moves or cancels a booking: the preview lists the
  * confirmed salon appointments and home visits on those dates; saving flags
@@ -22,6 +25,8 @@ require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/setup/live-updates.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/booking/ScheduleExceptions.php';
+require_once '../../backend/shared/config/notifications/CustomerNotifier.php';
+require_once '../../backend/shared/config/helpers/Schema.php';
 
 sendCorsHeaders();
 LiveUpdates::afterThisRequest(); // Pusher: open panels refresh after this save (setup/live-updates.php)
@@ -176,6 +181,74 @@ try {
         exit();
     }
 
+    // Absent stylist: their bookings on the leave dates, each with who can take it over.
+    // Cancelling one uses the salon-cancel flow (refund or reschedule) in Admin > Bookings.
+    if ($action === 'leaveBookings') {
+        if (!$employee) fail(404, 'Staff member not found.');
+        $from = trim((string) ($_POST['startDate'] ?? ''));
+        $to = trim((string) ($_POST['endDate'] ?? ''));
+        if (!validDate($from) || !validDate($to) || $to < $from) fail(400, 'Please choose a valid start and end date.');
+        $pdo->beginTransaction(); // replacements() tries each stylist and undoes it
+        $bookings = ScheduleExceptions::affectedByLeave($pdo, $employeeId, $from, $to);
+        $load = $pdo->prepare('SELECT * FROM appointments WHERE id = ?');
+        foreach ($bookings as &$b) {
+            if ($b['kind'] !== 'salon') continue;
+            $load->execute([$b['internalId']]);
+            $b['replacements'] = ScheduleExceptions::replacements($pdo, $load->fetch(), $employeeId);
+        }
+        unset($b);
+        $pdo->rollBack();
+        echo json_encode(['success' => true, 'bookings' => ScheduleExceptions::publicRows($bookings)]);
+        exit();
+    }
+
+    if ($action === 'reassignLeaveBooking') {
+        if (!$employee) fail(404, 'Staff member not found.');
+        $reference = trim((string) ($_POST['reference'] ?? ''));
+        $newId = (int) ($_POST['staffId'] ?? 0);
+        if ($reference === '' || $newId <= 0 || $newId === $employeeId) fail(400, 'Choose another stylist for this booking.');
+        $stmt = $pdo->prepare('SELECT id FROM appointments WHERE reference_code = ?');
+        $stmt->execute([$reference]);
+        $appointmentId = (int) $stmt->fetchColumn();
+        if (!$appointmentId) fail(404, 'Booking not found.');
+
+        $pdo->beginTransaction();
+        $appointment = Scheduling::lockAppointment($pdo, $appointmentId);
+        $stmt = $pdo->prepare('SELECT COUNT(*) FROM appointment_services WHERE appointment_id = ? AND employee_id = ?');
+        $stmt->execute([$appointmentId, $employeeId]);
+        if ((int) $appointment['employee_id'] !== $employeeId && !(int) $stmt->fetchColumn()) {
+            throw new RuntimeException("{$employee['name']} is no longer on this booking. Refresh the list.");
+        }
+        if (!in_array($appointment['status'], ScheduleExceptions::LEAVE_STATUSES, true)) {
+            throw new RuntimeException("This booking is {$appointment['status']} and can't be reassigned here.");
+        }
+        $oldMain = (int) $appointment['employee_id'];
+        $appointment = ScheduleExceptions::moveParts($pdo, $appointment, $employeeId, $newId);
+        $stmt = $pdo->prepare("SELECT CONCAT(first_name, ' ', last_name) FROM employees WHERE id = ?");
+        $stmt->execute([$newId]);
+        $newName = (string) $stmt->fetchColumn();
+
+        if (Schema::hasColumn($pdo, 'appointments', 'needs_followup')) {
+            $pdo->prepare('UPDATE appointments SET needs_followup = NULL WHERE id = ?')->execute([$appointmentId]);
+        }
+        if ($oldMain === $employeeId) {
+            Scheduling::notifyStaffOfReassignment($pdo, $appointment, $employeeId, $newId);
+        } else {
+            StaffNotifier::notifyOnce($pdo, $newId, 'APPOINTMENT_ASSIGNED', "You've been assigned to part of appointment {$reference} on "
+                . date('D, M j, Y \a\t g:i A', strtotime($appointment['appointment_datetime'])) . '.');
+            StaffNotifier::notifyOnce($pdo, $employeeId, 'SCHEDULE_CHANGED', "You're no longer on appointment {$reference}; it was given to {$newName}.");
+        }
+        CustomerNotifier::notify($pdo, (int) $appointment['customer_id'], 'STYLIST_CHANGED',
+            "Your stylist for appointment {$reference} is unavailable that day, so {$newName} will take care of you instead. Your date, time and any payment stay the same."
+            . "\n\nIf you'd prefer another time, you can reschedule from My Appointments (or Track a Booking) or contact the branch.", $reference);
+        $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "BOOKING", ?)')
+            ->execute(["{$reference} moved from {$employee['name']} (absent) to {$newName}."]);
+        AuditLog::record($pdo, 'booking/reassign_absent', 'Reassigned from an absent stylist', $reference, "{$employee['name']} -> {$newName}");
+        $pdo->commit();
+        echo json_encode(['success' => true, 'message' => "{$reference} is now with {$newName}. The customer was told."]);
+        exit();
+    }
+
     if ($action === 'deleteLeave') {
         $leaveId = (int) ($_POST['leaveId'] ?? 0);
         $stmt = $pdo->prepare('DELETE FROM staff_leave WHERE id = ?');
@@ -191,7 +264,12 @@ try {
     fail(400, $e->getMessage());
 } catch (PDOException $e) {
     if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
+    if (in_array((int) ($e->errorInfo[1] ?? 0), [1205, 1213], true)) fail(409, 'Someone else is changing this booking. Please try again.');
     http_response_code(500);
     error_log('admin staffSchedule error: ' . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'A server error occurred. Has migration 062 been applied?']);
+} catch (RuntimeException $e) {
+    // moveParts() / booking checks: the chosen stylist can't take it, or the booking changed.
+    if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
+    fail(409, $e->getMessage());
 }

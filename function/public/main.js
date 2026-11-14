@@ -1489,7 +1489,7 @@
       const name = hsFullName();
       const phone = document.getElementById('hsPhone').value.trim();
       if (!name) { fieldError('hsFirstName', 'Please enter your name.'); return; }
-      if (!/^09\d{9}$/.test(phone)) { fieldError('hsPhone', 'Please enter a valid 11-digit mobile number (09XXXXXXXXX).'); return; }
+      if (!/^09\d{9}$/.test(phone)) { fieldError('hsPhone', BookingFormValidation.MOBILE_MESSAGE); return; }
       // Required: guests track and reschedule with reference + email, and get updates there.
       const email = document.getElementById('hsEmail').value.trim();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { fieldError('hsEmail', 'Please enter a valid email address you\'ll use it to track and reschedule your request.'); return; }
@@ -2112,10 +2112,13 @@
          ...(res.venue ? [['Location', escAttr(res.venue)]] : []), // hidden when tracked by reference only
          ...(res.quote ? [['Quote', peso(res.quote)]] : []),
          ...(res.reservationFee ? [['Reservation fee', peso(res.reservationFee) + (res.feePaid ? ' paid' : ' not yet paid')]] : []),
+         ...(res.paymentStatus ? [['Payment', escAttr(PortalPresentation.paymentStatus(res.paymentStatus, res.balanceDue))]] : []),
          ...(res.requests ? [['Details', escAttr(res.requests).replace(/\n/g, '<br>')]] : [])]
       : [['Type', 'In-salon appointment'], ['Branch', escAttr(res.branch || '')],
          ['Service', escAttr(res.services) + (res.price ? ' · ₱' + Number(res.price).toFixed(0) : '')],
-         ['Date', fmtApptDate(res.date) + ' · ' + escAttr(res.time)]];
+         ['Date', fmtApptDate(res.date) + ' · ' + escAttr(res.time)],
+         ...(res.paymentStatus ? [['Payment', escAttr(PortalPresentation.paymentStatus(res.paymentStatus, res.remainingBalance))
+           + (res.remainingBalance > 0 && res.status !== 'Cancelled' && res.paymentStatus === 'Down Payment Verified' ? ' <span class="text-ink/50 font-normal">(pay the rest at the branch after your service)</span>' : '')]] : [])];
 
     return '<div class="flex flex-wrap items-center justify-between gap-3 mb-6">' +
         '<div><span class="text-[10px] font-bold uppercase tracking-widest text-ink/45">Reference</span>' +
@@ -2141,8 +2144,13 @@
         ? (res.balanceDue > 0
           ? '<div class="mt-5 rounded-2xl bg-copper/10 border border-copper/30 p-4 text-sm">' +
               '<p class="font-bold text-ink">Remaining balance: ' + peso(res.balanceDue) + '</p>' +
-              '<p class="text-ink/60 text-[13px] mt-1">Paid ' + peso(res.amountPaid) + ' of ' + peso(res.quote) + '.' + (res.balancePayUrl ? '' : ' Pay in cash on the event day, or ask us for an online payment link.') + '</p>' +
-              (res.balancePayUrl ? '<a href="' + escAttr(res.balancePayUrl) + '" class="mt-3 inline-flex w-full justify-center rounded-full bg-plum hover:bg-plum/85 text-white font-bold py-3 transition">Pay ' + peso(res.balanceDue) + ' now GCash, Maya or card</a>' : '') +
+              '<p class="text-ink/60 text-[13px] mt-1">Paid ' + peso(res.amountPaid) + ' of ' + peso(res.quote) + '.' + (res.balancePayUrl || res.canPayBalance ? '' : ' Pay in cash on the event day.') + '</p>' +
+              (res.balancePayUrl
+                ? '<a href="' + escAttr(res.balancePayUrl) + '" class="mt-3 inline-flex w-full justify-center rounded-full bg-plum hover:bg-plum/85 text-white font-bold py-3 transition">Pay remaining balance ' + peso(res.balanceDue) + ' (GCash, Maya or card)</a>'
+                : res.canPayBalance
+                  ? '<button type="button" class="hs-pay-balance mt-3 inline-flex w-full justify-center rounded-full bg-plum hover:bg-plum/85 disabled:opacity-60 text-white font-bold py-3 transition" data-reference="' + escAttr(res.reference) + '">Pay remaining balance ' + peso(res.balanceDue) + ' (GCash, Maya or card)</button>' +
+                    '<p class="hs-pay-balance-msg mt-2 text-[12px] font-semibold text-copper-dark" role="alert"></p>'
+                  : '') +
             '</div>'
           : '<div class="mt-5 rounded-2xl bg-[color:var(--success-soft)] border border-[color:var(--success-soft)] p-4 text-sm font-bold text-[color:var(--success)]">Fully paid ✓ thank you!</div>')
         : '') +
@@ -2176,6 +2184,25 @@
         '<p class="hs-resched-msg mt-2 text-[12px] hidden"></p>' +
       '</details>';
   }
+
+  // "Pay remaining balance" (home service): get the PayMongo link, then go to it.
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('.hs-pay-balance');
+    if (!btn) return;
+    const msg = btn.parentElement.querySelector('.hs-pay-balance-msg');
+    btn.disabled = true;
+    msg.textContent = '';
+    const body = new FormData();
+    body.append('reference', btn.dataset.reference);
+    fetch('backend/public/payHomeServiceBalance.php', { method: 'POST', body })
+      .then(r => r.json())
+      .then(res => {
+        if (res.success && res.url) { window.location.href = res.url; return; }
+        msg.textContent = res.message || 'We could not open the payment page. Please try again.';
+        btn.disabled = false;
+      })
+      .catch(() => { msg.textContent = 'A network error occurred. Please try again.'; btn.disabled = false; });
+  });
 
   // One delegated handler covers every rendered Track result.
   document.addEventListener('click', e => {
@@ -2774,7 +2801,7 @@
     const nameParts = guestNameParts();
     if (!nameParts.first) { fieldError('bookFirstName', 'Please enter your first name.'); return; }
     if (!nameParts.last) { fieldError('bookLastName', 'Please enter your last name.'); return; }
-    if (!/^09\d{9}$/.test(phone)) { fieldError('bookPhone', 'Please enter a valid 11-digit mobile number (09XXXXXXXXX).'); return; }
+    if (!/^09\d{9}$/.test(phone)) { fieldError('bookPhone', BookingFormValidation.MOBILE_MESSAGE); return; }
     if (email && !/^\S+@\S+\.\S+$/.test(email)) { fieldError('bookEmail', 'Please enter a valid email address, or leave it blank.'); return; }
     if (!document.getElementById('bookAgreeTerms')?.checked) { fieldError(document.getElementById('bookAgreeTerms').closest('label'), 'Please agree to the Terms & Conditions.'); return; }
 

@@ -166,6 +166,9 @@ try {
             'amountPaid' => (float) $hs['amount_paid'],
             'balanceDue' => $hs['quote_price'] !== null ? max(0, round((float) $hs['quote_price'] - (float) $hs['amount_paid'], 2)) : null,
             'balancePayUrl' => $hs['quote_price'] !== null && (float) $hs['quote_price'] > (float) $hs['amount_paid'] ? $hs['balance_checkout_url'] : null,
+            // "Pay remaining balance" works even before Admin sends a link (backend/public/payHomeServiceBalance.php).
+            'canPayBalance' => $hs['status'] !== 'Cancelled' && (int) $hs['deposit_paid'] === 1 && $hs['quote_price'] !== null && PayMongo::isConfigured()
+                && round((float) $hs['quote_price'] - (float) $hs['amount_paid'], 2) >= PayMongo::MIN_AMOUNT,
             'canReview' => $proofGiven && $hs['status'] === 'Completed' && !$hs['has_feedback'],
             // Online rescheduling (backend/public/rescheduleHomeService.php).
             'time' => $hs['preferred_time'] ? date('h:i A', strtotime($hs['preferred_time'])) : null,

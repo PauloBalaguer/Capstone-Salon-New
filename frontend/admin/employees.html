@@ -240,7 +240,7 @@
             <div x-show="leaveReady">
             <ul class="lm-list">
               <template x-for="leave in leaveList" :key="leave.id">
-                <li class="lm-list-item"><div><span class="lm-cell-main" x-text="leave.startDate + (leave.endDate !== leave.startDate ? ' to ' + leave.endDate : '')"></span><span class="lm-cell-sub" x-text="leave.reason || 'No reason given'"></span></div><button type="button" class="lm-btn lm-btn--sm" @click="deleteLeave(leave)">Remove</button></li>
+                <li class="lm-list-item"><div><span class="lm-cell-main" x-text="leave.startDate + (leave.endDate !== leave.startDate ? ' to ' + leave.endDate : '')"></span><span class="lm-cell-sub" x-text="leave.reason || 'No reason given'"></span></div><div class="lm-actions" style="margin:0"><button type="button" class="lm-btn lm-btn--sm" @click="loadLeaveBookings(leave.startDate, leave.endDate)">Bookings</button><button type="button" class="lm-btn lm-btn--sm" @click="deleteLeave(leave)">Remove</button></div></li>
               </template>
             </ul>
             <p class="lm-hint" x-show="!scheduleLoading && !leaveList.length">No upcoming leave.</p>
@@ -252,9 +252,9 @@
             <div class="lm-actions"><button type="button" class="lm-btn lm-btn--sm" @click="previewLeave()">Check affected bookings</button></div>
             <template x-if="leaveAffected !== null">
               <div style="margin-top:8px">
-                <p class="lm-hint" x-show="!leaveAffected.length">No confirmed bookings on these dates.</p>
+                <p class="lm-hint" x-show="!leaveAffected.length">No pending or confirmed bookings on these dates.</p>
                 <div x-show="leaveAffected.length">
-                  <p class="lm-label" style="margin:0 0 6px" x-text="leaveAffected.length + ' confirmed booking(s) affected. They will be flagged for follow-up and keep their original details until you arrange a change with the customer.'"></p>
+                  <p class="lm-label" style="margin:0 0 6px" x-text="leaveAffected.length + ' booking(s) affected. They will be flagged for follow-up. After saving, reassign each one to another stylist or cancel it (refund or reschedule).'"></p>
                   <ul class="lm-list">
                     <template x-for="b in leaveAffected" :key="b.reference">
                       <li class="lm-list-item"><div><span class="lm-cell-main" x-text="b.type + ' - ' + b.reference"></span><span class="lm-cell-sub" x-text="b.when + ' - ' + b.client"></span></div></li>
@@ -262,6 +262,31 @@
                   </ul>
                 </div>
                 <div class="lm-actions" style="margin-top:8px"><button type="button" class="lm-btn lm-btn--sm lm-btn--primary" @click="addLeave()" x-text="leaveAffected.length ? 'Save leave and flag bookings' : 'Save leave'"></button></div>
+              </div>
+            </template>
+            <!-- Absent stylist: their bookings on the leave dates -> reassign, or cancel in Bookings (refund / reschedule). -->
+            <template x-if="leaveBookings !== null">
+              <div style="margin-top:12px">
+                <p class="lm-label" style="margin:0 0 6px" x-text="'Bookings ' + leaveBookingsRange + (leaveBookings.length ? ' (' + leaveBookings.length + ')' : '')"></p>
+                <p class="lm-hint" x-show="!leaveBookings.length">No pending or confirmed bookings for this stylist on these dates.</p>
+                <ul class="lm-list">
+                  <template x-for="b in leaveBookings" :key="b.reference">
+                    <li class="lm-list-item" style="flex-wrap:wrap;gap:8px">
+                      <div style="min-width:0;flex:1 1 220px"><span class="lm-cell-main" x-text="b.type + ' - ' + b.reference + (b.status ? ' (' + b.status + ')' : '')"></span><span class="lm-cell-sub" x-text="b.when + ' - ' + b.client"></span></div>
+                      <div class="lm-actions" style="margin:0;flex-wrap:wrap">
+                        <template x-if="b.kind === 'salon' && b.replacements.length">
+                          <select class="lm-input" style="width:auto" x-model="b.pick" :aria-label="'New stylist for ' + b.reference">
+                            <option value="">Reassign to...</option>
+                            <template x-for="s in b.replacements" :key="s.id"><option :value="s.id" x-text="s.name"></option></template>
+                          </select>
+                        </template>
+                        <button type="button" class="lm-btn lm-btn--sm lm-btn--primary" x-show="b.kind === 'salon' && b.replacements.length" :disabled="!b.pick || leaveBusy" @click="reassignLeaveBooking(b)">Reassign</button>
+                        <span class="lm-hint" x-show="b.kind === 'salon' && !b.replacements.length">No other stylist at this branch is free then.</span>
+                        <a class="lm-btn lm-btn--sm" :href="'appointments.html?search=' + encodeURIComponent(b.reference)" x-text="b.kind === 'salon' ? 'Cancel (refund or reschedule)' : 'Open in Bookings'"></a>
+                      </div>
+                    </li>
+                  </template>
+                </ul>
               </div>
             </template>
             </div>
@@ -303,7 +328,7 @@
       <template x-if="!editingStaffId">
         <div class="lm-form-row">
           <label class="lm-field"><span>Email (login)</span><input class="lm-input" type="email" x-model="staffForm.email" required></label>
-          <label class="lm-field"><span>Contact number</span><input class="lm-input" type="text" x-model="staffForm.phone" required></label>
+          <label class="lm-field"><span>Contact number</span><input class="lm-input" type="tel" inputmode="tel" maxlength="16" placeholder="09XXXXXXXXX or +639XXXXXXXXX" x-model="staffForm.phone" required></label>
         </div>
       </template>
       </section>
@@ -371,7 +396,7 @@
 <script src="../../function/admin/admin-shell.js?v=20261111-np"></script>
 <script src="../../function/shared/live-sync.js?v=20261113"></script>
 <script src="../../function/admin/shared-data.js?v=20261113-hs-prices"></script>
-<script src="../../function/admin/employees.js?v=20261111-svcpick"></script>
+<script src="../../function/admin/employees.js?v=20261114-absence"></script>
 <script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

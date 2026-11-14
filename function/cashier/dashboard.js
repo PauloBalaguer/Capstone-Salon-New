@@ -154,10 +154,11 @@ function setTab(tab) {
 }
 
 function paymentBadge(b) {
-  if (b.checkoutPaid || b.paymentStatus === 'Fully Paid') return ['Paid', 'bg-emerald-100 text-[color:var(--success)]'];
-  if (b.depositVerified) return ['Reservation paid', 'bg-emerald-100 text-[color:var(--success)]'];
-  if (hasReportedPayment(b)) return ['Payment to check', 'bg-amber-100 text-[color:var(--warn)]'];
-  return ['Not paid yet', 'bg-gray-100 text-gray-600'];
+  // Same three states as everywhere else (PortalPresentation.paymentStatus).
+  if (b.checkoutPaid || b.paymentStatus === 'Fully Paid') return ['Fully paid', 'bg-emerald-100 text-[color:var(--success)]'];
+  if (b.depositVerified) return [PortalPresentation.paymentStatus('Down Payment Verified', b.remainingBalance), 'bg-sky-100 text-sky-800'];
+  if (hasReportedPayment(b)) return ['Payment being checked', 'bg-amber-100 text-[color:var(--warn)]'];
+  return ['Unpaid', 'bg-gray-100 text-gray-600'];
 }
 
 /* One clear next step per booking. */
@@ -624,7 +625,7 @@ async function submitWalkIn(e) {
   }
   const serviceIds = Array.from(document.querySelectorAll('.walkin-service-checkbox:checked')).map(cb => cb.value);
   if (!/^09[0-9]{9}$/.test(clientPhone)) {
-    CashierApp.toast('Please enter a valid mobile number (09XXXXXXXXX).', 'error');
+    CashierApp.toast(BookingFormValidation.MOBILE_MESSAGE, 'error');
     return;
   }
   if (!serviceIds.length) {

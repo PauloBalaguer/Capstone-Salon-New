@@ -291,7 +291,7 @@ function customerBookingMixin() {
         return this.pushToast('error', 'Please provide your name and contact number.');
       }
       if (!/^09\d{9}$/.test(this.bookingForm.customerPhone)) {
-        return this.pushToast('error', 'Please enter a valid mobile number (e.g. 09XXXXXXXXX).');
+        return this.pushToast('error', BookingFormValidation.MOBILE_MESSAGE);
       }
       if (await this.loadReservationQuote()) this.bookingStep = 'payment';
     },
@@ -531,7 +531,7 @@ function customerBookingMixin() {
       if (!this.bookingForm.date || !this.bookingForm.time) return this.pushToast('error', 'Please select a date and time for your appointment.');
       if (!this.depositLocked) return this.pushToast('error', 'Please submit your reservation deposit before confirming.');
       if (!this.bookingForm.customerName || !this.bookingForm.customerPhone) return this.pushToast('error', 'Please provide your name and contact number.');
-      if (!/^09\d{9}$/.test(this.bookingForm.customerPhone)) return this.pushToast('error', 'Please enter a valid mobile number (e.g. 09XXXXXXXXX).');
+      if (!/^09\d{9}$/.test(this.bookingForm.customerPhone)) return this.pushToast('error', BookingFormValidation.MOBILE_MESSAGE);
       // Client-side preview re-check the authoritative check happens on
       // the backend inside a locking transaction right before it inserts
       // the appointment (see backend/customer/submitBooking.php), since the

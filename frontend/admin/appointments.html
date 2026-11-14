@@ -204,13 +204,31 @@
 
         <!-- Payment -->
         <section class="lm-bd-section" aria-label="Payment">
-          <h3 class="lm-bd-heading">Payment <span class="lm-bd-paystate" :class="booking.remainingBalance > 0 ? 'is-due' : 'is-paid'" x-text="PortalPresentation.paymentStatus(booking.paymentStatus) || 'Not recorded'"></span></h3>
+          <h3 class="lm-bd-heading">Payment <span class="lm-bd-paystate" :class="booking.remainingBalance > 0 ? 'is-due' : 'is-paid'" x-text="PortalPresentation.paymentStatus(booking.paymentStatus, booking.remainingBalance) || 'Not recorded'"></span></h3>
           <div class="lm-bd-money">
             <div><span>Total</span><strong x-text="totalAmount(booking) !== null ? $store.admin.formatCurrency(totalAmount(booking)) : (booking.estimatedTotal ? 'Estimate ' + $store.admin.formatCurrency(booking.estimatedTotal) : 'Quote not set')"></strong></div>
             <div><span>Paid</span><strong class="lm-text-success" x-text="$store.admin.formatCurrency(amountPaid(booking))"></strong></div>
             <div><span>Balance</span><strong :class="booking.remainingBalance > 0 ? 'lm-text-gold' : ''" x-text="booking.remainingBalance === null ? '—' : $store.admin.formatCurrency(booking.remainingBalance)"></strong></div>
           </div>
           <p class="lm-bd-sub" x-text="'Paid via ' + (PortalPresentation.methodLabel(booking.depositMethod || booking.paymentMethod) || 'method not selected') + (booking.depositReference ? ' · Ref ' + booking.depositReference : '')"></p>
+        </section>
+        <!-- Emails: every attempt for this booking (backend/admin/emailLog.php) -->
+        <section class="lm-bd-section" aria-label="Emails">
+          <h3 class="lm-bd-heading">Emails</h3>
+          <p class="lm-hint" x-show="bookingEmails === null">Loading...</p>
+          <p class="lm-hint" x-show="bookingEmails && !bookingEmails.length">No emails for this booking yet.</p>
+          <ul class="lm-list" x-show="bookingEmails && bookingEmails.length">
+            <template x-for="email in bookingEmails || []" :key="email.id">
+              <li class="lm-list-item" style="flex-wrap:wrap;gap:6px">
+                <div style="min-width:0;flex:1 1 220px">
+                  <span class="lm-cell-main" x-text="email.subject"></span>
+                  <span class="lm-cell-sub" x-text="(email.toEmail || 'No address') + ' · ' + AdminUI.date(email.createdAt) + (email.error ? ' · ' + email.error : '')"></span>
+                </div>
+                <span class="lm-badge" :class="email.status === 'Sent' ? 'lm-badge--success' : (email.status === 'Pending' ? 'lm-badge--pending' : 'lm-badge--danger')" x-text="emailStatusLabel(email)"></span>
+                <button type="button" class="lm-btn lm-btn--sm" x-show="email.status === 'Failed' && email.toEmail && email.toEmail.includes('@')" @click="retryEmail(email)">Try again</button>
+              </li>
+            </template>
+          </ul>
         </section>
         <button type="button" class="lm-btn lm-btn--warn" x-show="booking.paymentStatus === 'Refund Due' || booking.paymentStatus === 'Refund Processing'" @click="refundDeposit(booking)" x-text="refundButtonLabel(booking)"></button>
 
@@ -426,8 +444,8 @@
 <script src="../../function/shared/live-sync.js?v=20261113"></script>
 <script src="../../function/admin/shared-data.js?v=20261113-hs-prices"></script>
 <script src="../../function/shared/service-duration.js"></script>
-<script src="../../function/shared/appointment-arrival.js?v=20261111-mobile"></script>
-<script src="../../function/admin/appointments.js?v=20261114-salon-cancel"></script>
+<script src="../../function/shared/appointment-arrival.js?v=20261114-pay"></script>
+<script src="../../function/admin/appointments.js?v=20261114-emails"></script>
 <script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

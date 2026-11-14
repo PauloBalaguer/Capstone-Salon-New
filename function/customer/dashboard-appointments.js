@@ -68,13 +68,7 @@ function customerAppointmentsMixin() {
       const label = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric' }).format(date);
       return label + (appt.time ? ' · ' + appt.time + ' (PH)' : '');
     },
-    appointmentPaymentLabel(appt) {
-      if (appt.paymentStatus === 'Down Payment Verified') return 'Deposit verified';
-      if (appt.status !== 'Cancelled') return appt.paymentStatus;
-      if (appt.paymentExpired && !appt.amountPaid) return 'Expired';
-      if (!appt.amountPaid && !appt.depositAmount && ['Payment Required', 'Pending', 'Unpaid', 'Not Paid'].includes(appt.paymentStatus)) return 'No payment collected';
-      return appt.paymentStatus;
-    },
+    appointmentPaymentLabel(appt) { return getPaymentStatusLabel(appt); }, // dashboard-helpers.js
     matchesAppointmentSearch(appt) {
       if (this.appointmentDateRangeInvalid()) return false;
       if (this.appointmentBranchFilter && appt.branchName !== this.appointmentBranchFilter) return false;

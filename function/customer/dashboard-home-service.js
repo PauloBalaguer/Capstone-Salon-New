@@ -49,7 +49,7 @@ function customerHomeServiceMixin() {
       return '';
     },
     homeServicePaymentLabel(request) {
-      return request.paymentStatus === 'Down Payment Verified' ? 'Deposit verified' : request.paymentStatus || 'Not recorded';
+      return request.paymentStatus ? PortalPresentation.paymentStatus(request.paymentStatus, request.balanceDue) : 'Not recorded';
     },
     // From these statuses on, the admin has confirmed the schedule.
     homeServiceScheduleWord(request) {

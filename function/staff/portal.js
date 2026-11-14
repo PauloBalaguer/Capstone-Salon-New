@@ -430,7 +430,7 @@ function staffPortal() {
       const phone = this.profileForm.phone.replace(/[\s\-()]/g, '').replace(/^\+63/, '0');
       const email = this.profileForm.email.trim();
       this.profileErrors = {
-        phone: /^09\d{9}$/.test(phone) ? '' : 'Enter an 11-digit mobile number that starts with 09.',
+        phone: /^09\d{9}$/.test(phone) ? '' : 'Enter a valid Philippine mobile number: 09XXXXXXXXX or +639XXXXXXXXX.',
         email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? '' : 'Enter a valid email address.',
       };
       return !this.profileErrors.phone && !this.profileErrors.email;

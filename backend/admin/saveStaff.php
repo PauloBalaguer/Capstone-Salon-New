@@ -18,6 +18,7 @@
 
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
+require_once '../../backend/shared/config/helpers/PhoneNumber.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/setup/live-updates.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
@@ -149,6 +150,11 @@ try {
     if ($phone === '') {
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'A contact number is required.']);
+        exit();
+    }
+    if (($phone = PhoneNumber::normalize($phone)) === null) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => PhoneNumber::MESSAGE]);
         exit();
     }
 

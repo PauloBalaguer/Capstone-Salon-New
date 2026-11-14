@@ -42,7 +42,6 @@
     { key: 'dashboard', label: 'Dashboard', href: 'dashboard.html', icon: 'home' },
     { key: 'book', label: 'Book Appointment', href: 'services-promos.html?book=1', icon: 'book' },
     { key: 'bookings', label: 'My Bookings', href: 'appointments.html', icon: 'bookings' },
-    { key: 'services', label: 'Explore Services', href: 'services-promos.html', icon: 'services' },
     { key: 'home', label: 'Home Service', href: 'home-service.html', icon: 'homeService' },
     { key: 'track', label: 'Track Booking', href: 'appointments.html?track=1', icon: 'track' },
     { key: 'feedback', label: 'My Feedback', href: 'reviews.html', icon: 'feedback' }
@@ -61,7 +60,7 @@
     const map = {
       dashboard: 'dashboard',
       appointments: params.get('track') === '1' ? 'track' : 'bookings',
-      services: params.get('book') === '1' ? 'book' : 'services',
+      services: 'book', // the services page is the booking page (no separate Explore Services item)
       'home-service': 'home',
       reviews: 'feedback'
     };

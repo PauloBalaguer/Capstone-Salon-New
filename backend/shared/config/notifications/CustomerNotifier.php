@@ -3,6 +3,7 @@
 require_once __DIR__ . '/EmailOutbox.php';
 require_once __DIR__ . '/SmsOutbox.php';
 require_once __DIR__ . '/../booking/Scheduling.php';
+require_once __DIR__ . '/../payments/PaymentStatus.php';
 
 /**
  * Customer notifications for every booking write path.
@@ -42,10 +43,12 @@ final class CustomerNotifier
         'RESCHEDULE' => 'Appointment schedule update',
         'CANCELLED' => 'Your appointment was cancelled',
         'SALON_CANCELLED' => 'We had to cancel your appointment',
+        'STYLIST_CHANGED' => 'Your stylist has changed',
         'SERVICE_FINISHED' => 'Your service is finished',
         'COMPLETED' => 'Thank you for visiting us',
         'WAITLIST_OPENING' => 'Your preferred stylist has an opening',
         'QUOTE_READY' => 'Your home service quote is ready',
+        'BALANCE_DUE' => 'Pay your remaining balance',
         'REMINDER' => 'Appointment reminder',
         'PAYMENT_REMINDER' => 'Complete your booking payment before it expires',
         'PAYMENT_RECEIVED' => 'Your payment was received',
@@ -53,8 +56,12 @@ final class CustomerNotifier
     // In-salon appointment emails that repeat the late-arrival rule (when one is configured).
     private const LATE_RULE_TYPES = ['BOOKING_SUBMITTED', 'CONFIRMED', 'RESCHEDULE', 'REMINDER'];
 
+    /** What happened to the last notify()'s email: 'queued', 'no_email', 'opted_out' or null (no email for this type). */
+    public static ?string $lastEmail = null;
+
     public static function notify(PDO $pdo, int $customerId, string $type, string $message, ?string $reference = null, ?string $payUrl = null): bool
     {
+        self::$lastEmail = null;
         if ($payUrl) $message .= "\n\nPay online here: {$payUrl}";
         $ownsTransaction = !$pdo->inTransaction();
         if ($ownsTransaction) $pdo->beginTransaction();
@@ -90,7 +97,14 @@ final class CustomerNotifier
         // reschedule with it, and their shared customer record may have none.
         if (!empty($details['contactEmail'])) $customer['email'] = $details['contactEmail'];
 
+        // No address or email turned off: nothing to send, but the attempt is logged (Admin email log).
+        if (isset(self::EMAIL_SUBJECTS[$type]) && (!$customer['email'] || (int) $customer['notify_email'] !== 1)) {
+            self::$lastEmail = $customer['email'] ? 'opted_out' : 'no_email';
+            EmailOutbox::logSkipped($pdo, $customer['email'], self::EMAIL_SUBJECTS[$type] . ($reference ? " ({$reference})" : ''), $emailMessage, $reference,
+                $customer['email'] ? 'Not sent: the customer turned email notifications off' : 'Not sent: no email address on file for this customer');
+        }
         if (isset(self::EMAIL_SUBJECTS[$type]) && $customer['email'] && (int) $customer['notify_email'] === 1) {
+            self::$lastEmail = 'queued';
             $lateRule = $details && !$details['homeService'] && in_array($type, self::LATE_RULE_TYPES, true) ? Scheduling::lateArrivalRule() : null;
             $body = 'Hello ' . trim($customer['first_name'].' '.$customer['last_name']) . ",\n\n" . $emailMessage . ($lateRule ? "\n\nLate arrival: {$lateRule}" : '') . ($customer['user_id']
                 ? "\n\nView your appointment anytime in your Leo Mejillano account."
@@ -132,22 +146,26 @@ final class CustomerNotifier
     private static function bookingDetails(PDO $pdo, int $customerId, string $reference): ?array
     {
         $stmt = $pdo->prepare("SELECT a.reference_code, a.appointment_datetime AS scheduled, a.status, a.payment_status,
+            GREATEST(0, a.total_price - IF(a.deposit_paid = 1 AND a.deposit_recorded_by IS NOT NULL, COALESCE(a.deposit_amount, 0), 0)) AS balance,
             br.branch_name, (SELECT GROUP_CONCAT(s.service_name ORDER BY aps.id SEPARATOR ', ') FROM appointment_services aps JOIN services s ON s.id = aps.service_id WHERE aps.appointment_id = a.id) AS services
             FROM appointments a LEFT JOIN branches br ON br.id = a.branch_id WHERE a.reference_code = ? AND a.customer_id = ? LIMIT 1");
         $stmt->execute([$reference,$customerId]); $row = $stmt->fetch(); $home = false;
         if (!$row) {
             $stmt = $pdo->prepare("SELECT h.reference_code, CONCAT(h.preferred_date, ' ', COALESCE(h.preferred_time,'09:00:00')) AS scheduled,
-                h.status, h.payment_status, COALESCE(br.branch_name,'Home / Event Service (off-site)') AS branch_name,
+                h.status, h.payment_status,
+                IF(h.quote_price IS NULL, NULL, GREATEST(0, h.quote_price - (SELECT COALESCE(SUM(hp.amount), 0) FROM home_service_payments hp WHERE hp.home_service_request_id = h.id))) AS balance,
+                COALESCE(br.branch_name,'Home / Event Service (off-site)') AS branch_name,
                 CONCAT(h.event_type, IF(h.wedding_package IS NULL,'',CONCAT(' Package ',h.wedding_package))) AS services, h.contact_email
                 FROM home_service_requests h LEFT JOIN branches br ON br.id = h.branch_id WHERE h.reference_code = ? AND h.customer_id = ? LIMIT 1");
             $stmt->execute([$reference,$customerId]); $row = $stmt->fetch(); $home = true;
         }
         if (!$row) return null;
         $when = new DateTimeImmutable($row['scheduled'],new DateTimeZone('Asia/Manila'));
+        $payment = PaymentStatus::label($row['payment_status'], $row['balance'] !== null ? (float) $row['balance'] : null);
         return ['homeService'=>$home,'scheduled'=>$row['scheduled'],'contactEmail'=>$row['contact_email']??null,'paymentStatus'=>$row['payment_status'],
-            'email'=>'Service: '.($row['services'] ?: 'Service details available in your booking')."\nWhen: ".$when->format('l, F j, Y, g:i A')."\nBranch: {$row['branch_name']}",
+            'email'=>'Service: '.($row['services'] ?: 'Service details available in your booking')."\nWhen: ".$when->format('l, F j, Y, g:i A')."\nBranch: {$row['branch_name']}\nPayment: {$payment}",
             'text'=>"Booking reference: {$row['reference_code']}\nService / Event: ".($row['services'] ?: 'Service details available in your booking').
             "\nScheduled time: ".$when->format('Y-m-d H:i')." (Philippine time)\nAppointment: ".$when->format('l, F j, Y, g:i A').
-            "\nBranch: {$row['branch_name']}\nBooking status: {$row['status']}\nPayment status: {$row['payment_status']}"];
+            "\nBranch: {$row['branch_name']}\nBooking status: {$row['status']}\nPayment status: {$payment}"];
     }
 }

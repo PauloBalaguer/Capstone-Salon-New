@@ -58,7 +58,7 @@ final class HomeServicePayment
             $peso = '₱' . number_format($amount, 2);
             CustomerNotifier::notify($pdo, (int) $request['customer_id'], 'PAYMENT_VERIFIED',
                 "We received your {$peso} payment for home service {$reference} via {$method}. "
-                . ($totals['due'] <= 0 ? 'Status: Paid in Full. Thank you!' : 'Remaining balance: ₱' . number_format($totals['due'], 2) . '.'));
+                . ($totals['due'] <= 0 ? 'Status: Fully paid. Thank you!' : 'Remaining balance: ₱' . number_format($totals['due'], 2) . '.'));
             $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "PAYMENT", ?)')
                 ->execute(["Home service {$reference}: {$peso} balance received via {$method}" . ($totals['due'] <= 0 ? ' fully paid.' : ' ₱' . number_format($totals['due'], 2) . ' still due.')]);
         }
@@ -91,9 +91,10 @@ final class HomeServicePayment
             ->execute([$checkout['id'], $checkout['url'], $token, $request['id']]);
         PaymentLog::record($pdo, 'checkout_created', null, $reference, $checkout['id'], $totals['due'], 'unpaid', ['type' => 'home_service_balance']);
 
-        CustomerNotifier::notify($pdo, (int) $request['customer_id'], 'QUOTE_READY',
+        CustomerNotifier::notify($pdo, (int) $request['customer_id'], 'BALANCE_DUE',
             "Your remaining balance for home service {$reference} is ₱" . number_format($totals['due'], 2) . '. '
-            . "Pay it online (GCash, Maya or card): {$checkout['url']} or pay in cash on the event day.");
+            . "Pay it online (GCash, Maya or card): {$checkout['url']} or pay in cash on the event day."
+            . "\n\nYou can also pay it anytime with Track your booking on our website.", $reference);
         return $checkout['url'];
     }
 

@@ -10,6 +10,7 @@ function adminBookingsApp() {
     bookingError: '',
     bookingRequest: 0,
     detailsBooking: null,
+    bookingEmails: null, // email log for the open booking (backend/admin/emailLog.php); null = loading
     exporting: false,
     initialized: false,
     filterTimer: null,
@@ -154,6 +155,23 @@ function adminBookingsApp() {
     openBookingDetails(booking) {
       this.detailsBooking = booking;
       this.$nextTick(() => this.$refs.bookingDetails.showModal());
+      this.loadBookingEmails(booking.id);
+    },
+    // Every email attempt for this booking: sent, waiting, failed (with Brevo's reason) or not sent (no address).
+    async loadBookingEmails(reference) {
+      this.bookingEmails = null;
+      const r = await Alpine.store('admin').get('emailLog.php', { reference });
+      if (this.detailsBooking && this.detailsBooking.id === reference) this.bookingEmails = r.success ? r.emails : [];
+    },
+    async retryEmail(email) {
+      const r = await Alpine.store('admin').post('emailLog.php', { action: 'retry', id: email.id });
+      LMToast.show(r.message || (r.success ? 'Email sent.' : 'Could not send the email.'), r.success ? 'success' : 'error');
+      if (this.detailsBooking) await this.loadBookingEmails(this.detailsBooking.id);
+    },
+    emailStatusLabel(email) {
+      if (email.status === 'Sent') return 'Sent';
+      if (email.status === 'Pending') return 'Waiting to send';
+      return Number(email.attempts) === 0 ? 'Not sent' : 'Failed';
     },
 
     /* Each branch has its own configured concurrent-booking capacity (see
@@ -395,8 +413,14 @@ function adminBookingsApp() {
       if (!(await LMConfirm({ title: 'Send payment link?', message: `Send ${booking.clientName} a PayMongo link to pay the remaining ${amount} online?`, confirmLabel: 'Send Link' }))) return;
       const store = Alpine.store('admin');
       const result = await store.post('homeServiceBalance.php', { id: booking.id, action: 'sendLink' });
-      LMToast.show(result.message || (result.success ? 'Link sent.' : 'Failed to send the link.'), result.success ? 'success' : 'error');
-      if (result.success) await store.refresh();
+      if (result.success && result.payUrl && !result.emailed) {
+        // Not emailed (no address / email off): show the link so it can be sent by text or chat.
+        const link = await LMPrompt({ title: 'Share the payment link', message: result.message, value: result.payUrl, label: 'Payment link', confirmLabel: 'Copy link' });
+        if (link !== null) { try { await navigator.clipboard.writeText(result.payUrl); LMToast.show('Link copied.', 'success'); } catch (e) { /* select it from the box instead */ } }
+      } else {
+        LMToast.show(result.message || (result.success ? 'Link sent.' : 'Failed to send the link.'), result.success ? 'success' : 'error');
+      }
+      if (result.success) { await store.refresh(); await this.loadBookingEmails(booking.id); }
     },
     async editHomeServiceQuote(booking) {
       const store = Alpine.store('admin');

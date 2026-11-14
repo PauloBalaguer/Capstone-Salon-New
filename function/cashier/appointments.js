@@ -65,8 +65,8 @@ function cellOrDash(value) {
 
 function paymentStatusBadgeClass(status) {
   switch (status) {
-    case 'Fully Paid':
-    case 'Down Payment Verified': return 'bg-emerald-100 text-[color:var(--success)]';
+    case 'Fully Paid': return 'bg-emerald-100 text-[color:var(--success)]';
+    case 'Down Payment Verified': return 'bg-sky-100 text-sky-800';
     case 'Awaiting Verification':
     case 'Refund Due':
     case 'Refund Processing': return 'bg-amber-100 text-[color:var(--warn)]';
@@ -222,7 +222,7 @@ function renderAppointments() {
         <span class="cp-cell" data-label="Staff">${escapeHtml(titleCase(b.staffName || '')) || '<span class="cp-sub">No stylist yet</span>'}</span>
         <span class="cp-cell" data-label="Schedule" title="${escapeHtml(friendlyDate(b.date))}"><span class="cp-when">${escapeHtml(shortDate(b.date))}</span><span class="cp-sub cp-when">${escapeHtml(shortTimeRange(b.time, b.endTime)) || '-'}</span></span>
         <span class="cp-cell" data-label="Status"><span class="cp-badge ${statusBadgeClass(b.status)}">${escapeHtml(b.status)}</span>${b.status === 'Pending' && b.hasConflict ? '<span class="cp-badge bg-rose-100 text-[color:var(--danger)]">Time clash</span>' : ''}</span>
-        <span class="cp-cell" data-label="Payment"><span class="cp-badge ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(PortalPresentation.paymentStatus(b.paymentStatus)) || 'Not set'}</span></span>
+        <span class="cp-cell" data-label="Payment"><span class="cp-badge ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(PortalPresentation.paymentStatus(b.paymentStatus, b.remainingBalance)) || 'Not set'}</span></span>
         <span class="cp-cell cp-cell-action"><span class="btn-row cp-btn-ghost">Details</span></span>
       </button>`;
   }).join('');
@@ -281,7 +281,7 @@ function showDetails(ref) {
         </div>
         <div class="flex flex-col items-end gap-1">
           <span class="text-xs font-bold px-2.5 py-1 rounded-full ${statusBadgeClass(b.status)}">${escapeHtml(b.status)}</span>
-          <span class="text-xs font-bold px-2.5 py-1 rounded-full ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(PortalPresentation.paymentStatus(b.paymentStatus))}</span>
+          <span class="text-xs font-bold px-2.5 py-1 rounded-full ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(PortalPresentation.paymentStatus(b.paymentStatus, b.remainingBalance))}</span>
         </div>
       </div>
       ${requests}
@@ -357,7 +357,7 @@ function openRescheduleModal(ref) {
     ['Service(s)', cellOrDash(b.serviceName), true],
     ['Duration', b.durationMinutes ? b.durationMinutes + ' min' : ''],
     ['Total', CashierApp.formatCurrency(b.price)],
-    ['Payment', `<span class="text-xs font-bold px-2 py-0.5 rounded ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(PortalPresentation.paymentStatus(b.paymentStatus))}</span>`],
+    ['Payment', `<span class="text-xs font-bold px-2 py-0.5 rounded ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(PortalPresentation.paymentStatus(b.paymentStatus, b.remainingBalance))}</span>`],
     ['Deposit', b.depositAmount ? CashierApp.formatCurrency(b.depositAmount) + (b.depositVerified ? ' (verified)' : ' (unverified)') : ''],
   ];
   document.getElementById('rescheduleInfo').innerHTML = info.map(([label, value, wide]) => `

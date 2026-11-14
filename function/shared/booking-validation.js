@@ -1,6 +1,12 @@
 /* Shared only by booking pages. Keeps errors next to the existing controls. */
 window.BookingFormValidation = (() => {
   let errorSequence = 0;
+  // Same rule as backend/shared/config/helpers/PhoneNumber.php: 09XXXXXXXXX or +639XXXXXXXXX -> '09XXXXXXXXX', else ''.
+  const MOBILE_MESSAGE = 'Enter a valid Philippine mobile number: 09XXXXXXXXX or +639XXXXXXXXX (11 digits starting with 09).';
+  function mobile(value) {
+    const m = String(value ?? '').replace(/[\s\-().]/g, '').match(/^(?:09|\+639)(\d{9})$/);
+    return m ? '09' + m[1] : '';
+  }
   function check(input, kind, required = true) {
     if (!input || input.disabled || input.readOnly) return true;
     const value = String(input.value ?? '').trim();
@@ -8,7 +14,7 @@ window.BookingFormValidation = (() => {
     if (!value) message = required ? 'Please complete this field.' : '';
     else if (kind === 'name' && (Array.from(value).length > 255 || !/^[\p{L}\p{M} .’'\-]+$/u.test(value) || !/\p{L}/u.test(value))) message = 'Please enter your name using letters, spaces, apostrophes, periods or hyphens.';
     else if (kind === 'initial' && !/^\p{L}\.?$/u.test(value)) message = 'Please enter one letter, optionally followed by a period.';
-    else if (kind === 'mobile' && !/^09\d{9}$/.test(value)) message = 'Please enter a valid mobile number (09XXXXXXXXX).';
+    else if (kind === 'mobile' && !mobile(value)) message = MOBILE_MESSAGE;
     else if (kind === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) message = 'Please enter a valid email address.';
     else if (kind === 'quantity' && (!/^[1-9]\d*$/.test(value) || Number(value) > 2147483647)) message = 'Please enter a whole number of clients (at least 1).';
     else if (kind === 'money' && (!/^\d+(\.\d{1,2})?$/.test(value) || Number(value) > 99999999.99)) message = 'Please enter a non-negative amount with at most two decimal places.';
@@ -16,6 +22,10 @@ window.BookingFormValidation = (() => {
     else if (kind === 'text' && value.length > 255) message = 'Please use at most 255 characters.';
     else if (kind === 'date' && (!/^\d{4}-\d{2}-\d{2}$/.test(value) || !Number.isFinite(Date.parse(value + 'T00:00:00Z')) || new Date(value + 'T00:00:00Z').toISOString().slice(0, 10) !== value)) message = 'Please select a valid appointment date.';
     else if (kind === 'time' && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value)) message = 'Please select a valid appointment time.';
+    if (!message && kind === 'mobile' && input.value !== mobile(value)) {
+      input.value = mobile(value); // +63 917 123 4567 -> 09171234567 (what the server stores)
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
     if (!message && value && ['money', 'quantity'].includes(kind) && input.min !== '' && Number(value) < Number(input.min)) message = 'Please enter an amount of at least ' + input.min + '.';
     input.setCustomValidity(message);
     input.setAttribute('aria-invalid', message ? 'true' : 'false');
@@ -67,7 +77,9 @@ window.BookingFormValidation = (() => {
   document.addEventListener('input', event => {
     const input = event.target;
     if (input instanceof HTMLInputElement && identify(input) === 'mobile') {
-      input.value = input.value.replace(/[^0-9]/g, '').slice(0, 11);
+      // +63 917 123 4567 (typed or pasted) becomes 09171234567 as you go.
+      const typed = input.value.replace(/[^0-9+]/g, '');
+      input.value = (/^\+?63/.test(typed) ? '0' + typed.replace(/^\+?63/, '') : typed).replace(/\D/g, '').slice(0, 11);
     }
   }, true);
   document.addEventListener('keydown', event => {
@@ -86,7 +98,7 @@ window.BookingFormValidation = (() => {
       const kind = identify(input);
       if (!kind) continue;
       input.dataset.bookingValidated = 'true';
-      if (kind === 'mobile') { input.inputMode = 'numeric'; input.maxLength = 11; input.placeholder = '09XXXXXXXXX'; }
+      if (kind === 'mobile') { input.inputMode = 'tel'; input.maxLength = 16; input.placeholder = '09XXXXXXXXX or +639XXXXXXXXX'; }
       if (kind === 'quantity') { input.inputMode = 'numeric'; input.min = '1'; input.step = '1'; }
       if (kind === 'money') { input.inputMode = 'decimal'; input.step = '0.01'; }
     }
@@ -108,5 +120,5 @@ window.BookingFormValidation = (() => {
     error.textContent = text;
     error.hidden = !text;
   }
-  return { check, fields, message };
+  return { check, fields, message, mobile, MOBILE_MESSAGE };
 })();

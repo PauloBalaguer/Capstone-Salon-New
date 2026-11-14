@@ -10,6 +10,7 @@
 
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
+require_once '../../backend/shared/config/helpers/PhoneNumber.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/setup/cloudinary.php';
@@ -51,6 +52,11 @@ $profilePicture = $_POST['profilePicture'] ?? null;
 if ($name === '' || $phone === '') {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Name and phone number are required.']);
+    exit();
+}
+if (($phone = PhoneNumber::normalize($phone)) === null) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => PhoneNumber::MESSAGE]);
     exit();
 }
 

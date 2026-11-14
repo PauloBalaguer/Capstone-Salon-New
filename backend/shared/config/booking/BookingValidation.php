@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/../helpers/PhoneNumber.php';
+
 /** Validate raw request values before endpoint casts can hide malformed input. */
 final class BookingValidation
 {
@@ -31,7 +33,7 @@ final class BookingValidation
                 switch ($type) {
                     case 'id': case 'quantity': $valid = self::positiveId($value); break;
                     case 'email': $valid = strlen($value) <= 254 && filter_var($value, FILTER_VALIDATE_EMAIL) !== false; break;
-                    case 'mobile': $valid = preg_match('/^09[0-9]{9}$/D', $value) === 1; break;
+                    case 'mobile': $valid = PhoneNumber::normalize($value) !== null; break;
                     case 'name':
                         $valid = mb_strlen($value) <= 255 && preg_match("/^[\\p{L}\\p{M} .’'\\-]+$/u", $value) === 1
                             && preg_match('/\\p{L}/u', $value) === 1;
@@ -57,6 +59,7 @@ final class BookingValidation
                 $errors[$field] = "Please enter a valid {$description}.";
                 if (in_array($type, ['id', 'ids', 'staffMap'], true)) $errors[$field] = "Please select valid {$description}.";
                 if ($type === 'quantity') $errors[$field] = 'Please enter a whole number of clients (at least 1).';
+                if ($type === 'mobile') $errors[$field] = PhoneNumber::MESSAGE;
                 if ($type === 'name') $errors[$field] = 'Please enter your name using letters, spaces, apostrophes, periods or hyphens.';
                 if ($type === 'date') $errors[$field] = 'Please select a valid appointment date.';
                 if ($type === 'time') $errors[$field] = 'Please select a valid appointment time.';
@@ -82,7 +85,13 @@ final class BookingValidation
                 $errors[$field] = 'Please provide a single value for this field.';
             }
         }
-        if (!$errors) return;
+        if (!$errors) {
+            // Every caller passes $_POST: store mobile numbers one way (09XXXXXXXXX), however they were typed.
+            foreach ($rules as $field => $rule) {
+                if ($rule[0] === 'mobile' && isset($_POST[$field]) && is_string($_POST[$field]) && ($n = PhoneNumber::normalize($_POST[$field]))) $_POST[$field] = $n;
+            }
+            return;
+        }
         http_response_code(422);
         echo json_encode(['success' => false, 'message' => reset($errors), 'errors' => $errors]);
         exit;

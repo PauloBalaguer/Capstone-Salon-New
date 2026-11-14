@@ -109,7 +109,7 @@ try {
                 $pdo->prepare("INSERT INTO home_service_payments (home_service_request_id, kind, amount, method, reference, recorded_by) VALUES (?, 'deposit', ?, ?, ?, ?)")
                     ->execute([$homeServiceId, $homeService['deposit_amount'], $homeService['deposit_method'] ?: 'Cash', $homeService['deposit_reference'], $_SESSION['user_id']]);
             }
-            CustomerNotifier::notify($pdo, $homeServiceCustomerId, 'PAYMENT_VERIFIED', "Your reservation payment for {$referenceCode} has been verified. Status: Reservation Payment Received.");
+            CustomerNotifier::notify($pdo, $homeServiceCustomerId, 'PAYMENT_VERIFIED', "Your reservation payment for {$referenceCode} has been verified. Status: Deposit paid.");
             CustomerNotifier::notify($pdo, $homeServiceCustomerId, 'CONFIRMED', "Your home service request {$referenceCode} is now Confirmed.");
         } elseif ($staffPaymentStatus !== '') {
             $pdo->prepare('UPDATE home_service_requests SET status = ?, payment_status = ? WHERE id = ?')
@@ -256,7 +256,7 @@ try {
 
             $pdo->prepare('UPDATE appointments SET status = ?, payment_status = ?, deposit_paid = 1, deposit_amount = ?, deposit_method = ?, deposit_recorded_by = ?, deposit_recorded_at = NOW() WHERE id = ?')
                 ->execute([$status, $resolvedPaymentStatus, $depositAmount, $depositMethod, $_SESSION['user_id'], $appointment['id']]);
-            $paymentVerifiedLabel = $resolvedPaymentStatus === 'Fully Paid' ? 'Paid in Full' : 'Reservation Payment Received';
+            $paymentVerifiedLabel = $resolvedPaymentStatus === 'Fully Paid' ? 'Fully paid' : 'Deposit paid';
             CustomerNotifier::notify($pdo, $appointmentCustomerId, 'PAYMENT_VERIFIED', "Your payment for {$referenceCode} has been verified. Status: {$paymentVerifiedLabel}.");
         }
         CustomerNotifier::notify($pdo, $appointmentCustomerId, 'CONFIRMED', "Your appointment {$referenceCode} is now Confirmed.");

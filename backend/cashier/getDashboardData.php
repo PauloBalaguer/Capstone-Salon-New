@@ -121,6 +121,8 @@ try {
         $row['depositPaid'] = (bool) $row['depositPaid'];
         $row['checkoutPaid'] = (bool) $row['checkoutPaid'];
         $row['depositVerified'] = (bool) $row['depositVerified'];
+        // Same rule as Admin (backend/admin/getDashboardData.php): for "Deposit paid · ₱X balance due".
+        $row['remainingBalance'] = $row['checkoutPaid'] ? 0 : max(0, (float) $row['price'] - ($row['depositPaid'] && $row['depositVerified'] ? (float) $row['depositAmount'] : 0));
         $row['hasConflict'] = (bool) $row['hasConflict'];
         $row['durationMinutes'] = (int) $row['durationMinutes'];
         $endTime = new DateTime($row['startDateTime']);

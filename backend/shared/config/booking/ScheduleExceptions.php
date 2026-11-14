@@ -16,13 +16,15 @@ require_once __DIR__ . '/HomeServiceRequest.php';
 final class ScheduleExceptions
 {
     const HOLIDAY_TYPES = ['closed' => 'Closed all day', 'special_hours' => 'Special hours', 'open' => 'Open as usual'];
+    // Salon bookings a stylist's leave affects: confirmed ones and those still waiting for payment/confirmation.
+    const LEAVE_STATUSES = ['Pending', 'Confirmed'];
 
-    /** Confirmed bookings this leave would affect. */
+    /** Salon bookings (Pending or Confirmed) and confirmed home visits this leave would affect. */
     public static function affectedByLeave(PDO $pdo, int $employeeId, string $from, string $to): array
     {
-        $stmt = $pdo->prepare("SELECT a.id, a.reference_code, a.appointment_datetime, CONCAT(c.first_name, ' ', c.last_name) AS client
+        $stmt = $pdo->prepare("SELECT a.id, a.reference_code, a.appointment_datetime, a.status, CONCAT(c.first_name, ' ', c.last_name) AS client
             FROM appointments a JOIN customers c ON c.id = a.customer_id
-            WHERE a.status = 'Confirmed' AND DATE(a.appointment_datetime) BETWEEN ? AND ?
+            WHERE a.status IN ('Pending', 'Confirmed') AND DATE(a.appointment_datetime) BETWEEN ? AND ?
               AND (a.employee_id = ? OR EXISTS (SELECT 1 FROM appointment_services x WHERE x.appointment_id = a.id AND x.employee_id = ?))
             ORDER BY a.appointment_datetime");
         $stmt->execute([$from, $to, $employeeId, $employeeId]);
@@ -134,6 +136,50 @@ final class ScheduleExceptions
         return $affected;
     }
 
+    /**
+     * Same-branch stylists who can take over the absent stylist's part of a
+     * salon booking at its current time. Each one is tried for real with
+     * moveParts() inside a savepoint, then undone -- so the list uses exactly
+     * the checks a save does (qualified, scheduled, not on leave, no clash).
+     * Caller owns the transaction.
+     */
+    public static function replacements(PDO $pdo, array $appointment, int $absentId): array
+    {
+        $stmt = $pdo->prepare("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM employees
+            WHERE branch_id = ? AND is_active = 1 AND id <> ? ORDER BY first_name, last_name");
+        $stmt->execute([$appointment['branch_id'], $absentId]);
+        $options = [];
+        foreach ($stmt->fetchAll() as $e) {
+            $pdo->exec('SAVEPOINT try_replacement');
+            try {
+                self::moveParts($pdo, $appointment, $absentId, (int) $e['id']);
+                $options[] = ['id' => (string) $e['id'], 'name' => $e['name']];
+            } catch (RuntimeException $ex) {
+                if ($ex instanceof PDOException) throw $ex;
+            }
+            $pdo->exec('ROLLBACK TO SAVEPOINT try_replacement');
+        }
+        return $options;
+    }
+
+    /**
+     * Gives the absent stylist's services on this salon booking (and the main
+     * stylist role, if theirs) to $newId, then validates the whole booking
+     * (Scheduling::validateAppointmentStaff). Throws RuntimeException when
+     * $newId can't take it. Returns the appointment with its new employee_id.
+     */
+    public static function moveParts(PDO $pdo, array $appointment, int $absentId, int $newId): array
+    {
+        $pdo->prepare('UPDATE appointment_services SET employee_id = ? WHERE appointment_id = ? AND employee_id = ?')
+            ->execute([$newId, $appointment['id'], $absentId]);
+        if ((int) $appointment['employee_id'] === $absentId) {
+            $pdo->prepare('UPDATE appointments SET employee_id = ? WHERE id = ?')->execute([$newId, $appointment['id']]);
+            $appointment['employee_id'] = $newId;
+        }
+        Scheduling::validateAppointmentStaff($pdo, $appointment, $appointment['appointment_datetime']);
+        return $appointment;
+    }
+
     /** Marks each affected booking for follow-up; the booking itself is not changed. */
     public static function flag(PDO $pdo, array $affected, string $reason): void
     {
@@ -167,7 +213,7 @@ final class ScheduleExceptions
 
     private static function salonRow(array $r): array
     {
-        return ['kind' => 'salon', 'type' => 'Salon appointment', 'internalId' => (int) $r['id'], 'reference' => $r['reference_code'],
+        return ['kind' => 'salon', 'type' => 'Salon appointment', 'internalId' => (int) $r['id'], 'reference' => $r['reference_code'], 'status' => $r['status'] ?? null,
             'when' => date('D, M j, Y g:i A', strtotime($r['appointment_datetime'])), 'client' => $r['client']];
     }
 

@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../shared/config/security/PasswordPolicy.php';
 require_once '../../backend/shared/config/setup/cors.php';
+require_once '../../backend/shared/config/helpers/PhoneNumber.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/security/RateLimiter.php';
@@ -54,6 +55,8 @@ if (empty($email)) {
 }
 
 if (empty($contact_number)) $errors[] = 'Contact number is required.';
+elseif (($normalizedNumber = PhoneNumber::normalize($contact_number)) === null) $errors[] = PhoneNumber::MESSAGE;
+else $contact_number = $normalizedNumber;
 
 if (empty($password)) {
     $errors[] = 'Password is required.';

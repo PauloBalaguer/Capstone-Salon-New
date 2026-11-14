@@ -132,7 +132,7 @@
               <h3 id="tracking-payment-details" tabindex="-1">Payment Details</h3>
               <dl class="cp-tracking-fields">
                 <div><dt>Total / quoted total</dt><dd x-text="selectedTracking().price != null ? formatPeso(selectedTracking().price) : 'Awaiting quote'"></dd></div>
-                <div><dt>Payment status</dt><dd x-text="selectedTracking().paymentStatus || 'Contact the branch'"></dd></div>
+                <div><dt>Payment status</dt><dd x-text="selectedTracking().paymentStatus ? PortalPresentation.paymentStatus(selectedTracking().paymentStatus, selectedTracking().remainingBalance) : 'Contact the branch'"></dd></div>
                 <div><dt>Deposit</dt><dd x-text="selectedTracking().depositAmount != null ? formatPeso(selectedTracking().depositAmount) : 'Not recorded'"></dd></div>
                 <div><dt>Deposit verification</dt><dd x-text="selectedTracking().depositVerified ? 'Verified' : (selectedTracking().depositAmount ? 'Not yet verified' : 'No deposit recorded')"></dd></div>
                 <div><dt>Amount paid</dt><dd x-text="selectedTracking().amountPaid != null ? formatPeso(selectedTracking().amountPaid) : 'Not recorded'"></dd></div>
@@ -648,7 +648,7 @@
   <script src="../../function/customer/dashboard-helpers.js"></script>
   <script src="../../function/customer/dashboard-state.js"></script>
   <script src="../../function/customer/dashboard-notifications.js"></script>
-  <script src="../../function/customer/dashboard-appointments.js?v=20261111"></script>
+  <script src="../../function/customer/dashboard-appointments.js?v=20261114-pay"></script>
   <script src="../../function/customer/dashboard-reviews.js"></script>
   <script src="../../function/customer/dashboard-home-service.js"></script>
   <script src="../../function/customer/dashboard-track-booking.js?v=20261113-track-ref"></script>

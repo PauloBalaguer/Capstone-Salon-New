@@ -66,7 +66,7 @@
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="../../frontend/shared/clean-theme.css?v=20261104-notif4">
   <!-- Customer portal shell (sidebar, header, bottom nav); loaded after the shared themes. -->
-  <link rel="stylesheet" href="../../frontend/customer/customer-portal.css?v=20261110">
+  <link rel="stylesheet" href="../../frontend/customer/customer-portal.css?v=20261114-mnav">
   <link rel="stylesheet" href="../shared/type-scale.css?v=20261111-notif">
 </head>
 <body data-customer-page="profile" data-page-title="My Profile" class="salon-portal bg-luxury-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-luxury-500 selection:text-white"
@@ -170,26 +170,26 @@
               <h3 class="font-serif text-base font-bold text-white">Notification Preferences</h3>
               <p class="text-xs text-slate-400 mt-1">Choose how you receive updates about your appointments and exclusive offers.</p>
               <div class="mt-4 space-y-3 text-xs">
-                <div class="bg-slate-800/50 p-4 rounded-lg flex items-center justify-between">
+                <div class="bg-slate-800/50 p-4 rounded-lg flex items-center justify-between gap-4">
                   <div>
                     <p class="font-medium text-white">Email Notifications</p>
                     <p class="text-slate-400">Receive reminders and promotions at <span class="font-semibold" x-text="customerProfile.email"></span>.</p>
                   </div>
                   <button type="button" role="switch" aria-label="Email notifications" @click="customerProfile.notificationPrefs.email = !customerProfile.notificationPrefs.email"
                           :aria-checked="(!!customerProfile.notificationPrefs.email).toString()"
-                          :class="customerProfile.notificationPrefs.email ? 'is-on' : ''" class="lm-switch">
+                          :class="customerProfile.notificationPrefs.email ? 'is-on' : ''" class="lm-switch shrink-0">
                     <span class="lm-switch-knob" aria-hidden="true"></span>
                   </button>
                 </div>
 
-                <div class="bg-slate-800/50 p-4 rounded-lg flex items-center justify-between">
+                <div class="bg-slate-800/50 p-4 rounded-lg flex items-center justify-between gap-4">
                   <div>
                     <p class="font-medium text-white">SMS Notifications</p>
                     <p class="text-slate-400">Get appointment alerts on your phone at <span class="font-semibold" x-text="customerProfile.phone"></span>.</p>
                   </div>
                   <button type="button" role="switch" aria-label="SMS notifications" @click="customerProfile.notificationPrefs.sms = !customerProfile.notificationPrefs.sms"
                           :aria-checked="(!!customerProfile.notificationPrefs.sms).toString()"
-                          :class="customerProfile.notificationPrefs.sms ? 'is-on' : ''" class="lm-switch">
+                          :class="customerProfile.notificationPrefs.sms ? 'is-on' : ''" class="lm-switch shrink-0">
                     <span class="lm-switch-knob" aria-hidden="true"></span>
                   </button>
                 </div>

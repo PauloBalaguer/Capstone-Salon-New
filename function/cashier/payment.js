@@ -167,6 +167,7 @@ function filtered() {
     && (!method || r.method === method)
     && (!q || (r.clientName || '').toLowerCase().includes(q)
       || (r.reference || '').toLowerCase().includes(q)
+      || (r.paymentReference || '').toLowerCase().includes(q)
       || (r.invoiceId || '').toLowerCase().includes(q)));
 }
 
@@ -254,6 +255,7 @@ function render() {
         <span class="order-1 xl:order-none min-w-0">
           <span class="block font-bold text-slate-900 capitalize truncate">${escapeHtml(r.clientName)}</span>
           <span class="block text-xs text-slate-500 font-mono truncate">${escapeHtml(r.reference)}</span>
+          ${r.paymentReference ? `<span class="block text-xs text-slate-500 break-all">Payment ref: ${escapeHtml(r.paymentReference)}</span>` : ''}
         </span>
         <span class="order-3 xl:order-none col-span-2 xl:col-span-1 text-sm text-slate-700 truncate">${escapeHtml(r.serviceName || '')}${r.cashierName ? `<span class="block text-xs text-slate-500">${r.type === 'Checkout' ? 'Received' : 'Verified'} by ${escapeHtml(r.cashierName)}</span>` : ''}</span>
         <span class="order-4 xl:order-none">${typeBadge}</span>
@@ -274,8 +276,8 @@ function exportCsv() {
   const rows = filtered();
   if (!rows.length) { CashierApp.toast('No payments to download.', 'error'); return; }
   const cell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-  const header = ['Date and time', 'Type', 'Invoice', 'Reference', 'Customer', 'Services', 'Stylist', 'Method', 'Amount', 'Tip', 'Received / verified by'];
-  const lines = rows.map(r => [r.paidAt, r.type === 'Checkout' ? 'Paid at counter' : 'Online deposit', r.invoiceId || '', r.reference, r.clientName, r.serviceName || '', r.stylistName || '', methodLabel(r.method), Number(r.amount).toFixed(2), Number(r.tip || 0).toFixed(2), r.cashierName || ''].map(cell).join(','));
+  const header = ['Date and time', 'Type', 'Invoice', 'Reference', 'Customer', 'Services', 'Stylist', 'Method', 'Payment reference', 'Amount', 'Tip', 'Received / verified by'];
+  const lines = rows.map(r => [r.paidAt, r.type === 'Checkout' ? 'Paid at counter' : 'Online deposit', r.invoiceId || '', r.reference, r.clientName, r.serviceName || '', r.stylistName || '', methodLabel(r.method), r.paymentReference || '', Number(r.amount).toFixed(2), Number(r.tip || 0).toFixed(2), r.cashierName || ''].map(cell).join(','));
   const blob = new Blob(['﻿' + [header.map(cell).join(','), ...lines].join('\r\n')], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a');
   const [from, to] = state.loadedRange || ['', ''];

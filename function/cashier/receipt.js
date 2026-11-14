@@ -62,6 +62,8 @@ function renderReceipt(receipt) {
   document.getElementById('receiptTip').textContent = CashierApp.formatCurrency(receipt.tip);
   document.getElementById('receiptTotal').textContent = CashierApp.formatCurrency(receipt.total);
   document.getElementById('receiptMethod').textContent = receipt.paymentMethod;
+  document.getElementById('receiptPaymentReferenceRow').classList.toggle('hidden', !receipt.paymentReference);
+  document.getElementById('receiptPaymentReference').textContent = receipt.paymentReference || '';
 
   const showCash = receipt.paymentMethod === 'Cash' && receipt.cashReceived !== null;
   document.getElementById('receiptCashRow').classList.toggle('hidden', !showCash);

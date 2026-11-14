@@ -401,11 +401,11 @@
                         </div>
 
                         <div class="rounded-xl bg-slate-50 border border-gray-200 p-4 space-y-2 text-sm">
-                            <div class="flex justify-between text-slate-600"><span>Services</span><span id="serviceChargesDisplay" class="font-medium">₱0.00</span></div>
+                            <div class="flex justify-between text-slate-600"><span>Service total</span><span id="serviceChargesDisplay" class="font-medium">₱0.00</span></div>
                             <div id="loyaltyDiscountRow" class="hidden flex justify-between text-[color:var(--success)]"><span>Loyalty reward</span><span id="loyaltyDiscountDisplay"></span></div>
-                            <div id="reservationReceivedRow" class="flex justify-between text-[color:var(--success)]"><span>Reservation already paid</span><span id="reservationReceivedDisplay" class="font-medium">&minus; ₱0.00</span></div>
-                            <div id="productsChargeRow" class="flex justify-between text-slate-600"><span>Remaining for services</span><span id="remainingServiceDisplay" class="font-medium">₱0.00</span></div>
                             <div id="productsTotalRow" class="hidden flex justify-between text-slate-600"><span>Products</span><span id="subtotalDisplay" class="font-medium">₱0.00</span></div>
+                            <div id="reservationReceivedRow" class="flex justify-between text-[color:var(--success)]"><span>Deposit paid</span><span id="reservationReceivedDisplay" class="font-medium">&minus; ₱0.00</span></div>
+                            <div id="productsChargeRow" class="flex justify-between text-slate-600"><span>Balance due</span><span id="remainingServiceDisplay" class="font-medium">₱0.00</span></div>
                             <div id="tipRow" class="hidden flex justify-between text-slate-600"><span>Tip</span><span id="tipDisplay" class="font-medium">₱0.00</span></div>
                             <div class="flex justify-between items-baseline pt-3 mt-1 border-t border-gray-300">
                                 <span class="font-bold text-slate-800">Amount due</span>
@@ -419,12 +419,18 @@
                         <div id="paymentForm" class="space-y-5">
                             <div>
                                 <p class="field-label">Payment method</p>
-                                <div class="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Payment method">
+                                <div class="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Payment method">
                                     <button type="button" data-method="Cash" class="pay-method-card" role="radio"><i class="fa-solid fa-money-bill-wave text-[color:var(--success)]"></i>Cash</button>
-                                    <button type="button" data-method="GCash" class="pay-method-card" role="radio"><i class="fa-solid fa-wallet text-[color:var(--info)]"></i>GCash</button>
+                                    <button type="button" data-method="GCash" class="pay-method-card" role="radio"><i class="fa-solid fa-wallet text-[color:var(--info)]"></i>GCash / QR</button>
                                     <button type="button" data-method="Maya" class="pay-method-card" role="radio"><i class="fa-solid fa-wallet text-[color:var(--success)]"></i>Maya</button>
+                                    <button type="button" data-method="Card" class="pay-method-card" role="radio"><i class="fa-solid fa-credit-card text-[color:var(--info)]"></i>Card</button>
                                 </div>
                                 <p id="methodNote" class="hidden text-sm text-slate-500 mt-2"><i class="fa-solid fa-circle-info mr-1"></i>Check that the payment arrived on the salon's account before completing.</p>
+                                <div id="paymentReferenceSection" class="hidden mt-3">
+                                    <label for="paymentReferenceInput" class="field-label">Payment reference number</label>
+                                    <input id="paymentReferenceInput" type="text" maxlength="100" autocomplete="off" class="field-input" aria-describedby="paymentReferenceHelp" placeholder="Transaction or approval reference">
+                                    <p id="paymentReferenceHelp" class="text-sm text-slate-500 mt-2">Use the confirmed transaction or terminal reference, not the card number.</p>
+                                </div>
                             </div>
                             <div id="tipSection">
                                 <p class="field-label">Tip for stylist <span class="normal-case font-medium text-slate-400">(optional, cash only)</span></p>
@@ -497,8 +503,8 @@
     <script src="../../function/cashier/cashier-common.js?v=20261110"></script>
     <script src="../../function/shared/appointment-arrival.js?v=20261114-pay"></script>
     <script src="../../function/shared/confirm-dialog.js"></script>
-    <script src="../../function/cashier/checkout-modal.js?v=20261105"></script>
-    <script src="../../function/cashier/dashboard.js?v=20261114-phone"></script>
+    <script src="../../function/cashier/checkout-modal.js?v=20261114-checkout"></script>
+    <script src="../../function/cashier/dashboard.js?v=20261114-walkin"></script>
 <script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 </html>

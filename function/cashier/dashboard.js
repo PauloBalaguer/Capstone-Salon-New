@@ -503,6 +503,7 @@ function renderWalkInStaff() {
   // Walk-ins start now: only stylists on duty (available, or busy at the
   // salon -- the server rejects an overlap) can be picked.
   const available = staff.filter(s => s.status === 'available' || s.status === 'busy');
+  const clockedIn = staff.some(s => s.onShift || s.status === 'busy_home_service');
   const unavailable = staff.filter(s => !available.includes(s));
   const offList = unavailable.filter(s => !/cashier/i.test(s.role || ''));
   const card = (s, ok) => `
@@ -519,10 +520,10 @@ function renderWalkInStaff() {
     ? available.map(s => card(s, true)).join('')
     : `<div class="wi-staff-empty">
         <div class="wi-staff-empty-head">
-          <strong>No staff on shift right now</strong>
+          <strong>${clockedIn ? 'No stylists available for a walk-in right now' : 'No stylists are clocked in at this branch'}</strong>
           <button type="button" class="wi-staff-refresh" aria-label="Refresh staff list" title="Refresh staff list"><i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i></button>
         </div>
-        <span>Ask the stylist to log in to their Staff Portal. That clocks them in; then tap refresh to see them here. For a later time, use the regular booking flow instead.</span>
+        <span>${clockedIn ? 'Staff may be on a break or away on a home visit. Refresh when a stylist is available.' : 'Ask a stylist to open the Staff Portal and tap Shift In, then refresh the staff list.'} For a later time, use the regular booking flow.</span>
       </div>`;
   const offBox = document.getElementById('wiStaffOff');
   const moreBtn = document.getElementById('wiStaffMore');

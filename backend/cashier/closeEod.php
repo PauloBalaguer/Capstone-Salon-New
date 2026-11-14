@@ -20,6 +20,8 @@ require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/setup/live-updates.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/booking/Scheduling.php';
+require_once __DIR__ . '/../shared/config/payments/RevenueReport.php';
+require_once __DIR__ . '/../shared/config/helpers/Schema.php';
 
 sendCorsHeaders();
 LiveUpdates::afterThisRequest(); // Pusher: open panels refresh after this save (setup/live-updates.php)
@@ -120,13 +122,20 @@ try {
     $summary = $stmt->fetch();
     $invoiceCount = (int) $summary['invoiceCount'];
     $grossRevenue = (float) $summary['grossRevenue'];
+    $methodTotals = RevenueReport::checkoutByMethod($pdo, $branchId, $businessDate);
 
     // One row per branch/day (uq_daily_closures_branch_date): closing a day an
     // Admin reopened re-locks that row; the reopen stays in the audit log.
-    $pdo->prepare('INSERT INTO daily_closures (branch_id, business_date, closed_by, invoice_count, gross_revenue) VALUES (?, ?, ?, ?, ?)
+    $hasMethodTotals = Schema::hasColumn($pdo, 'daily_closures', 'payment_method_totals');
+    $snapshotColumn = $hasMethodTotals ? ', payment_method_totals' : '';
+    $snapshotValue = $hasMethodTotals ? ', ?' : '';
+    $snapshotUpdate = $hasMethodTotals ? ', payment_method_totals = VALUES(payment_method_totals)' : '';
+    $closureParams = [$branchId, $businessDate, $_SESSION['user_id'], $invoiceCount, $grossRevenue];
+    if ($hasMethodTotals) $closureParams[] = json_encode($methodTotals);
+    $pdo->prepare('INSERT INTO daily_closures (branch_id, business_date, closed_by, invoice_count, gross_revenue' . $snapshotColumn . ') VALUES (?, ?, ?, ?, ?' . $snapshotValue . ')
         ON DUPLICATE KEY UPDATE closed_by = VALUES(closed_by), invoice_count = VALUES(invoice_count), gross_revenue = VALUES(gross_revenue),
-            is_reopened = 0, reopened_by = NULL, reopened_at = NULL, closed_at = CURRENT_TIMESTAMP')
-        ->execute([$branchId, $businessDate, $_SESSION['user_id'], $invoiceCount, $grossRevenue]);
+            is_reopened = 0, reopened_by = NULL, reopened_at = NULL, closed_at = CURRENT_TIMESTAMP' . $snapshotUpdate)
+        ->execute($closureParams);
 
     $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "EOD", ?)')
         ->execute(["{$branch['branch_name']} EOD closed: {$invoiceCount} invoices, PHP " . number_format($grossRevenue, 2) . " gross revenue."]);
@@ -145,6 +154,7 @@ try {
         'clockedOut' => $clockedOut,
         'invoiceCount' => $invoiceCount,
         'grossRevenue' => $grossRevenue,
+        'methodTotals' => $methodTotals,
     ]);
 } catch (PDOException $e) {
     http_response_code(500);

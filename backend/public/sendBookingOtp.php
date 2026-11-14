@@ -21,6 +21,7 @@ require_once '../../backend/shared/config/security/RateLimiter.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/setup/mail.php';
 require_once '../../backend/shared/config/notifications/SmsOutbox.php';
+require_once __DIR__ . '/../shared/config/booking/GuestBookingLimit.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -67,6 +68,7 @@ try {
     $otp_limiter->record();
 
     $pdo = Database::getInstance();
+    GuestBookingLimit::enforce($pdo, $phone ?? '', $email);
 
     $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     $expires = new DateTime('now + 10 minutes');

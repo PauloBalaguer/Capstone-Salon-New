@@ -471,7 +471,7 @@
                   <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Confirmation:</b> Your slot is guaranteed only when the branch marks your booking <b class="font-semibold text-plum">"Confirmed"</b>.</li>
                   <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Deposits &amp; rescheduling:</b> Deposits are <u><b class="font-semibold text-plum">non-refundable</b></u> if you cancel or do not show up. You may reschedule online up to <b class="font-semibold text-plum">24 hours before</b> your appointment, up to <b class="font-semibold text-plum">2 times</b>, and your deposit <b class="font-semibold text-plum">carries over</b>. A kept deposit can be used to rebook within <b class="font-semibold text-plum">30 days</b>.</li>
                   <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">If the salon cancels:</b> If we cancel your appointment (for example, your stylist is unavailable), you may choose a <b class="font-semibold text-plum">full refund</b> or a <b class="font-semibold text-plum">free reschedule</b>.</li>
-                  <li data-policy-needs="lateGraceMinutes" class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Late arrival &amp; no-shows:</b> Arriving up to <b class="font-semibold text-plum"><span data-policy="lateGraceMinutes">15</span> minutes late</b> is within our grace period. After that, you may be served by <b class="font-semibold text-plum">another available stylist</b> or asked to <b class="font-semibold text-plum">reschedule</b>. Repeated no-shows may affect future bookings.</li>
+                  <li data-late-rule class="hidden text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Late arrival:</b> <span data-late-rule-text></span></li>
                   <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Guest bookings:</b> You can book <b class="font-semibold text-plum">2 times as a guest</b>. From your <b class="font-semibold text-plum">3rd booking</b>, you need to <b class="font-semibold text-plum">create an account</b> or log in.</li>
                   <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Changes:</b> Prices and staff availability are confirmed by the branch and <b class="font-semibold text-plum">may change</b>.</li>
                   <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Contact &amp; privacy:</b> You agree to be contacted at the number or email you provide for confirmations and reminders. We handle your details under the <b class="font-semibold text-plum">Data Privacy Act of 2012 (RA 10173)</b>. <a href="#privacyNotice" role="button" onclick="event.preventDefault(); document.getElementById('privacyNotice').showModal()" class="font-semibold text-plum underline underline-offset-2 hover:text-ink">Read full privacy notice</a>.</li>
@@ -841,11 +841,11 @@
                 <span class="text-xs sm:text-xs text-ink/55">Albay branches</span>
               </div>
               <div class="hero-stat">
-                <b class="font-display text-2xl sm:text-3xl text-plum block" data-live-stat="services">—</b>
+                <b class="font-display text-2xl sm:text-3xl text-plum block" data-live-stat="services" data-stat-fallback="Explore">Explore</b>
                 <span class="text-xs sm:text-xs text-ink/55">services available</span>
               </div>
               <div class="hero-stat">
-                <b class="font-display text-2xl sm:text-3xl text-plum block" data-live-stat="professionals">—</b>
+                <b class="font-display text-2xl sm:text-3xl text-plum block" data-live-stat="professionals" data-stat-fallback="Meet us">Meet us</b>
                 <span class="text-xs sm:text-xs text-ink/55">beauty professionals</span>
               </div>
               <div class="hero-stat">
@@ -853,6 +853,11 @@
                   data-prefix="&#8369;">&#8369;30</b>
                 <span class="text-xs sm:text-xs text-ink/55">haircut with blow dry</span>
               </div>
+            </div>
+            <div class="mt-6 rounded-xl border border-bronze/40 bg-sand-100 p-4 text-sm text-ink/70">
+              <p class="font-bold text-ink">Late arrival policy</p>
+              <p>Running late? Please contact your branch as soon as possible.</p>
+              <p data-late-rule class="hidden mt-2"><span data-late-rule-text></span></p>
             </div>
           </div>
 
@@ -1103,13 +1108,13 @@
             <div id="baReveal"
               class="reveal aspect-[4/5] sm:aspect-video border border-white/25 shadow-[0_36px_90px_-40px_rgba(0,0,0,.7)]"
               style="--pos: 50%">
-              <img id="baBefore"
+              <img id="baAfter"
                 src="frontend/shared/image/after-rebond.jpg"
-                alt="Before the service" />
+                alt="After the service" />
               <div class="reveal-top">
-                <img id="baAfter"
+                <img id="baBefore"
                   src="frontend/shared/image/Before-rebond.jpg"
-                  alt="After the service" />
+                  alt="Before the service" />
               </div>
               <span class="ba-chip left-4 top-4">Before</span>
               <span class="ba-chip right-4 top-4 ba-chip-after">After</span>
@@ -1561,7 +1566,7 @@
             <div class="br2-info" id="branchInfo" aria-live="polite">
               <div class="br2-top">
                 <span class="br2-tag" id="bTag"></span>
-                <span class="br2-live"><span class="live-dot" id="bLiveDot" aria-hidden="true"></span><span id="bLiveLabel">Checking hours…</span></span>
+                <span class="br2-live"><span class="live-dot closed" id="bLiveDot" aria-hidden="true"></span><span id="bLiveLabel">Call to confirm hours</span></span>
               </div>
               <h3 class="br2-name" id="bName">Branch details</h3>
               <p class="br2-spec" id="bSpec"></p>
@@ -2605,7 +2610,7 @@
     </div>
   </dialog>
   <script src="function/shared/late-arrival-rule.js?v=20261114-policy"></script>
-  <script src="function/public/main.js?v=20261114-phone"></script>
+  <script src="function/public/main.js?v=20261114-public-content"></script>
   <script src="function/public/booking-wizard.js?v=20261111c"></script>
 <script src="function/shared/select-dropdown.js?v=20261111e"></script>
 </body>

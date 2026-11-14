@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../shared/config/payments/RevenueReport.php';
 
 /**
  * Cashier Hub Data API Endpoint
@@ -309,6 +310,7 @@ try {
         $myBranchKey => [
             'invoiceCount' => (int) $eodRow['invoiceCount'],
             'grossRevenue' => (float) $eodRow['grossRevenue'],
+            'methodTotals' => RevenueReport::checkoutByMethod($pdo, (int) $myBranch['id']),
         ],
     ];
 

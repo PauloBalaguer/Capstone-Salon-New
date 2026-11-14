@@ -974,3 +974,9 @@ ALTER TABLE `home_service_requests`
 ALTER TABLE `appointments`
   ADD COLUMN IF NOT EXISTS `cancel_reason` VARCHAR(255) NULL DEFAULT NULL AFTER `cancelled_at`,
   ADD COLUMN IF NOT EXISTS `cancelled_by` INT UNSIGNED NULL DEFAULT NULL AFTER `cancel_reason`;
+
+-- Cashless checkout references and EOD totals (migration 067).
+ALTER TABLE `payments`
+  ADD COLUMN IF NOT EXISTS `payment_reference` VARCHAR(100) NULL DEFAULT NULL;
+ALTER TABLE `daily_closures`
+  ADD COLUMN IF NOT EXISTS `payment_method_totals` TEXT NULL DEFAULT NULL;

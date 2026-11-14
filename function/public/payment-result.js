@@ -132,7 +132,7 @@
       button.className = 'flex items-center gap-3 rounded-full border px-4 py-2.5 text-sm font-bold transition '
         + (primary ? 'order-1 bg-plum text-white border-plum hover:brightness-110' : 'order-3 border-bronze/60 hover:bg-sand-200');
       button.innerHTML = '<span class="pm-logo pm-logo--' + LOGOS[m.value] + '" aria-hidden="true"></span><span></span>';
-      button.lastChild.textContent = (primary ? 'Try again with ' : 'Pay with ') + m.label.replace(' (PayMongo)', '');
+      button.lastChild.textContent = (primary ? 'Retry with ' : 'Pay with ') + m.label.replace(' (PayMongo)', '');
       button.addEventListener('click', () => startPayment(m.value));
       box.appendChild(button);
     });
@@ -193,6 +193,7 @@
     el("resultReason").classList.add("hidden");
     el("resultMethods").classList.add("hidden");
     el('resultCheckAgain').classList.add('hidden');
+    el('resultRetry').classList.add('hidden');
     el('resultDetails').classList.remove('hidden');
     el('resultRef').textContent = data.reference;
     if (data.type === 'home_service' && fromCustomer) {
@@ -239,7 +240,8 @@
     if (outcome === 'choose' && data.state !== 'failed') {
       show('Complete your payment', ('Choose how to pay. ' + keepSlot).trim());
     } else if (data.state === 'failed' || outcome === 'cancel') {
-      show(outcome === 'cancel' ? 'Payment was cancelled' : 'Payment didn\'t go through', ('No money was taken. ' + keepSlot).trim());
+      show('Payment not completed', ('We have not received a successful payment confirmation. Retry below while your booking is still held. If your wallet or bank shows a debit, check the payment status before retrying. ' + keepSlot).trim());
+      el('resultCheckAgain').classList.remove('hidden');
     } else {
       // Pending: PayMongo hasn't confirmed yet. Check again first; paying anew could charge twice.
       show('Payment still processing', ('We haven\'t received confirmation from PayMongo yet. If you already paid, please don\'t pay again tap "Check payment status again" in a moment. ' + keepSlot).trim());

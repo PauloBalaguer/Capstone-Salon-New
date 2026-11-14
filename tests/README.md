@@ -24,6 +24,8 @@ nothing is emailed, texted or charged. PayMongo is a local mock server.
 
 Apache doesn't need to be running.
 
+For checkout display arithmetic and public statistics fallback/recovery in Manila time, run `node tests/panel_presentation_test.js`. This uses DOM stubs, requires Node.js, and does not access a database or external service.
+
 ## Running
 
 From the project folder (`C:\xampp\htdocs\Capstone-Salon`) in PowerShell:
@@ -33,6 +35,13 @@ C:\xampp\php\php.exe tests\booking_concurrency_test.php
 C:\xampp\php\php.exe tests\event_team_test.php
 C:\xampp\php\php.exe tests\booking_exceptions_test.php
 C:\xampp\php\php.exe tests\guest_otp_test.php
+C:\xampp\php\php.exe tests\guest_booking_limit_test.php
+C:\xampp\php\php.exe tests\cashier_cashless_test.php
+C:\xampp\php\php.exe tests\walkin_clockin_test.php
+C:\xampp\php\php.exe tests\payment_retry_hold_test.php
+C:\xampp\php\php.exe tests\checkout_receipt_test.php
+C:\xampp\php\php.exe tests\security_roles_passwords_test.php
+C:\xampp\php\php.exe tests\public_content_test.php
 C:\xampp\php\php.exe tests\arrival_request_test.php
 C:\xampp\php\php.exe tests\staff_portal_test.php
 C:\xampp\php\php.exe tests\admin_staff_password_test.php
@@ -64,6 +73,13 @@ Each test takes about 5–15 seconds, mostly to copy the database. Lines like
 | `event_team_test.php` | **Two events that need the same team on the same day**, through the admin staff-assignment endpoint. The team is blocked for travel + setup + service + buffer (migration 054), not the old flat 2 hours. Covers: whole-team checks, a back-to-back assignment, salon bookings blocked during an event, a customer reschedule refused when the team is busy, and what the public availability check shows. |
 | `booking_exceptions_test.php` | **A failed PayMongo (GCash) payment, then a retry** through the real result-page and "Try again" endpoints. The test then follows the booking through staff verification and cashier checkout, and checks that **the revenue report matches the payment log** and the cashier payment exactly. **No-show**: the deposit is kept (Forfeited), logged once, and nothing happens automatically. **Late arrival within and beyond the grace period** (`SALON_LATE_GRACE_MINUTES`): the arrival review says which, and changes nothing. **Cancellation with a deposit**: the non-refundable policy is applied once, only to money actually held. |
 | `guest_otp_test.php` | Guest booking verification. With no email, the booking needs the code **texted to the mobile number**: refused with no code, with a wrong code or with a reused code, and a clear error when the text can't be sent. With an email, the emailed code is used. |
+| `guest_booking_limit_test.php` | Two guest bookings total across salon and home service, including cancelled bookings; matching either mobile or email, normalized phones and case-insensitive email; direct-submit and OTP enforcement; simultaneous requests cannot exceed the limit. Signup linking remains covered by `guest_signup_test.php`. |
+| `cashier_cashless_test.php` | GCash, Maya and Card checkout require references; cash, deposits and tips retain their rules; receipts and payment records retain references; admin reports and EOD totals match; EOD snapshots preserve method totals. Runs migration 067 twice on the copy and checks compatibility before migration when the dev database has not applied it. |
+| `walkin_clockin_test.php` | No-clocked-in refusal and staff assignment message, real Shift In with CSRF checks, repeated Shift In and breaks. |
+| `payment_retry_hold_test.php` | Retry methods before the 30-minute deadline, invalid token refusal, result-page expiry and a single expiry log. |
+| `checkout_receipt_test.php` | Checkout amount order, 80mm print layout and labels for the existing admin collection bars. Presentation checks only; no database copy needed. |
+| `security_roles_passwords_test.php` | Foreign-role denial on every portal endpoint, managed staff/cashier reset policy, email-delivery failures, password hashing, and single-use OTP/setup tokens under simultaneous submissions. |
+| `public_content_test.php` | Public statistics and branch hours, configured/unset late-arrival policy, readable static fallbacks, correct before/after image mapping and optional live-update configuration. |
 | `paymongo_methods_test.php` | The separate GCash / Maya / Card methods in detail, including more failure cases. **GCash (a PayMongo Source)**: charged exactly once when it becomes chargeable, however often the result page and webhook sync; Fail / Expire on the GCash page; a payment declined after authorization; never charged once the booking was released; older GCash bookings with a Payment Intent still sync. **The webhook** through the real endpoint: `source.chargeable` creates the payment once, a bad signature is refused, and a replaced attempt is not charged. Also a Maya payment cancelled and retried, a card declined, an abandoned payment, and a late Maya payment after the hold expired (Refund Due). |
 | `arrival_request_test.php` | **Late or absent customers: the stylist asks, the cashier decides.** A no-show request is only accepted past the grace period and changes nothing by itself, and it reaches only that branch's cashiers. The cashier's No-Show is refused inside the grace period, for future bookings, for visits already checked out and for other branches, and keeps the deposit once. |
 | `staff_portal_test.php` | **Staff Portal.** Supplies logged at the same moment keep the stock right, and only count against a recent booking of that stylist. A photo too large for MySQL gets a clear refusal. Parallel Start Breaks give one break and no false error. |

@@ -105,7 +105,7 @@
 
       <!-- Branch performance (bookings overview + collections) -->
       <section class="lm-card lm-card--flush" x-show="['appointments','revenue'].includes(reportType)" aria-labelledby="branchPerfTitle">
-        <div class="lm-card-head"><div><h2 id="branchPerfTitle">Branch performance</h2><p>Same branch and date filters as above.</p></div></div>
+        <div class="lm-card-head"><div><h2 id="branchPerfTitle">Collections and bookings by branch</h2><p>Same branch and date filters as above.</p><p class="lm-hint">Vertical axis: branch. Horizontal axis: collection amount (PHP), from ₱0 to <span x-text="$store.admin.formatCurrency(getReportMaxRevenue())"></span>.</p></div></div>
         <div class="lm-table-wrap">
           <table class="lm-table lm-table--stack">
             <thead><tr><th scope="col">Branch</th><th scope="col" class="center">Bookings</th><th scope="col" class="center">Completed</th><th scope="col" class="center">Unique customers</th><th scope="col" class="num">Collections</th><th scope="col">Share</th></tr></thead>

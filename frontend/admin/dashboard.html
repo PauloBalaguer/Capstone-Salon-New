@@ -120,7 +120,7 @@
 
       <section class="lm-card" aria-labelledby="branchTitle" x-show="!$store.admin.loading" x-cloak>
         <div class="lm-card-head">
-          <div><h2 id="branchTitle">Branch performance</h2><p>All-time collections and guest rating per branch.</p></div>
+          <div><h2 id="branchTitle">Collections by branch</h2><p>All-time collections and guest rating per branch.</p><p class="lm-hint">Categories: branches. Horizontal axis: collections (PHP), from ₱0 to <span x-text="$store.admin.formatCurrency($store.admin.getMaxBranchRevenue())"></span>.</p></div>
         </div>
         <div class="lm-grid lm-grid--3">
           <template x-for="branch in $store.admin.branches" :key="branch.id">

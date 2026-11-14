@@ -42,9 +42,15 @@
     </style>
     <style>
         @media print {
+            @page { size: auto; margin: 3mm; }
             .no-print { display: none !important; }
-            body { background: #fff !important; }
-            #receiptCard { box-shadow: none !important; border: none !important; }
+            /* 74mm printable content + 3mm margins on an 80mm paper roll. */
+            html, body { width: 74mm !important; min-width: 0 !important; margin: 0 !important; padding: 0 !important; background: #fff !important; }
+            body { display: block !important; min-height: 0 !important; }
+            #receiptCard { width: 74mm !important; max-width: 74mm !important; padding: 0 !important; margin: 0 !important; box-shadow: none !important; border: none !important; border-radius: 0 !important; animation: none !important; transform: none !important; }
+            #receiptCard, #receiptCard * { color: #000 !important; background-color: transparent !important; overflow-wrap: anywhere; }
+            #receiptItemsContainer > div { break-inside: avoid; gap: 2mm; }
+            #receiptItemsContainer > div > span { flex-shrink: 0; }
         }
     </style>
     <link rel="stylesheet" href="../../frontend/cashier/cashier-theme.css?v=20261103">
@@ -66,7 +72,7 @@
             <i class="fa-solid fa-arrow-left"></i><span>Back to Dashboard</span>
         </a>
         <button id="btnPrint" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center space-x-2 shadow-sm hover:shadow-md">
-            <i class="fa-solid fa-print"></i><span>Print Receipt</span>
+            <i class="fa-solid fa-print"></i><span>Print Receipt (80mm)</span>
         </button>
     </div>
 
@@ -141,6 +147,9 @@
                 <span>Payment Method</span>
                 <span id="receiptMethod" class="font-bold text-slate-800">-</span>
             </div>
+            <div id="receiptPaymentReferenceRow" class="hidden text-gray-500 pt-1">
+                <span>Payment reference: </span><span id="receiptPaymentReference" class="break-all font-semibold"></span>
+            </div>
             <div id="receiptCashRow" class="hidden flex justify-between text-gray-500">
                 <span>Cash Received</span>
                 <span id="receiptCashReceived">₱0.00</span>
@@ -159,7 +168,7 @@
 
     <script src="../../function/shared/live-sync.js?v=20261113"></script>
     <script src="../../function/cashier/cashier-common.js?v=20261110"></script>
-    <script src="../../function/cashier/receipt.js"></script>
+    <script src="../../function/cashier/receipt.js?v=20261114-cashless"></script>
     <script src="../../function/shared/sign-out.js?v=20261111"></script>
     <script src="../../function/cashier/cashier-shell.js?v=20261111a"></script>
 <script src="../../function/shared/select-dropdown.js?v=20261111e"></script>

@@ -18,6 +18,7 @@ require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/booking/Scheduling.php';
+require_once __DIR__ . '/../shared/config/helpers/StaffShift.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -82,7 +83,13 @@ try {
     $durationMinutes = Scheduling::totalDurationMinutes($pdo, $requiredServiceIds);
     // A booking whose start has arrived is served now: the stylist must be on
     // duty. A later one only needs them scheduled at that time.
-    $immediate = (bool) $pdo->query('SELECT ' . $pdo->quote($appointment['appointment_datetime']) . ' <= NOW()')->fetchColumn();
+    $stmt = $pdo->prepare('SELECT ? <= NOW()');
+    $stmt->execute([$appointment['appointment_datetime']]);
+    $immediate = (bool) $stmt->fetchColumn();
+    if ($immediate && !StaffShift::branchHasClockedInStaff($pdo, $branchId)) {
+        echo json_encode(['success' => true, 'staff' => [], 'message' => StaffShift::NO_CLOCKED_IN_MESSAGE]);
+        exit();
+    }
 
     foreach ($onShiftStaff as $staff) {
         if (!empty($requiredServiceIds)) {

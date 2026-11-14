@@ -1,3 +1,44 @@
+  function showGuestBookingLimit(response, anchor, homeService = false) {
+    if (!response.registrationRequired) return false;
+    document.getElementById('guestBookingLimitNotice')?.remove();
+    const notice = document.createElement('div');
+    notice.id = 'guestBookingLimitNotice';
+    notice.className = 'mt-4 rounded-xl border border-bronze/40 bg-white p-4 text-sm text-ink';
+    notice.setAttribute('role', 'alert');
+    const message = document.createElement('p');
+    message.textContent = response.message;
+    const actions = document.createElement('div');
+    actions.className = 'mt-3 flex flex-wrap gap-3';
+    const register = document.createElement('a');
+    register.href = 'frontend/auth/register.html';
+    register.className = 'rounded-xl bg-plum px-4 py-3 font-bold text-white';
+    register.textContent = 'Register';
+    register.addEventListener('click', () => {
+      const read = id => document.getElementById(id)?.value.trim() || '';
+      const phone = read(homeService ? 'hsPhone' : 'bookPhone');
+      const draft = {
+        'reg-firstname': read(homeService ? 'hsFirstName' : 'bookFirstName'),
+        'reg-middlename': read(homeService ? 'hsMiddleInitial' : 'bookMiddleName'),
+        'reg-middlename-na': !!document.getElementById(homeService ? 'hsMiddleInitialNA' : 'bookMiddleNameNA')?.checked,
+        'reg-lastname': read(homeService ? 'hsLastName' : 'bookLastName'),
+        'reg-contact': phone.replace(/[\s\-().]/g, '').replace(/^(\+63|0)/, ''),
+        'reg-email': read(homeService ? 'hsEmail' : 'bookEmail'),
+      };
+      try { sessionStorage.setItem('lmRegisterDraft', JSON.stringify(draft)); } catch (err) { /* form stays usable without storage */ }
+    });
+    const login = document.createElement('a');
+    login.href = 'frontend/auth/login.html';
+    login.className = 'rounded-xl border border-bronze/40 px-4 py-3 font-bold text-plum';
+    login.textContent = 'Log in';
+    actions.append(register, login);
+    notice.append(message, actions);
+    const placement = anchor.parentElement.classList.contains('flex') ? anchor.parentElement : anchor;
+    placement.insertAdjacentElement('afterend', notice);
+    notice.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    register.focus({ preventScroll: true });
+    return true;
+  }
+
   function switchTab(tabId) {
     // Stop gallery previews when the visitor leaves the Gallery tab.
     if (tabId !== 'gallery-tab') {
@@ -1743,6 +1784,7 @@
       .then(r => r.json())
       .then(res => {
         if (btn) { btn.disabled = false; btn.textContent = 'Submit Home Service Request'; }
+        if (showGuestBookingLimit(res, btn, true)) return;
         if (!res.success) {
           AddressForms.errors('guest-service-address', res.errors);
           if (res.conflict) { hsGo(2); BookingFormValidation.message(document.getElementById('hsTime'), res.message); }
@@ -1809,18 +1851,21 @@
   const BRANCH_LABEL_BY_ID = Object.fromEntries(
     Object.entries(BRANCH_ID_BY_KEY).map(([key, id]) => [id, BRANCH_LABEL[key]])
   );
-  const BRANCH_HOURS = {
-    daraga:   { open: 8 * 60,      close: 20 * 60 },
-    yashano:  { open: 9 * 60 + 30, close: 20 * 60 },
-    cabangan: { open: 8 * 60,      close: 20 * 60 }
-  };
+  let publicStats = null;
+  let publicStatsLoading = false;
+  let publicStatsFetchedAt = 0;
 
-  function refreshLiveStatus() {
+  function paintLiveStatus() {
     const now = new Date();
-    const mins = now.getHours() * 60 + now.getMinutes();
-    Object.keys(BRANCH_HOURS).forEach(key => {
-      const h = BRANCH_HOURS[key];
-      const isOpen = mins >= h.open && mins < h.close;
+    const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(now).map(p => [p.type, p.value]));
+    const today = `${parts.year}-${parts.month}-${parts.day}`;
+    const mins = Number(parts.hour) * 60 + Number(parts.minute);
+    Object.keys(BRANCH_ID_BY_KEY).forEach(key => {
+      const h = publicStats?.date === today ? publicStats.branchHours?.[key] : null;
+      const minutes = value => typeof value === 'string' && /^\d{2}:\d{2}:\d{2}$/.test(value) ? Number(value.slice(0, 2)) * 60 + Number(value.slice(3, 5)) : null;
+      const open = minutes(h?.open), close = minutes(h?.close);
+      const known = open !== null && close !== null;
+      const isOpen = known && mins >= open && mins < close;
       const fmt = m => {
         const hr = Math.floor(m / 60), mn = m % 60;
         const ampm = hr >= 12 ? 'PM' : 'AM';
@@ -1830,8 +1875,27 @@
       document.querySelectorAll(`.live-dot[data-live="${key}"]`)
         .forEach(d => d.classList.toggle('closed', !isOpen));
       document.querySelectorAll(`[data-live-label="${key}"]`)
-        .forEach(l => l.textContent = isOpen ? `Open now until ${fmt(h.close)}` : `Opens ${fmt(h.open)}`);
+        .forEach(l => l.textContent = !known ? 'Call to confirm hours' : isOpen ? `Open now until ${fmt(close)}` : close <= open ? 'Closed today' : mins < open ? `Opens today at ${fmt(open)}` : 'Closed for today');
     });
+    document.querySelectorAll('[data-live-stat]').forEach(el => {
+      const value = publicStats?.[el.dataset.liveStat];
+      const valid = Number.isInteger(value) && value >= 0;
+      el.textContent = valid ? value.toLocaleString('en-PH') : el.dataset.statFallback;
+      el.title = valid ? '' : 'Live count is unavailable. Browse our services and team below.';
+    });
+  }
+
+  function refreshLiveStatus() {
+    paintLiveStatus();
+    if (publicStatsLoading || Date.now() - publicStatsFetchedAt < 60000) return;
+    publicStatsLoading = true;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    fetch('backend/public/getSiteStats.php', { cache: 'no-store', signal: controller.signal })
+      .then(response => { if (!response.ok) throw new Error('Statistics unavailable'); return response.json(); })
+      .then(data => { if (!data.success) throw new Error('Statistics unavailable'); publicStats = data; })
+      .catch(() => { publicStats = null; })
+      .finally(() => { clearTimeout(timeout); publicStatsLoading = false; publicStatsFetchedAt = Date.now(); paintLiveStatus(); });
   }
 
   function goBranchMenu(key) {
@@ -1870,8 +1934,8 @@
         <div class="branch-pick-header flex items-center justify-between">
           <span class="branch-pick-badge font-bold uppercase text-copper-dark bg-copper/15 rounded-full py-1.5">${b.badge}</span>
           <span class="branch-pick-status font-bold flex items-center text-ink/55">
-            <span class="live-dot" data-live="${b.key}"></span>
-            <span data-live-label="${b.key}"></span>
+            <span class="live-dot closed" data-live="${b.key}"></span>
+            <span data-live-label="${b.key}">Call to confirm hours</span>
           </span>
         </div>
         <h3 class="font-display text-[1.6rem] leading-tight mt-5">${b.name}</h3>
@@ -1900,16 +1964,7 @@
   })();
 
   (function () {
-    fetch('backend/public/getSiteStats.php', { cache: 'no-store' })
-      .then(response => { if (!response.ok) throw new Error('Statistics unavailable'); return response.json(); })
-      .then(data => {
-        if (!data.success) return;
-        document.querySelectorAll('[data-live-stat]').forEach(el => {
-          const value = data[el.dataset.liveStat];
-          if (Number.isInteger(value) && value >= 0) el.textContent = value.toLocaleString('en-PH');
-        });
-      })
-      .catch(() => {});
+    refreshLiveStatus();
     const stats = document.querySelectorAll('.hero-stat b[data-count]');
     if (!stats.length) return;
     const run = el => {
@@ -1990,8 +2045,10 @@
     const applyLook = i => {
       active = i;
       const L = BA_LOOKS[i];
-      document.getElementById('baAfter').src = L.before;
-      document.getElementById('baBefore').src = L.after;
+      document.getElementById('baBefore').src = L.before;
+      document.getElementById('baAfter').src = L.after;
+      document.getElementById('baBefore').alt = 'Before ' + L.title;
+      document.getElementById('baAfter').alt = 'After ' + L.title;
       document.getElementById('baKicker').textContent = L.kicker;
       document.getElementById('baTitle').textContent = L.title;
       document.getElementById('baBlurb').textContent = L.blurb;
@@ -2878,6 +2935,7 @@
         document.getElementById('bookReviewEdit').disabled = false;
         submitBtn.textContent = bookVerifyLabel(email);
         if (pendingBooking !== reviewedBooking) return;
+        if (showGuestBookingLimit(res, submitBtn)) return;
         if (!res.success) {
           showToast(res.message);
           if (res.retryAfter) startBookOtpCooldown(res.retryAfter, submitBtn, bookVerifyLabel(email));
@@ -2961,6 +3019,11 @@
     fetch('backend/public/sendBookingOtp.php', { method: 'POST', body: formData })
       .then(r => r.json())
       .then(res => {
+        if (res.registrationRequired) {
+          btn.disabled = false;
+          showGuestBookingLimit(res, btn);
+          return;
+        }
         showToast(res.message, res.success ? 'success' : 'error');
         if (res.success) resetBookOtpInputs();
         if (res.retryAfter || res.success) startBookOtpCooldown(res.retryAfter || 60);
@@ -2990,6 +3053,7 @@
       .then(r => r.json())
       .then(res => {
         btn.disabled = false;
+        if (showGuestBookingLimit(res, btn)) return;
         if (!res.success) { showToast(res.message); return; }
         pendingBooking.email = '';
         document.getElementById('bookEmail').value = '';
@@ -3035,6 +3099,7 @@
       .then(r => r.json())
       .then(res => {
         if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = idleLabel; }
+        if (showGuestBookingLimit(res, submitBtn)) return false;
 
         if (!res.success) {
           BookingFormValidation.message(submitBtn, res.message || 'Could not send your booking. Please try again.');

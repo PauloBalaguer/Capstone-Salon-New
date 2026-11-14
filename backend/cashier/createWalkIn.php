@@ -13,6 +13,7 @@
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
+require_once __DIR__ . '/../shared/config/helpers/StaffShift.php';
 require_once '../../backend/shared/config/setup/live-updates.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/booking/Scheduling.php';
@@ -100,6 +101,11 @@ try {
         exit();
     }
     $branchId = (int) $branch['id'];
+    if (!StaffShift::branchHasClockedInStaff($pdo, $branchId)) {
+        http_response_code(409);
+        echo json_encode(['success' => false, 'message' => StaffShift::NO_CLOCKED_IN_MESSAGE]);
+        exit();
+    }
 
     $stmt = $pdo->prepare('SELECT id, first_name, last_name FROM employees WHERE id = ? AND branch_id = ? AND is_active = 1');
     $stmt->execute([$stylistId, $branchId]);

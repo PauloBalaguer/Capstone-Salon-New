@@ -21,6 +21,7 @@ require_once '../../backend/shared/config/payments/ReservationPayment.php';
 require_once '../../backend/shared/config/payments/PayMongo.php';
 require_once '../../backend/shared/config/setup/url.php';
 require_once '../../backend/shared/config/booking/CancellationPolicy.php';
+require_once __DIR__ . '/../shared/config/booking/GuestBookingLimit.php';
 
 // php.ini on this XAMPP install is Europe/Berlin; "no slots in the past"
 // must be judged on the salon's clock.
@@ -157,6 +158,7 @@ if ($otp_fail_limiter->isExceeded()) {
 
 try {
     $pdo = Database::getInstance();
+    GuestBookingLimit::enforce($pdo, $contact, $email);
 
     $stmt = $pdo->prepare('SELECT code, expires_at FROM booking_verifications WHERE email = ?');
     $stmt->execute([$verificationKey]);
@@ -231,6 +233,8 @@ try {
 
     PayMongo::releaseExpiredHolds($pdo);
 
+    GuestBookingLimit::lock($pdo);
+    GuestBookingLimit::enforce($pdo, $contact, $email);
     $pdo->beginTransaction();
 
     // Locking read: serializes concurrent bookings for this branch+day so two

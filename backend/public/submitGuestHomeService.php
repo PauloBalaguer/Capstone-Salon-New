@@ -13,6 +13,7 @@ require_once '../../backend/shared/config/setup/live-updates.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/booking/HomeServiceRequest.php';
 require_once '../../backend/shared/config/security/RateLimiter.php';
+require_once __DIR__ . '/../shared/config/booking/GuestBookingLimit.php';
 
 sendCorsHeaders();
 LiveUpdates::afterThisRequest(); // Pusher: open panels refresh after this save (setup/live-updates.php)
@@ -134,6 +135,8 @@ try {
     $request_limiter->record();
 
     $pdo = Database::getInstance();
+    GuestBookingLimit::lock($pdo);
+    GuestBookingLimit::enforce($pdo, $contact, $email);
     $pdo->beginTransaction();
     $availability = HomeServiceRequest::availability($pdo, ['event_type'=>$eventType,'wedding_package'=>$weddingPackage,'services'=>$services,'preferred_date'=>$date,'preferred_time'=>$time,'branch_id'=>$homeBranchId]);
     if (!$availability['available']) {

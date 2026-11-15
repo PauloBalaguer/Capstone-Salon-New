@@ -594,7 +594,7 @@ final class PayMongo
             error_log("PayMongo: payment {$paid['id']} arrived for already-cancelled home service {$reference}.");
         } elseif ($canConfirm) {
             CustomerNotifier::notify($pdo, (int) $request['customer_id'], 'PAYMENT_VERIFIED',
-                "Your {$peso} reservation fee for home service {$reference} was received{$via}. Status: Reservation Payment Received.");
+                "Your {$peso} reservation fee for home service {$reference} was received{$via}. Status: Deposit paid.");
             CustomerNotifier::notify($pdo, (int) $request['customer_id'], 'CONFIRMED',
                 "Your home service request {$reference} is now Confirmed. We'll let you know once a stylist is assigned.");
             // A team pre-assigned before payment hears about the visit now (and only once).

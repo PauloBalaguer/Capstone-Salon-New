@@ -37,7 +37,8 @@ if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL) || empty($code))
 try {
     $pdo = Database::getInstance();
 
-    $stmt = $pdo->prepare("SELECT code, expires_at FROM password_resets WHERE email = ?");
+    $stmt = $pdo->prepare("SELECT pr.code, pr.expires_at FROM password_resets pr JOIN users u ON u.email=pr.email
+        JOIN roles r ON r.id=u.role_id WHERE pr.email=? AND r.role_name IN ('Customer','Admin')");
     $stmt->execute([$email]);
     $reset_request = $stmt->fetch();
 

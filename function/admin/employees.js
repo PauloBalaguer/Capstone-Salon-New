@@ -8,7 +8,9 @@ function adminDefaultStaffForm() {
     role: '',
     email: '',
     phone: '',
-    serviceIds: []
+    serviceIds: [],
+    newPassword: '',
+    confirmPassword: ''
   };
 }
 
@@ -42,6 +44,10 @@ function adminStaffApp() {
     leaveList: [],
     leaveForm: { startDate: '', endDate: '', reason: '' },
     leaveAffected: null, // null = not previewed yet; [] = nothing affected
+    leaveBookings: null,
+    leaveBookingsRange: '',
+    leaveBookingsDates: null,
+    leaveBusy: false,
     scheduleLoading: false,
     leaveReady: true, // false until migration 062 (staff_leave) is applied
     async loadSchedule(employeeId) {
@@ -49,6 +55,7 @@ function adminStaffApp() {
       this.scheduleDays = [];
       this.leaveList = [];
       this.leaveAffected = null;
+      this.leaveBookings = null;
       this.leaveForm = { startDate: '', endDate: '', reason: '' };
       this.weekAffected = null;
       try {
@@ -95,8 +102,26 @@ function adminStaffApp() {
         return;
       }
       LMToast.show(r.message, 'success');
+      const saved = { from: f.startDate, to: f.endDate || f.startDate };
       await this.loadSchedule(this.detailStaff.id);
+      await this.loadLeaveBookings(saved.from, saved.to);
       Alpine.store('admin').refresh();
+    },
+    async loadLeaveBookings(from, to) {
+      const r = await Alpine.store('admin').post('staffSchedule.php', { action: 'leaveBookings', employeeId: this.detailStaff.id, startDate: from, endDate: to });
+      if (!r.success) { LMToast.show(r.message || 'Could not load the bookings.', 'error'); return; }
+      this.leaveBookingsRange = from === to ? 'on ' + AdminUI.date(from) : AdminUI.date(from) + ' to ' + AdminUI.date(to);
+      this.leaveBookings = r.bookings.map(b => ({ ...b, replacements: b.replacements || [], pick: '' }));
+      this.leaveBookingsDates = { from, to };
+    },
+    async reassignLeaveBooking(b) {
+      this.leaveBusy = true;
+      try {
+        const r = await Alpine.store('admin').post('staffSchedule.php', { action: 'reassignLeaveBooking', employeeId: this.detailStaff.id, reference: b.reference, staffId: b.pick });
+        LMToast.show(r.message || (r.success ? 'Reassigned.' : 'Could not reassign the booking.'), r.success ? 'success' : 'error');
+        await this.loadLeaveBookings(this.leaveBookingsDates.from, this.leaveBookingsDates.to);
+        if (r.success) Alpine.store('admin').refresh();
+      } finally { this.leaveBusy = false; }
     },
     async deleteLeave(leave) {
       if (!confirm('Remove this leave? Bookings already flagged for follow-up stay flagged.')) return;
@@ -243,7 +268,7 @@ function adminStaffApp() {
       const firstName = staff.firstName || first;
       const lastName = staff.lastName || rest.join(' ');
       const middleName = staff.middleName || '';
-      this.staffForm = { firstName, middleName, noMiddleName: !middleName, lastName, branchId: staff.branchId, role: staff.role, email: '', phone: '', serviceIds: [...(staff.serviceIds || [])] };
+      this.staffForm = { firstName, middleName, noMiddleName: !middleName, lastName, branchId: staff.branchId, role: staff.role, email: '', phone: '', serviceIds: [...(staff.serviceIds || [])], newPassword: '', confirmPassword: '' };
       this.svcSearch = ''; this.svcGroup = 'all';
       this.openStaffModal = true;
     },
@@ -294,6 +319,10 @@ function adminStaffApp() {
     },
 
     async saveStaff() {
+      if (this.staffForm.newPassword !== this.staffForm.confirmPassword) {
+        LMToast.show('New password and confirmation do not match.', 'error');
+        return;
+      }
       const store = Alpine.store('admin');
       this.savingStaff = true;
       const result = await store.post('saveStaff.php', {
@@ -305,13 +334,18 @@ function adminStaffApp() {
         role: this.staffForm.role,
         email: this.staffForm.email,
         phone: this.staffForm.phone,
-        services: this.staffForm.serviceIds
+        services: this.staffForm.serviceIds,
+        newPassword: this.editingStaffId ? this.staffForm.newPassword : '',
+        confirmPassword: this.editingStaffId ? this.staffForm.confirmPassword : ''
       });
       this.savingStaff = false;
       if (!result.success) {
         LMToast.show(result.message || 'Failed to save staff member.', 'error');
         return;
       }
+      if (this.staffForm.newPassword) LMToast.show(result.message || 'Staff password updated.', 'success');
+      this.staffForm.newPassword = '';
+      this.staffForm.confirmPassword = '';
       await store.refresh();
       this.openStaffModal = false;
     },

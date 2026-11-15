@@ -11,6 +11,7 @@
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
+require_once __DIR__ . '/../shared/config/helpers/Schema.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -32,6 +33,7 @@ if ($referenceCode === '') {
 
 try {
     $pdo = Database::getInstance();
+    $referenceSelect = Schema::select($pdo, 'payments', 'payment_reference', 'p.payment_reference', 'paymentReference');
 
     $sql = "
         SELECT
@@ -41,6 +43,7 @@ try {
             p.cash_received AS cashReceived,
             p.change_given AS changeGiven,
             p.payment_method AS paymentMethod,
+            {$referenceSelect},
             p.status,
             DATE_FORMAT(p.payment_date, '%Y-%m-%d %h:%i %p') AS paymentDate,
             a.reference_code AS reference,
@@ -127,6 +130,7 @@ try {
             'changeGiven' => $payment['changeGiven'] !== null ? (float) $payment['changeGiven'] : null,
             'total' => (float) $payment['amount'],
             'paymentMethod' => $payment['paymentMethod'],
+            'paymentReference' => $payment['paymentReference'],
             'status' => $payment['status'],
         ],
     ]);

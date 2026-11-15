@@ -65,12 +65,14 @@ if (!PasswordPolicy::isValid($newPassword)) {
 try {
     $pdo = Database::getInstance();
     $userId = $_SESSION['user_id'];
+    $pdo->beginTransaction();
 
-    $stmt = $pdo->prepare('SELECT code, expires_at FROM password_change_verifications WHERE user_id = ?');
+    $stmt = $pdo->prepare('SELECT code, expires_at FROM password_change_verifications WHERE user_id = ? FOR UPDATE');
     $stmt->execute([$userId]);
     $pending = $stmt->fetch();
 
     if (!$pending || !hash_equals($pending['code'], $code)) {
+        $pdo->rollBack();
         $limiter->record();
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Invalid or expired confirmation code.']);
@@ -79,6 +81,7 @@ try {
 
     if (new DateTime() > new DateTime($pending['expires_at'])) {
         $pdo->prepare('DELETE FROM password_change_verifications WHERE user_id = ?')->execute([$userId]);
+        $pdo->commit();
         $limiter->record();
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'This code has expired. Please start again.']);
@@ -91,8 +94,10 @@ try {
         ->execute([password_hash($newPassword, PASSWORD_DEFAULT), $userId]);
     $pdo->prepare('DELETE FROM password_change_verifications WHERE user_id = ?')->execute([$userId]);
 
+    $pdo->commit();
     echo json_encode(['success' => true, 'message' => 'Password updated successfully!']);
 } catch (PDOException $e) {
+    if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
     http_response_code(500);
     error_log('account confirmPasswordChange error: ' . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'A server error occurred while changing your password.']);

@@ -65,8 +65,8 @@ function cellOrDash(value) {
 
 function paymentStatusBadgeClass(status) {
   switch (status) {
-    case 'Fully Paid':
-    case 'Down Payment Verified': return 'bg-emerald-100 text-[color:var(--success)]';
+    case 'Fully Paid': return 'bg-emerald-100 text-[color:var(--success)]';
+    case 'Down Payment Verified': return 'bg-sky-100 text-sky-800';
     case 'Awaiting Verification':
     case 'Refund Due':
     case 'Refund Processing': return 'bg-amber-100 text-[color:var(--warn)]';
@@ -140,18 +140,7 @@ function filteredBookings() {
         || (b.clientPhone || '').includes(search)
         || b.id.toLowerCase().includes(search)))
     // Newest submission first (when the booking was made), not appointment date.
-    .sort((a, b) => submittedKey(b).localeCompare(submittedKey(a)) || String(b.id).localeCompare(String(a.id)));
-}
-
-/* submittedAt arrives as "YYYY-MM-DD hh:mm AM" (getDashboardData.php); turn it
-   into a sortable "YYYY-MM-DD HH:mm" key. */
-function submittedKey(b) {
-  const m = String(b.submittedAt || '').match(/^(\d{4}-\d{2}-\d{2}) (\d{1,2}):(\d{2}) ?(AM|PM)?/i);
-  if (!m) return '';
-  let h = Number(m[2]) % 12;
-  if (m[4] && m[4].toUpperCase() === 'PM') h += 12;
-  if (!m[4]) h = Number(m[2]);
-  return `${m[1]} ${String(h).padStart(2, '0')}:${m[3]}`;
+    .sort(newestBookingFirst);
 }
 
 /* "today, 4:58 PM" / "yesterday, 9:10 AM" / "Nov 11, 4:58 PM" (adds the year
@@ -233,7 +222,7 @@ function renderAppointments() {
         <span class="cp-cell" data-label="Staff">${escapeHtml(titleCase(b.staffName || '')) || '<span class="cp-sub">No stylist yet</span>'}</span>
         <span class="cp-cell" data-label="Schedule" title="${escapeHtml(friendlyDate(b.date))}"><span class="cp-when">${escapeHtml(shortDate(b.date))}</span><span class="cp-sub cp-when">${escapeHtml(shortTimeRange(b.time, b.endTime)) || '-'}</span></span>
         <span class="cp-cell" data-label="Status"><span class="cp-badge ${statusBadgeClass(b.status)}">${escapeHtml(b.status)}</span>${b.status === 'Pending' && b.hasConflict ? '<span class="cp-badge bg-rose-100 text-[color:var(--danger)]">Time clash</span>' : ''}</span>
-        <span class="cp-cell" data-label="Payment"><span class="cp-badge ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(PortalPresentation.paymentStatus(b.paymentStatus)) || 'Not set'}</span></span>
+        <span class="cp-cell" data-label="Payment"><span class="cp-badge ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(PortalPresentation.paymentStatus(b.paymentStatus, b.remainingBalance)) || 'Not set'}</span></span>
         <span class="cp-cell cp-cell-action"><span class="btn-row cp-btn-ghost">Details</span></span>
       </button>`;
   }).join('');
@@ -292,7 +281,7 @@ function showDetails(ref) {
         </div>
         <div class="flex flex-col items-end gap-1">
           <span class="text-xs font-bold px-2.5 py-1 rounded-full ${statusBadgeClass(b.status)}">${escapeHtml(b.status)}</span>
-          <span class="text-xs font-bold px-2.5 py-1 rounded-full ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(PortalPresentation.paymentStatus(b.paymentStatus))}</span>
+          <span class="text-xs font-bold px-2.5 py-1 rounded-full ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(PortalPresentation.paymentStatus(b.paymentStatus, b.remainingBalance))}</span>
         </div>
       </div>
       ${requests}
@@ -368,7 +357,7 @@ function openRescheduleModal(ref) {
     ['Service(s)', cellOrDash(b.serviceName), true],
     ['Duration', b.durationMinutes ? b.durationMinutes + ' min' : ''],
     ['Total', CashierApp.formatCurrency(b.price)],
-    ['Payment', `<span class="text-xs font-bold px-2 py-0.5 rounded ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(PortalPresentation.paymentStatus(b.paymentStatus))}</span>`],
+    ['Payment', `<span class="text-xs font-bold px-2 py-0.5 rounded ${paymentStatusBadgeClass(b.paymentStatus)}">${cellOrDash(PortalPresentation.paymentStatus(b.paymentStatus, b.remainingBalance))}</span>`],
     ['Deposit', b.depositAmount ? CashierApp.formatCurrency(b.depositAmount) + (b.depositVerified ? ' (verified)' : ' (unverified)') : ''],
   ];
   document.getElementById('rescheduleInfo').innerHTML = info.map(([label, value, wide]) => `
@@ -463,15 +452,36 @@ async function askCustomerToReschedule() {
   }
 }
 
-async function cancelBooking(ref) {
+let cancelRef = null;
+function cancelBooking(ref) {
   const b = state.data.bookings.find(x => x.id === ref);
-  const depositNote = b && b.depositAmount && ['Down Payment Verified', 'Fully Paid'].includes(b.paymentStatus)
-    ? `\n\nThe ${CashierApp.formatCurrency(b.depositAmount)} deposit is NON-REFUNDABLE. Consider "Reschedule" instead the customer can also reschedule later to use it.`
-    : '';
-  if (!(await LMConfirm({ title: 'Cancel this booking?', message: ('This cannot be undone.' + depositNote), confirmLabel: 'Cancel Booking', cancelLabel: 'Keep Booking' }))) return;
-  const result = await CashierApp.post('updateStatus.php', { id: ref, status: 'Cancelled' });
-  CashierApp.toast(result.message || (result.success ? 'Booking cancelled.' : 'Failed to cancel booking.'), result.success ? 'success' : 'error');
-  if (result.success) await refreshData();
+  cancelRef = ref;
+  document.querySelectorAll('#cancelModal input[name="cancelAction"]').forEach(r => { r.checked = false; });
+  document.getElementById('cancelReason').value = '';
+  document.getElementById('cancelError').classList.add('hidden');
+  document.getElementById('cancelInfo').textContent = ref + (b && b.clientName ? ' · ' + b.clientName : '');
+  const held = b && b.depositAmount && ['Down Payment Verified', 'Fully Paid'].includes(b.paymentStatus);
+  document.getElementById('cancelRefundNote').textContent = held
+    ? 'The ' + CashierApp.formatCurrency(b.depositAmount) + ' deposit becomes Refund Due; an admin returns it through PayMongo or records a manual refund.'
+    : 'No verified deposit; the booking is just cancelled.';
+  CashierApp.showModal('cancelModal');
+}
+
+async function confirmCancelBooking() {
+  const action = document.querySelector('#cancelModal input[name="cancelAction"]:checked')?.value || '';
+  const reason = document.getElementById('cancelReason').value.trim();
+  const error = document.getElementById('cancelError');
+  const fail = text => { error.textContent = text; error.classList.remove('hidden'); };
+  if (!action) return fail('Choose what happens to the booking.');
+  if (reason.length < 3) return fail('Give a reason (at least 3 characters). The customer will see it.');
+  const button = document.getElementById('btnConfirmCancel');
+  button.disabled = true;
+  const result = await CashierApp.post('updateStatus.php', { id: cancelRef, status: 'Cancelled', cancelAction: action, reason });
+  button.disabled = false;
+  if (!result.success) return fail(result.message || 'Failed to cancel the booking.');
+  CashierApp.hideModal('cancelModal');
+  CashierApp.toast(action === 'reschedule' ? 'The customer was asked to pick a new time.' : 'Booking cancelled.', 'success');
+  await refreshData();
 }
 
 async function markNoShow(ref) {
@@ -523,6 +533,8 @@ function wireStaticEvents() {
   document.getElementById('btnConfirmReassign').addEventListener('click', confirmReassign);
 
   document.getElementById('btnCloseRescheduleModal').addEventListener('click', () => CashierApp.hideModal('rescheduleModal'));
+  document.getElementById('btnCloseCancelModal').addEventListener('click', () => CashierApp.hideModal('cancelModal'));
+  document.getElementById('btnConfirmCancel').addEventListener('click', confirmCancelBooking);
   document.getElementById('rescheduleDate').addEventListener('change', loadRescheduleSlots);
   document.getElementById('rescheduleSlots').addEventListener('click', (e) => {
     const btn = e.target.closest('.reschedule-slot');

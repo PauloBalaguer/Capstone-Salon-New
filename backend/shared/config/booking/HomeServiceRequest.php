@@ -27,6 +27,82 @@ class HomeServiceRequest
 
     const UNAVAILABLE = 'Schedule unavailable. Please choose another date or time. Your request has not been moved.';
 
+    /** New requests need this many days' notice: time to send the quote, collect the reservation fee and prepare the team (same as the 3-day reschedule cutoff). */
+    const MIN_NOTICE_DAYS = 3;
+
+    /** Why a NEW request's date is too soon (today or in the past), or null when it's far enough ahead. */
+    public static function noticeProblem(string $preferredDate): ?string
+    {
+        $earliest = (new DateTime('today'))->modify('+' . self::MIN_NOTICE_DAYS . ' day')->format('Y-m-d');
+        return $preferredDate < $earliest
+            ? 'Home and event services need at least ' . self::MIN_NOTICE_DAYS . (self::MIN_NOTICE_DAYS === 1 ? " day's" : " days'") . ' notice to prepare. Please choose ' . date('F j, Y', strtotime($earliest)) . ' or later.'
+            : null;
+    }
+
+    /** DP estimate when there's no fixed reservation fee: this % of the estimated total, rounded to ₱100. */
+    const DP_ESTIMATE_PERCENT = 30;
+
+    /**
+     * Price list for the request forms (migration 065, admin-edited):
+     * per-client service prices and the travel fee per Albay city code.
+     * Empty lists when the migration isn't applied yet.
+     *
+     * @return array{rates: array<string, float>, travelFees: array<string, float>}
+     */
+    public static function priceList(PDO $pdo): array
+    {
+        try {
+            $rates = $pdo->query('SELECT service_name, price_per_client FROM home_service_rates')->fetchAll(PDO::FETCH_KEY_PAIR);
+            $fees = $pdo->query('SELECT city_code, fee FROM home_service_travel_fees')->fetchAll(PDO::FETCH_KEY_PAIR);
+        } catch (PDOException $e) {
+            return ['rates' => [], 'travelFees' => []];
+        }
+        return ['rates' => array_map('floatval', $rates), 'travelFees' => array_map('floatval', $fees)];
+    }
+
+    /**
+     * The estimate shown in the forms, recalculated on the server from the
+     * database (never from browser totals): a wedding package's price, or the
+     * per-client price of each selected service x number of clients, plus the
+     * travel fee for the venue's city. DP = the package's fixed reservation
+     * fee, otherwise DP_ESTIMATE_PERCENT of the total. Null parts when a
+     * price isn't set; the admin's quote is final either way.
+     *
+     * @return array{servicesTotal: ?float, travelFee: ?float, total: ?float, dp: ?float, dpFixed: bool, balance: ?float}
+     */
+    public static function estimate(PDO $pdo, string $eventType, string $weddingPackage, array $services, int $clients, string $cityCode): array
+    {
+        $prices = self::priceList($pdo);
+        $servicesTotal = null;
+        $fixedFee = null;
+        if ($eventType === 'Wedding') {
+            $stmt = $pdo->prepare('SELECT price, reservation_fee FROM wedding_packages WHERE package_name = ? AND is_active = 1');
+            $stmt->execute(['Package ' . $weddingPackage]);
+            if ($package = $stmt->fetch()) {
+                $servicesTotal = (float) $package['price'];
+                $fixedFee = $package['reservation_fee'] !== null ? (float) $package['reservation_fee'] : null;
+            }
+        } elseif ($services && $clients > 0) {
+            $perClient = 0.0;
+            foreach (array_unique($services) as $service) {
+                if (!isset($prices['rates'][$service])) { $perClient = null; break; }
+                $perClient += $prices['rates'][$service];
+            }
+            $servicesTotal = $perClient === null ? null : round($perClient * $clients, 2);
+        }
+        $travelFee = $prices['travelFees'][$cityCode] ?? null;
+        $total = $servicesTotal !== null && $travelFee !== null ? round($servicesTotal + $travelFee, 2) : null;
+        $dp = $fixedFee ?? ($total !== null ? round($total * self::DP_ESTIMATE_PERCENT / 100 / 100) * 100 : null);
+        return [
+            'servicesTotal' => $servicesTotal,
+            'travelFee' => $travelFee,
+            'total' => $total,
+            'dp' => $dp,
+            'dpFixed' => $fixedFee !== null,
+            'balance' => $total !== null && $dp !== null ? max(0, round($total - $dp, 2)) : null,
+        ];
+    }
+
     /** Qualifications come from existing staff_services and active catalog services. */
     public static function serviceSkills(string $name): array
     {
@@ -76,6 +152,7 @@ class HomeServiceRequest
     {
         $services = self::requestedServices($request);
         if (!$services || array_diff($services, self::SERVICES)) return ['available'=>false, 'message'=>'Please review the requested event services before checking availability.'];
+        if (empty($request['id']) && $fixedTeam === null && ($problem = self::noticeProblem((string) ($request['preferred_date'] ?? '')))) return ['available'=>false, 'message'=>$problem];
         // Responsible branch: its hours, holidays and home-service eligibility
         // (older requests without a branch skip this until Admin sets one).
         if ($problem = self::branchProblem($pdo, $request)) return ['available'=>false, 'message'=>$problem];
@@ -104,7 +181,9 @@ class HomeServiceRequest
                 $covers = array_values(array_intersect($needs, $skills[$id] ?? []));
                 // Day off, leave or a closed branch day blocks the stylist for the
                 // whole occupied window (travel out + setup + service + return).
-                if ($covers && Scheduling::staffScheduleBlock($pdo, $id, $window['start']->format('Y-m-d H:i:s'), $window['minutes']) === null
+                // Salon opening hours don't: events (early weddings, evening
+                // debuts) happen off-site, outside the salon's hours.
+                if ($covers && in_array(Scheduling::staffScheduleBlock($pdo, $id, $window['start']->format('Y-m-d H:i:s'), $window['minutes']), [null, 'outside_hours'], true)
                     && !Scheduling::homeServiceStaffHasConflict($pdo,$id,$demand,(int) ($request['id'] ?? 0))) $candidates[$id] = $covers;
             }
             if ($index === 0 && $fixedTeam !== null && count($candidates) !== count($fixedTeam)) return ['available'=>false,'message'=>'Every selected team member must be active, qualified for a requested service, and available.'];
@@ -178,11 +257,10 @@ class HomeServiceRequest
 
     /**
      * Why the responsible branch can't take this visit, or null. Checks the
-     * branch offers home service, isn't closed for a holiday that day, and
-     * that the whole occupied window -- outbound travel and setup before the
-     * start, service and return travel after it -- fits that branch's
-     * effective hours for the date (holiday special hours included). So a
-     * visit may need an earlier start than the salon's closing time suggests.
+     * branch offers home service and isn't closed for a holiday that day.
+     * The salon's opening hours don't apply: a visit happens off-site and may
+     * start early or run into the evening. The team is still blocked by
+     * leave, days off and other bookings (availability()).
      * Requests without a branch (older rows) return null.
      */
     public static function branchProblem(PDO $pdo, array $request): ?string
@@ -192,23 +270,8 @@ class HomeServiceRequest
         $key = Scheduling::branchKeyForId($pdo, $branchId);
         if ($key === null) return 'Please choose a valid branch.';
         if (!Scheduling::branchOffersHomeService($key)) return 'This branch does not take home service requests. Please choose another branch.';
-        $date = $request['preferred_date'];
-        if (Scheduling::isBranchClosed($key, $date)) return 'The branch is closed on that date (holiday). Please choose another date.';
-        [$open, $close] = Scheduling::operatingHours($key, $date);
-        $window = Scheduling::homeServiceWindow($pdo, $request);
-        $start = $window['start'];
-        $back = $window['occupiedEnd'];
-        if ($start->format('Y-m-d') === $date && $start->format('H:i:s') >= $open
-            && $back->format('Y-m-d') === $date && $back->format('H:i:s') <= $close) return null;
-        $lead = $window['travel'] + $window['setup'];
-        $tail = $window['service'] + $window['return'];
-        $earliest = (new DateTime("$date $open"))->modify("+{$lead} minutes");
-        $latest = (new DateTime("$date $close"))->modify("-{$tail} minutes");
-        $range = $earliest <= $latest
-            ? ' Start times from ' . $earliest->format('g:i A') . ' to ' . $latest->format('g:i A') . ' fit.'
-            : ' No start time fits that day.';
-        return 'The full visit, including travel, must fit the branch hours on that date ('
-            . date('g:i A', strtotime($open)) . '–' . date('g:i A', strtotime($close)) . ').' . $range;
+        if (Scheduling::isBranchClosed($key, $request['preferred_date'])) return 'The branch is closed on that date (holiday). Please choose another date.';
+        return null;
     }
 
     /**
@@ -339,8 +402,8 @@ class HomeServiceRequest
         // The checks below run in the caller's transaction; staffConflictUntil()
         // locks each stylist's employees row (FOR UPDATE), so a concurrent booking
         // for the same stylist waits. On failure the caller rolls back and the
-        // original date, time and team stay as they were. The new time must also
-        // fit the responsible branch's hours/holidays (availability -> branchProblem).
+        // original date, time and team stay as they were. The new date must also
+        // be one the responsible branch isn't closed (availability -> branchProblem).
 
         $zone = new DateTimeZone('Asia/Manila');
         $day = DateTimeImmutable::createFromFormat('!Y-m-d', $date, $zone);

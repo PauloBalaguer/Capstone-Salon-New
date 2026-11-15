@@ -36,6 +36,7 @@ const CheckoutModal = (() => {
     $('btnSellProduct').disabled = true;
     $('btnProcessPayment').disabled = true;
     $('cashReceivedInput').value = '';
+    $('paymentReferenceInput').value = '';
     $('customTipInput').value = '';
     $('loyaltyRewardSelect').innerHTML = '<option value="">No reward</option>';
     $('loyaltyRewardSelect').disabled = true;
@@ -175,13 +176,13 @@ const CheckoutModal = (() => {
     $('loyaltyDiscountRow').classList.toggle('hidden', rewardDiscount <= 0);
     $('loyaltyDiscountDisplay').textContent = '− ' + CashierApp.formatCurrency(rewardDiscount);
     $('serviceChargesDisplay').textContent = CashierApp.formatCurrency(t.price);
-    $('reservationReceivedRow').classList.toggle('hidden', reservationReceived <= 0);
+    $('reservationReceivedRow').classList.remove('hidden');
     $('reservationReceivedDisplay').textContent = '− ' + CashierApp.formatCurrency(reservationReceived);
-    $('productsChargeRow').classList.toggle('hidden', reservationReceived <= 0 && rewardDiscount <= 0);
-    $('remainingServiceDisplay').textContent = CashierApp.formatCurrency(remaining);
+    $('productsChargeRow').classList.remove('hidden');
+    $('remainingServiceDisplay').textContent = CashierApp.formatCurrency(remaining + productsTotal);
     $('productsTotalRow').classList.toggle('hidden', productsTotal <= 0);
     $('subtotalDisplay').textContent = CashierApp.formatCurrency(productsTotal);
-    $('tipRow').classList.toggle('hidden', tip <= 0);
+    $('tipRow').classList.toggle('hidden', co.method !== 'Cash');
     $('tipDisplay').textContent = CashierApp.formatCurrency(tip);
     $('totalDisplay').textContent = CashierApp.formatCurrency(total);
     $('payButtonLabel').textContent = 'Complete payment · ' + CashierApp.formatCurrency(total);
@@ -202,7 +203,8 @@ const CheckoutModal = (() => {
     if (!['In Progress', 'Completed'].includes(t.status)) return lock('Confirm the booking first.');
     if (t.depositPaid && !t.depositVerified && Number(t.depositAmount) > 0) return lock('Verify the reservation payment first.');
     if (co.method !== 'Cash') {
-      btn.disabled = false;
+      btn.disabled = !validPaymentReference();
+      if (btn.disabled) { hint.textContent = 'Enter the confirmed payment reference (1-100 characters).'; return; }
       hint.textContent = `Collect ${CashierApp.formatCurrency(total)} by ${co.method}, then complete.`;
       return;
     }
@@ -225,7 +227,12 @@ const CheckoutModal = (() => {
     renderTotals();
   }
 
+  function validPaymentReference() {
+    return /^[A-Za-z0-9][A-Za-z0-9 .\/-]{0,99}$/.test($('paymentReferenceInput').value.trim());
+  }
+
   function selectMethod(method) {
+    if (method !== co.method) $('paymentReferenceInput').value = '';
     co.method = method;
     document.querySelectorAll('#checkoutModal .pay-method-card').forEach(card => {
       const active = card.dataset.method === method;
@@ -236,6 +243,8 @@ const CheckoutModal = (() => {
     $('tipSection').classList.toggle('hidden', !isCash);
     $('cashSection').classList.toggle('hidden', !isCash);
     $('methodNote').classList.toggle('hidden', isCash);
+    $('paymentReferenceSection').classList.toggle('hidden', isCash);
+    $('paymentReferenceInput').required = !isCash;
     setTip(isCash ? co.tip : 0);
   }
 
@@ -306,6 +315,9 @@ const CheckoutModal = (() => {
       const cash = Number($('cashReceivedInput').value) || 0;
       if (cash < co.amountDue - 0.001) { CashierApp.toast('Cash received is less than the amount due.', 'error'); return; }
       payload.cashReceived = cash;
+    } else {
+      if (!validPaymentReference()) { CashierApp.toast('Enter a valid payment reference.', 'error'); $('paymentReferenceInput').focus(); return; }
+      payload.paymentReference = $('paymentReferenceInput').value.trim();
     }
     if (!(await LMConfirm({ title: 'Record this payment?', message: `Record ${CashierApp.formatCurrency(co.amountDue)} by ${co.method}, complete this visit, and print a receipt. Confirm only after you have received the payment.`, confirmLabel: 'Record payment' }))) return;
 
@@ -355,6 +367,7 @@ const CheckoutModal = (() => {
     document.querySelectorAll('#checkoutModal .tip-btn').forEach(btn => btn.addEventListener('click', () => setTip(btn.dataset.tip)));
     $('customTipInput').addEventListener('input', (e) => setTip(e.target.value, true));
     $('cashReceivedInput').addEventListener('input', renderTotals);
+    $('paymentReferenceInput').addEventListener('input', renderTotals);
     document.querySelectorAll('#checkoutModal .cash-quick-btn').forEach(btn => btn.addEventListener('click', () => {
       const amount = btn.dataset.exact ? co.amountDue : Number(btn.dataset.amount);
       $('cashReceivedInput').value = amount.toFixed(2);

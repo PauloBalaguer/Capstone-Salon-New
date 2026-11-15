@@ -10,6 +10,7 @@ function adminBookingsApp() {
     bookingError: '',
     bookingRequest: 0,
     detailsBooking: null,
+    bookingEmails: null,
     exporting: false,
     initialized: false,
     filterTimer: null,
@@ -26,6 +27,11 @@ function adminBookingsApp() {
     depositBooking: null,
     depositAmount: '',
     depositMethod: '',
+
+    salonCancelBooking: null,
+    salonCancelAction: '',
+    salonCancelReason: '',
+    salonCancelSaving: false,
 
     openHomeServiceQuoteModal: false,
     quoteBooking: null,
@@ -148,6 +154,22 @@ function adminBookingsApp() {
     openBookingDetails(booking) {
       this.detailsBooking = booking;
       this.$nextTick(() => this.$refs.bookingDetails.showModal());
+      this.loadBookingEmails(booking.id);
+    },
+    async loadBookingEmails(reference) {
+      this.bookingEmails = null;
+      const r = await Alpine.store('admin').get('emailLog.php', { reference });
+      if (this.detailsBooking && this.detailsBooking.id === reference) this.bookingEmails = r.success ? r.emails : [];
+    },
+    async retryEmail(email) {
+      const r = await Alpine.store('admin').post('emailLog.php', { action: 'retry', id: email.id });
+      LMToast.show(r.message || (r.success ? 'Email sent.' : 'Could not send the email.'), r.success ? 'success' : 'error');
+      if (this.detailsBooking) await this.loadBookingEmails(this.detailsBooking.id);
+    },
+    emailStatusLabel(email) {
+      if (email.status === 'Sent') return 'Sent';
+      if (email.status === 'Pending') return 'Waiting to send';
+      return Number(email.attempts) === 0 ? 'Not sent' : 'Failed';
     },
 
     /* Each branch has its own configured concurrent-booking capacity (see
@@ -235,6 +257,29 @@ function adminBookingsApp() {
       if (result.success) await store.refresh();
     },
 
+    openSalonCancel(booking) {
+      this.salonCancelBooking = booking;
+      this.salonCancelAction = '';
+      this.salonCancelReason = '';
+    },
+
+    async submitSalonCancel() {
+      const booking = this.salonCancelBooking;
+      if (!booking) return;
+      if (!this.salonCancelAction) { LMToast.show('Choose whether to refund the deposit or reschedule the booking.', 'error'); return; }
+      if (this.salonCancelReason.trim().length < 3) { LMToast.show('Give a reason for the cancellation (at least 3 characters).', 'error'); return; }
+      const store = Alpine.store('admin');
+      this.salonCancelSaving = true;
+      const result = await store.post('updateBookingStatus.php', { id: booking.id, status: 'Cancelled', salonAction: this.salonCancelAction, reason: this.salonCancelReason.trim() });
+      this.salonCancelSaving = false;
+      if (!result.success) { LMToast.show(result.message || 'Failed to cancel the booking.', 'error'); return; }
+      LMToast.show(this.salonCancelAction === 'refund'
+        ? 'Booking cancelled. Use "' + this.refundButtonLabel({ ...booking, paymentStatus: 'Refund Due' }) + '" to return the deposit.'
+        : 'The customer was asked to choose a new time. Their deposit stays with the booking.', 'success');
+      this.salonCancelBooking = null;
+      await store.refresh();
+    },
+
     async updateBookingStatus(id, newStatus) {
       const store = Alpine.store('admin');
       if (newStatus === 'In Progress') {
@@ -295,7 +340,7 @@ function adminBookingsApp() {
 
     openHomeServiceQuote(booking) {
       this.quoteBooking = booking;
-      this.quotePrice = booking.quotePrice || '';
+      this.quotePrice = booking.quotePrice || booking.estimatedTotal || '';
       this.reservationFee = booking.depositAmount || '';
       this.openHomeServiceQuoteModal = true;
     },
@@ -365,8 +410,13 @@ function adminBookingsApp() {
       if (!(await LMConfirm({ title: 'Send payment link?', message: `Send ${booking.clientName} a PayMongo link to pay the remaining ${amount} online?`, confirmLabel: 'Send Link' }))) return;
       const store = Alpine.store('admin');
       const result = await store.post('homeServiceBalance.php', { id: booking.id, action: 'sendLink' });
-      LMToast.show(result.message || (result.success ? 'Link sent.' : 'Failed to send the link.'), result.success ? 'success' : 'error');
-      if (result.success) await store.refresh();
+      if (result.success && result.payUrl && !result.emailed) {
+        const link = await LMPrompt({ title: 'Share the payment link', message: result.message, value: result.payUrl, label: 'Payment link', confirmLabel: 'Copy link' });
+        if (link !== null) { try { await navigator.clipboard.writeText(result.payUrl); LMToast.show('Link copied.', 'success'); } catch (e) { /* select it from the box instead */ } }
+      } else {
+        LMToast.show(result.message || (result.success ? 'Link sent.' : 'Failed to send the link.'), result.success ? 'success' : 'error');
+      }
+      if (result.success) { await store.refresh(); await this.loadBookingEmails(booking.id); }
     },
     async editHomeServiceQuote(booking) {
       const store = Alpine.store('admin');

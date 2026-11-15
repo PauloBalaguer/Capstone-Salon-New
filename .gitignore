@@ -450,3 +450,6 @@ backend/shared/storage/sessions/*
 .agents/
 .claude/
 .vercel
+
+# Database backups (never commit)
+backups/

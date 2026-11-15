@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../shared/config/payments/RevenueReport.php';
 
 /**
  * Cashier Hub Data API Endpoint
@@ -121,6 +122,7 @@ try {
         $row['depositPaid'] = (bool) $row['depositPaid'];
         $row['checkoutPaid'] = (bool) $row['checkoutPaid'];
         $row['depositVerified'] = (bool) $row['depositVerified'];
+        $row['remainingBalance'] = $row['checkoutPaid'] ? 0 : max(0, (float) $row['price'] - ($row['depositPaid'] && $row['depositVerified'] ? (float) $row['depositAmount'] : 0));
         $row['hasConflict'] = (bool) $row['hasConflict'];
         $row['durationMinutes'] = (int) $row['durationMinutes'];
         $endTime = new DateTime($row['startDateTime']);
@@ -307,6 +309,7 @@ try {
         $myBranchKey => [
             'invoiceCount' => (int) $eodRow['invoiceCount'],
             'grossRevenue' => (float) $eodRow['grossRevenue'],
+            'methodTotals' => RevenueReport::checkoutByMethod($pdo, (int) $myBranch['id']),
         ],
     ];
 

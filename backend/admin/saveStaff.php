@@ -10,17 +10,25 @@
  * required for that path only; the account starts with an unusable random
  * password and an emailed setup link (see AccountSetup.php) instead of a
  * temp password relayed by the admin.
+ *
+ * Staff can't change their own password: when editing, the admin may set a
+ * new one (newPassword + confirmPassword), e.g. when staff forget theirs --
+ * the same rule as cashier accounts (saveCashier.php).
  */
 
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
+require_once '../../backend/shared/config/helpers/PhoneNumber.php';
 require_once '../../backend/shared/config/setup/database.php';
+require_once '../../backend/shared/config/setup/live-updates.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/setup/url.php';
 require_once '../../backend/shared/config/setup/mail.php';
 require_once '../../backend/shared/config/security/AccountSetup.php';
+require_once '../../backend/shared/config/security/PasswordPolicy.php';
 
 sendCorsHeaders();
+LiveUpdates::afterThisRequest();
 AuditLog::captureRequest();
 header('Content-Type: application/json');
 
@@ -50,6 +58,16 @@ $branchKey = trim($_POST['branchId'] ?? '');
 $role = trim($_POST['role'] ?? '');
 $email = trim($_POST['email'] ?? '');
 $phone = trim($_POST['phone'] ?? '');
+$newPassword = $_POST['newPassword'] ?? '';
+$confirmPassword = $_POST['confirmPassword'] ?? '';
+if (!is_string($newPassword) || !is_string($confirmPassword)
+    || (($newPassword !== '' || $confirmPassword !== '')
+        && ($staffId <= 0 || $newPassword !== $confirmPassword
+            || strlen($newPassword) > 72 || !PasswordPolicy::isValid($newPassword)))) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'Passwords must match and contain no more than 72 bytes. ' . PasswordPolicy::MESSAGE]);
+    exit();
+}
 $serviceIds = array_values(array_unique(array_filter(array_map('intval', (array) ($_POST['services'] ?? [])))));
 
 if ($firstName === '' || $lastName === '' || $branchKey === '' || $role === '') {
@@ -84,15 +102,25 @@ try {
     }
 
     if ($staffId > 0) {
-        $stmt = $pdo->prepare('SELECT id FROM employees WHERE id = ?');
+        $stmt = $pdo->prepare('SELECT e.user_id, u.email FROM employees e JOIN users u ON u.id = e.user_id WHERE e.id = ?');
         $stmt->execute([$staffId]);
-        if (!$stmt->fetchColumn()) {
+        $account = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$account) {
             http_response_code(404);
             echo json_encode(['success' => false, 'message' => 'Staff member not found.']);
             exit();
         }
 
         $pdo->beginTransaction();
+
+        if ($newPassword !== '') {
+            $userId = (int) $account['user_id'];
+            $pdo->prepare('UPDATE users SET password = ? WHERE id = ?')
+                ->execute([password_hash($newPassword, PASSWORD_DEFAULT), $userId]);
+            $pdo->prepare('DELETE FROM password_resets WHERE email = ?')->execute([$account['email']]);
+            $pdo->prepare('DELETE FROM account_setup_tokens WHERE user_id = ?')->execute([$userId]);
+            $pdo->prepare('DELETE FROM password_change_verifications WHERE user_id = ?')->execute([$userId]);
+        }
 
         $pdo->prepare('UPDATE employees SET first_name = ?, middle_name = ?, last_name = ?, position = ?, branch_id = ? WHERE id = ?')
             ->execute([$firstName, $middleName, $lastName, $role, $branchId, $staffId]);
@@ -110,7 +138,7 @@ try {
 
         $pdo->commit();
 
-        echo json_encode(['success' => true, 'message' => 'Staff profile updated.']);
+        echo json_encode(['success' => true, 'message' => $newPassword !== '' ? 'Staff profile and password updated.' : 'Staff profile updated.']);
         exit();
     }
 
@@ -122,6 +150,11 @@ try {
     if ($phone === '') {
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'A contact number is required.']);
+        exit();
+    }
+    if (($phone = PhoneNumber::normalize($phone)) === null) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => PhoneNumber::MESSAGE]);
         exit();
     }
 

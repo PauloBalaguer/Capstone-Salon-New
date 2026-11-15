@@ -14,6 +14,7 @@
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
+require_once __DIR__ . '/../shared/config/helpers/Schema.php';
 
 sendCorsHeaders();
 header('Content-Type: application/json');
@@ -41,6 +42,7 @@ if (($_SESSION['user_role'] ?? '') === 'Cashier') {
 
 try {
     $pdo = Database::getInstance();
+    $referenceSelect = Schema::select($pdo, 'payments', 'payment_reference', 'p.payment_reference', 'paymentReference');
 
     $services = "(SELECT GROUP_CONCAT(DISTINCT s.service_name ORDER BY s.id SEPARATOR ', ')
                   FROM appointment_services aps JOIN services s ON s.id = aps.service_id
@@ -56,6 +58,7 @@ try {
             {$services} AS serviceName,
             CASE WHEN e.id IS NOT NULL THEN CONCAT(e.first_name, ' ', e.last_name) ELSE NULL END AS stylistName,
             p.payment_method AS method,
+            {$referenceSelect},
             p.amount AS amount,
             p.tip_amount AS tip,
             p.status AS status,
@@ -80,6 +83,7 @@ try {
             {$services} AS serviceName,
             CASE WHEN e.id IS NOT NULL THEN CONCAT(e.first_name, ' ', e.last_name) ELSE NULL END AS stylistName,
             a.deposit_method AS method,
+            a.deposit_reference AS paymentReference,
             a.deposit_amount AS amount,
             0 AS tip,
             a.payment_status AS status,
@@ -109,6 +113,7 @@ try {
             'serviceName' => $row['serviceName'],
             'stylistName' => $row['stylistName'],
             'method' => $row['method'],
+            'paymentReference' => $row['paymentReference'],
             'amount' => (float) $row['amount'],
             'tip' => (float) $row['tip'],
             'status' => $row['status'],

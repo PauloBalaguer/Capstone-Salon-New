@@ -61,12 +61,14 @@ if ($password !== $confirmPassword) {
 try {
     $pdo = Database::getInstance();
     $tokenHash = hash('sha256', $token);
+    $pdo->beginTransaction();
 
-    $stmt = $pdo->prepare('SELECT user_id, expires_at FROM account_setup_tokens WHERE token_hash = ?');
+    $stmt = $pdo->prepare('SELECT user_id, expires_at FROM account_setup_tokens WHERE token_hash = ? FOR UPDATE');
     $stmt->execute([$tokenHash]);
     $setupRequest = $stmt->fetch();
 
     if (!$setupRequest) {
+        $pdo->rollBack();
         $limiter->record();
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Invalid or expired setup link.']);
@@ -77,8 +79,9 @@ try {
     $expiresAt = new DateTime($setupRequest['expires_at']);
 
     if ($now > $expiresAt) {
-        $limiter->record();
         $pdo->prepare('DELETE FROM account_setup_tokens WHERE user_id = ?')->execute([$setupRequest['user_id']]);
+        $pdo->commit();
+        $limiter->record();
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Invalid or expired setup link.']);
         exit();
@@ -90,9 +93,11 @@ try {
     $pdo->prepare('UPDATE users SET password = ? WHERE id = ?')->execute([$hashed, $setupRequest['user_id']]);
     $pdo->prepare('DELETE FROM account_setup_tokens WHERE user_id = ?')->execute([$setupRequest['user_id']]);
 
+    $pdo->commit();
     http_response_code(200);
     echo json_encode(['success' => true, 'message' => 'Your password has been set. You can now sign in.']);
 } catch (Exception $e) {
+    if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
     error_log('Account Setup Completion Error: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'A server error occurred. Please try again later.']);

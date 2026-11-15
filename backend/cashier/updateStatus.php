@@ -15,6 +15,7 @@
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
+require_once '../../backend/shared/config/setup/live-updates.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/notifications/CustomerNotifier.php';
 require_once '../../backend/shared/config/security/EodLock.php';
@@ -23,6 +24,7 @@ require_once '../../backend/shared/config/booking/Scheduling.php';
 require_once '../../backend/shared/config/payments/ReservationPayment.php';
 
 sendCorsHeaders();
+LiveUpdates::afterThisRequest();
 AuditLog::captureRequest();
 header('Content-Type: application/json');
 
@@ -59,6 +61,17 @@ if ($referenceCode === '' || (!$paymentAttentionOnly && !$paymentVerifyOnly &&!i
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Invalid booking reference or status.']);
     exit();
+}
+
+$cancelAction = trim((string) ($_POST['cancelAction'] ?? ''));
+$cancelReason = trim(preg_replace('/\s+/', ' ', (string) ($_POST['reason'] ?? '')));
+if ($status === 'Cancelled') {
+    if ($error = CancellationPolicy::staffCancelError($cancelAction, $cancelReason, true)) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => $error]);
+        exit();
+    }
+    if ($cancelAction === 'reschedule') $status = 'Reschedule Requested';
 }
 
 // Confirming a reservation (e.g. the "Admit Client" action) requires
@@ -177,7 +190,7 @@ try {
             ? 'Fully Paid' : 'Down Payment Verified';
         $pdo->prepare('UPDATE appointments SET payment_status = ?, deposit_paid = 1, deposit_amount = ?, deposit_method = ?, deposit_recorded_by = ?, deposit_recorded_at = NOW() WHERE id = ?')
             ->execute([$resolvedPaymentStatus, $depositAmount, $depositMethod, $_SESSION['user_id'], $appointment['id']]);
-        $paymentVerifiedLabel = $resolvedPaymentStatus === 'Fully Paid' ? 'Paid in Full' : 'Reservation Payment Received';
+        $paymentVerifiedLabel = $resolvedPaymentStatus === 'Fully Paid' ? 'Fully paid' : 'Deposit paid';
         CustomerNotifier::notify($pdo, $appointmentCustomerId, 'PAYMENT_VERIFIED', "Your payment for {$referenceCode} has been verified. Status: {$paymentVerifiedLabel}.");
         $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "PAYMENT", ?)')
             ->execute(["Payment for booking {$referenceCode} verified."]);
@@ -212,7 +225,7 @@ try {
 
             $pdo->prepare('UPDATE appointments SET status = ?, payment_status = ?, deposit_paid = 1, deposit_amount = ?, deposit_method = ?, deposit_recorded_by = ?, deposit_recorded_at = NOW() WHERE id = ?')
                 ->execute([$status, $resolvedPaymentStatus, $depositAmount, $depositMethod, $_SESSION['user_id'], $appointment['id']]);
-            $paymentVerifiedLabel = $resolvedPaymentStatus === 'Fully Paid' ? 'Paid in Full' : 'Reservation Payment Received';
+            $paymentVerifiedLabel = $resolvedPaymentStatus === 'Fully Paid' ? 'Fully paid' : 'Deposit paid';
             CustomerNotifier::notify($pdo, $appointmentCustomerId, 'PAYMENT_VERIFIED', "Your payment for {$referenceCode} has been verified. Status: {$paymentVerifiedLabel}.");
         }
         CustomerNotifier::notify($pdo, $appointmentCustomerId, 'CONFIRMED', "Your appointment {$referenceCode} is now Confirmed.");
@@ -222,9 +235,8 @@ try {
         if ($status === 'Completed') {
             CustomerNotifier::notify($pdo, $appointmentCustomerId, 'SERVICE_FINISHED', "Your service for {$referenceCode} is finished. Please proceed to the cashier to complete your visit.");
         } elseif ($status === 'Cancelled') {
-            CustomerNotifier::notify($pdo, $appointmentCustomerId, 'CANCELLED', "Your appointment {$referenceCode} has been cancelled by the salon.");
             if ($appointment['status'] !== 'Cancelled') {
-                CancellationPolicy::apply($pdo, $appointment, CancellationPolicy::BY_SALON);
+                CancellationPolicy::closeByStaff($pdo, $appointment, $cancelAction, $cancelReason);
             }
         } elseif ($status === 'No-Show') {
             CustomerNotifier::notify($pdo, $appointmentCustomerId, 'NO_SHOW', "Your appointment {$referenceCode} was marked as missed. Please contact the branch if this is a mistake.");
@@ -233,7 +245,8 @@ try {
                 StaffNotifier::notify($pdo, (int) $appointment['employee_id'], 'SCHEDULE_CHANGED', "{$referenceCode} was marked as No-Show. That time is free again.");
             }
         } elseif ($status === 'Reschedule Requested') {
-            CustomerNotifier::notify($pdo, $appointmentCustomerId, 'RESCHEDULE', "Your appointment {$referenceCode} needs a schedule change. Please check the details.");
+            if ($cancelAction === 'reschedule') CancellationPolicy::closeByStaff($pdo, $appointment, 'reschedule', $cancelReason);
+            else CustomerNotifier::notify($pdo, $appointmentCustomerId, 'RESCHEDULE', "Your appointment {$referenceCode} needs a schedule change. Please check the details.");
         }
     }
 

@@ -10,6 +10,7 @@
  */
 
 require_once '../../backend/shared/config/setup/cors.php';
+require_once '../../backend/shared/config/helpers/PhoneNumber.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/security/RateLimiter.php';
@@ -72,8 +73,8 @@ try {
             claimReply(200, ['success' => true, 'message' => 'A code is on its way.']);
 
         case 'different_number':
-            $phone = trim((string) ($_POST['phone'] ?? ''));
-            if (!preg_match('/^09\d{9}$/D', $phone)) {
+            $phone = PhoneNumber::normalize((string) ($_POST['phone'] ?? '')) ?? '';
+            if ($phone === '') {
                 claimReply(400, ['success' => false, 'message' => 'Enter the 10 digits after +63, starting with 9.']);
             }
             $stmt = $pdo->prepare('SELECT 1 FROM customers WHERE phone_number = ?');

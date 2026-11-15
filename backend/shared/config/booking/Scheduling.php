@@ -837,12 +837,17 @@ class Scheduling
      * (FOR UPDATE) like countOverlapping() -- call within a transaction when
      * the result guards an insert/update.
      *
+     * Finished bookings (Completed / Reviewed) don't block: a stylist who
+     * finishes early is free right away, not until the booked end time.
+     * $includeFinished keeps them, for counting the day's clients.
+     *
      * @return array<int, array{start: DateTime, end: DateTime, appointment_id: int}>
      */
-    public static function staffBusyWindows(PDO $pdo, int $employeeId, string $dateYmd, ?int $excludeAppointmentId = null, ?int $excludeHomeServiceId = null): array
+    public static function staffBusyWindows(PDO $pdo, int $employeeId, string $dateYmd, ?int $excludeAppointmentId = null, ?int $excludeHomeServiceId = null, bool $includeFinished = false): array
     {
+        $ignored = $includeFinished ? "'Cancelled', 'No-Show'" : "'Cancelled', 'No-Show', 'Completed', 'Reviewed'";
         $sql = "SELECT a.id, a.appointment_datetime, a.employee_id FROM appointments a
-                WHERE a.status NOT IN ('Cancelled', 'No-Show') AND a.appointment_datetime < DATE_ADD(?, INTERVAL 2 DAY)
+                WHERE a.status NOT IN ($ignored) AND a.appointment_datetime < DATE_ADD(?, INTERVAL 2 DAY)
                   AND (a.employee_id = ? OR EXISTS (SELECT 1 FROM appointment_services x WHERE x.appointment_id = a.id AND x.employee_id = ?))";
         $params = [$dateYmd, $employeeId, $employeeId];
         if ($excludeAppointmentId !== null) {
@@ -951,7 +956,7 @@ class Scheduling
         $buffer = self::cleaningBufferMinutes();
         $clients = [];
         $booked = 0;
-        foreach (self::staffBusyWindows($pdo, $employeeId, $dateYmd) as $i => $window) {
+        foreach (self::staffBusyWindows($pdo, $employeeId, $dateYmd, null, null, true) as $i => $window) {
             if ($window['start']->format('Y-m-d') !== $dateYmd) continue;
             $minutes = (int) round(($window['end']->getTimestamp() - $window['start']->getTimestamp()) / 60) - $buffer;
             $booked += max(0, $minutes);

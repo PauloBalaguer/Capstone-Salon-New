@@ -154,10 +154,10 @@ function setTab(tab) {
 }
 
 function paymentBadge(b) {
-  if (b.checkoutPaid || b.paymentStatus === 'Fully Paid') return ['Paid', 'bg-emerald-100 text-[color:var(--success)]'];
-  if (b.depositVerified) return ['Reservation paid', 'bg-emerald-100 text-[color:var(--success)]'];
-  if (hasReportedPayment(b)) return ['Payment to check', 'bg-amber-100 text-[color:var(--warn)]'];
-  return ['Not paid yet', 'bg-gray-100 text-gray-600'];
+  if (b.checkoutPaid || b.paymentStatus === 'Fully Paid') return ['Fully paid', 'bg-emerald-100 text-[color:var(--success)]'];
+  if (b.depositVerified) return [PortalPresentation.paymentStatus('Down Payment Verified', b.remainingBalance), 'bg-sky-100 text-sky-800'];
+  if (hasReportedPayment(b)) return ['Payment being checked', 'bg-amber-100 text-[color:var(--warn)]'];
+  return ['Unpaid', 'bg-gray-100 text-gray-600'];
 }
 
 /* One clear next step per booking. */
@@ -184,7 +184,7 @@ function renderQueue() {
   const today = todayISO();
   const list = queueBookings().filter(b => inTab(b, state.tab) && (!search
     || b.clientName.toLowerCase().includes(search)
-    || b.id.toLowerCase().includes(search)));
+    || b.id.toLowerCase().includes(search))).sort(newestBookingFirst);
   const todays = list.filter(b => b.date === today);
   // Still open from earlier days: show them instead of hiding them.
   const earlier = list.filter(b => (b.date || '') < today);
@@ -502,6 +502,7 @@ function renderWalkInStaff() {
   // Walk-ins start now: only stylists on duty (available, or busy at the
   // salon -- the server rejects an overlap) can be picked.
   const available = staff.filter(s => s.status === 'available' || s.status === 'busy');
+  const clockedIn = staff.some(s => s.onShift || s.status === 'busy_home_service');
   const unavailable = staff.filter(s => !available.includes(s));
   const offList = unavailable.filter(s => !/cashier/i.test(s.role || ''));
   const card = (s, ok) => `
@@ -518,10 +519,10 @@ function renderWalkInStaff() {
     ? available.map(s => card(s, true)).join('')
     : `<div class="wi-staff-empty">
         <div class="wi-staff-empty-head">
-          <strong>No staff on shift right now</strong>
+          <strong>${clockedIn ? 'No stylists available for a walk-in right now' : 'No stylists are clocked in at this branch'}</strong>
           <button type="button" class="wi-staff-refresh" aria-label="Refresh staff list" title="Refresh staff list"><i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i></button>
         </div>
-        <span>Ask the stylist to log in to their Staff Portal. That clocks them in; then tap refresh to see them here. For a later time, use the regular booking flow instead.</span>
+        <span>${clockedIn ? 'Staff may be on a break or away on a home visit. Refresh when a stylist is available.' : 'Ask a stylist to open the Staff Portal and tap Shift In, then refresh the staff list.'} For a later time, use the regular booking flow.</span>
       </div>`;
   const offBox = document.getElementById('wiStaffOff');
   const moreBtn = document.getElementById('wiStaffMore');
@@ -624,7 +625,7 @@ async function submitWalkIn(e) {
   }
   const serviceIds = Array.from(document.querySelectorAll('.walkin-service-checkbox:checked')).map(cb => cb.value);
   if (!/^09[0-9]{9}$/.test(clientPhone)) {
-    CashierApp.toast('Please enter a valid mobile number (09XXXXXXXXX).', 'error');
+    CashierApp.toast(BookingFormValidation.MOBILE_MESSAGE, 'error');
     return;
   }
   if (!serviceIds.length) {

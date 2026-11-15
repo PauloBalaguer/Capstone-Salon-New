@@ -319,7 +319,7 @@ async function loadQualifiedStaff(ref) {
     return;
   }
   state.qualifiedStaff = result.staff;
-  renderStaffOptions(result.staff.length ? '' : 'No qualified staff is free at this time. Reschedule the booking or choose another time.');
+  renderStaffOptions(result.staff.length ? '' : (result.message || 'No qualified staff is free at this time. Reschedule the booking or choose another time.'));
 }
 
 /* Briefly flashes a staff card amber so the cashier can see which stylist

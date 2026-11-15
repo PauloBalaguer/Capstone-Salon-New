@@ -130,6 +130,11 @@ try {
         echo json_encode(['success' => false, 'message' => 'Booking not found.']);
         exit();
     }
+    if ((int) $appointment['hold_seconds_remaining'] <= 0 && !$appointment['deposit_paid'] && $appointment['status'] === 'Pending') {
+        require_once __DIR__ . '/../shared/config/setup/live-updates.php';
+        LiveUpdates::afterThisRequest();
+        PayMongo::releaseExpiredHolds($pdo);
+    }
     echo json_encode(depositResult($pdo, $stmt, $reference, false));
 } catch (PDOException $e) {
     error_log('paymongoStatus error: ' . $e->getMessage());

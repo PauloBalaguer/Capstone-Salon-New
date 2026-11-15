@@ -2,6 +2,18 @@
 /** Actual collections, independent of appointment/service dates and completion status. */
 final class RevenueReport
 {
+    public static function checkoutByMethod(PDO $pdo, int $branchId, ?string $date = null): array
+    {
+        $stmt = $pdo->prepare("SELECT p.payment_method, SUM(p.amount) AS amount
+            FROM payments p JOIN appointments a ON a.id = p.appointment_id
+            WHERE a.branch_id = ? AND p.status = 'Paid' AND DATE(p.payment_date) = COALESCE(?, CURDATE())
+            GROUP BY p.payment_method");
+        $stmt->execute([$branchId, $date]);
+        $totals = array_fill_keys(['Cash', 'GCash', 'Maya', 'Card'], 0.0);
+        foreach ($stmt->fetchAll() as $row) $totals[$row['payment_method']] = (float) $row['amount'];
+        return $totals;
+    }
+
     public static function source(): string
     {
         return "

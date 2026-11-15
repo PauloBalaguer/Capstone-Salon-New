@@ -9,11 +9,14 @@
 
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/database.php';
+require_once '../../backend/shared/config/setup/live-updates.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/booking/HomeServiceRequest.php';
 require_once '../../backend/shared/config/security/RateLimiter.php';
+require_once __DIR__ . '/../shared/config/booking/GuestBookingLimit.php';
 
 sendCorsHeaders();
+LiveUpdates::afterThisRequest();
 AuditLog::captureRequest();
 header('Content-Type: application/json');
 
@@ -23,15 +26,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-// Limit: 5 home service requests per IP address per hour.
 $ip_address = RateLimiter::getIpAddress();
-$request_limiter = new RateLimiter($ip_address, 'submit_home_service', 5, 3600);
+$request_limiter = new RateLimiter($ip_address, 'submit_home_service', 5, 30);
 
 if ($request_limiter->isExceeded()) {
     http_response_code(429);
     echo json_encode([
         'success' => false,
-        'message' => 'You have submitted too many requests. Please wait an hour before trying again.'
+        'message' => 'You have submitted too many requests. Please wait 30 seconds before trying again.'
     ]);
     exit();
 }
@@ -132,6 +134,8 @@ try {
     $request_limiter->record();
 
     $pdo = Database::getInstance();
+    GuestBookingLimit::lock($pdo);
+    GuestBookingLimit::enforce($pdo, $contact, $email);
     $pdo->beginTransaction();
     $availability = HomeServiceRequest::availability($pdo, ['event_type'=>$eventType,'wedding_package'=>$weddingPackage,'services'=>$services,'preferred_date'=>$date,'preferred_time'=>$time,'branch_id'=>$homeBranchId]);
     if (!$availability['available']) {
@@ -141,19 +145,19 @@ try {
         exit();
     }
 
-    // This form has no OTP/verification step at all, so unlike
-    // submitGuestBooking.php there's no way to confirm the submitter owns a
-    // phone number. Reusing a phone that already belongs to a registered
-    // account would silently attach the request to that person's real
-    // account refuse instead of guessing.
+    // This form has no OTP step, so a phone number alone doesn't prove the
+    // submitter owns it. A number that belongs to a registered account is
+    // accepted only together with that account's login email; the request
+    // then goes into that account (its portal shows it). Anyone else gets a
+    // clear refusal instead of attaching a request to a stranger's account.
     $stmt = $pdo->prepare('SELECT c.id, u.email FROM customers c LEFT JOIN users u ON u.id = c.user_id WHERE c.phone_number = ?');
     $stmt->execute([$contact]);
     $existingCustomer = $stmt->fetch();
 
-    if ($existingCustomer && $existingCustomer['email'] !== null) {
+    if ($existingCustomer && $existingCustomer['email'] !== null && strcasecmp($existingCustomer['email'], $email) !== 0) {
         $pdo->rollBack();
         http_response_code(409);
-        echo json_encode(['success' => false, 'message' => 'This mobile number is linked to an existing account. Please log in to submit a request, or use a different mobile number.']);
+        echo json_encode(['success' => false, 'message' => 'This mobile number already has an account. Enter the email address of that account, log in to submit the request, or use a different mobile number.']);
         exit();
     }
 
@@ -174,12 +178,14 @@ try {
     $ins = $pdo->prepare('
         INSERT INTO home_service_requests (
             reference_code, customer_id, branch_id, contact_email, address, structured_address, event_type, wedding_package, preferred_date, preferred_time,
-            requests, number_of_clients, terms_accepted_at
+            requests, number_of_clients, travel_fee, estimated_total, terms_accepted_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
     ');
+    $estimate = HomeServiceRequest::estimate($pdo, $eventType, (string) $weddingPackage, $services, (int) $clients, (string) $structuredAddress['city']);
     $ins->execute([
         $referenceCode, $customerId, $homeBranchId, $email, $address, json_encode($structuredAddress), $eventType, $eventType === 'Wedding' ? $weddingPackage : null, $date, $time, $fullRequests, (int) $clients,
+        $estimate['travelFee'], $estimate['total'],
     ]);
     $requestId = $pdo->lastInsertId();
     // Guest updates (quote, payment link, reschedules) go out by email.

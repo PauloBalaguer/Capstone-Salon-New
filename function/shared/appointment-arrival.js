@@ -106,7 +106,7 @@
         ['Booking', reference],
         ['Appointment schedule', when(scheduled)],
         ['Service time if started now', `${clock(startAt)}${isNaN(endAt) ? '' : ` to ${clock(endAt)}`} (${span(review.durationMinutes)})`],
-        ['Payment', review.paymentStatus],
+        ['Payment', window.PortalPresentation ? PortalPresentation.paymentStatus(review.paymentStatus) : review.paymentStatus],
       ].filter(([label]) => label !== 'Service time if started now' || (!review.reason && review.staff.some(staff => staff.available)))
         .map(([label, value]) => `<strong>${esc(label)}:</strong> ${esc(value)}`).join('\n');
       if (review.reason) {

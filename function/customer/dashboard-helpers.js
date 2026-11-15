@@ -67,19 +67,8 @@ function getPaymentStatusLabel(appt) {
     if (appt.paymentExpired) return 'Expired';
     if (!Number(appt.depositAmount || 0)) return 'No payment collected';
   }
-  const labels = {
-    'Payment Required': 'Payment Required',
-    'Awaiting Verification': 'Payment Being Verified',
-    'Down Payment Verified': 'Deposit verified',
-    'Fully Paid': 'Paid in Full',
-    'Rejected': 'Payment Needs Attention',
-    'Refund Due': 'Deposit Refund Pending',
-    'Refund Processing': 'Refund Being Processed',
-    'Refunded': 'Refunded',
-    'Forfeited': 'Deposit Kept Reschedule to Use'
-  };
-  const status = appt && appt.paymentStatus;
-  return labels[status] || 'Payment Required';
+  if (appt && appt.paymentStatus === 'Forfeited') return 'Deposit kept (reschedule to use it)';
+  return PortalPresentation.paymentStatus(appt && appt.paymentStatus || 'Payment Required', appt && appt.remainingBalance);
 }
 
 // Appointments only store a start time; the visible end time is derived from

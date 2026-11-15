@@ -3,6 +3,7 @@
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
+require_once '../../backend/shared/config/setup/live-updates.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/notifications/CustomerNotifier.php';
 require_once '../../backend/shared/config/booking/Scheduling.php';
@@ -10,6 +11,7 @@ require_once '../../backend/shared/config/helpers/LoyaltyTier.php';
 require_once '../../backend/shared/config/helpers/LoyaltyCard.php';
 
 sendCorsHeaders();
+LiveUpdates::afterThisRequest();
 AuditLog::captureRequest();
 header('Content-Type: application/json');
 
@@ -81,7 +83,7 @@ try {
     $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "PAYMENT", ?)')
         ->execute(["Booking {$referenceCode} paid in full (PHP " . number_format($balance, 2) . " collected)."]);
 
-    CustomerNotifier::notify($pdo, (int) $appointment['customer_id'], 'PAYMENT_VERIFIED', "Your payment for {$referenceCode} has been verified. Status: Paid in Full.");
+    CustomerNotifier::notify($pdo, (int) $appointment['customer_id'], 'PAYMENT_VERIFIED', "Your payment for {$referenceCode} has been verified. Status: Fully paid.");
     CustomerNotifier::notify($pdo, (int) $appointment['customer_id'], 'COMPLETED', "Your appointment {$referenceCode} is now Completed. Thank you for choosing us!");
 
     $pdo->commit();

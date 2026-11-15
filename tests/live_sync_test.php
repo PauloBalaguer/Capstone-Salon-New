@@ -100,8 +100,14 @@ $v = $version();
 $pdo->exec("UPDATE appointments SET status = 'In Progress', employee_id = {$other}, appointment_datetime = NOW() - INTERVAL 5 MINUTE WHERE id = {$appointment}");
 $pdo->exec("UPDATE appointment_services SET employee_id = {$staffId} WHERE appointment_id = {$appointment}");
 check('a booking assigned to the stylist moves the live-sync version', $version() !== $v);
-check('doing a per-service part of a booking: all panels say Busy', $sameEverywhere('Busy'));
+check('doing a per-service part of a booking: all panels say Busy', $sameEverywhere('busy'));
 check('Cashier shows how long they are busy', str_starts_with((string) $statuses()[2], 'Busy until'));
+
+// Finished before the booked end time: free right away for a walk-in.
+require_once dirname(__DIR__) . '/backend/shared/config/booking/Scheduling.php';
+$pdo->exec("UPDATE appointments SET status = 'Completed' WHERE id = {$appointment}");
+check('finished early: Cashier no longer shows Busy until', !str_starts_with((string) $statuses()[2], 'Busy until'));
+check('finished early: can take a walk-in right now', !Scheduling::staffHasConflict($pdo, $staffId, $pdo->query('SELECT NOW()')->fetchColumn(), 30));
 
 $v = $version();
 $pdo->exec("UPDATE appointments SET status = 'Cancelled' WHERE id = {$appointment}");

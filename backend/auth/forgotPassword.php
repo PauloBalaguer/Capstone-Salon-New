@@ -42,7 +42,7 @@ try {
     $pdo = Database::getInstance();
 
     // Check if user exists
-    $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+    $stmt = $pdo->prepare("SELECT u.id FROM users u JOIN roles r ON r.id = u.role_id WHERE u.email = ? AND r.role_name IN ('Customer', 'Admin')");
     $stmt->execute([$email]);
     $user = $stmt->fetch();
 

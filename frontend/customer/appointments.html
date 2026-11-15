@@ -96,10 +96,9 @@
           <section x-show="isTrackingView" id="find-booking" class="cp-tracking-panel" aria-labelledby="find-booking-title">
             <h2 id="find-booking-title">Find Your Booking</h2>
             <p x-show="isGuestTracking">Have an account? <a href="../auth/login.html" class="cp-text-button">Sign in</a> to see and manage all your bookings.</p>
-            <p>Enter your booking reference to view its current status and progress. Guest bookings also require the mobile number used to book.</p>
+            <p>Enter your booking reference to view its current status and progress.</p>
             <form @submit.prevent="trackBooking()" class="cp-tracking-search" :aria-busy="trackLoading">
               <div><label for="tracking-reference">Booking reference</label><input id="tracking-reference" x-model="trackForm.reference" required maxlength="80" placeholder="Booking reference" autocomplete="off"></div>
-              <div><label for="tracking-phone">Mobile number <small>(required for guest bookings)</small></label><input id="tracking-phone" type="tel" x-model="trackForm.phone" maxlength="30" autocomplete="tel" placeholder="09XXXXXXXXX" aria-describedby="tracking-error"></div>
               <button class="cp-btn cp-btn-primary" type="submit" :disabled="trackLoading" x-text="trackLoading ? 'Finding booking…' : 'Find booking'"></button>
             </form>
             <p x-show="trackLoading" role="status">Looking up your booking…</p>
@@ -133,7 +132,7 @@
               <h3 id="tracking-payment-details" tabindex="-1">Payment Details</h3>
               <dl class="cp-tracking-fields">
                 <div><dt>Total / quoted total</dt><dd x-text="selectedTracking().price != null ? formatPeso(selectedTracking().price) : 'Awaiting quote'"></dd></div>
-                <div><dt>Payment status</dt><dd x-text="selectedTracking().paymentStatus || 'Contact the branch'"></dd></div>
+                <div><dt>Payment status</dt><dd x-text="selectedTracking().paymentStatus ? PortalPresentation.paymentStatus(selectedTracking().paymentStatus, selectedTracking().remainingBalance) : 'Contact the branch'"></dd></div>
                 <div><dt>Deposit</dt><dd x-text="selectedTracking().depositAmount != null ? formatPeso(selectedTracking().depositAmount) : 'Not recorded'"></dd></div>
                 <div><dt>Deposit verification</dt><dd x-text="selectedTracking().depositVerified ? 'Verified' : (selectedTracking().depositAmount ? 'Not yet verified' : 'No deposit recorded')"></dd></div>
                 <div><dt>Amount paid</dt><dd x-text="selectedTracking().amountPaid != null ? formatPeso(selectedTracking().amountPaid) : 'Not recorded'"></dd></div>
@@ -588,7 +587,7 @@
       <h3 class="text-base font-serif font-bold text-white">Confirm Cancellation</h3>
       <p class="text-xs text-slate-400">Are you sure you want to cancel this appointment? This action cannot be undone.</p>
       <p x-show="cancelDepositWarning()" x-text="cancelDepositWarning()" class="text-xs font-semibold rounded-lg p-2.5 bg-[color:var(--danger-soft)] text-[color:var(--danger)] border border-[color:var(--danger-soft)]"></p>
-      <p class="prose-justify text-xs text-slate-500">Policy: reservation deposits are non-refundable. Need a different time? Reschedule instead, your deposit carries over.</p>
+      <p class="prose-justify text-xs text-slate-500">Policy: reservation deposits are non-refundable. Need a different time? Reschedule instead, your deposit carries over. If the salon has to cancel your booking, we refund your deposit or reschedule it for you.</p>
 
       <div class="pt-4 flex flex-col gap-2">
         <button type="button" x-show="cancelAppointmentForReschedule() && canReschedule(cancelAppointmentForReschedule())" @click="rescheduleInsteadOfCancel()" class="w-full px-6 py-2 bg-luxury-700 hover:bg-luxury-600 text-white font-bold rounded-lg transition text-xs active:scale-95">Reschedule Instead</button>
@@ -645,15 +644,15 @@
        booking modal. Booking, home service, and profile mixins live on
        their own pages. -->
   <script src="../../function/shared/sign-out.js?v=20261111"></script>
-  <script src="../../function/customer/customer-shell.js?v=20261111"></script>
+  <script src="../../function/customer/customer-shell.js?v=20261114-nav"></script>
   <script src="../../function/customer/dashboard-helpers.js"></script>
   <script src="../../function/customer/dashboard-state.js"></script>
   <script src="../../function/customer/dashboard-notifications.js"></script>
-  <script src="../../function/customer/dashboard-appointments.js?v=20261111"></script>
+  <script src="../../function/customer/dashboard-appointments.js?v=20261114-pay"></script>
   <script src="../../function/customer/dashboard-reviews.js"></script>
   <script src="../../function/customer/dashboard-home-service.js"></script>
-  <script src="../../function/customer/dashboard-track-booking.js?v=20261111"></script>
-  <script src="../../function/shared/live-sync.js?v=20261110"></script>
+  <script src="../../function/customer/dashboard-track-booking.js?v=20261113-track-ref"></script>
+  <script src="../../function/shared/live-sync.js?v=20261113"></script>
   <script src="../../function/customer/dashboard.js?v=20261111"></script>
 <script src="../../function/shared/select-dropdown.js?v=20261111e"></script>
 </body>

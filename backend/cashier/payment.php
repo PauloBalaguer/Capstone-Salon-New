@@ -17,6 +17,7 @@
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
+require_once '../../backend/shared/config/setup/live-updates.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/notifications/CustomerNotifier.php';
 require_once '../../backend/shared/config/security/EodLock.php';
@@ -24,8 +25,10 @@ require_once '../../backend/shared/config/booking/Scheduling.php';
 require_once '../../backend/shared/config/helpers/LoyaltyTier.php';
 require_once '../../backend/shared/config/helpers/LoyaltyCard.php';
 require_once '../../backend/shared/config/payments/ReservationPayment.php';
+require_once __DIR__ . '/../shared/config/helpers/Schema.php';
 
 sendCorsHeaders();
+LiveUpdates::afterThisRequest();
 AuditLog::captureRequest();
 header('Content-Type: application/json');
 
@@ -50,7 +53,8 @@ BookingValidation::enforce($_POST, [
 $referenceCode = trim($_POST['reference'] ?? '');
 $paymentMethod = trim($_POST['paymentMethod'] ?? '');
 $tip = (float) ($_POST['tip'] ?? 0);
-$allowedMethods = ['Cash', 'GCash', 'Maya'];
+$allowedMethods = ['Cash', 'GCash', 'Maya', 'Card'];
+$paymentReference = is_string($_POST['paymentReference'] ?? null) ? trim($_POST['paymentReference']) : '';
 
 if ($referenceCode === '' || !in_array($paymentMethod, $allowedMethods, true) || $tip < 0) {
     http_response_code(400);
@@ -62,6 +66,12 @@ if ($referenceCode === '' || !in_array($paymentMethod, $allowedMethods, true) ||
 // GCash/Maya transaction amount.
 if ($paymentMethod !== 'Cash') {
     $tip = 0.0;
+    if (!preg_match('/^[A-Za-z0-9][A-Za-z0-9 .\/-]{0,99}$/D', $paymentReference)) {
+        http_response_code(422);
+        echo json_encode(['success' => false, 'message' => 'Enter the payment reference (1-100 letters, numbers, spaces, dots, slashes or hyphens).',
+            'errors' => ['paymentReference' => 'A valid payment reference is required.']]);
+        exit();
+    }
 }
 
 $cashReceived = null;
@@ -110,6 +120,12 @@ if ($productErrors) {
 
 try {
     $pdo = Database::getInstance();
+    $hasPaymentReference = Schema::hasColumn($pdo, 'payments', 'payment_reference');
+    if ($paymentMethod !== 'Cash' && !$hasPaymentReference) {
+        http_response_code(503);
+        echo json_encode(['success' => false, 'message' => 'Cashless checkout is not ready yet. Please ask the administrator to finish the payment setup.']);
+        exit();
+    }
 
     $stmt = $pdo->prepare('SELECT id, total_price, branch_id, customer_id, status, deposit_paid, deposit_amount, deposit_recorded_by, appointment_datetime FROM appointments WHERE reference_code = ? LIMIT 1');
     $stmt->execute([$referenceCode]);
@@ -250,6 +266,9 @@ try {
         VALUES (?, ?, ?, ?, ?, ?, "Paid", ?)
     ')->execute([$appointmentId, $total, $tip, $cashReceived, $changeGiven, $paymentMethod, $_SESSION['user_id']]);
     $paymentId = $pdo->lastInsertId();
+    if ($paymentMethod !== 'Cash') {
+        $pdo->prepare('UPDATE payments SET payment_reference = ? WHERE id = ?')->execute([$paymentReference, $paymentId]);
+    }
 
     $insItem = $pdo->prepare('
         INSERT INTO payment_items (payment_id, item_type, item_name, quantity, unit_price, line_total)
@@ -304,7 +323,7 @@ try {
     $pdo->prepare('INSERT INTO notifications (user_id, type, message) VALUES (NULL, "PAYMENT", ?)')
         ->execute(["Booking {$referenceCode} paid in full (PHP " . number_format($total, 2) . " via {$paymentMethod})."]);
 
-    CustomerNotifier::notify($pdo, (int) $appointment['customer_id'], 'PAYMENT_VERIFIED', "Your payment for {$referenceCode} has been verified. Status: Paid in Full.");
+    CustomerNotifier::notify($pdo, (int) $appointment['customer_id'], 'PAYMENT_VERIFIED', "Your payment for {$referenceCode} has been verified. Status: Fully paid.");
     CustomerNotifier::notify($pdo, (int) $appointment['customer_id'], 'COMPLETED', "Your appointment {$referenceCode} is now Completed. Thank you for choosing us!");
 
     $pdo->commit();

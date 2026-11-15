@@ -53,13 +53,16 @@ if ($password !== $confirm_password) {
 
 try {
     $pdo = Database::getInstance();
+    $pdo->beginTransaction();
 
     // Find the reset request record for this email
-    $stmt = $pdo->prepare("SELECT * FROM password_resets WHERE email = ?");
+    $stmt = $pdo->prepare("SELECT pr.code, pr.expires_at FROM password_resets pr JOIN users u ON u.email=pr.email
+        JOIN roles r ON r.id=u.role_id WHERE pr.email=? AND r.role_name IN ('Customer','Admin') FOR UPDATE");
     $stmt->execute([$email]);
     $reset_request = $stmt->fetch();
 
     if (!$reset_request || !hash_equals($reset_request['code'], $code)) {
+        $pdo->rollBack();
         $reset_attempt_limiter->record(); // Record failed attempt
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Invalid or expired reset code.']);
@@ -71,11 +74,11 @@ try {
     $expires_at = new DateTime($reset_request['expires_at']);
 
     if ($now > $expires_at) {
+        $pdo->prepare("DELETE FROM password_resets WHERE email = ?")->execute([$email]);
+        $pdo->commit();
         $reset_attempt_limiter->record(); // Record failed attempt
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Invalid or expired reset code.']);
-        // The code is expired, so remove it
-        $pdo->prepare("DELETE FROM password_resets WHERE email = ?")->execute([$email]);
         exit();
     }
 
@@ -94,9 +97,11 @@ try {
     $stmt->execute([$email]);
 
     http_response_code(200);
+    $pdo->commit();
     echo json_encode(['success' => true, 'message' => 'Password has been reset successfully. Redirecting to login...']);
 
 } catch (Exception $e) {
+    if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
     error_log('Password Reset Execution Error: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'A server error occurred. Please try again later.']);

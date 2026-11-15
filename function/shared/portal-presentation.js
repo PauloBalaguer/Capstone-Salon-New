@@ -64,7 +64,20 @@ window.PortalPresentation = {
     const summary = legacy ? '' : service ? (submitted ? 'The booking request has been received.' : message.split(/\n\s*\n|\nBooking reference:/)[0]) : message;
     return {summary, service, branch, schedule, status};
   },
-  paymentStatus(status) { return status === 'Down Payment Verified' ? 'Deposit verified' : status; },
+  // Same words as backend/shared/config/payments/PaymentStatus.php (emails). Three clear states:
+  // Unpaid / Deposit paid · ₱X balance due / Fully paid. Pass the balance when known.
+  PAYMENT_LABELS: {
+    'Payment Required': 'Unpaid', 'Awaiting Verification': 'Payment being checked',
+    'Down Payment Verified': 'Deposit paid', 'Fully Paid': 'Fully paid', 'Rejected': 'Payment needs attention',
+    'Refund Due': 'Refund due', 'Refund Processing': 'Refund in progress', 'Refunded': 'Refunded',
+    'Forfeited': 'Deposit kept (non-refundable)'
+  },
+  paymentStatus(status, balance) {
+    const label = PortalPresentation.PAYMENT_LABELS[status] || status || '';
+    return status === 'Down Payment Verified' && Number(balance) > 0
+      ? label + ' · ₱' + Number(balance).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' balance due'
+      : label;
+  },
   notificationTitle(type) {
     const titles = { BOOKING_SUBMITTED:'Booking request received', NEW_BOOKING:'New booking', CONFIRMED:'Booking confirmed', CANCELLED:'Booking cancelled', RESCHEDULE:'Schedule updated', SERVICE_FINISHED:'Service finished', COMPLETED:'Service completed', PAYMENT_RECEIVED:'Payment received', PAYMENT_VERIFIED:'Payment verified', PAYMENT_ATTENTION:'Payment needs attention', REMINDER:'Appointment reminder', PAYMENT_REMINDER:'Payment reminder', ASSIGNED:'Appointment assigned', APPOINTMENT_ASSIGNED:'Appointment assigned', REASSIGNED:'Staff assignment updated', INVENTORY:'Inventory update', SYSTEM:'System update', SMS:'SMS update', EMAIL:'Email update' };
     return titles[type] || String(type || 'Notification').replace(/_/g, ' ').toLowerCase().replace(/^./, c=>c.toUpperCase());

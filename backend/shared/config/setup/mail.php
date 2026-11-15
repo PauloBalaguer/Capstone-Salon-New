@@ -6,11 +6,26 @@ require_once __DIR__ . '/env.php';
  * Brevo Transactional Email API transport shared by all existing email helpers.
  * true means API acceptance, not inbox delivery. No simulated delivery or OTP logs.
  */
+/** Why the last sendBrevoEmail() failed (no keys or codes in it); '' after a success. */
+function brevoLastError(?string $set = null): string
+{
+    static $last = '';
+    if ($set !== null) $last = $set;
+    return $last;
+}
+
+function brevoFail(string $why, bool $log = true): bool
+{
+    if ($log) error_log('Brevo email not sent: ' . $why);
+    brevoLastError($why);
+    return false;
+}
+
 function sendBrevoEmail(string $email, string $subject, string $text, ?string $html = null): bool
 {
+    brevoLastError('');
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        error_log('Brevo email not sent: invalid recipient address.');
-        return false;
+        return brevoFail('invalid recipient address.');
     }
 
     $credentials = [
@@ -22,19 +37,16 @@ function sendBrevoEmail(string $email, string $subject, string $text, ?string $h
     ];
     foreach (['api_key', 'sender_email', 'sender_name'] as $key) {
         if (trim($credentials[$key]) === '') {
-            error_log('Brevo email not sent: sender configuration is incomplete.');
-            return false;
+            return brevoFail('sender configuration is incomplete.');
         }
     }
     if (!filter_var($credentials['sender_email'], FILTER_VALIDATE_EMAIL)
         || preg_match('/[\r\n]/', $credentials['sender_name'])
         || preg_match('/\s/', $credentials['api_key'])) {
-        error_log('Brevo email not sent: invalid sender or API key configuration.');
-        return false;
+        return brevoFail('invalid sender or API key configuration.');
     }
     if (!function_exists('curl_init') || !function_exists('curl_exec')) {
-        error_log('Brevo email not sent: PHP cURL is unavailable.');
-        return false;
+        return brevoFail('PHP cURL is unavailable.');
     }
 
     $payload = [
@@ -50,8 +62,7 @@ function sendBrevoEmail(string $email, string $subject, string $text, ?string $h
         $json = json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
         $handle = curl_init($credentials['api_url']);
         if ($handle === false) {
-            error_log('Brevo email not sent: could not initialize cURL.');
-            return false;
+            return brevoFail('could not initialize cURL.');
         }
         if (!curl_setopt_array($handle, [
             CURLOPT_POST => true,
@@ -69,30 +80,29 @@ function sendBrevoEmail(string $email, string $subject, string $text, ?string $h
             CURLOPT_PROTOCOLS => CURLPROTO_HTTPS,
             CURLOPT_FOLLOWLOCATION => false,
         ])) {
-            error_log('Brevo email not sent: could not configure cURL.');
-            return false;
+            return brevoFail('could not configure cURL.');
         }
         $response = curl_exec($handle);
         $errorNumber = curl_errno($handle);
         $status = (int) curl_getinfo($handle, CURLINFO_HTTP_CODE);
         if ($response === false || $errorNumber !== 0) {
             // Numeric diagnostics only: no addresses, keys, bodies or OTPs in logs.
-            error_log('Brevo email request failed: cURL error ' . $errorNumber . '.');
-            return false;
+            return brevoFail('could not reach Brevo (cURL error ' . $errorNumber . ').');
         }
         if ($status !== 201) {
+            // Brevo explains a rejection, e.g. "unauthorized: Key not found" or an unrecognised IP address
+            // (Brevo > Security > Authorised IPs). Stored for Admin; the PHP log keeps the status only.
+            $info = json_decode((string) $response, true);
             error_log('Brevo email request rejected: HTTP ' . $status . '.');
-            return false;
+            return brevoFail('Brevo rejected it (HTTP ' . $status . (is_array($info) ? ': ' . mb_substr(trim(($info['code'] ?? '') . ' ' . ($info['message'] ?? '')), 0, 300) : '') . ')', false);
         }
         $result = json_decode($response, true);
         if (!is_array($result) || !is_string($result['messageId'] ?? null) || trim($result['messageId']) === '') {
-            error_log('Brevo email not accepted: response has no message ID.');
-            return false;
+            return brevoFail('response has no message ID.');
         }
         return true;
     } catch (Throwable $e) {
-        error_log('Brevo email not sent: payload encoding or transport failure.');
-        return false;
+        return brevoFail('payload encoding or transport failure.');
     } finally {
         if ($handle !== null && $handle !== false) curl_close($handle);
     }

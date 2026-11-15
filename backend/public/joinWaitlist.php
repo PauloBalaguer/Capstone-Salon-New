@@ -16,6 +16,7 @@
 
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
+require_once '../../backend/shared/config/helpers/PhoneNumber.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/security/RateLimiter.php';
@@ -37,6 +38,12 @@ $time = mb_substr(trim($_POST['time'] ?? ''), 0, 20);
 $name = mb_substr(trim($_POST['name'] ?? ''), 0, 150);
 $email = trim($_POST['email'] ?? '');
 $phone = mb_substr(trim($_POST['phone'] ?? ''), 0, 30);
+if ($phone !== '' && ($phone = PhoneNumber::normalize($phone)) === null) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => PhoneNumber::MESSAGE]);
+    exit();
+}
+$phone = (string) $phone;
 
 $limiter = new RateLimiter(RateLimiter::getIpAddress(), 'join_waitlist', 10, 3600);
 if ($limiter->isExceeded()) {

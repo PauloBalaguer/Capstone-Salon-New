@@ -23,7 +23,10 @@ final class EmailOutbox
 
     public static function queue(PDO $pdo, string $to, string $subject, string $body, ?string $reference = null): void
     {
-        if (!filter_var($to, FILTER_VALIDATE_EMAIL)) return;
+        if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
+            self::logSkipped($pdo, $to, $subject, $body, $reference, 'Not sent: the email address on file is not valid');
+            return;
+        }
         $exists = $pdo->prepare('SELECT id FROM email_outbox WHERE to_email = ? AND subject = ? AND body = ? AND reference_code <=> ? LIMIT 1 FOR UPDATE');
         $subject = mb_substr($subject, 0, 255);
         $exists->execute([$to, $subject, $body, $reference]);
@@ -36,6 +39,36 @@ final class EmailOutbox
             self::$hookRegistered = true;
             register_shutdown_function([self::class, 'flushAfterRequest']);
         }
+    }
+
+    /**
+     * Records an email that was NOT sent (no address on file, notifications
+     * turned off) as a Failed row, so every attempt shows in Admin's email
+     * log for that booking instead of disappearing silently.
+     */
+    public static function logSkipped(PDO $pdo, ?string $to, string $subject, string $body, ?string $reference, string $reason): void
+    {
+        $pdo->prepare("INSERT INTO email_outbox (to_email, subject, body, reference_code, status, last_error) VALUES (?, ?, ?, ?, 'Failed', ?)")
+            ->execute([mb_substr((string) $to, 0, 255), mb_substr($subject, 0, 255), $body, $reference, mb_substr($reason, 0, 500)]);
+    }
+
+    /** Every email attempt for one booking reference, newest first (Admin > Bookings > Details). */
+    public static function history(PDO $pdo, string $reference): array
+    {
+        $stmt = $pdo->prepare('SELECT id, to_email AS toEmail, subject, status, attempts, last_error AS error, created_at AS createdAt, sent_at AS sentAt
+            FROM email_outbox WHERE reference_code = ? ORDER BY id DESC LIMIT 30');
+        $stmt->execute([$reference]);
+        return $stmt->fetchAll();
+    }
+
+    /** Admin "Try again": a failed email with an address goes back in the queue and is sent now. */
+    public static function retry(PDO $pdo, int $id): bool
+    {
+        $stmt = $pdo->prepare("UPDATE email_outbox SET status = 'Pending', attempts = 0, last_error = NULL WHERE id = ? AND status = 'Failed' AND to_email LIKE '%@%'");
+        $stmt->execute([$id]);
+        if (!$stmt->rowCount()) return false;
+        self::flush($pdo, 25);
+        return true;
     }
 
     /** Shutdown hook: sends mail queued in this request (skipped if a transaction was left open, i.e. abandoned). */
@@ -98,15 +131,15 @@ final class EmailOutbox
                 $marks = implode(',', array_fill(0, count($ids), '?'));
 
                 try { $delivered = sendNotificationEmail($rows[0]['to_email'], $subject, $body); }
-                catch (Throwable $e) { error_log('Email delivery failed: ' . $e->getMessage()); $delivered = false; }
+                catch (Throwable $e) { error_log('Email delivery failed: ' . $e->getMessage()); brevoLastError('Unexpected error while sending'); $delivered = false; }
                 if ($delivered) {
                     $pdo->prepare("UPDATE email_outbox SET status = 'Sent', attempts = attempts + 1, sent_at = NOW(), last_error = NULL WHERE id IN ($marks)")
                         ->execute($ids);
                     $sent++;
                 } else {
                     $pdo->prepare("UPDATE email_outbox SET status = IF(attempts + 1 >= ?, 'Failed', 'Pending'),
-                                   attempts = attempts + 1, last_error = 'Brevo API send failed or is not configured (see PHP error log)' WHERE id IN ($marks)")
-                        ->execute([self::MAX_ATTEMPTS, ...$ids]);
+                                   attempts = attempts + 1, last_error = ? WHERE id IN ($marks)")
+                        ->execute([self::MAX_ATTEMPTS, mb_substr(brevoLastError() ?: 'Brevo did not accept the email', 0, 500), ...$ids]);
                 }
             }
             return $sent;

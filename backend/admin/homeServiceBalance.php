@@ -15,10 +15,12 @@
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
 require_once '../../backend/shared/config/setup/database.php';
+require_once '../../backend/shared/config/setup/live-updates.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/payments/HomeServicePayment.php';
 
 sendCorsHeaders();
+LiveUpdates::afterThisRequest();
 AuditLog::captureRequest();
 header('Content-Type: application/json');
 
@@ -112,7 +114,10 @@ try {
             echo json_encode(['success' => false, 'message' => preg_replace('/^PayMongo error \d+: /', '', $e->getMessage())]);
             exit();
         }
-        echo json_encode(['success' => true, 'message' => 'Payment link for ₱' . number_format($totals['due'], 2) . ' sent to the customer.', 'payUrl' => $url]);
+        $where = ['queued' => 'emailed to the customer', 'no_email' => 'created, but NOT emailed: there is no email address on file. Copy the link below and send it by text or chat',
+            'opted_out' => 'created, but NOT emailed: the customer turned email off. Copy the link below and send it another way'][CustomerNotifier::$lastEmail ?? ''] ?? 'created';
+        echo json_encode(['success' => true, 'emailed' => CustomerNotifier::$lastEmail === 'queued',
+            'message' => 'Payment link for ₱' . number_format($totals['due'], 2) . " {$where}. The customer can also pay it from Track your booking.", 'payUrl' => $url]);
         exit();
     }
 

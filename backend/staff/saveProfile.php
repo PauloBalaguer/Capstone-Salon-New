@@ -11,6 +11,7 @@
 
 require_once '../../backend/shared/config/setup/cors.php';
 require_once '../../backend/shared/config/setup/session.php';
+require_once '../../backend/shared/config/helpers/PhoneNumber.php';
 require_once '../../backend/shared/config/setup/database.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/security/Csrf.php';
@@ -42,14 +43,12 @@ function profileFail(int $code, string $message, ?string $field = null): void
 }
 
 // "+63 917 123 4567", "0917-123-4567" -> "09171234567".
-$phone = preg_replace('/[\s\-()]/', '', trim((string) ($_POST['phone'] ?? '')));
-if (str_starts_with($phone, '+63')) $phone = '0' . substr($phone, 3);
-elseif (str_starts_with($phone, '63') && strlen($phone) === 12) $phone = '0' . substr($phone, 2);
+$phone = PhoneNumber::normalize((string) ($_POST['phone'] ?? '')) ?? trim((string) ($_POST['phone'] ?? ''));
 $email = strtolower(trim((string) ($_POST['email'] ?? '')));
 $profilePicture = $_POST['profilePicture'] ?? '';
 
 if (!preg_match('/^09[0-9]{9}$/D', $phone)) {
-    profileFail(400, 'Enter a valid mobile number, e.g. 09171234567.', 'phone');
+    profileFail(400, PhoneNumber::MESSAGE, 'phone');
 }
 if (strlen($email) > 255 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     profileFail(400, 'Enter a valid email address.', 'email');

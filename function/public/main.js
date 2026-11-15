@@ -1,3 +1,44 @@
+  function showGuestBookingLimit(response, anchor, homeService = false) {
+    if (!response.registrationRequired) return false;
+    document.getElementById('guestBookingLimitNotice')?.remove();
+    const notice = document.createElement('div');
+    notice.id = 'guestBookingLimitNotice';
+    notice.className = 'mt-4 rounded-xl border border-bronze/40 bg-white p-4 text-sm text-ink';
+    notice.setAttribute('role', 'alert');
+    const message = document.createElement('p');
+    message.textContent = response.message;
+    const actions = document.createElement('div');
+    actions.className = 'mt-3 flex flex-wrap gap-3';
+    const register = document.createElement('a');
+    register.href = 'frontend/auth/register.html';
+    register.className = 'rounded-xl bg-plum px-4 py-3 font-bold text-white';
+    register.textContent = 'Register';
+    register.addEventListener('click', () => {
+      const read = id => document.getElementById(id)?.value.trim() || '';
+      const phone = read(homeService ? 'hsPhone' : 'bookPhone');
+      const draft = {
+        'reg-firstname': read(homeService ? 'hsFirstName' : 'bookFirstName'),
+        'reg-middlename': read(homeService ? 'hsMiddleInitial' : 'bookMiddleName'),
+        'reg-middlename-na': !!document.getElementById(homeService ? 'hsMiddleInitialNA' : 'bookMiddleNameNA')?.checked,
+        'reg-lastname': read(homeService ? 'hsLastName' : 'bookLastName'),
+        'reg-contact': phone.replace(/[\s\-().]/g, '').replace(/^(\+63|0)/, ''),
+        'reg-email': read(homeService ? 'hsEmail' : 'bookEmail'),
+      };
+      try { sessionStorage.setItem('lmRegisterDraft', JSON.stringify(draft)); } catch (err) { /* form stays usable without storage */ }
+    });
+    const login = document.createElement('a');
+    login.href = 'frontend/auth/login.html';
+    login.className = 'rounded-xl border border-bronze/40 px-4 py-3 font-bold text-plum';
+    login.textContent = 'Log in';
+    actions.append(register, login);
+    notice.append(message, actions);
+    const placement = anchor.parentElement.classList.contains('flex') ? anchor.parentElement : anchor;
+    placement.insertAdjacentElement('afterend', notice);
+    notice.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    register.focus({ preventScroll: true });
+    return true;
+  }
+
   function switchTab(tabId) {
     // Stop gallery previews when the visitor leaves the Gallery tab.
     if (tabId !== 'gallery-tab') {
@@ -1223,9 +1264,12 @@
       ]
     }
   ];
-  let hsFeedbackRef = '';
-  let hsFeedbackEmail = '';
-  const hsRatings = { service: 0, staff: 0 };
+  let hsLastSubmitted = null;
+  function hsTrackSubmitted() {
+    if (hsLastSubmitted) openTrackModal(hsLastSubmitted.ref, hsLastSubmitted.phone, hsLastSubmitted.email);
+    else openTrackModal();
+  }
+
   function hsJump(id) {
     switchTab('homeservice-tab');
     setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior:'smooth', block:'start' }), 120);
@@ -1288,10 +1332,90 @@
     return { amount: Math.round((Number(pkg.price) * HS_DP_ESTIMATE_RATE) / 100) * 100, fixed: false };
   }
 
+  let hsPrices = null;
+  fetch('backend/public/getHomeServicePrices.php')
+    .then(r => r.json())
+    .then(data => {
+      if (!data.success) return;
+      hsPrices = data;
+      document.querySelectorAll('#hsServiceCards .hs-svc').forEach(btn => {
+        const price = data.rates[btn.dataset.svc];
+        if (price === undefined) return;
+        const tag = btn.querySelector('.hs-price') || btn.appendChild(Object.assign(document.createElement('span'), { className: 'hs-price block text-xs font-bold text-plum mt-2' }));
+        tag.textContent = 'Starts at ' + hsPeso(price) + ' per client';
+      });
+      hsRenderEstimate();
+    })
+    .catch(() => {});
+
+  // Services (package price, or per-client prices x clients) + travel fee for
+  // the venue's city = estimated total; DP = the package's fixed fee or a
+  // percent of the total. Null when something isn't chosen yet.
+  function hsEstimate() {
+    if (!hsPrices) return null;
+    const isWedding = document.getElementById('hsEventType').value === 'Wedding';
+    const clients = parseInt(document.getElementById('hsClients').value, 10) || 0;
+    let services = 0;
+    let fixedFee = null;
+    let label = '';
+    if (isWedding) {
+      if (!hsSelectedWeddingPackage) return null;
+      services = Number(hsSelectedWeddingPackage.price);
+      if (hsSelectedWeddingPackage.reservationFee !== null && hsSelectedWeddingPackage.reservationFee !== undefined) fixedFee = Number(hsSelectedWeddingPackage.reservationFee);
+      label = hsSelectedWeddingPackage.name;
+    } else {
+      if (!hsSelectedServices.length || clients < 1) return null;
+      let perClient = 0;
+      for (const service of hsSelectedServices) {
+        if (hsPrices.rates[service] === undefined) return null;
+        perClient += Number(hsPrices.rates[service]);
+      }
+      services = perClient * clients;
+      label = hsPeso(perClient) + ' × ' + clients + ' client' + (clients === 1 ? '' : 's');
+    }
+    const citySelect = document.getElementById('guest-service-address-city');
+    const travel = hsPrices.travelFees[citySelect?.value || ''];
+    const city = citySelect?.value ? citySelect.selectedOptions[0]?.textContent || '' : '';
+    if (travel === undefined) return { services, label, travel: null, city, total: null, dp: fixedFee, fixed: fixedFee !== null, balance: null };
+    const total = services + Number(travel);
+    const dp = fixedFee !== null ? fixedFee : Math.round((total * hsPrices.dpPercent) / 100 / 100) * 100;
+    return { services, label, travel: Number(travel), city, total, dp, fixed: fixedFee !== null, balance: Math.max(0, total - dp) };
+  }
+
+  function hsRenderEstimate() {
+    const box = document.getElementById('hsEstimate');
+    if (!box) return;
+    const est = hsEstimate();
+    box.classList.toggle('hidden', !hsPrices);
+    if (!est) {
+      box.innerHTML = '<p class="text-ink/60">Choose ' + (document.getElementById('hsEventType').value === 'Wedding' ? 'a wedding package' : 'your services and the number of clients') + ' to see an estimate.</p>';
+      hsRenderDpEstimate();
+      return;
+    }
+    const row = (name, value, strong) => '<p class="flex justify-between gap-3"><span class="text-ink/60">' + name + '</span>' + (strong ? '<b>' + value + '</b>' : '<span>' + value + '</span>') + '</p>';
+    box.innerHTML = '<span class="text-xs font-bold uppercase tracking-widest text-copper-dark">Estimated cost</span>' +
+      '<div class="mt-3 space-y-1.5 text-[13.5px]">' +
+        row('Services (' + escAttr(est.label) + ')', hsPeso(est.services)) +
+        row('Travel fee' + (est.city ? ' · ' + escAttr(est.city) : ''), est.travel === null ? 'Choose the venue address' : (est.travel === 0 ? 'Free' : hsPeso(est.travel))) +
+        (est.total === null ? '' :
+          row('Estimated total', hsPeso(est.total), true) +
+          row('Reservation fee (DP)' + (est.fixed ? ', fixed' : ', about ' + hsPrices.dpPercent + '%'), hsPeso(est.dp)) +
+          row('Remaining balance (event day)', hsPeso(est.balance))) +
+      '</div>' +
+      '<p class="text-xs text-ink/50 mt-3">An estimate only. Your final price is in the quote we send after review.</p>';
+    hsRenderDpEstimate();
+  }
+
   // The "How payment works" box's estimate line (review step).
   function hsRenderDpEstimate() {
     const el = document.getElementById('hsDpEstimate');
     if (!el) return;
+    const est = hsEstimate();
+    if (est && est.total !== null) {
+      el.innerHTML = 'Estimated DP: <b class="text-plum text-[15px]">' + (est.fixed ? '' : 'about ') + hsPeso(est.dp) + '</b> ' +
+        '<span class="text-ink/50">' + (est.fixed ? '(fixed reservation fee)' : '(≈' + hsPrices.dpPercent + '% of the estimated ' + hsPeso(est.total) + ')') + '</span>';
+      return;
+    }
     const isWedding = document.getElementById('hsEventType').value === 'Wedding';
     const dp = isWedding ? hsEstimatedDp(hsSelectedWeddingPackage) : null;
     el.innerHTML = dp
@@ -1303,12 +1427,14 @@
   function hsFillWeddingSummary(selector) {
     if (!hsSelectedWeddingPackage) return;
     const pkg = hsSelectedWeddingPackage;
-    const dp = hsEstimatedDp(pkg);
+    const est = hsEstimate();
+    const dp = est && est.total !== null ? { amount: est.dp, fixed: est.fixed } : hsEstimatedDp(pkg);
+    const balance = est && est.total !== null ? est.balance : pkg.price - dp.amount;
     const values = {
       name: pkg.name,
-      price: hsPeso(pkg.price),
+      price: hsPeso(pkg.price) + (est && est.travel ? ' + ' + hsPeso(est.travel) + ' travel fee' : ''),
       fee: dp.fixed ? hsPeso(dp.amount) : 'about ' + hsPeso(dp.amount) + ' (estimate confirmed in your quote)',
-      balance: (dp.fixed ? '' : 'about ') + hsPeso(pkg.price - dp.amount) + ' (paid on the event day)',
+      balance: (dp.fixed ? '' : 'about ') + hsPeso(balance) + ' (paid on the event day)',
       venue: document.getElementById('hsVenue').value.trim() || '',
       date: hsFmtDate(document.getElementById('hsDate').value),
       time: hsFmtTime(document.getElementById('hsTime').value)
@@ -1401,7 +1527,7 @@
       const name = hsFullName();
       const phone = document.getElementById('hsPhone').value.trim();
       if (!name) { fieldError('hsFirstName', 'Please enter your name.'); return; }
-      if (!/^09\d{9}$/.test(phone)) { fieldError('hsPhone', 'Please enter a valid 11-digit mobile number (09XXXXXXXXX).'); return; }
+      if (!/^09\d{9}$/.test(phone)) { fieldError('hsPhone', BookingFormValidation.MOBILE_MESSAGE); return; }
       // Required: guests track and reschedule with reference + email, and get updates there.
       const email = document.getElementById('hsEmail').value.trim();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { fieldError('hsEmail', 'Please enter a valid email address you\'ll use it to track and reschedule your request.'); return; }
@@ -1552,6 +1678,7 @@
   }
 
   async function hsRefreshAvailability() {
+    hsRenderEstimate();
     const seq = ++hsAvailSeq;
     hsAvailability = null;
     const params = hsSelectionParams();
@@ -1583,6 +1710,7 @@
   });
   document.getElementById('hsEventType')?.addEventListener('change', () => { hsSyncWeddingPackages(); hsRefreshAvailability(); });
   document.getElementById('hsOtherEvent')?.addEventListener('change', hsRefreshAvailability);
+  ['hsClients', 'hsVenue'].forEach(id => document.getElementById(id)?.addEventListener('input', hsRenderEstimate));
 
   function hsBuildReview() {
     const email = document.getElementById('hsEmail').value.trim();
@@ -1652,6 +1780,7 @@
       .then(r => r.json())
       .then(res => {
         if (btn) { btn.disabled = false; btn.textContent = 'Submit Home Service Request'; }
+        if (showGuestBookingLimit(res, btn, true)) return;
         if (!res.success) {
           AddressForms.errors('guest-service-address', res.errors);
           if (res.conflict) { hsGo(2); BookingFormValidation.message(document.getElementById('hsTime'), res.message); }
@@ -1674,8 +1803,7 @@
         ];
         document.getElementById('hsSummary').innerHTML = submittedSummary
           .map(r => '<p><span class="text-ink/50">' + r[0] + ':</span> <b>' + escAttr(r[1]) + '</b></p>').join('');
-        document.getElementById('trkRef').value = ref;
-        document.getElementById('trkEmail').value = email; // pre-fill the tracker (reference + email)
+        hsLastSubmitted = { ref, phone, email };
         hsGo(5);
       })
       .catch(() => {
@@ -1709,81 +1837,6 @@
     hsGo(1);
   }
 
-  function hsTrack() {
-    const ref = document.getElementById('trkRef').value.trim().toUpperCase();
-    // Home services are tracked with reference + the email given on the request.
-    const email = document.getElementById('trkEmail').value.trim();
-    const box = document.getElementById('trkResult');
-    const fb = document.getElementById('hsFeedback');
-    box.classList.remove('hidden');
-
-    if (!ref || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      box.innerHTML = '<div class="rounded-xl bg-copper/12 border border-copper/30 text-copper-dark p-4 text-[13px]">Enter your reference number and the email address you used for the request.</div>';
-      fb.classList.add('hidden');
-      return;
-    }
-
-    box.innerHTML = '<div class="text-[13px] text-ink/50">Looking up your request…</div>';
-    fb.classList.add('hidden');
-
-    fetch('backend/public/trackBooking.php?reference=' + encodeURIComponent(ref) + '&email=' + encodeURIComponent(email))
-      .then(r => r.json())
-      .then(res => {
-        if (!res.success) {
-          box.innerHTML = '<div class="rounded-xl bg-copper/12 border border-copper/30 text-copper-dark p-4 text-[13px]">' + escAttr(res.message) + '</div>';
-          return;
-        }
-        res.email = email; // proves ownership again if the guest reschedules from here
-        box.innerHTML = renderTrackingResult(res);
-
-        if (res.canReview) {
-          hsFeedbackRef = res.reference;
-          hsFeedbackEmail = email;
-          hsRatings.service = 0; hsRatings.staff = 0;
-          document.querySelectorAll('#hsFeedback .fb-star').forEach(s => { s.className = 'fb-star text-bronze/40 hover:text-copper transition'; });
-          document.getElementById('fbFor').textContent = 'For booking ' + res.reference + ' ' + (res.event || res.services || '') + '.';
-          fb.classList.remove('hidden');
-        } else {
-          fb.classList.add('hidden');
-        }
-      })
-      .catch(() => {
-        box.innerHTML = '<div class="rounded-xl bg-copper/12 border border-copper/30 text-copper-dark p-4 text-[13px]">A network error occurred. Please try again.</div>';
-      });
-  }
-
-  function hsStar(btn, value) {
-    const group = btn.closest('[data-stars]');
-    const key = group.dataset.stars;
-    hsRatings[key] = value;
-    group.querySelectorAll('.fb-star').forEach((s, i) => {
-      s.className = 'fb-star transition ' + (i < value ? 'text-copper' : 'text-bronze/40 hover:text-copper');
-    });
-  }
-
-  function hsSubmitFeedback() {
-    if (!hsRatings.service) { showToast('Please rate your experience first'); return; }
-    if (!hsFeedbackRef || !hsFeedbackEmail) { showToast('Please look up your request again.'); return; }
-
-    const formData = new FormData();
-    formData.append('reference', hsFeedbackRef);
-    formData.append('email', hsFeedbackEmail);
-    formData.append('rating', hsRatings.service);
-    if (hsRatings.staff) formData.append('staff_rating', hsRatings.staff);
-    formData.append('comment', document.getElementById('fbText').value.trim());
-
-    fetch('backend/public/submitGuestFeedback.php', { method: 'POST', body: formData })
-      .then(r => r.json())
-      .then(res => {
-        showToast(res.message, res.success ? 'success' : 'error');
-        if (!res.success) return;
-        document.getElementById('fbText').value = '';
-        hsRatings.service = 0; hsRatings.staff = 0;
-        document.querySelectorAll('#hsFeedback .fb-star').forEach(s => { s.className = 'fb-star text-bronze/40 hover:text-copper transition'; });
-        document.getElementById('hsFeedback').classList.add('hidden');
-      })
-      .catch(() => showToast('A network error occurred. Please try again.'));
-  }
 
 
 
@@ -1794,18 +1847,21 @@
   const BRANCH_LABEL_BY_ID = Object.fromEntries(
     Object.entries(BRANCH_ID_BY_KEY).map(([key, id]) => [id, BRANCH_LABEL[key]])
   );
-  const BRANCH_HOURS = {
-    daraga:   { open: 8 * 60,      close: 20 * 60 },
-    yashano:  { open: 9 * 60 + 30, close: 20 * 60 },
-    cabangan: { open: 8 * 60,      close: 20 * 60 }
-  };
+  let publicStats = null;
+  let publicStatsLoading = false;
+  let publicStatsFetchedAt = 0;
 
-  function refreshLiveStatus() {
+  function paintLiveStatus() {
     const now = new Date();
-    const mins = now.getHours() * 60 + now.getMinutes();
-    Object.keys(BRANCH_HOURS).forEach(key => {
-      const h = BRANCH_HOURS[key];
-      const isOpen = mins >= h.open && mins < h.close;
+    const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(now).map(p => [p.type, p.value]));
+    const today = `${parts.year}-${parts.month}-${parts.day}`;
+    const mins = Number(parts.hour) * 60 + Number(parts.minute);
+    Object.keys(BRANCH_ID_BY_KEY).forEach(key => {
+      const h = publicStats?.date === today ? publicStats.branchHours?.[key] : null;
+      const minutes = value => typeof value === 'string' && /^\d{2}:\d{2}:\d{2}$/.test(value) ? Number(value.slice(0, 2)) * 60 + Number(value.slice(3, 5)) : null;
+      const open = minutes(h?.open), close = minutes(h?.close);
+      const known = open !== null && close !== null;
+      const isOpen = known && mins >= open && mins < close;
       const fmt = m => {
         const hr = Math.floor(m / 60), mn = m % 60;
         const ampm = hr >= 12 ? 'PM' : 'AM';
@@ -1815,8 +1871,27 @@
       document.querySelectorAll(`.live-dot[data-live="${key}"]`)
         .forEach(d => d.classList.toggle('closed', !isOpen));
       document.querySelectorAll(`[data-live-label="${key}"]`)
-        .forEach(l => l.textContent = isOpen ? `Open now until ${fmt(h.close)}` : `Opens ${fmt(h.open)}`);
+        .forEach(l => l.textContent = !known ? 'Call to confirm hours' : isOpen ? `Open now until ${fmt(close)}` : close <= open ? 'Closed today' : mins < open ? `Opens today at ${fmt(open)}` : 'Closed for today');
     });
+    document.querySelectorAll('[data-live-stat]').forEach(el => {
+      const value = publicStats?.[el.dataset.liveStat];
+      const valid = Number.isInteger(value) && value >= 0;
+      el.textContent = valid ? value.toLocaleString('en-PH') : el.dataset.statFallback;
+      el.title = valid ? '' : 'Live count is unavailable. Browse our services and team below.';
+    });
+  }
+
+  function refreshLiveStatus() {
+    paintLiveStatus();
+    if (publicStatsLoading || Date.now() - publicStatsFetchedAt < 60000) return;
+    publicStatsLoading = true;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    fetch('backend/public/getSiteStats.php', { cache: 'no-store', signal: controller.signal })
+      .then(response => { if (!response.ok) throw new Error('Statistics unavailable'); return response.json(); })
+      .then(data => { if (!data.success) throw new Error('Statistics unavailable'); publicStats = data; })
+      .catch(() => { publicStats = null; })
+      .finally(() => { clearTimeout(timeout); publicStatsLoading = false; publicStatsFetchedAt = Date.now(); paintLiveStatus(); });
   }
 
   function goBranchMenu(key) {
@@ -1855,8 +1930,8 @@
         <div class="branch-pick-header flex items-center justify-between">
           <span class="branch-pick-badge font-bold uppercase text-copper-dark bg-copper/15 rounded-full py-1.5">${b.badge}</span>
           <span class="branch-pick-status font-bold flex items-center text-ink/55">
-            <span class="live-dot" data-live="${b.key}"></span>
-            <span data-live-label="${b.key}"></span>
+            <span class="live-dot closed" data-live="${b.key}"></span>
+            <span data-live-label="${b.key}">Call to confirm hours</span>
           </span>
         </div>
         <h3 class="font-display text-[1.6rem] leading-tight mt-5">${b.name}</h3>
@@ -1885,16 +1960,7 @@
   })();
 
   (function () {
-    fetch('backend/public/getSiteStats.php', { cache: 'no-store' })
-      .then(response => { if (!response.ok) throw new Error('Statistics unavailable'); return response.json(); })
-      .then(data => {
-        if (!data.success) return;
-        document.querySelectorAll('[data-live-stat]').forEach(el => {
-          const value = data[el.dataset.liveStat];
-          if (Number.isInteger(value) && value >= 0) el.textContent = value.toLocaleString('en-PH');
-        });
-      })
-      .catch(() => {});
+    refreshLiveStatus();
     const stats = document.querySelectorAll('.hero-stat b[data-count]');
     if (!stats.length) return;
     const run = el => {
@@ -1975,8 +2041,10 @@
     const applyLook = i => {
       active = i;
       const L = BA_LOOKS[i];
-      document.getElementById('baAfter').src = L.before;
-      document.getElementById('baBefore').src = L.after;
+      document.getElementById('baBefore').src = L.before;
+      document.getElementById('baAfter').src = L.after;
+      document.getElementById('baBefore').alt = 'Before ' + L.title;
+      document.getElementById('baAfter').alt = 'After ' + L.title;
       document.getElementById('baKicker').textContent = L.kicker;
       document.getElementById('baTitle').textContent = L.title;
       document.getElementById('baBlurb').textContent = L.blurb;
@@ -2094,13 +2162,16 @@
     const detail = isHome
       ? [['Type', 'Home &amp; event service'], ['Event', escAttr(res.event)],
          [HS_CONFIRMED_STATUSES.includes(res.status) ? 'Confirmed date' : 'Preferred date', hsFmtDate(res.date) + (res.time ? ' · ' + escAttr(res.time) : '')],
-         ['Location', escAttr(res.venue)],
+         ...(res.venue ? [['Location', escAttr(res.venue)]] : []),
          ...(res.quote ? [['Quote', peso(res.quote)]] : []),
          ...(res.reservationFee ? [['Reservation fee', peso(res.reservationFee) + (res.feePaid ? ' paid' : ' not yet paid')]] : []),
-         ['Details', escAttr(res.requests || '').replace(/\n/g, '<br>')]]
+         ...(res.paymentStatus ? [['Payment', escAttr(PortalPresentation.paymentStatus(res.paymentStatus, res.balanceDue))]] : []),
+         ...(res.requests ? [['Details', escAttr(res.requests).replace(/\n/g, '<br>')]] : [])]
       : [['Type', 'In-salon appointment'], ['Branch', escAttr(res.branch || '')],
          ['Service', escAttr(res.services) + (res.price ? ' · ₱' + Number(res.price).toFixed(0) : '')],
-         ['Date', fmtApptDate(res.date) + ' · ' + escAttr(res.time)]];
+         ['Date', fmtApptDate(res.date) + ' · ' + escAttr(res.time)],
+         ...(res.paymentStatus ? [['Payment', escAttr(PortalPresentation.paymentStatus(res.paymentStatus, res.remainingBalance))
+           + (res.remainingBalance > 0 && res.status !== 'Cancelled' && res.paymentStatus === 'Down Payment Verified' ? ' <span class="text-ink/50 font-normal">(pay the rest at the branch after your service)</span>' : '')]] : [])];
 
     return '<div class="flex flex-wrap items-center justify-between gap-3 mb-6">' +
         '<div><span class="text-[10px] font-bold uppercase tracking-widest text-ink/45">Reference</span>' +
@@ -2126,8 +2197,13 @@
         ? (res.balanceDue > 0
           ? '<div class="mt-5 rounded-2xl bg-copper/10 border border-copper/30 p-4 text-sm">' +
               '<p class="font-bold text-ink">Remaining balance: ' + peso(res.balanceDue) + '</p>' +
-              '<p class="text-ink/60 text-[13px] mt-1">Paid ' + peso(res.amountPaid) + ' of ' + peso(res.quote) + '.' + (res.balancePayUrl ? '' : ' Pay in cash on the event day, or ask us for an online payment link.') + '</p>' +
-              (res.balancePayUrl ? '<a href="' + escAttr(res.balancePayUrl) + '" class="mt-3 inline-flex w-full justify-center rounded-full bg-plum hover:bg-plum/85 text-white font-bold py-3 transition">Pay ' + peso(res.balanceDue) + ' now GCash, Maya or card</a>' : '') +
+              '<p class="text-ink/60 text-[13px] mt-1">Paid ' + peso(res.amountPaid) + ' of ' + peso(res.quote) + '.' + (res.balancePayUrl || res.canPayBalance ? '' : ' Pay in cash on the event day.') + '</p>' +
+              (res.balancePayUrl
+                ? '<a href="' + escAttr(res.balancePayUrl) + '" class="mt-3 inline-flex w-full justify-center rounded-full bg-plum hover:bg-plum/85 text-white font-bold py-3 transition">Pay remaining balance ' + peso(res.balanceDue) + ' (GCash, Maya or card)</a>'
+                : res.canPayBalance
+                  ? '<button type="button" class="hs-pay-balance mt-3 inline-flex w-full justify-center rounded-full bg-plum hover:bg-plum/85 disabled:opacity-60 text-white font-bold py-3 transition" data-reference="' + escAttr(res.reference) + '">Pay remaining balance ' + peso(res.balanceDue) + ' (GCash, Maya or card)</button>' +
+                    '<p class="hs-pay-balance-msg mt-2 text-[12px] font-semibold text-copper-dark" role="alert"></p>'
+                  : '') +
             '</div>'
           : '<div class="mt-5 rounded-2xl bg-[color:var(--success-soft)] border border-[color:var(--success-soft)] p-4 text-sm font-bold text-[color:var(--success)]">Fully paid ✓ thank you!</div>')
         : '') +
@@ -2161,6 +2237,24 @@
         '<p class="hs-resched-msg mt-2 text-[12px] hidden"></p>' +
       '</details>';
   }
+
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('.hs-pay-balance');
+    if (!btn) return;
+    const msg = btn.parentElement.querySelector('.hs-pay-balance-msg');
+    btn.disabled = true;
+    msg.textContent = '';
+    const body = new FormData();
+    body.append('reference', btn.dataset.reference);
+    fetch('backend/public/payHomeServiceBalance.php', { method: 'POST', body })
+      .then(r => r.json())
+      .then(res => {
+        if (res.success && res.url) { window.location.href = res.url; return; }
+        msg.textContent = res.message || 'We could not open the payment page. Please try again.';
+        btn.disabled = false;
+      })
+      .catch(() => { msg.textContent = 'A network error occurred. Please try again.'; btn.disabled = false; });
+  });
 
   // One delegated handler covers every rendered Track result.
   document.addEventListener('click', e => {
@@ -2759,7 +2853,7 @@
     const nameParts = guestNameParts();
     if (!nameParts.first) { fieldError('bookFirstName', 'Please enter your first name.'); return; }
     if (!nameParts.last) { fieldError('bookLastName', 'Please enter your last name.'); return; }
-    if (!/^09\d{9}$/.test(phone)) { fieldError('bookPhone', 'Please enter a valid 11-digit mobile number (09XXXXXXXXX).'); return; }
+    if (!/^09\d{9}$/.test(phone)) { fieldError('bookPhone', BookingFormValidation.MOBILE_MESSAGE); return; }
     if (email && !/^\S+@\S+\.\S+$/.test(email)) { fieldError('bookEmail', 'Please enter a valid email address, or leave it blank.'); return; }
     if (!document.getElementById('bookAgreeTerms')?.checked) { fieldError(document.getElementById('bookAgreeTerms').closest('label'), 'Please agree to the Terms & Conditions.'); return; }
 
@@ -2836,6 +2930,7 @@
         document.getElementById('bookReviewEdit').disabled = false;
         submitBtn.textContent = bookVerifyLabel(email);
         if (pendingBooking !== reviewedBooking) return;
+        if (showGuestBookingLimit(res, submitBtn)) return;
         if (!res.success) {
           showToast(res.message);
           if (res.retryAfter) startBookOtpCooldown(res.retryAfter, submitBtn, bookVerifyLabel(email));
@@ -2919,6 +3014,11 @@
     fetch('backend/public/sendBookingOtp.php', { method: 'POST', body: formData })
       .then(r => r.json())
       .then(res => {
+        if (res.registrationRequired) {
+          btn.disabled = false;
+          showGuestBookingLimit(res, btn);
+          return;
+        }
         showToast(res.message, res.success ? 'success' : 'error');
         if (res.success) resetBookOtpInputs();
         if (res.retryAfter || res.success) startBookOtpCooldown(res.retryAfter || 60);
@@ -2948,6 +3048,7 @@
       .then(r => r.json())
       .then(res => {
         btn.disabled = false;
+        if (showGuestBookingLimit(res, btn)) return;
         if (!res.success) { showToast(res.message); return; }
         pendingBooking.email = '';
         document.getElementById('bookEmail').value = '';
@@ -2993,6 +3094,7 @@
       .then(r => r.json())
       .then(res => {
         if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = idleLabel; }
+        if (showGuestBookingLimit(res, submitBtn)) return false;
 
         if (!res.success) {
           BookingFormValidation.message(submitBtn, res.message || 'Could not send your booking. Please try again.');
@@ -3086,15 +3188,16 @@
   let apptFbPhone = null;
   let apptRatings = { service: 0, staff: 0 };
 
-  function openTrackModal(prefillRef, prefillPhone) {
+  // Tracking needs only the reference. Right after booking we also know the
+  // contact (phone or email), which unlocks the full view: rescheduling and reviews.
+  let trackProof = null; // { ref, phone, email }
+  function openTrackModal(prefillRef, prefillPhone, prefillEmail) {
     closeBookingModal();
     trackModalOverlay.classList.remove('opacity-0', 'pointer-events-none');
     trackModalBox.classList.remove('scale-95');
     if (prefillRef && prefillRef !== '') {
       document.getElementById('apptTrkRef').value = prefillRef;
-    }
-    if (prefillPhone) {
-      document.getElementById('apptTrkPhone').value = prefillPhone;
+      trackProof = (prefillPhone || prefillEmail) ? { ref: prefillRef.trim().toUpperCase(), phone: prefillPhone || '', email: prefillEmail || '' } : null;
     }
   }
   function closeTrackModal() {
@@ -3106,13 +3209,15 @@
 
   function apptTrack() {
     const ref = document.getElementById('apptTrkRef').value.trim().toUpperCase();
-    const phone = document.getElementById('apptTrkPhone').value.trim();
+    const proof = trackProof && trackProof.ref === ref ? trackProof : null;
+    const phone = proof ? proof.phone : '';
+    const email = proof ? proof.email : '';
     const box = document.getElementById('apptTrkResult');
     const fb = document.getElementById('apptTrkFeedback');
     box.classList.remove('hidden');
 
-    if (!ref || !phone) {
-      box.innerHTML = '<div class="rounded-xl bg-copper/12 border border-copper/30 text-copper-dark p-4 text-[13px]">Enter both the booking reference and the mobile number used for it.</div>';
+    if (!ref) {
+      box.innerHTML = '<div class="rounded-xl bg-copper/12 border border-copper/30 text-copper-dark p-4 text-[13px]">Please enter your booking reference.</div>';
       fb.classList.add('hidden');
       return;
     }
@@ -3120,7 +3225,7 @@
     box.innerHTML = '<div class="text-[13px] text-ink/50">Looking up your booking…</div>';
     fb.classList.add('hidden');
 
-    fetch('backend/public/trackBooking.php?reference=' + encodeURIComponent(ref) + '&phone=' + encodeURIComponent(phone))
+    fetch('backend/public/trackBooking.php?' + new URLSearchParams({ reference: ref, phone, email }))
       .then(r => r.json())
       .then(res => {
         if (!res.success) {
@@ -3128,6 +3233,7 @@
           return;
         }
         res.phone = phone; // proves ownership again if the guest reschedules from here
+        if (email) res.email = email;
         box.innerHTML = renderTrackingResult(res);
 
         // Feedback is offered only once the service is finished and hasn't been rated yet.

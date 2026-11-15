@@ -15,6 +15,17 @@ require_once __DIR__ . '/../booking/Scheduling.php';
 final class StaffShift
 {
     public const DAY_NAMES = [1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday', 7 => 'Sunday'];
+    public const NO_CLOCKED_IN_MESSAGE = 'No stylists are clocked in at this branch. Ask a stylist to open the Staff Portal and tap Shift In, then refresh the staff list.';
+
+    public static function branchHasClockedInStaff(PDO $pdo, int $branchId): bool
+    {
+        Scheduling::autoCloseBranchAttendance($pdo, $branchId);
+        $stmt = $pdo->prepare('SELECT 1 FROM employees e JOIN attendance a ON a.employee_id = e.id
+            WHERE e.branch_id = ? AND e.is_active = 1 AND a.clock_out_time IS NULL
+              AND EXISTS (SELECT 1 FROM staff_services ss WHERE ss.employee_id = e.id) LIMIT 1');
+        $stmt->execute([$branchId]);
+        return (bool) $stmt->fetchColumn();
+    }
 
     /**
      * The five live statuses every panel shows (Admin, Staff, Cashier, Guest,

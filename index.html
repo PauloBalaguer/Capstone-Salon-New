@@ -37,7 +37,7 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="frontend/public/home-theme.css?v=nav-20261110" />
+  <link rel="stylesheet" href="frontend/public/home-theme.css?v=20261112-mobile-toggle" />
 <script src="function/shared/booking-validation.js"></script>
   <link rel="stylesheet" href="frontend/shared/responsive-base.css?v=20261103b" />
   <link rel="stylesheet" href="frontend/public/public-colors.css?v=teal-gold-20261021" />
@@ -48,7 +48,7 @@
   </style>
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="frontend/shared/clean-theme.css?v=20261105-booking">
-  <link rel="stylesheet" href="frontend/public/booking-modal.css?v=20261110b">
+  <link rel="stylesheet" href="frontend/public/booking-modal.css?v=20261113-outlines">
   <link rel="stylesheet" href="frontend/public/public-unify.css?v=20261112-address-gray">
   <link rel="stylesheet" href="frontend/shared/type-scale.css?v=20261111-branch-label-4">
   <link rel="stylesheet" href="frontend/public/branches.css?v=20261112-social-colors">
@@ -457,22 +457,24 @@
 
           <div class="rounded-xl border border-bronze/40 bg-sand-100 p-4">
             <p class="text-xs font-bold tracking-widest uppercase text-ink/50 mb-2">Terms &amp; Conditions</p>
-            <div class="text-xs text-ink/60 leading-relaxed pr-1">
-              <ul class="list-disc list-inside space-y-1">
-                <li><b>Reservation payment:</b> A reservation payment is required to hold your appointment slot.</li>
-                <li class="prose-justify"><b>50% or full payment:</b> Depending on the service selected, you must pay either a 50% down payment or the full amount upfront, the required amount is shown before you book.</li>
-                <li class="prose-justify"><b>Deposit &amp; rescheduling policy:</b> Reservation deposits are <u>non-refundable</u>. Need a different time? Reschedule instead (online up to 24 hours before, or by contacting the branch) and your deposit carries over. If you cancel or miss your appointment, the deposit is kept, but that booking can still be rescheduled later using the deposit.</li>
+            <!-- Every bullet: same size and line height. 30 and 15 minutes come from config (late-arrival-rule.js). -->
+            <div class="pr-1">
+              <ul class="list-disc list-outside pl-4 space-y-1.5">
+                <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Reservation payment:</b> A reservation payment is <b class="font-semibold text-plum">required to hold</b> your appointment slot.</li>
+                <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">50% or full payment:</b> Depending on the service, you pay a <b class="font-semibold text-plum">50% down payment</b> or the <b class="font-semibold text-plum">full amount</b>. The required amount is shown before you book.</li>
+                <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Payment time limit:</b> Complete your online payment within <b class="font-semibold text-plum"><span data-policy="holdMinutes">30</span> minutes</b>. Unpaid slots are <b class="font-semibold text-plum">released automatically</b>.</li>
               </ul>
               <details class="book-terms-more">
                 <summary><span class="terms-more-label">Read more</span><span class="terms-less-label">Read less</span></summary>
-                <ul class="list-disc list-inside space-y-1">
-                  <li class="prose-justify"><b>Payment verification:</b> Online payments (GCash, Maya or card) are processed securely by PayMongo; Cash must be settled in person. Your payment stays "Awaiting Verification" until staff confirm it, customers can never verify their own payment.</li>
-                  <li class="prose-justify"><b>Confirmation rules:</b> Your requested time is held as <b>Pending</b> until the branch verifies your payment and confirms it, it is not guaranteed until confirmed.</li>
-                  <li class="prose-justify"><b>Rescheduling:</b> You may request to reschedule; please do so as early as possible, subject to availability.</li>
-                  <li><b>No-show:</b> Please arrive on time. Repeated no-shows or late cancellations may affect future bookings.</li>
-                  <li data-late-rule class="hidden"><b>Late arrival:</b> <span data-late-rule-text></span></li>
-                  <li>Prices and staff availability are confirmed by the branch and may change.</li>
-                  <li class="prose-justify">As a guest, you consent to being contacted at the number/email provided for confirmations and reminders.</li>
+                <ul class="list-disc list-outside pl-4 space-y-1.5">
+                  <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Payment verification:</b> Online payments (<b class="font-semibold text-plum">GCash, Maya, or card</b>) are processed securely by PayMongo. <b class="font-semibold text-plum">Cash</b> is settled at the branch. Your booking shows <b class="font-semibold text-plum">"Deposit paid"</b> or <b class="font-semibold text-plum">"Fully paid"</b> once payment is received.</li>
+                  <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Confirmation:</b> Your slot is guaranteed only when the branch marks your booking <b class="font-semibold text-plum">"Confirmed"</b>.</li>
+                  <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Deposits &amp; rescheduling:</b> Deposits are <u><b class="font-semibold text-plum">non-refundable</b></u> if you cancel or do not show up. You may reschedule online up to <b class="font-semibold text-plum">24 hours before</b> your appointment, up to <b class="font-semibold text-plum">2 times</b>, and your deposit <b class="font-semibold text-plum">carries over</b>. A kept deposit can be used to rebook within <b class="font-semibold text-plum">30 days</b>.</li>
+                  <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">If the salon cancels:</b> If we cancel your appointment (for example, your stylist is unavailable), you may choose a <b class="font-semibold text-plum">full refund</b> or a <b class="font-semibold text-plum">free reschedule</b>.</li>
+                  <li data-late-rule class="hidden text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Late arrival:</b> <span data-late-rule-text></span></li>
+                  <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Guest bookings:</b> You can book <b class="font-semibold text-plum">2 times as a guest</b>. From your <b class="font-semibold text-plum">3rd booking</b>, you need to <b class="font-semibold text-plum">create an account</b> or log in.</li>
+                  <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Changes:</b> Prices and staff availability are confirmed by the branch and <b class="font-semibold text-plum">may change</b>.</li>
+                  <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Contact &amp; privacy:</b> You agree to be contacted at the number or email you provide for confirmations and reminders. We handle your details under the <b class="font-semibold text-plum">Data Privacy Act of 2012 (RA 10173)</b>. <a href="#privacyNotice" role="button" onclick="event.preventDefault(); document.getElementById('privacyNotice').showModal()" class="font-semibold text-plum underline underline-offset-2 hover:text-ink">Read full privacy notice</a>.</li>
                 </ul>
               </details>
             </div>
@@ -624,8 +626,8 @@
 
       <h3 class="font-display text-2xl mb-1 text-ink">Track your booking</h3>
       <p class="prose-justify text-xs text-ink/60 mb-6">
-        Enter your booking reference and the mobile number you used to book.
-        No account or login needed. You can also track home &amp; event requests here.
+        Enter your booking reference. No account or login needed.
+        You can also track home &amp; event requests here.
       </p>
 
       <div class="space-y-4">
@@ -634,12 +636,6 @@
             reference</label>
           <input id="apptTrkRef" type="text" placeholder="LM-DAR-2026-000145"
             class="w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-base uppercase focus:outline-none focus:border-plum transition" />
-        </div>
-        <div>
-          <label for="apptTrkPhone"
-            class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Mobile number used</label>
-          <input id="apptTrkPhone" type="tel" inputmode="numeric" placeholder="09XXXXXXXXX" maxlength="11"
-            class="numbers-only w-full px-4 py-2.5 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition" />
         </div>
         <button onclick="apptTrack()"
           class="btn-sheen w-full rounded-full bg-plum text-white font-bold text-base py-3.5 hover:brightness-110 transition">
@@ -756,7 +752,7 @@
   </div>
 
 
-  <button onclick="openBookingModal()"
+  <button id="floatBook" onclick="openBookingModal()"
     class="lg:hidden fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 bg-plum text-white pl-4 pr-5 py-3 rounded-full shadow-xl shadow-plum/40 text-xs font-bold uppercase tracking-wide active:scale-90 transition-transform animate-pulse-ring">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -766,6 +762,18 @@
     </svg>
     Book an Appointment
   </button>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var fab = document.getElementById('floatBook');
+      if (!fab || !('IntersectionObserver' in window)) return;
+      var seen = new Set();
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) { e.isIntersecting ? seen.add(e.target) : seen.delete(e.target); });
+        fab.classList.toggle('is-tucked', seen.size > 0);
+      });
+      document.querySelectorAll('[data-hides-float]').forEach(function (el) { io.observe(el); });
+    });
+  </script>
 
   <main class="page-body min-h-screen">
     <div id="home-tab" class="app-page active-page">
@@ -803,7 +811,7 @@
             </p>
 
             <div class="flex flex-wrap gap-3 mt-8">
-              <button onclick="openBookingModal()"
+              <button data-hides-float onclick="openBookingModal()"
                 class="btn-sheen inline-flex items-center gap-2 rounded-full bg-plum text-white font-bold text-base px-7 py-3.5 hover:brightness-110 transition shadow-lg shadow-plum/15">
                 Book an Appointment
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
@@ -832,11 +840,11 @@
                 <span class="text-xs sm:text-xs text-ink/55">Albay branches</span>
               </div>
               <div class="hero-stat">
-                <b class="font-display text-2xl sm:text-3xl text-plum block" data-live-stat="services">—</b>
+                <b class="font-display text-2xl sm:text-3xl text-plum block" data-live-stat="services" data-stat-fallback="Explore">Explore</b>
                 <span class="text-xs sm:text-xs text-ink/55">services available</span>
               </div>
               <div class="hero-stat">
-                <b class="font-display text-2xl sm:text-3xl text-plum block" data-live-stat="professionals">—</b>
+                <b class="font-display text-2xl sm:text-3xl text-plum block" data-live-stat="professionals" data-stat-fallback="Meet us">Meet us</b>
                 <span class="text-xs sm:text-xs text-ink/55">beauty professionals</span>
               </div>
               <div class="hero-stat">
@@ -844,6 +852,11 @@
                   data-prefix="&#8369;">&#8369;30</b>
                 <span class="text-xs sm:text-xs text-ink/55">haircut with blow dry</span>
               </div>
+            </div>
+            <div class="mt-6 rounded-xl border border-bronze/40 bg-sand-100 p-4 text-sm text-ink/70">
+              <p class="font-bold text-ink">Late arrival policy</p>
+              <p>Running late? Please contact your branch as soon as possible.</p>
+              <p data-late-rule class="hidden mt-2"><span data-late-rule-text></span></p>
             </div>
           </div>
 
@@ -1094,13 +1107,13 @@
             <div id="baReveal"
               class="reveal aspect-[4/5] sm:aspect-video border border-white/25 shadow-[0_36px_90px_-40px_rgba(0,0,0,.7)]"
               style="--pos: 50%">
-              <img id="baBefore"
+              <img id="baAfter"
                 src="frontend/shared/image/after-rebond.jpg"
-                alt="Before the service" />
+                alt="After the service" />
               <div class="reveal-top">
-                <img id="baAfter"
+                <img id="baBefore"
                   src="frontend/shared/image/Before-rebond.jpg"
-                  alt="After the service" />
+                  alt="Before the service" />
               </div>
               <span class="ba-chip left-4 top-4">Before</span>
               <span class="ba-chip right-4 top-4 ba-chip-after">After</span>
@@ -1316,7 +1329,7 @@
           </p>
 
           <div class="flex flex-col sm:flex-row gap-3 justify-center mt-9">
-            <button onclick="openBookingModal()"
+            <button data-hides-float onclick="openBookingModal()"
               class="btn-sheen rounded-full bg-plum text-white font-bold text-base px-8 py-4 hover:brightness-110 transition shadow-lg shadow-plum/20">
               Book an Appointment
             </button>
@@ -1552,13 +1565,13 @@
             <div class="br2-info" id="branchInfo" aria-live="polite">
               <div class="br2-top">
                 <span class="br2-tag" id="bTag"></span>
-                <span class="br2-live"><span class="live-dot" id="bLiveDot" aria-hidden="true"></span><span id="bLiveLabel">Checking hours…</span></span>
+                <span class="br2-live"><span class="live-dot closed" id="bLiveDot" aria-hidden="true"></span><span id="bLiveLabel">Call to confirm hours</span></span>
               </div>
               <h3 class="br2-name" id="bName">Branch details</h3>
               <p class="br2-spec" id="bSpec"></p>
 
               <div class="br2-actions">
-                <button type="button" class="br2-btn br2-btn--primary" id="bBook"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg><span id="bBookText">Book at this branch</span></button>
+                <button type="button" class="br2-btn br2-btn--primary" id="bBook" data-hides-float><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg><span id="bBookText">Book at this branch</span></button>
                 <a id="bDirections" href="https://maps.app.goo.gl/AutS4d9MxWHk8giG7?g_st=ac" target="_blank" rel="noopener noreferrer" class="br2-btn br2-btn--ghost"
                   aria-label="Get directions to Daraga Main on Google Maps (opens in a new tab)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg>Get directions</a>
               </div>
@@ -1631,7 +1644,7 @@
                 class="btn-sheen rounded-full bg-copper text-white text-xs font-bold px-7 py-3.5 hover:brightness-110 transition">
                 Request Home Service
               </button>
-              <button onclick="hsJump('hsTrack')"
+              <button onclick="openTrackModal()"
                 class="rounded-full border border-white/30 text-xs font-bold px-7 py-3.5 hover:bg-white/10 transition">
                 Track My Request
               </button>
@@ -2031,6 +2044,7 @@
                   </button>
                 </div>
                 <p id="hsNonWeddingPricingNote" class="text-[12.5px] text-ink/55 mt-4">Final price and reservation payment will be confirmed after review.</p>
+                <div id="hsEstimate" class="hidden mt-6 rounded-2xl border border-copper/35 bg-copper/10 p-5" aria-live="polite"></div>
                 <div class="mt-6">
                   <label for="hsNotes" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1.5">Additional
                     Requirements</label>
@@ -2147,7 +2161,7 @@
                       <ol class="list-decimal list-inside space-y-1 leading-relaxed">
                         <li><b>No payment now</b> just submit this request.</li>
                         <li>We review it and email your <b>quote</b> with a <b>reservation fee (DP)</b>.</li>
-                        <li class="prose-justify">Pay the DP <b>online via GCash, Maya or card</b> (PayMongo) from the email link or <b>Track Your Home Service</b> your request is then <b>confirmed automatically</b>.</li>
+                        <li class="prose-justify">Pay the DP <b>online via GCash, Maya or card</b> (PayMongo) from the email link or <b>Track your booking</b> your request is then <b>confirmed automatically</b>.</li>
                         <li>Pay the <b>remaining balance on the event day</b>.</li>
                       </ol>
                       <div class="rounded-xl bg-panel border border-plum/20 p-3">
@@ -2215,7 +2229,7 @@
                   <div class="text-base mt-3 space-y-1.5" id="hsSummary"></div>
                 </div>
                 <div class="flex flex-wrap gap-3 justify-center mt-7">
-                  <button onclick="hsJump('hsTrack')"
+                  <button onclick="hsTrackSubmitted()"
                     class="rounded-full bg-plum text-white text-xs font-bold uppercase tracking-widest px-8 py-3.5 hover:brightness-110 transition">
                     Track Request
                   </button>
@@ -2269,59 +2283,34 @@
       </section>
 
       <section id="hsTrack" class="py-14 sm:py-20 bg-panel border-b border-bronze/20 scroll-mt-24">
-        <div class="max-w-3xl mx-auto px-5 sm:px-8">
+        <div class="max-w-6xl mx-auto px-5 sm:px-8">
           <div class="text-center max-w-xl mx-auto mb-9">
-            <span class="home-service-section-label font-bold tracking-widest uppercase text-copper">Status</span>
+            <span class="home-service-section-label font-bold tracking-widest uppercase text-copper">After you request</span>
             <h3 class="font-display text-2xl sm:text-3xl mt-3">
-              Track Your Home Service
+              Rescheduling &amp; Reminders
             </h3>
-            <p class="prose-justify text-base text-ink/60 mt-3 leading-relaxed">
-              Check your request's status, pay your reservation fee, or move it to a new date, using the
-              reference number and the email address you gave when you requested.
-            </p>
-          </div>
-          <div class="bg-sand-100 border border-bronze/25 rounded-[28px] p-6 sm:p-8 shadow-sm">
-            <div class="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label for="trkRef" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1.5">Booking
-                  Reference</label>
-                <input id="trkRef" type="text" placeholder="LM-HOM-2026-000041"
-                  class="w-full px-4 py-3 border border-bronze/50 bg-panel rounded-xl text-base uppercase focus:outline-none focus:border-plum transition" />
-              </div>
-              <div>
-                <label for="trkEmail" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1.5">Email
-                  Address</label>
-                <input id="trkEmail" type="email" placeholder="you@example.com" autocomplete="email"
-                  class="w-full px-4 py-3 border border-bronze/50 bg-panel rounded-xl text-base focus:outline-none focus:border-plum transition" />
-              </div>
-            </div>
-            <button onclick="hsTrack()"
-              class="w-full mt-5 rounded-full bg-plum text-white text-xs font-bold uppercase tracking-widest py-3.5 hover:brightness-110 transition">
-              Track Request
-            </button>
-            <div id="trkResult" class="hidden mt-7 pt-7 border-t border-bronze/25"></div>
           </div>
 
           <!-- How to reschedule + important rules -->
-          <div class="mt-8 grid md:grid-cols-2 gap-5">
-            <div class="bg-sand-100 border border-bronze/25 rounded-3xl p-6">
+          <div class="grid md:grid-cols-2 gap-5">
+            <div class="bg-sand-100 border border-bronze/25 rounded-3xl p-6 sm:p-8">
               <span class="text-xs font-bold tracking-widest uppercase text-copper">How to reschedule</span>
-              <ol class="mt-3 space-y-2.5 text-xs text-ink/75 leading-relaxed list-decimal list-inside">
-                <li class="prose-justify">Enter your <b>booking reference</b> (e.g. LM-HOM-2026-000041) and the <b>email</b> you used, then tap <b>Track Request</b>.</li>
-                <li>Open <b>“Need a different date? Reschedule online”</b> below your request.</li>
+              <ol class="mt-4 space-y-3 text-sm text-ink/75 leading-relaxed list-decimal list-outside pl-5">
+                <li><b>Log in</b> and open <b>My Account → Home Service</b>.</li>
+                <li>Open <b>“Need a different date? Reschedule online”</b> on your request.</li>
                 <li>Pick a <b>new date and time</b> at least <b>3 days</b> away, then tap <b>Move my booking</b>.</li>
                 <li>You'll get an <b>email confirmation</b> of the new schedule. Your assigned team is notified too.</li>
               </ol>
-              <p class="mt-3 text-xs text-ink/55">Have an account? You can also reschedule from <b>My Account → Home Service</b>.</p>
+              <p class="mt-4 text-sm text-ink/55">No account? Call <b>0918 536 8016</b> to move your request. To check its status, tap <b>Track your booking</b> and enter your reference (e.g. LM-HOM-2026-000041).</p>
             </div>
-            <div class="bg-copper/10 border border-copper/30 rounded-3xl p-6">
+            <div class="bg-copper/10 border border-copper/30 rounded-3xl p-6 sm:p-8">
               <span class="text-xs font-bold tracking-widest uppercase text-copper-dark">Important reminders &amp; rules</span>
-              <ul class="mt-3 space-y-2.5 text-xs text-ink/75 leading-relaxed">
+              <ul class="mt-4 space-y-3 text-sm text-ink/75 leading-relaxed">
                 <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>Reschedule online at least <b>3 days (72 hours)</b> before your event. Closer than that, please call <b>0918 536 8016</b>.</span></li>
                 <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>You can move a request online up to <b>2 times</b>. After that, contact the branch.</span></li>
                 <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>If stylists are already assigned, the <b>whole team must be free</b> on the new date, otherwise pick another date.</span></li>
                 <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>Your <b>quote and reservation fee carry over</b> to the new date. Reservation fees are <b>non-refundable</b> reschedule instead of cancelling.</span></li>
-                <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>Your request is <b>confirmed only after the reservation fee is paid</b> (pay online via GCash, Maya or card from this page).</span></li>
+                <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>Your request is <b>confirmed only after the reservation fee is paid</b> (pay online via GCash, Maya or card from the email link or <b>Track your booking</b>).</span></li>
                 <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>Requests already <b>in progress, completed or cancelled</b> can't be rescheduled online.</span></li>
                 <li class="flex gap-2"><span class="text-copper-dark font-bold">•</span><span>All updates, quote, payment link and schedule changes, are sent to your <b>email</b>. Check your spam folder if you don't see them.</span></li>
               </ul>
@@ -2413,81 +2402,6 @@
         </div>
       </section>
 
-      <section id="hsFeedback" class="hidden py-14 sm:py-20 bg-sand-100">
-        <div class="max-w-2xl mx-auto px-5 sm:px-8">
-          <div class="text-center mb-9">
-            <span class="text-xs font-bold tracking-widest uppercase text-copper">Post-Service</span>
-            <h3 class="font-display text-2xl sm:text-3xl mt-3">
-              How Was Your Home Service Experience?
-            </h3>
-            <p class="text-xs text-ink/55 mt-3" id="fbFor"></p>
-          </div>
-          <div class="bg-panel border border-bronze/25 rounded-[28px] p-7 sm:p-8 shadow-sm">
-            <div>
-              <label class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-2">Rate Your
-                Experience</label>
-              <div class="flex gap-1.5 text-3xl" data-stars="service">
-                <button type="button" onclick="hsStar(this, 1)"
-                  class="fb-star text-bronze/40 hover:text-copper transition">
-                  ★
-                </button>
-                <button type="button" onclick="hsStar(this, 2)"
-                  class="fb-star text-bronze/40 hover:text-copper transition">
-                  ★
-                </button>
-                <button type="button" onclick="hsStar(this, 3)"
-                  class="fb-star text-bronze/40 hover:text-copper transition">
-                  ★
-                </button>
-                <button type="button" onclick="hsStar(this, 4)"
-                  class="fb-star text-bronze/40 hover:text-copper transition">
-                  ★
-                </button>
-                <button type="button" onclick="hsStar(this, 5)"
-                  class="fb-star text-bronze/40 hover:text-copper transition">
-                  ★
-                </button>
-              </div>
-            </div>
-            <div class="mt-6">
-              <label class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-2">Rate Your Beauty
-                Professional</label>
-              <div class="flex gap-1.5 text-3xl" data-stars="staff">
-                <button type="button" onclick="hsStar(this, 1)"
-                  class="fb-star text-bronze/40 hover:text-copper transition">
-                  ★
-                </button>
-                <button type="button" onclick="hsStar(this, 2)"
-                  class="fb-star text-bronze/40 hover:text-copper transition">
-                  ★
-                </button>
-                <button type="button" onclick="hsStar(this, 3)"
-                  class="fb-star text-bronze/40 hover:text-copper transition">
-                  ★
-                </button>
-                <button type="button" onclick="hsStar(this, 4)"
-                  class="fb-star text-bronze/40 hover:text-copper transition">
-                  ★
-                </button>
-                <button type="button" onclick="hsStar(this, 5)"
-                  class="fb-star text-bronze/40 hover:text-copper transition">
-                  ★
-                </button>
-              </div>
-            </div>
-            <div class="mt-6">
-              <label class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-2">Tell Us About Your
-                Experience</label>
-              <textarea id="fbText" rows="4" placeholder="Share your feedback..."
-                class="w-full px-4 py-3 border border-bronze/50 bg-sand-100 rounded-xl text-base focus:outline-none focus:border-plum transition resize-none"></textarea>
-            </div>
-            <button onclick="hsSubmitFeedback()"
-              class="w-full mt-6 rounded-full bg-copper text-white text-xs font-bold uppercase tracking-widest py-3.5 hover:brightness-110 transition">
-              Submit Feedback
-            </button>
-          </div>
-        </div>
-      </section>
     </div>
 
     <div id="gallery-tab" class="app-page">
@@ -2674,9 +2588,26 @@
   <script src="function/shared/service-duration.js"></script>
   <script src="function/shared/toast.js"></script>
   <script src="function/shared/pending-payment.js"></script>
-  <script src="function/shared/late-arrival-rule.js"></script>
-  <script src="function/shared/live-sync.js?v=20261110"></script>
-  <script src="function/public/main.js?v=20261112-live-stats"></script>
+
+  <dialog id="privacyNotice" aria-labelledby="privacyNoticeTitle" class="w-[calc(100%-2rem)] max-w-lg max-h-[85vh] rounded-3xl bg-panel p-0 text-ink shadow-2xl backdrop:bg-ink/60">
+    <div class="relative overflow-y-auto max-h-[85vh] p-6 sm:p-8">
+      <form method="dialog" class="absolute top-4 right-4"><button class="text-ink/50 hover:text-plum transition-colors p-1" aria-label="Close">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12" /></svg></button></form>
+      <h3 id="privacyNoticeTitle" class="font-display text-2xl mb-3 pr-8">Privacy Notice</h3>
+      <p class="text-sm leading-relaxed text-ink/75">Leo Mejillano Salon &amp; Beauty respects your privacy and follows the <b class="font-semibold text-plum">Data Privacy Act of 2012 (RA 10173)</b>.</p>
+      <ul class="list-disc list-outside pl-5 space-y-2 mt-4">
+        <li class="text-sm leading-relaxed text-ink/75"><b class="font-semibold text-ink">What we collect:</b> your name, mobile number, email address, and your booking and payment history.</li>
+        <li class="text-sm leading-relaxed text-ink/75"><b class="font-semibold text-ink">Why we collect it:</b> to manage your bookings, send confirmations and reminders, and process your payments.</li>
+        <li class="text-sm leading-relaxed text-ink/75"><b class="font-semibold text-ink">Who can see it:</b> <b class="font-semibold text-plum">authorized salon staff only</b>. We also share what is needed with our payment provider (PayMongo) and our email and SMS providers so they can deliver those services. We <b class="font-semibold text-plum">do not sell</b> your information.</li>
+        <li class="text-sm leading-relaxed text-ink/75"><b class="font-semibold text-ink">Card and e-wallet details:</b> these are entered on PayMongo's secure page. We <b class="font-semibold text-plum">do not store</b> them.</li>
+        <li class="text-sm leading-relaxed text-ink/75"><b class="font-semibold text-ink">How long we keep it:</b> for as long as you are a customer, and as needed for our business records.</li>
+        <li class="text-sm leading-relaxed text-ink/75"><b class="font-semibold text-ink">Your rights:</b> you may ask to <b class="font-semibold text-plum">see, correct, or delete</b> your information by contacting your branch through the phone number or email shown on this site.</li>
+      </ul>
+      <form method="dialog" class="mt-6"><button class="w-full rounded-full bg-plum text-white font-bold text-sm py-3 hover:brightness-110 transition">Close</button></form>
+    </div>
+  </dialog>
+  <script src="function/shared/late-arrival-rule.js?v=20261114-policy"></script>
+  <script src="function/public/main.js?v=20261114-public-content"></script>
   <script src="function/public/booking-wizard.js?v=20261111c"></script>
 <script src="function/shared/select-dropdown.js?v=20261111e"></script>
 </body>

@@ -157,6 +157,8 @@ function renderEod() {
   const eod = (state.data.eodByBranch && state.data.eodByBranch[state.branch]) || { invoiceCount: 0, grossRevenue: 0 };
   document.getElementById('eodInvoiceCount').textContent = `${eod.invoiceCount} Trans`;
   document.getElementById('eodGrossRevenue').textContent = CashierApp.formatCurrency(eod.grossRevenue);
+  document.getElementById('eodMethodTotals').textContent = Object.entries(eod.methodTotals || {})
+    .map(([method, amount]) => `${method}: ${CashierApp.formatCurrency(amount)}`).join(' · ');
 
   const critical = state.data.inventory.filter(needsAttention);
   const card = document.getElementById('eodStockStatusCard');

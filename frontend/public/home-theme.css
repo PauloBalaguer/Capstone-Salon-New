@@ -414,7 +414,11 @@ html { scroll-behavior: smooth; }
 }
 
 @media (max-width: 640px){
+  /* clip (not hidden): hidden on body makes it a second vertical scroll
+     container, so phones showed two scrollbars. clip trims sideways overflow
+     without creating a scroll area. */
   html,body{ overflow-x:hidden; }
+  @supports (overflow-x: clip){ html,body{ overflow-x:clip; } }
   .mobile-drawer button{ min-height:46px; }
 }
 

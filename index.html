@@ -37,7 +37,7 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="frontend/public/home-theme.css?v=20261112-mobile-toggle" />
+  <link rel="stylesheet" href="frontend/public/home-theme.css?v=20261116-clip" />
 <script src="function/shared/booking-validation.js"></script>
   <link rel="stylesheet" href="frontend/shared/responsive-base.css?v=20261103b" />
   <link rel="stylesheet" href="frontend/public/public-colors.css?v=teal-gold-20261021" />
@@ -48,7 +48,7 @@
   </style>
   <!-- Clean theme: loaded last so it overrides older theme colours. -->
   <link rel="stylesheet" href="frontend/shared/clean-theme.css?v=20261105-booking">
-  <link rel="stylesheet" href="frontend/public/booking-modal.css?v=20261113-outlines">
+  <link rel="stylesheet" href="frontend/public/booking-modal.css?v=20261116-staff-head">
   <link rel="stylesheet" href="frontend/public/public-unify.css?v=20261112-address-gray">
   <link rel="stylesheet" href="frontend/shared/type-scale.css?v=20261111-branch-label-4">
   <link rel="stylesheet" href="frontend/public/branches.css?v=20261112-social-colors">
@@ -235,8 +235,21 @@
         </div>
       </div>
 
+      <!-- Step header for the guest form and review (booking-wizard.js). -->
+      <div id="bkStepper" class="bk-stepper">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <h3 class="font-display text-2xl mb-1 text-ink">Book an Appointment</h3>
+            <p class="text-xs text-ink/60">Guest Booking: Only your name and mobile number are required.</p>
+          </div>
+          <span class="shrink-0 rounded-full bg-copper/10 border border-copper/25 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-copper-dark">Guest</span>
+        </div>
+        <p class="bk-stepper-kicker"><span id="bkStepTitle" class="bk-stepper-title" tabindex="-1">Guest information</span><span id="bkStepCount">Step 1 of 5</span></p>
+        <ol class="bk-stepper-bar" aria-hidden="true"><li data-s="details"></li><li data-s="services"></li><li data-s="schedule"></li><li data-s="payment"></li><li data-s="review"></li></ol>
+      </div>
+
       <div id="bookingFormPanel" class="hidden">
-        <div class="flex items-center justify-between gap-3 mb-5">
+        <div class="bk-form-head flex items-center justify-between gap-3 mb-5">
           <div>
             <h3 class="font-display text-2xl mb-1 text-ink">
               Book an Appointment
@@ -261,8 +274,104 @@
 
         <form id="bookingModalForm" class="bk-layout" novalidate>
           <div class="bk-main">
+          <!-- Step 1 -->
+          <div class="bk-step" data-step="details">
+          <section class="bk-sec space-y-4" id="bkSecDetails" aria-labelledby="bkSecDetailsTitle">
+            <h4 class="bk-sec-title" id="bkSecDetailsTitle"><span class="bk-sec-num" aria-hidden="true">1</span><span>Guest information</span><span class="bk-sec-done" aria-hidden="true">&#10003;</span></h4>
+          <!-- Full name composed from the parts below (main.js); other parts of the form read it. -->
+          <input id="bookName" type="hidden" />
+          <div class="bk-names grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label for="bookFirstName" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">First name</label>
+              <input id="bookFirstName" type="text" autocomplete="given-name" maxlength="100" placeholder="First name"
+                class="w-full px-4 py-2.5 border border-bronze bg-white text-ink placeholder:text-ink/50 shadow-sm rounded-xl text-base focus:outline-none focus:border-plum transition"
+                required />
+            </div>
+            <div>
+              <label for="bookMiddleName" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Middle name <span class="normal-case font-normal tracking-normal text-ink/50">(optional)</span></label>
+              <input id="bookMiddleName" type="text" autocomplete="additional-name" maxlength="100" placeholder="Middle name"
+                class="w-full px-4 py-2.5 border border-bronze bg-white text-ink placeholder:text-ink/50 shadow-sm rounded-xl text-base focus:outline-none focus:border-plum transition disabled:bg-sand-100 disabled:text-ink/40 disabled:cursor-not-allowed" />
+              <label class="mt-1.5 inline-flex items-center gap-2 text-xs text-ink/70 cursor-pointer">
+                <input id="bookMiddleNameNA" type="checkbox" class="accent-plum" /> N/A (no middle name)
+              </label>
+            </div>
+            <div>
+              <label for="bookLastName" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Last name</label>
+              <input id="bookLastName" type="text" autocomplete="family-name" maxlength="100" placeholder="Last name"
+                class="w-full px-4 py-2.5 border border-bronze bg-white text-ink placeholder:text-ink/50 shadow-sm rounded-xl text-base focus:outline-none focus:border-plum transition"
+                required />
+            </div>
+          </div>
+          <div class="bk-contact grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="bookPhone"
+                class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Mobile number</label>
+              <input id="bookPhone" type="tel" autocomplete="tel" inputmode="numeric" pattern="09[0-9]{9}" placeholder="09XXXXXXXXX"
+                maxlength="11"
+                class="numbers-only w-full px-4 py-2.5 border border-bronze bg-white text-ink placeholder:text-ink/50 shadow-sm rounded-xl text-base focus:outline-none focus:border-plum transition"
+                required />
+            </div>
+          </div>
+          <div>
+            <label for="bookEmail" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Email
+              address <span class="normal-case font-normal text-ink/35">(optional)</span></label>
+            <input id="bookEmail" type="email" autocomplete="email" maxlength="254" placeholder="you@email.com"
+              class="w-full px-4 py-2.5 border border-bronze bg-white text-ink placeholder:text-ink/50 shadow-sm rounded-xl text-base focus:outline-none focus:border-plum transition" />
+            <p class="bk-desc text-xs text-ink/40 mt-1">We'll send a short code to confirm your booking: to this email, or by text if you leave it blank.</p>
+          </div>
+
+          <div>
+            <span class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-2">Send confirmation &amp;
+              reminders by</span>
+            <div class="grid grid-cols-2 gap-2" id="bookNotify">
+              <button type="button" data-notify="SMS" class="notify-opt on">
+                SMS
+              </button>
+              <button type="button" data-notify="Email" class="notify-opt">
+                Email
+              </button>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-bronze/40 bg-sand-100 p-4">
+            <p class="text-xs font-bold tracking-widest uppercase text-ink/50 mb-2">Terms &amp; Conditions</p>
+            <!-- Every bullet: same size and line height. 30 and 15 minutes come from config (late-arrival-rule.js). -->
+            <div class="pr-1">
+              <ul class="list-disc list-outside pl-4 space-y-1.5">
+                <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Reservation payment:</b> A reservation payment is <b class="font-semibold text-plum">required to hold</b> your appointment slot.</li>
+                <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">50% or full payment:</b> Depending on the service, you pay a <b class="font-semibold text-plum">50% down payment</b> or the <b class="font-semibold text-plum">full amount</b>. The required amount is shown before you book.</li>
+                <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Payment time limit:</b> Complete your online payment within <b class="font-semibold text-plum"><span data-policy="holdMinutes">30</span> minutes</b>. Unpaid slots are <b class="font-semibold text-plum">released automatically</b>.</li>
+              </ul>
+              <details class="book-terms-more">
+                <summary><span class="terms-more-label">Read more</span><span class="terms-less-label">Read less</span></summary>
+                <ul class="list-disc list-outside pl-4 space-y-1.5">
+                  <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Payment verification:</b> Online payments (<b class="font-semibold text-plum">GCash, Maya, or card</b>) are processed securely by PayMongo. <b class="font-semibold text-plum">Cash</b> is settled at the branch. Your booking shows <b class="font-semibold text-plum">"Deposit paid"</b> or <b class="font-semibold text-plum">"Fully paid"</b> once payment is received.</li>
+                  <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Confirmation:</b> Your slot is guaranteed only when the branch marks your booking <b class="font-semibold text-plum">"Confirmed"</b>.</li>
+                  <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Deposits &amp; rescheduling:</b> Deposits are <u><b class="font-semibold text-plum">non-refundable</b></u> if you cancel or do not show up. You may reschedule online up to <b class="font-semibold text-plum">24 hours before</b> your appointment, up to <b class="font-semibold text-plum">2 times</b>, and your deposit <b class="font-semibold text-plum">carries over</b>. A kept deposit can be used to rebook within <b class="font-semibold text-plum">30 days</b>.</li>
+                  <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">If the salon cancels:</b> If we cancel your appointment (for example, your stylist is unavailable), you may choose a <b class="font-semibold text-plum">full refund</b> or a <b class="font-semibold text-plum">free reschedule</b>.</li>
+                  <li data-late-rule class="hidden text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Late arrival:</b> <span data-late-rule-text></span></li>
+                  <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Guest bookings:</b> You can book <b class="font-semibold text-plum">2 times as a guest</b>. From your <b class="font-semibold text-plum">3rd booking</b>, you need to <b class="font-semibold text-plum">create an account</b> or log in.</li>
+                  <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Changes:</b> Prices and staff availability are confirmed by the branch and <b class="font-semibold text-plum">may change</b>.</li>
+                  <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Contact &amp; privacy:</b> You agree to be contacted at the number or email you provide for confirmations and reminders. We handle your details under the <b class="font-semibold text-plum">Data Privacy Act of 2012 (RA 10173)</b>. <a href="#privacyNotice" role="button" onclick="event.preventDefault(); document.getElementById('privacyNotice').showModal()" class="font-semibold text-plum underline underline-offset-2 hover:text-ink">Read full privacy notice</a>.</li>
+                </ul>
+              </details>
+            </div>
+            <label class="flex items-start gap-2 mt-3 text-xs text-ink/70 cursor-pointer">
+              <input type="checkbox" id="bookAgreeTerms" class="mt-0.5 accent-plum" required>
+              <span>I have read and agree to the Terms &amp; Conditions.</span>
+            </label>
+          </div>
+
+          <p class="bk-desc text-xs text-ink/40 text-center leading-relaxed">
+            Next, review your booking and verify your contact with a one-time code. The branch will confirm your appointment separately.
+          </p>
+          </section>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="bk-step" data-step="services">
           <section class="bk-sec" id="bkSecBranch" aria-labelledby="bkSecBranchTitle">
-            <h4 class="bk-sec-title" id="bkSecBranchTitle"><span class="bk-sec-num" aria-hidden="true">1</span><span>Choose a branch</span><span class="bk-sec-done" aria-hidden="true">&#10003;</span></h4>
+            <h4 class="bk-sec-title" id="bkSecBranchTitle"><span class="bk-sec-num" aria-hidden="true">2</span><span>Choose a branch</span><span class="bk-sec-done" aria-hidden="true">&#10003;</span></h4>
             <label for="bookBranchSelect"
               class="bk-visually-hidden block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Select branch</label>
             <div id="bkBranchCards" class="bk-branch-grid" role="radiogroup" aria-label="Branch"></div>
@@ -278,7 +387,7 @@
           </section>
 
           <section class="bk-sec" id="bkSecServices" aria-labelledby="bkSecServicesTitle">
-            <h4 class="bk-sec-title" id="bkSecServicesTitle"><span class="bk-sec-num" aria-hidden="true">2</span><span>Choose services</span><span class="bk-sec-done" aria-hidden="true">&#10003;</span></h4>
+            <h4 class="bk-sec-title" id="bkSecServicesTitle"><span class="bk-sec-num" aria-hidden="true">3</span><span>Choose services</span><span class="bk-sec-done" aria-hidden="true">&#10003;</span></h4>
             <p id="bookServicesLabel" class="bk-visually-hidden block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Services</p>
             <div id="bookServiceList" role="group" aria-labelledby="bookServicesLabel"
               class="rounded-xl border border-bronze/50 bg-sand-100 p-3 text-xs text-ink/50">
@@ -286,8 +395,12 @@
             </div>
           </section>
 
+          </div>
+
+          <!-- Step 3 -->
+          <div class="bk-step" data-step="schedule">
           <section id="bookScheduleSection" class="bk-sec bk-sec-schedule" aria-labelledby="bookScheduleSectionTitle">
-            <h4 class="bk-sec-title" id="bookScheduleSectionTitle"><span class="bk-sec-num" aria-hidden="true">3</span><span>Pick a date &amp; time</span><span class="bk-sec-done" aria-hidden="true">&#10003;</span></h4>
+            <h4 class="bk-sec-title" id="bookScheduleSectionTitle"><span class="bk-sec-num" aria-hidden="true">4</span><span>Pick a date &amp; time</span><span class="bk-sec-done" aria-hidden="true">&#10003;</span></h4>
             <div>
               <label for="bookDate"
                 class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Date</label>
@@ -304,11 +417,11 @@
           </section>
 
           <section class="bk-sec" id="bkSecStaff" aria-labelledby="bkSecStaffTitle">
-            <h4 class="bk-sec-title" id="bkSecStaffTitle"><span class="bk-sec-num" aria-hidden="true">4</span><span>Choose your stylist</span><span class="bk-sec-done" aria-hidden="true">&#10003;</span></h4>
+            <h4 class="bk-sec-title" id="bkSecStaffTitle"><span class="bk-sec-num" aria-hidden="true">5</span><span>Choose your stylist</span><span class="bk-sec-done" aria-hidden="true">&#10003;</span></h4>
           <p id="bkStaffPending" class="rounded-xl border border-bronze/50 bg-sand-100 p-3 text-xs text-ink/50">Choose a date and time first to see who is available.</p>
           <div id="bookStaffSection" class="hidden">
             <p id="bookStaffLabel" class="bk-visually-hidden block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Select staff</p>
-            <p class="prose-justify text-xs text-ink/60 mb-2">Pick a stylist for each service. <span class="text-[color:var(--success)] font-semibold">Available</span> stylists are free for that service; <span class="text-[color:var(--danger)] font-semibold">Busy</span> ones are still with another client.</p>
+            <p class="bk-desc prose-justify text-xs text-ink/60 mb-2">Pick a stylist for each service. <span class="text-[color:var(--success)] font-semibold">Available</span> stylists are free for that service; <span class="text-[color:var(--danger)] font-semibold">Busy</span> ones are still with another client.</p>
             <div id="bookStaffList" role="group" aria-labelledby="bookStaffLabel" class="rounded-xl border border-bronze/50 bg-sand-100 p-3 text-xs text-ink/50">
               Choose your branch, services, date, and time to see available staff.
             </div>
@@ -327,13 +440,16 @@
             </div>
           </div>
           </section>
+          </div>
 
+          <!-- Step 4 -->
+          <div class="bk-step" data-step="payment">
           <section class="bk-sec" id="bkSecPayment" aria-labelledby="bkSecPaymentTitle">
-            <h4 class="bk-sec-title" id="bkSecPaymentTitle"><span class="bk-sec-num" aria-hidden="true">5</span><span>Payment</span><span class="bk-sec-done" aria-hidden="true">&#10003;</span></h4>
+            <h4 class="bk-sec-title" id="bkSecPaymentTitle"><span class="bk-sec-num" aria-hidden="true">6</span><span>Payment</span><span class="bk-sec-done" aria-hidden="true">&#10003;</span></h4>
           <p id="bkPaymentPending" class="rounded-xl border border-bronze/50 bg-sand-100 p-3 text-xs text-ink/50">Select a stylist for each service to see your payment options.</p>
           <div id="bookDepositGate" class="hidden rounded-xl border border-plum/30 bg-plum/5 p-4">
             <p class="text-base font-bold text-plum mb-1">Guest reservation payment required</p>
-            <p class="text-base text-ink/60 mb-3">Your time is available. Choose how much to pay and how. The branch confirms your booking after verifying your payment.</p>
+            <p class="bk-desc text-base text-ink/60 mb-3">Your time is available. Choose how much to pay and how. The branch confirms your booking after verifying your payment.</p>
             <p id="bookQuoteError" class="text-base text-copper-dark mb-2" role="status"></p>
             <dl class="space-y-2 text-base border-y border-bronze/30 py-3 mb-3">
               <div><dt class="text-ink/60">Selected Service</dt><dd id="bookPaymentServices"></dd></div>
@@ -397,97 +513,7 @@
           </div>
 
           </section>
-
-          <section class="bk-sec space-y-4" id="bkSecDetails" aria-labelledby="bkSecDetailsTitle">
-            <h4 class="bk-sec-title" id="bkSecDetailsTitle"><span class="bk-sec-num" aria-hidden="true">6</span><span>Guest information</span><span class="bk-sec-done" aria-hidden="true">&#10003;</span></h4>
-          <!-- Full name composed from the parts below (main.js); other parts of the form read it. -->
-          <input id="bookName" type="hidden" />
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label for="bookFirstName" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">First name</label>
-              <input id="bookFirstName" type="text" autocomplete="given-name" maxlength="100" placeholder="First name"
-                class="w-full px-4 py-2.5 border border-bronze bg-white text-ink placeholder:text-ink/50 shadow-sm rounded-xl text-base focus:outline-none focus:border-plum transition"
-                required />
-            </div>
-            <div>
-              <label for="bookMiddleName" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Middle name <span class="normal-case font-normal tracking-normal text-ink/50">(optional)</span></label>
-              <input id="bookMiddleName" type="text" autocomplete="additional-name" maxlength="100" placeholder="Middle name"
-                class="w-full px-4 py-2.5 border border-bronze bg-white text-ink placeholder:text-ink/50 shadow-sm rounded-xl text-base focus:outline-none focus:border-plum transition disabled:bg-sand-100 disabled:text-ink/40 disabled:cursor-not-allowed" />
-              <label class="mt-1.5 inline-flex items-center gap-2 text-xs text-ink/70 cursor-pointer">
-                <input id="bookMiddleNameNA" type="checkbox" class="accent-plum" /> N/A (no middle name)
-              </label>
-            </div>
-            <div>
-              <label for="bookLastName" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Last name</label>
-              <input id="bookLastName" type="text" autocomplete="family-name" maxlength="100" placeholder="Last name"
-                class="w-full px-4 py-2.5 border border-bronze bg-white text-ink placeholder:text-ink/50 shadow-sm rounded-xl text-base focus:outline-none focus:border-plum transition"
-                required />
-            </div>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label for="bookPhone"
-                class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Mobile number</label>
-              <input id="bookPhone" type="tel" autocomplete="tel" inputmode="numeric" pattern="09[0-9]{9}" placeholder="09XXXXXXXXX"
-                maxlength="11"
-                class="numbers-only w-full px-4 py-2.5 border border-bronze bg-white text-ink placeholder:text-ink/50 shadow-sm rounded-xl text-base focus:outline-none focus:border-plum transition"
-                required />
-            </div>
-          </div>
-          <div>
-            <label for="bookEmail" class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-1">Email
-              address <span class="normal-case font-normal text-ink/35">(optional)</span></label>
-            <input id="bookEmail" type="email" autocomplete="email" maxlength="254" placeholder="you@email.com"
-              class="w-full px-4 py-2.5 border border-bronze bg-white text-ink placeholder:text-ink/50 shadow-sm rounded-xl text-base focus:outline-none focus:border-plum transition" />
-            <p class="text-xs text-ink/40 mt-1">We'll send a short code to confirm your booking: to this email, or by text if you leave it blank.</p>
-          </div>
-
-          <div>
-            <span class="block text-sm font-bold tracking-wide uppercase text-ink/75 mb-2">Send confirmation &amp;
-              reminders by</span>
-            <div class="grid grid-cols-2 gap-2" id="bookNotify">
-              <button type="button" data-notify="SMS" class="notify-opt on">
-                SMS
-              </button>
-              <button type="button" data-notify="Email" class="notify-opt">
-                Email
-              </button>
-            </div>
-          </div>
-
-          <div class="rounded-xl border border-bronze/40 bg-sand-100 p-4">
-            <p class="text-xs font-bold tracking-widest uppercase text-ink/50 mb-2">Terms &amp; Conditions</p>
-            <!-- Every bullet: same size and line height. 30 and 15 minutes come from config (late-arrival-rule.js). -->
-            <div class="pr-1">
-              <ul class="list-disc list-outside pl-4 space-y-1.5">
-                <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Reservation payment:</b> A reservation payment is <b class="font-semibold text-plum">required to hold</b> your appointment slot.</li>
-                <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">50% or full payment:</b> Depending on the service, you pay a <b class="font-semibold text-plum">50% down payment</b> or the <b class="font-semibold text-plum">full amount</b>. The required amount is shown before you book.</li>
-                <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Payment time limit:</b> Complete your online payment within <b class="font-semibold text-plum"><span data-policy="holdMinutes">30</span> minutes</b>. Unpaid slots are <b class="font-semibold text-plum">released automatically</b>.</li>
-              </ul>
-              <details class="book-terms-more">
-                <summary><span class="terms-more-label">Read more</span><span class="terms-less-label">Read less</span></summary>
-                <ul class="list-disc list-outside pl-4 space-y-1.5">
-                  <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Payment verification:</b> Online payments (<b class="font-semibold text-plum">GCash, Maya, or card</b>) are processed securely by PayMongo. <b class="font-semibold text-plum">Cash</b> is settled at the branch. Your booking shows <b class="font-semibold text-plum">"Deposit paid"</b> or <b class="font-semibold text-plum">"Fully paid"</b> once payment is received.</li>
-                  <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Confirmation:</b> Your slot is guaranteed only when the branch marks your booking <b class="font-semibold text-plum">"Confirmed"</b>.</li>
-                  <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Deposits &amp; rescheduling:</b> Deposits are <u><b class="font-semibold text-plum">non-refundable</b></u> if you cancel or do not show up. You may reschedule online up to <b class="font-semibold text-plum">24 hours before</b> your appointment, up to <b class="font-semibold text-plum">2 times</b>, and your deposit <b class="font-semibold text-plum">carries over</b>. A kept deposit can be used to rebook within <b class="font-semibold text-plum">30 days</b>.</li>
-                  <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">If the salon cancels:</b> If we cancel your appointment (for example, your stylist is unavailable), you may choose a <b class="font-semibold text-plum">full refund</b> or a <b class="font-semibold text-plum">free reschedule</b>.</li>
-                  <li data-late-rule class="hidden text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Late arrival:</b> <span data-late-rule-text></span></li>
-                  <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Guest bookings:</b> You can book <b class="font-semibold text-plum">2 times as a guest</b>. From your <b class="font-semibold text-plum">3rd booking</b>, you need to <b class="font-semibold text-plum">create an account</b> or log in.</li>
-                  <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Changes:</b> Prices and staff availability are confirmed by the branch and <b class="font-semibold text-plum">may change</b>.</li>
-                  <li class="text-xs leading-relaxed text-ink/70"><b class="font-semibold text-ink">Contact &amp; privacy:</b> You agree to be contacted at the number or email you provide for confirmations and reminders. We handle your details under the <b class="font-semibold text-plum">Data Privacy Act of 2012 (RA 10173)</b>. <a href="#privacyNotice" role="button" onclick="event.preventDefault(); document.getElementById('privacyNotice').showModal()" class="font-semibold text-plum underline underline-offset-2 hover:text-ink">Read full privacy notice</a>.</li>
-                </ul>
-              </details>
-            </div>
-            <label class="flex items-start gap-2 mt-3 text-xs text-ink/70 cursor-pointer">
-              <input type="checkbox" id="bookAgreeTerms" class="mt-0.5 accent-plum" required>
-              <span>I have read and agree to the Terms &amp; Conditions.</span>
-            </label>
-          </div>
-
-          <p class="text-xs text-ink/40 text-center leading-relaxed">
-            Next, review your booking and verify your contact with a one-time code. The branch will confirm your appointment separately.
-          </p>
-          </section>
 
           </div>
 
@@ -504,19 +530,24 @@
           </aside>
 
           <div id="bkMobileBar" class="bk-mobilebar">
+            <button type="button" id="bkBack" class="bk-btn-back">Back</button>
             <div id="bkMobileTotal" class="bk-mobilebar-total" aria-live="polite"></div>
-            <button type="submit" id="bkMobileSubmit" class="btn-sheen bk-btn-next">Review booking</button>
+            <button type="button" id="bkMobileSubmit" class="btn-sheen bk-btn-next">Continue</button>
           </div>
         </form>
       </div>
 
       <div id="bookingReviewPanel" class="hidden">
-        <h3 class="font-display text-2xl mb-1 text-ink" tabindex="-1" id="bookingReviewHeading">Review your guest booking</h3>
-        <p class="text-base text-ink/60 mb-6">Check your guest appointment and contact details before continuing.</p>
-        <div id="bookingReviewSummary" class="rounded-xl border border-bronze/40 bg-sand-100 p-4 text-base space-y-2"></div>
-        <p class="text-xs text-ink/60 mt-5" id="bookReviewNextNote">Your request will remain pending until the branch confirms your appointment and deposit.</p>
-        <button type="button" id="bookReviewConfirm" class="w-full rounded-full bg-plum text-white font-bold text-base py-3.5 mt-5">Continue to verification</button>
-        <button type="button" id="bookReviewEdit" class="btn-text w-full mt-2 rounded-full text-plum text-base py-3 hover:bg-plum/5 transition">Edit booking details</button>
+        <div class="bk-review-body">
+          <h3 class="font-display text-2xl mb-1 text-ink" tabindex="-1" id="bookingReviewHeading">Review your guest booking</h3>
+          <p class="text-base text-ink/60 mb-6">Check your guest appointment and contact details before continuing.</p>
+          <div id="bookingReviewSummary" class="bk-review-summary rounded-xl border border-bronze/40 bg-sand-100 p-4 text-base"></div>
+          <p class="text-xs text-ink/60 mt-4" id="bookReviewNextNote">Your request will remain pending until the branch confirms your appointment and deposit.</p>
+        </div>
+        <div class="bk-review-actions">
+          <button type="button" id="bookReviewConfirm" class="w-full rounded-full bg-plum text-white font-bold text-base py-3.5">Continue to verification</button>
+          <button type="button" id="bookReviewEdit" class="btn-text w-full rounded-full text-plum text-base py-3 hover:bg-plum/5 transition">Edit booking details</button>
+        </div>
       </div>
 
       <div id="bookingOtpPanel" class="hidden">
@@ -852,11 +883,6 @@
                   data-prefix="&#8369;">&#8369;30</b>
                 <span class="text-xs sm:text-xs text-ink/55">haircut with blow dry</span>
               </div>
-            </div>
-            <div class="mt-6 rounded-xl border border-bronze/40 bg-sand-100 p-4 text-sm text-ink/70">
-              <p class="font-bold text-ink">Late arrival policy</p>
-              <p>Running late? Please contact your branch as soon as possible.</p>
-              <p data-late-rule class="hidden mt-2"><span data-late-rule-text></span></p>
             </div>
           </div>
 
@@ -2607,8 +2633,8 @@
     </div>
   </dialog>
   <script src="function/shared/late-arrival-rule.js?v=20261114-policy"></script>
-  <script src="function/public/main.js?v=20261114-public-content"></script>
-  <script src="function/public/booking-wizard.js?v=20261111c"></script>
+  <script src="function/public/main.js?v=20261116-staff-head"></script>
+  <script src="function/public/booking-wizard.js?v=20261116-edit-return"></script>
 <script src="function/shared/select-dropdown.js?v=20261111e"></script>
 </body>
 

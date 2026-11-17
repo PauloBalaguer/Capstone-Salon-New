@@ -1,11 +1,16 @@
-/* Guest booking: single-page layout controller.
-   Every section (branch, services, date & time, stylist, payment, details) is
-   shown at once; this script only adds presentation on top of main.js:
-   branch cards, section "done" ticks, the live booking summary, waitlist
-   stylist chips and all-at-once validation messages. It reads state kept by
-   main.js (selectedSlotLabel, selectedStaffName, bookReservationQuote, ...);
-   every API call, price calculation, PayMongo hand-off, the review → OTP →
-   confirmation flow and the final submit stay in main.js. */
+/* Guest booking: screen-by-screen controller.
+   Every screen size sees one screen at a time:
+     1 Guest information → 2 Branch & services → 3 Date, time & stylist
+     → 4 Payment → 5 Review
+   with a step header, one scroll area and a fixed Back / Continue bar.
+
+   The screens are the existing sections wrapped in .bk-step blocks, so every
+   field keeps its id. This script only handles presentation and navigation:
+   branch cards, progressive reveal, per-screen validation, the live summary
+   and waitlist chips. It reads state kept by main.js (selectedSlotLabel,
+   selectedStaffId, bookReservationQuote, ...); every API call, price
+   calculation, PayMongo hand-off, the review → OTP → confirmation flow and
+   the final submit stay in main.js. */
 (function () {
   const $ = id => document.getElementById(id);
   const form = $('bookingModalForm');
@@ -17,24 +22,128 @@
   const checkedServices = () => Array.from(document.querySelectorAll('#bookServiceList .book-service-check:checked'));
   const visible = el => el && !el.classList.contains('hidden');
   const formPanel = $('bookingFormPanel');
+  const reviewPanel = $('bookingReviewPanel');
+  const accessPanel = $('bookingAccessPanel');
   const select = $('bookBranchSelect');
+  const scroller = form.querySelector('.bk-main');
+
+  /* ---------- screens ---------- */
+  const STEPS = ['details', 'services', 'schedule', 'payment'];
+  const ALL = [...STEPS, 'review'];
+  const TITLES = { details: 'Guest information', services: 'Branch & services', schedule: 'Date, time & stylist', payment: 'Payment', review: 'Review booking' };
+  const NEXT_LABEL = { details: 'Continue', services: 'Continue', schedule: 'Continue', payment: 'Review booking' };
+  let current = 'details';
+  // Opened from the review's Edit links: Continue goes straight back to the review.
+  let returnToReview = false;
+  const attempted = new Set(); // screens whose Continue was pressed: show their messages
+  const stepOf = el => el?.closest?.('.bk-step')?.dataset.step || null;
+  const stepEl = step => form.querySelector('.bk-step[data-step="' + step + '"]');
+  const stepped = () => box.classList.contains('bk-stepped');
+  function scrollToEl(el, where = 'start') {
+    if (!stepped() || !scroller.contains(el)) { el.scrollIntoView({ behavior: 'smooth', block: where }); return; }
+    const top = el.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+    const offset = where === 'center' ? (scroller.clientHeight - el.offsetHeight) / 2 : 8;
+    scroller.scrollTo({ top: Math.max(0, top - Math.max(8, offset)), behavior: 'smooth' });
+  }
+
+  // Applies the screen layout and the current screen (synchronous, so
+  // a panel switch never paints with the wrong layout).
+  function layout() {
+    const formOn = visible(formPanel);
+    const reviewOn = visible(reviewPanel);
+    if (visible(accessPanel) && (current !== 'details' || attempted.size)) { current = 'details'; attempted.clear(); renderErrors([]); }
+    if (reviewOn || visible(accessPanel)) returnToReview = false;
+    box.classList.toggle('bk-is-form', formOn);
+    box.classList.toggle('bk-stepped', formOn || reviewOn);
+    const shown = reviewOn ? 'review' : current;
+    box.dataset.bkStep = shown;
+    const i = ALL.indexOf(shown);
+    $('bkStepCount').textContent = 'Step ' + (i + 1) + ' of ' + ALL.length;
+    $('bkStepTitle').textContent = TITLES[shown];
+    document.querySelectorAll('#bkStepper .bk-stepper-bar li').forEach((li, n) => {
+      li.classList.toggle('is-done', n < i);
+      li.classList.toggle('is-on', n === i);
+    });
+    STEPS.forEach(s => stepEl(s)?.toggleAttribute('data-current', s === current));
+    $('bkBack').hidden = current === 'details';
+    $('bkMobileSubmit').textContent = returnToReview ? 'Back to review' : NEXT_LABEL[current];
+  }
+
+  function goto(step, focusTitle = true) {
+    if (!STEPS.includes(step)) return;
+    current = step;
+    revealScroll = false;
+    layout();
+    if (stepped()) {
+      scroller.scrollTop = 0;
+      if (focusTitle) $('bkStepTitle').focus({ preventScroll: true });
+    } else {
+      stepEl(step)?.querySelector('.bk-sec')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    refresh();
+  }
+
+  function next() {
+    if (returnToReview && current !== 'payment') {
+      // Check this screen first, then the real submit validates the rest and
+      // shows the review (or opens the screen that now needs attention).
+      attempted.add(current);
+      const list = problems();
+      renderErrors(list);
+      const bad = list.find(p => p[3] === current && p[2]);
+      if (bad) { focusProblem(bad); return; }
+      form.requestSubmit ? form.requestSubmit() : $('bookSubmitBtn').click();
+      return;
+    }
+    if (current === 'payment') {
+      // Final screen: the real submit (validation below, then main.js → review).
+      form.requestSubmit ? form.requestSubmit() : $('bookSubmitBtn').click();
+      return;
+    }
+    attempted.add(current);
+    const list = problems();
+    renderErrors(list);
+    const bad = list.find(p => p[3] === current && p[2]);
+    if (bad) { focusProblem(bad); return; }
+    goto(STEPS[STEPS.indexOf(current) + 1]);
+  }
+
+  function back() {
+    const i = STEPS.indexOf(current);
+    if (i > 0) goto(STEPS[i - 1]);
+  }
+
+  $('bkMobileSubmit').addEventListener('click', next);
+  $('bkBack').addEventListener('click', back);
 
   /* ---------- branch cards (built from the existing <select>) ---------- */
   const cards = $('bkBranchCards');
+  // Once a branch is chosen only its card shows, with "Change" to see all again.
+  let branchListOpen = false;
   function renderBranchCards() {
-    cards.innerHTML = Array.from(select.options).filter(o => o.value).map(o => {
+    const collapse = select.value && !branchListOpen;
+    cards.innerHTML = Array.from(select.options).filter(o => o.value && (!collapse || o.value === select.value)).map(o => {
       const [name, ...rest] = o.textContent.split(/\s+[–-]\s+/);
       const on = select.value === o.value;
       return '<button type="button" role="radio" aria-checked="' + on + '" class="bk-branch-card' + (on ? ' is-selected' : '') + '" data-branch="' + esc(o.value) + '"' + (select.disabled && !on ? ' disabled' : '') + '>' +
         '<span class="bk-branch-name">' + esc(name) + '</span>' + (rest.length ? '<span class="bk-branch-meta">' + esc(rest.join(' – ')) + '</span>' : '') +
         '<span class="bk-card-check" aria-hidden="true">✓</span></button>';
-    }).join('');
+    }).join('') + (collapse && !select.disabled ? '<button type="button" class="bk-branch-change">Change branch</button>' : '');
   }
   cards.addEventListener('click', e => {
+    if (e.target.closest('.bk-branch-change')) {
+      branchListOpen = true;
+      renderBranchCards();
+      cards.querySelector('.bk-branch-card.is-selected')?.focus();
+      return;
+    }
     const card = e.target.closest('.bk-branch-card');
-    if (!card || card.disabled || select.disabled || select.value === card.dataset.branch) return;
-    select.value = card.dataset.branch;
-    select.dispatchEvent(new Event('change'));
+    if (!card || card.disabled || select.disabled) return;
+    branchListOpen = false;
+    if (select.value !== card.dataset.branch) {
+      select.value = card.dataset.branch;
+      select.dispatchEvent(new Event('change'));
+    }
     renderBranchCards();
   });
   select.addEventListener('change', renderBranchCards);
@@ -42,11 +151,10 @@
   /* ---------- waitlist: stylist chips instead of the dropdown ---------- */
   // main.js fills #bookWaitlistStaff and reads its value; the chips just set it.
   const waitSelect = $('bookWaitlistStaff');
-  let waitChips = null;
   if (waitSelect) {
     waitSelect.classList.add('bk-visually-hidden');
     waitSelect.tabIndex = -1;
-    waitChips = document.createElement('div');
+    const waitChips = document.createElement('div');
     waitChips.className = 'bk-wait-chips';
     waitChips.setAttribute('role', 'radiogroup');
     waitChips.setAttribute('aria-label', 'Stylist to wait for');
@@ -69,7 +177,8 @@
   const noOnlinePayment = () => bookReservationQuote?.reservationRequirement === 'No Online Reservation';
   const nameOk = v => v && /^[\p{L}\p{M} .’'\-]+$/u.test(v) && /\p{L}/u.test(v);
 
-  // Each entry: section, message target, and the problem (or '' when fine).
+  // Each entry: [section id, message target, problem ('' when fine), screen].
+  // Listed in screen order so the first problem is the earliest one.
   function problems() {
     const date = $('bookDate').value;
     const staffShown = visible($('bookStaffSection'));
@@ -80,6 +189,12 @@
     const phone = $('bookPhone').value.trim();
     const email = $('bookEmail').value.trim();
     return [
+      ['bkSecDetails', $('bookFirstName'), !first ? 'Please enter your first name.' : nameOk(first) ? '' : 'Please enter your first name using letters, spaces, apostrophes, periods or hyphens.'],
+      ['bkSecDetails', $('bookMiddleName'), !middle || nameOk(middle) ? '' : 'Please enter your middle name using letters, spaces, apostrophes, periods or hyphens, or tick N/A.'],
+      ['bkSecDetails', $('bookLastName'), !last ? 'Please enter your last name.' : nameOk(last) ? '' : 'Please enter your last name using letters, spaces, apostrophes, periods or hyphens.'],
+      ['bkSecDetails', $('bookPhone'), BookingFormValidation.mobile(phone) ? '' : BookingFormValidation.MOBILE_MESSAGE],
+      ['bkSecDetails', $('bookEmail'), !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? '' : 'Please enter a valid email address, or leave it blank.'],
+      ['bkSecDetails', $('bookAgreeTerms').closest('label'), $('bookAgreeTerms').checked ? '' : 'Please agree to the Terms & Conditions.'],
       ['bkSecBranch', cards, select.value ? '' : 'Please choose a branch.'],
       ['bkSecServices', $('bookServiceList'), !select.value ? '' : checkedServices().length ? '' : 'Please choose at least one service.'],
       ['bookScheduleSection', $('bookDate'), date ? '' : 'Please select a date.'],
@@ -89,14 +204,8 @@
       ['bkSecPayment', gateShown ? (bookReservationQuote ? $('bookDepositMethod') : $('bookQuoteError')) : $('bkPaymentPending'),
         !selectedStaffId ? '' // the stylist message already explains why payment is waiting
           : !bookReservationQuote ? ($('bookQuoteError').textContent || 'Please wait while we calculate your payment.')
-          : noOnlinePayment() || paymentMethod() ? '' : 'Please choose a payment method.'],
-      ['bkSecDetails', $('bookFirstName'), !first ? 'Please enter your first name.' : nameOk(first) ? '' : 'Please enter your first name using letters, spaces, apostrophes, periods or hyphens.'],
-      ['bkSecDetails', $('bookMiddleName'), !middle || nameOk(middle) ? '' : 'Please enter your middle name using letters, spaces, apostrophes, periods or hyphens, or tick N/A.'],
-      ['bkSecDetails', $('bookLastName'), !last ? 'Please enter your last name.' : nameOk(last) ? '' : 'Please enter your last name using letters, spaces, apostrophes, periods or hyphens.'],
-      ['bkSecDetails', $('bookPhone'), /^09\d{9}$/.test(phone) ? '' : 'Please enter a valid 11-digit mobile number (09XXXXXXXXX).'],
-      ['bkSecDetails', $('bookEmail'), !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? '' : 'Please enter a valid email address, or leave it blank.'],
-      ['bkSecDetails', $('bookAgreeTerms').closest('label'), $('bookAgreeTerms').checked ? '' : 'Please agree to the Terms & Conditions.']
-    ];
+          : noOnlinePayment() || paymentMethod() ? '' : 'Please choose a payment method.']
+    ].map(p => [...p, stepOf($(p[0]))]);
   }
 
   // Section ticks: a section is complete when none of its own checks fail
@@ -116,10 +225,27 @@
     });
   }
 
+  // Screens 2-3: each part appears once the one before is chosen.
+  // A part that just appeared scrolls into view, so the guest doesn't hunt for it.
+  function renderReveal() {
+    [['bkSecServices', !select.value],
+     ['bookScheduleSection', !checkedServices().length],
+     ['bkSecStaff', !($('bookDate').value && selectedSlotLabel)]].forEach(([id, later]) => {
+      const sec = $(id);
+      const appeared = sec.classList.contains('bk-later') && !later;
+      sec.classList.toggle('bk-later', later);
+      if (appeared && revealScroll && stepped() && (current === 'services' || current === 'schedule')) {
+        scrollToEl(sec);
+      }
+    });
+  }
+  let revealScroll = false; // off while a screen is being (re)built
+
   /* ---------- validation messages beside each field ---------- */
-  let attempted = false; // only show messages after the first submit attempt
   const shown = new Set();
   function renderErrors(list) {
+    // Only screens the guest tried to leave (or the final submit) show messages.
+    list = list.map(p => attempted.has(p[3]) ? p : [p[0], p[1], '', p[3]]);
     const bad = new Set();
     list.forEach(([sec, target, msg]) => {
       if (!target) return;
@@ -139,22 +265,33 @@
     document.querySelectorAll('#bookingModalForm .bk-sec').forEach(s => s.classList.toggle('has-error', bad.has(s.id)));
   }
 
-  // Runs before main.js's submit handler: show every problem at once and only
-  // let the submit through (to main.js's own validation + review) when clean.
-  // Window capture runs before booking-validation.js's document listener, so
-  // every section's message shows together instead of only the first.
+  function focusProblem(p) {
+    const t = p[1];
+    scrollToEl(t, 'center');
+    (t.matches('input, select, textarea, button') ? t : t.querySelector('input:not(.bk-visually-hidden), button:not([disabled])') || t).focus?.({ preventScroll: true });
+  }
+
+  // Runs before main.js's submit handler (window capture also runs before
+  // booking-validation.js's document listener). Phones: Enter on screens 1-2
+  // just moves on. The real submit only reaches main.js (→ review) when every
+  // screen is valid; otherwise it opens the screen with the first problem.
   window.addEventListener('submit', e => {
     if (e.target !== form) return;
-    attempted = true;
+    if (stepped() && current !== 'payment' && !returnToReview) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      next();
+      return;
+    }
+    STEPS.forEach(s => attempted.add(s));
     const list = problems();
     renderErrors(list);
     const first = list.find(p => p[2]);
     if (!first) return;
     e.preventDefault();
     e.stopImmediatePropagation();
-    const t = first[1];
-    t.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    (t.matches('input, select, textarea, button') ? t : t.querySelector('input:not(.bk-visually-hidden), button:not([disabled])') || t).focus?.({ preventScroll: true });
+    if (stepped() && first[3] !== current) goto(first[3], false);
+    focusProblem(first);
   }, true);
 
   /* ---------- placeholders for parts main.js reveals later ---------- */
@@ -163,7 +300,7 @@
     $('bkPaymentPending').classList.toggle('hidden', visible($('bookDepositGate')));
   }
 
-  /* ---------- live booking summary ---------- */
+  /* ---------- live booking summary (bar total; the aside stays hidden) ---------- */
   const row = (label, value, empty) =>
     '<div class="bk-sum-row"><dt>' + label + '</dt><dd' + (value ? '' : ' class="is-empty"') + '>' + (value || esc(empty)) + '</dd></div>';
 
@@ -186,13 +323,13 @@
     const guest = [$('bookName').value.trim(), $('bookPhone').value.trim()].filter(Boolean).map(esc).join('<br>');
 
     let html = '<dl class="bk-sum-list">' +
+      row('Guest', guest, 'Not entered') +
       row('Branch', branch, 'Not selected') +
       row('Services', services, 'None yet') +
       (picked.length ? row('Duration', esc(ServiceDuration.format(minutes)), '') : '') +
       row('When', when, 'Not selected') +
       row('Stylist', selectedStaffName ? esc(selectedStaffName) : '', 'Not selected') +
       row('Payment', pay, 'Not selected') +
-      row('Guest', guest, 'Not entered') +
       '</dl>';
     if (picked.length) {
       const total = q ? q.serviceTotal : picked.reduce((t, c) => t + Number(c.dataset.price || 0), 0);
@@ -217,28 +354,53 @@
     queued = true;
     requestAnimationFrame(() => {
       queued = false;
-      box.classList.toggle('bk-is-form', visible(formPanel));
+      layout();
       syncPending();
+      renderReveal();
       const list = problems();
       renderTicks(list);
-      if (attempted) renderErrors(list);
+      if (attempted.size) renderErrors(list);
       renderSummary();
     });
   }
   ['booking:services-loaded', 'booking:staff-changed'].forEach(ev => document.addEventListener(ev, refresh));
-  ['change', 'input', 'click'].forEach(ev => form.addEventListener(ev, () => setTimeout(refresh, 0)));
+  ['change', 'input', 'click'].forEach(ev => form.addEventListener(ev, e => {
+    if (e.isTrusted) revealScroll = true;
+    setTimeout(refresh, 0);
+  }));
   // main.js toggles sections/panels and writes the quote and slot/staff boxes;
-  // observe those instead of editing each call site.
+  // observe those instead of editing each call site. Panel switches re-layout
+  // at once so a screen never paints in the wrong layout.
+  const panelObserver = new MutationObserver(() => { layout(); refresh(); });
+  ['bookingAccessPanel', 'bookingFormPanel', 'bookingReviewPanel', 'bookingOtpPanel', 'bookingConfirmPanel']
+    .forEach(id => $(id) && panelObserver.observe($(id), { attributes: true, attributeFilter: ['class'] }));
   const observer = new MutationObserver(refresh);
-  ['bookStaffSection', 'bookDepositGate', 'bookingAccessPanel', 'bookingFormPanel', 'bookingReviewPanel', 'bookingOtpPanel', 'bookingConfirmPanel']
-    .forEach(id => $(id) && observer.observe($(id), { attributes: true, attributeFilter: ['class'] }));
+  ['bookStaffSection', 'bookDepositGate'].forEach(id => $(id) && observer.observe($(id), { attributes: true, attributeFilter: ['class'] }));
   ['bookDepositRequired', 'bookQuoteError', 'bookSlotGrid', 'bookStaffList']
     .forEach(id => $(id) && observer.observe($(id), { childList: true, characterData: true, subtree: true }));
 
+  /* ---------- review screen: Edit returns to the form ---------- */
+  // main.js's own handler (registered first) swaps the panels back; then pick the screen.
+  $('bookReviewEdit').addEventListener('click', () => { returnToReview = true; goto('details'); });
+  reviewPanel.addEventListener('click', e => {
+    const btn = e.target.closest('[data-bk-goto]');
+    if (!btn || $('bookReviewEdit').disabled) return;
+    $('bookReviewEdit').click();
+    goto(btn.dataset.bkGoto);
+  });
+  // "Edit" on the code screen: the contact details are on screen 1.
+  $('bookOtpEditBtn')?.addEventListener('click', () => { returnToReview = true; goto('details'); });
+
   function reset() {
-    attempted = false;
+    current = 'details';
+    returnToReview = false;
+    revealScroll = false;
+    branchListOpen = false;
+    attempted.clear();
     renderErrors([]);
     renderBranchCards();
+    layout();
+    scroller.scrollTop = 0;
     refresh();
   }
 
@@ -258,9 +420,19 @@
       select.dispatchEvent(new Event('change'));
     }
     window.__preBookBranch = '';
+    // A fresh guest form: no messages from an earlier attempt.
+    attempted.clear();
+    renderErrors([]);
+    returnToReview = false;
     renderBranchCards();
-    refresh();
+    goto('details');
     return r;
+  };
+
+  // main.js hooks for server-side errors: open the screen holding a field.
+  window.BookingWizard = {
+    goto: step => goto(step, false),
+    showStepFor: el => { const s = stepOf(el); if (s) goto(s, false); }
   };
 
   reset();

@@ -245,6 +245,8 @@
   function openBookingModal() {
     bookingModalOverlay.classList.remove('opacity-0', 'pointer-events-none');
     bookingModalBox.classList.remove('scale-95');
+    // Freeze the page behind so the modal is the only scroll area.
+    document.documentElement.classList.add('bk-scroll-lock');
     bookingModalBox.scrollTop = 0;
     document.getElementById('bookingAccessPanel').classList.remove('hidden');
     document.getElementById('bookingFormPanel').classList.add('hidden');
@@ -303,6 +305,7 @@
   function closeBookingModal() {
     bookingModalOverlay.classList.add('opacity-0', 'pointer-events-none');
     bookingModalBox.classList.add('scale-95');
+    document.documentElement.classList.remove('bk-scroll-lock');
   }
   closeBooking?.addEventListener('click', closeBookingModal);
 
@@ -2496,9 +2499,9 @@
         box.className = 'rounded-xl border border-bronze/50 bg-sand-100 p-3 space-y-3';
         box.innerHTML = (res.notice ? '<p class="text-[12px] font-semibold text-copper-dark">' + escAttr(res.notice) + '</p>' : '') + services.map((svc, i) =>
           '<div class="book-staff-service" data-service="' + escAttr(svc.id) + '">' +
-            '<div class="flex items-baseline justify-between gap-2 mb-1.5">' +
-              '<p class="text-[13px] font-bold text-ink">' + (services.length > 1 ? (i + 1) + '. ' : '') + escAttr(svc.name) + '</p>' +
-              '<p class="text-[11px] text-ink/55 whitespace-nowrap">' + escAttr(svc.start) + ' – ' + escAttr(svc.end) + '</p>' +
+            '<div class="bk-staff-svc-head flex items-baseline justify-between gap-2 mb-1.5">' +
+              '<p class="bk-staff-svc-name text-[13px] font-bold text-ink">' + (services.length > 1 ? (i + 1) + '. ' : '') + escAttr(svc.name) + '</p>' +
+              '<p class="bk-staff-svc-time text-[11px] text-ink/55 whitespace-nowrap">' + escAttr(svc.start) + ' – ' + escAttr(svc.end) + '</p>' +
             '</div>' +
             (svc.staff.length
               ? '<div class="grid grid-cols-2 sm:grid-cols-3 gap-2">' + svc.staff.map(s =>
@@ -2869,21 +2872,36 @@
     };
 
     const total = computeSelectedServicesSubtotal();
-    document.getElementById('bookingReviewSummary').innerHTML = [
-      ['Branch', BRANCH_LABEL_BY_ID[branchId] || branchId],
-      ['Services', serviceNames.join(', ')],
-      ['Date', fmtApptDate(date)], ['Start Time', selectedSlotLabel],
-      ['Estimated Duration', ServiceDuration.format(pendingBooking.durationMinutes)],
-      ['Estimated End Time', ServiceDuration.endTime(date, selectedSlotLabel, pendingBooking.durationMinutes)],
-      ['Staff', selectedStaffName],
-      ['Name', name], ['Mobile', phone],
-      ...(email ? [['Email', email]] : []),
-      ['Service Total', formatReservationMoney(total)],
-      ['Reservation Requirement', bookReservationQuote.reservationRequirement],
-      ['Pay Now', formatReservationMoney(bookDepositInfo.amount) + ' via ' + PAY_METHOD_NAMES[bookDepositInfo.method]],
-      ['Deposit reference', bookDepositInfo.reference || (bookDepositInfo.method === 'Cash' ? 'Pay cash at the branch' : 'Pay with ' + PAY_METHOD_NAMES[bookDepositInfo.method] + ' right after confirming')],
-      ['Balance to Pay Later', formatReservationMoney(bookReservationQuote.remainingBalance)]
-    ].map(([label, value]) => '<p><span class="text-ink/50">' + label + ':</span> <b>' + escAttr(value) + '</b></p>').join('');
+    // Grouped like the booking steps; each "Edit" returns to that step (booking-wizard.js).
+    const reviewGroup = (title, step, rows) =>
+      '<section class="bk-rev-group"><div class="bk-rev-head"><h4>' + title + '</h4>'
+      + '<button type="button" class="bk-rev-edit" data-bk-goto="' + step + '" aria-label="Edit ' + title.toLowerCase() + '">Edit</button></div>'
+      + rows.map(([label, value]) => '<p><b class="bk-rev-label">' + label + ':</b> <span class="bk-rev-value">' + escAttr(value) + '</span></p>').join('')
+      + '</section>';
+    const endTime = ServiceDuration.endTime(date, selectedSlotLabel, pendingBooking.durationMinutes);
+    document.getElementById('bookingReviewSummary').innerHTML =
+      reviewGroup('Guest information', 'details', [
+        ['Name', name], ['Mobile', phone],
+        ...(email ? [['Email', email]] : []),
+        ['Updates by', bookNotifyChoice]
+      ])
+      + reviewGroup('Branch & services', 'services', [
+        ['Branch', BRANCH_LABEL_BY_ID[branchId] || branchId],
+        ['Services', serviceNames.join(', ')]
+      ])
+      + reviewGroup('Date, time & stylist', 'schedule', [
+        ['Date', fmtApptDate(date)],
+        ['Time', selectedSlotLabel + (endTime ? ' – ' + endTime : '')],
+        ['Duration', ServiceDuration.format(pendingBooking.durationMinutes)],
+        ['Staff', selectedStaffName]
+      ])
+      + reviewGroup('Payment', 'payment', [
+        ['Service total', formatReservationMoney(total)],
+        ['Requirement', bookReservationQuote.reservationRequirement],
+        ['Pay now', formatReservationMoney(bookDepositInfo.amount) + ' via ' + PAY_METHOD_NAMES[bookDepositInfo.method]],
+        ['Payment', bookDepositInfo.reference || (bookDepositInfo.method === 'Cash' ? 'Pay cash at the branch' : 'Pay with ' + PAY_METHOD_NAMES[bookDepositInfo.method] + ' right after confirming')],
+        ['Balance later', formatReservationMoney(bookReservationQuote.remainingBalance)]
+      ]);
     document.getElementById('bookingFormPanel').classList.add('hidden');
     document.getElementById('bookingReviewPanel').classList.remove('hidden');
     bookingModalBox.scrollTop = 0;
@@ -3110,12 +3128,16 @@
             const fields = {fullname:'bookFirstName', first_name:'bookFirstName', middle_name:'bookMiddleName', last_name:'bookLastName', contact:'bookPhone', email:'bookEmail', appointment_date:'bookDate', branch:'bookBranchSelect'};
             for (const [field, error] of Object.entries(res.errors || {})) BookingFormValidation.message(document.getElementById(fields[field] || 'bookSubmitBtn'), error);
             if (res.conflict) BookingFormValidation.message(document.getElementById('bookDate'), res.message);
+            // Phones show one step at a time: open the step holding the first rejected field.
+            const firstField = Object.keys(res.errors || {})[0];
+            window.BookingWizard?.showStepFor(document.getElementById(res.conflict ? 'bookDate' : (fields[firstField] || 'bookDepositGate')));
           }
           if (res.quoteChanged) {
             updateDepositRequiredDisplay();
             document.getElementById('bookingOtpPanel').classList.add('hidden');
             document.getElementById('bookingReviewPanel').classList.add('hidden');
             document.getElementById('bookingFormPanel').classList.remove('hidden');
+            window.BookingWizard?.goto('payment');
           }
           return false;
         }

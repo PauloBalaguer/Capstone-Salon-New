@@ -56,6 +56,7 @@ function customerProfileMixin() {
     },
 
     saveProfile() {
+      // Same rule as the server (PhoneNumber.php): 09XXXXXXXXX or +639XXXXXXXXX.
       const phone = String(this.customerProfile.phone || '').replace(/[\s\-().]/g, '').match(/^(?:09|\+639)(\d{9})$/);
       if (!phone) return this.pushToast('error', 'Enter a valid Philippine mobile number: 09XXXXXXXXX or +639XXXXXXXXX (11 digits starting with 09).');
       this.customerProfile.phone = '09' + phone[1];

@@ -24,7 +24,7 @@ require_once __DIR__ . '/../shared/config/payments/RevenueReport.php';
 require_once __DIR__ . '/../shared/config/helpers/Schema.php';
 
 sendCorsHeaders();
-LiveUpdates::afterThisRequest();
+LiveUpdates::afterThisRequest(); // Pusher: open panels refresh after this save (setup/live-updates.php)
 AuditLog::captureRequest();
 header('Content-Type: application/json');
 

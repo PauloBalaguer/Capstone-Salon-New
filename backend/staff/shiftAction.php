@@ -22,7 +22,7 @@ require_once '../../backend/shared/config/security/Csrf.php';
 require_once '../../backend/shared/config/helpers/StaffShift.php';
 
 sendCorsHeaders();
-LiveUpdates::afterThisRequest();
+LiveUpdates::afterThisRequest(); // Pusher: open panels refresh after this save (setup/live-updates.php)
 AuditLog::captureRequest();
 header('Content-Type: application/json');
 

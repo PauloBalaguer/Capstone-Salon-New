@@ -15,7 +15,7 @@ require_once '../../backend/shared/config/setup/live-updates.php';
 require_once '../../backend/shared/config/security/AuditLog.php';
 
 sendCorsHeaders();
-LiveUpdates::afterThisRequest();
+LiveUpdates::afterThisRequest(); // Pusher: open panels refresh after this save (setup/live-updates.php)
 AuditLog::captureRequest();
 header('Content-Type: application/json');
 

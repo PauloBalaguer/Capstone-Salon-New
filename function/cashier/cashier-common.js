@@ -65,6 +65,7 @@ function submittedKey(b) {
   return `${m[1]} ${String(h).padStart(2, '0')}:${m[3]}`;
 }
 
+/* Newest booking first (when it was made), not by appointment time. */
 function newestBookingFirst(a, b) {
   return submittedKey(b).localeCompare(submittedKey(a)) || String(b.id).localeCompare(String(a.id));
 }

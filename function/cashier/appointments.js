@@ -452,6 +452,8 @@ async function askCustomerToReschedule() {
   }
 }
 
+// Cancel: the cashier picks refund (salon), reschedule (salon) or "customer asked"
+// (deposit kept), with a reason -- backend/cashier/updateStatus.php checks both.
 let cancelRef = null;
 function cancelBooking(ref) {
   const b = state.data.bookings.find(x => x.id === ref);

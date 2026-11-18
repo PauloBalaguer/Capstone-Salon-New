@@ -19,7 +19,7 @@ require_once '../../backend/shared/config/booking/HomeServiceRequest.php';
 date_default_timezone_set('Asia/Manila');
 
 sendCorsHeaders();
-LiveUpdates::afterThisRequest();
+LiveUpdates::afterThisRequest(); // Pusher: open panels refresh after this save (setup/live-updates.php)
 AuditLog::captureRequest();
 header('Content-Type: application/json');
 

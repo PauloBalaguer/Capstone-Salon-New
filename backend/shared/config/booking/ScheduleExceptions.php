@@ -16,6 +16,7 @@ require_once __DIR__ . '/HomeServiceRequest.php';
 final class ScheduleExceptions
 {
     const HOLIDAY_TYPES = ['closed' => 'Closed all day', 'special_hours' => 'Special hours', 'open' => 'Open as usual'];
+    // Salon bookings a stylist's leave affects: confirmed ones and those still waiting for payment/confirmation.
     const LEAVE_STATUSES = ['Pending', 'Confirmed'];
 
     /** Salon bookings (Pending or Confirmed) and confirmed home visits this leave would affect. */

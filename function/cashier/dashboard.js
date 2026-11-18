@@ -154,6 +154,7 @@ function setTab(tab) {
 }
 
 function paymentBadge(b) {
+  // Same three states as everywhere else (PortalPresentation.paymentStatus).
   if (b.checkoutPaid || b.paymentStatus === 'Fully Paid') return ['Fully paid', 'bg-emerald-100 text-[color:var(--success)]'];
   if (b.depositVerified) return [PortalPresentation.paymentStatus('Down Payment Verified', b.remainingBalance), 'bg-sky-100 text-sky-800'];
   if (hasReportedPayment(b)) return ['Payment being checked', 'bg-amber-100 text-[color:var(--warn)]'];

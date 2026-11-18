@@ -11,7 +11,7 @@ require_once '../../backend/shared/config/helpers/LoyaltyTier.php';
 require_once '../../backend/shared/config/helpers/LoyaltyCard.php';
 
 sendCorsHeaders();
-LiveUpdates::afterThisRequest();
+LiveUpdates::afterThisRequest(); // Pusher: open panels refresh after this save (setup/live-updates.php)
 AuditLog::captureRequest();
 header('Content-Type: application/json');
 

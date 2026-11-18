@@ -34,7 +34,7 @@ document.addEventListener('alpine:init', () => {
     promotions: [],
     weddingPackages: [],
     eventDurations: [],
-    homeServicePrices: { rates: [], travelFees: [] },
+    homeServicePrices: { rates: [], travelFees: [] }, // migration 065
     homeServiceDefaults: { fallbackServiceMinutes: 120, cleaningBufferMinutes: 15 },
     bookingRules: { cleaningBufferMinutes: 15, slotIntervalMinutes: 30 },
     feedback: [],

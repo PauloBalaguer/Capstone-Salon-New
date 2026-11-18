@@ -171,5 +171,6 @@ html.dark .mobile-login-btn svg, [data-theme="dark"] .mobile-login-btn svg { col
   .br2-actions { flex-direction: column; }
   .br2-btn { width: 100%; white-space: nowrap; }
 }
+/* Floating Book button steps aside while another Book button is on screen. */
 #floatBook { transition: opacity .2s, transform .2s; }
 #floatBook.is-tucked { opacity: 0; transform: translateY(16px); pointer-events: none; }

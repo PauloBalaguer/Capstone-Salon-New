@@ -60,7 +60,7 @@
     const map = {
       dashboard: 'dashboard',
       appointments: params.get('track') === '1' ? 'track' : 'bookings',
-      services: 'book',
+      services: 'book', // the services page is the booking page (no separate Explore Services item)
       'home-service': 'home',
       reviews: 'feedback'
     };

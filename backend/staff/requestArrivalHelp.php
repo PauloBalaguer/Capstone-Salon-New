@@ -16,7 +16,7 @@ require_once '../../backend/shared/config/booking/Scheduling.php';
 require_once '../../backend/shared/config/booking/ArrivalRequest.php';
 
 sendCorsHeaders();
-LiveUpdates::afterThisRequest();
+LiveUpdates::afterThisRequest(); // Pusher: open panels refresh after this save (setup/live-updates.php)
 header('Content-Type: application/json');
 
 if (!isLoggedIn() || ($_SESSION['user_role'] ?? null) !== 'Staff') {

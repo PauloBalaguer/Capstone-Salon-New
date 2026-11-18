@@ -20,7 +20,7 @@ require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/payments/HomeServicePayment.php';
 
 sendCorsHeaders();
-LiveUpdates::afterThisRequest();
+LiveUpdates::afterThisRequest(); // Pusher: open panels refresh after this save (setup/live-updates.php)
 AuditLog::captureRequest();
 header('Content-Type: application/json');
 
@@ -114,6 +114,7 @@ try {
             echo json_encode(['success' => false, 'message' => preg_replace('/^PayMongo error \d+: /', '', $e->getMessage())]);
             exit();
         }
+        // Say where it actually went; with no email, Admin shares the link another way (it's also on Track your booking).
         $where = ['queued' => 'emailed to the customer', 'no_email' => 'created, but NOT emailed: there is no email address on file. Copy the link below and send it by text or chat',
             'opted_out' => 'created, but NOT emailed: the customer turned email off. Copy the link below and send it another way'][CustomerNotifier::$lastEmail ?? ''] ?? 'created';
         echo json_encode(['success' => true, 'emailed' => CustomerNotifier::$lastEmail === 'queued',

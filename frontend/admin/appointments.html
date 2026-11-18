@@ -212,6 +212,7 @@
           </div>
           <p class="lm-bd-sub" x-text="'Paid via ' + (PortalPresentation.methodLabel(booking.depositMethod || booking.paymentMethod) || 'method not selected') + (booking.depositReference ? ' · Ref ' + booking.depositReference : '')"></p>
         </section>
+        <!-- Emails: every attempt for this booking (backend/admin/emailLog.php) -->
         <section class="lm-bd-section" aria-label="Emails">
           <h3 class="lm-bd-heading">Emails</h3>
           <p class="lm-hint" x-show="bookingEmails === null">Loading...</p>
@@ -348,6 +349,7 @@
 </div>
 
 <!-- Home service quote -->
+<!-- Salon cancellation: the admin must choose refund or reschedule (non-refundable deposit exception). -->
 <div class="lm-modal" x-show="salonCancelBooking" x-cloak @keydown.escape.window="salonCancelBooking = null" role="dialog" aria-modal="true" aria-labelledby="salonCancelTitle">
   <div class="lm-modal-box" @click.outside="salonCancelBooking = null">
     <div class="lm-modal-head"><div><h2 id="salonCancelTitle">Cancel booking (salon)</h2><p x-text="salonCancelBooking ? salonCancelBooking.id + ' · ' + (salonCancelBooking.clientName || '') : ''"></p></div><button type="button" class="ui-close-icon lm-close" @click="salonCancelBooking = null" aria-label="Close">&times;</button></div>

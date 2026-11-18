@@ -37,6 +37,7 @@ if ($reference === '') {
     echo json_encode(['success' => false, 'message' => 'Please enter your booking reference.']);
     exit();
 }
+// Reference only: the status view, without personal details or actions.
 $proofGiven = $phone !== '' || $email !== '';
 if (!$proofGiven) {
     $lookupLimiter = new RateLimiter(RateLimiter::getIpAddress(), 'track_reference_only', 30, 600);
@@ -152,6 +153,7 @@ try {
             'paymentMethod' => $hs['deposit_method'],
             'remainingBalance' => $hs['quote_price'] !== null ? max(0, round((float) $hs['quote_price'] - (float) $hs['amount_paid'], 2)) : null,
             'date' => $hs['preferred_date'],
+            // Personal: the event address and notes (they include the contact email).
             'venue' => $proofGiven ? $hs['address'] : null,
             'requests' => $proofGiven ? $hs['requests'] : null,
             'quote' => $hs['quote_price'] !== null ? (float) $hs['quote_price'] : null,
@@ -164,6 +166,7 @@ try {
             'amountPaid' => (float) $hs['amount_paid'],
             'balanceDue' => $hs['quote_price'] !== null ? max(0, round((float) $hs['quote_price'] - (float) $hs['amount_paid'], 2)) : null,
             'balancePayUrl' => $hs['quote_price'] !== null && (float) $hs['quote_price'] > (float) $hs['amount_paid'] ? $hs['balance_checkout_url'] : null,
+            // "Pay remaining balance" works even before Admin sends a link (backend/public/payHomeServiceBalance.php).
             'canPayBalance' => $hs['status'] !== 'Cancelled' && (int) $hs['deposit_paid'] === 1 && $hs['quote_price'] !== null && PayMongo::isConfigured()
                 && round((float) $hs['quote_price'] - (float) $hs['amount_paid'], 2) >= PayMongo::MIN_AMOUNT,
             'canReview' => $proofGiven && $hs['status'] === 'Completed' && !$hs['has_feedback'],

@@ -24,7 +24,7 @@ require_once '../../backend/shared/config/booking/Scheduling.php';
 require_once '../../backend/shared/config/payments/ReservationPayment.php';
 
 sendCorsHeaders();
-LiveUpdates::afterThisRequest();
+LiveUpdates::afterThisRequest(); // Pusher: open panels refresh after this save (setup/live-updates.php)
 AuditLog::captureRequest();
 header('Content-Type: application/json');
 
@@ -63,6 +63,9 @@ if ($referenceCode === '' || (!$paymentAttentionOnly && !$paymentVerifyOnly &&!i
     exit();
 }
 
+// Cancelling needs a choice and a reason (CancellationPolicy::closeByStaff): the salon
+// cancels and refunds, the salon cancels and the customer reschedules, or the customer
+// asked to cancel (deposit kept -- the non-refundable rule).
 $cancelAction = trim((string) ($_POST['cancelAction'] ?? ''));
 $cancelReason = trim(preg_replace('/\s+/', ' ', (string) ($_POST['reason'] ?? '')));
 if ($status === 'Cancelled') {

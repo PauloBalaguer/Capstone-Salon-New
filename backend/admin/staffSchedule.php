@@ -29,7 +29,7 @@ require_once '../../backend/shared/config/notifications/CustomerNotifier.php';
 require_once '../../backend/shared/config/helpers/Schema.php';
 
 sendCorsHeaders();
-LiveUpdates::afterThisRequest();
+LiveUpdates::afterThisRequest(); // Pusher: open panels refresh after this save (setup/live-updates.php)
 AuditLog::captureRequest();
 header('Content-Type: application/json');
 
@@ -181,12 +181,14 @@ try {
         exit();
     }
 
+    // Absent stylist: their bookings on the leave dates, each with who can take it over.
+    // Cancelling one uses the salon-cancel flow (refund or reschedule) in Admin > Bookings.
     if ($action === 'leaveBookings') {
         if (!$employee) fail(404, 'Staff member not found.');
         $from = trim((string) ($_POST['startDate'] ?? ''));
         $to = trim((string) ($_POST['endDate'] ?? ''));
         if (!validDate($from) || !validDate($to) || $to < $from) fail(400, 'Please choose a valid start and end date.');
-        $pdo->beginTransaction();
+        $pdo->beginTransaction(); // replacements() tries each stylist and undoes it
         $bookings = ScheduleExceptions::affectedByLeave($pdo, $employeeId, $from, $to);
         $load = $pdo->prepare('SELECT * FROM appointments WHERE id = ?');
         foreach ($bookings as &$b) {
@@ -267,6 +269,7 @@ try {
     error_log('admin staffSchedule error: ' . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'A server error occurred. Has migration 062 been applied?']);
 } catch (RuntimeException $e) {
+    // moveParts() / booking checks: the chosen stylist can't take it, or the booking changed.
     if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
     fail(409, $e->getMessage());
 }

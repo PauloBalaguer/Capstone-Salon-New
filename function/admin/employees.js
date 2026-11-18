@@ -44,7 +44,7 @@ function adminStaffApp() {
     leaveList: [],
     leaveForm: { startDate: '', endDate: '', reason: '' },
     leaveAffected: null, // null = not previewed yet; [] = nothing affected
-    leaveBookings: null,
+    leaveBookings: null, // bookings of the absent stylist on one leave's dates (null = none shown)
     leaveBookingsRange: '',
     leaveBookingsDates: null,
     leaveBusy: false,
@@ -104,9 +104,10 @@ function adminStaffApp() {
       LMToast.show(r.message, 'success');
       const saved = { from: f.startDate, to: f.endDate || f.startDate };
       await this.loadSchedule(this.detailStaff.id);
-      await this.loadLeaveBookings(saved.from, saved.to);
+      await this.loadLeaveBookings(saved.from, saved.to); // next step: reassign or cancel each one
       Alpine.store('admin').refresh();
     },
+    // The absent stylist's bookings on these dates, each with the same-branch stylists free to take it.
     async loadLeaveBookings(from, to) {
       const r = await Alpine.store('admin').post('staffSchedule.php', { action: 'leaveBookings', employeeId: this.detailStaff.id, startDate: from, endDate: to });
       if (!r.success) { LMToast.show(r.message || 'Could not load the bookings.', 'error'); return; }

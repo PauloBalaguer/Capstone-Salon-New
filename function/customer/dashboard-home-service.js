@@ -108,6 +108,8 @@ function customerHomeServiceMixin() {
         if (seq === this.eventAvailabilityRequest) this.eventAvailabilityMessage = 'Availability could not be checked. We will check again when you submit.';
       } finally { if (seq === this.eventAvailabilityRequest) this.eventAvailabilityLoading = false; }
     },
+    // Home service price list (migration 065, admin-edited) for the live estimate;
+    // backend/customer/submitHomeServiceRequest.php recalculates it on submit.
     hsPrices: null,
     async loadHomeServicePrices() {
       if (this.hsPrices) return;

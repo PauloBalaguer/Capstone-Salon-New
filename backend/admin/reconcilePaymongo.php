@@ -28,7 +28,7 @@ require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/payments/PayMongo.php';
 
 sendCorsHeaders();
-LiveUpdates::afterThisRequest();
+LiveUpdates::afterThisRequest(); // Pusher: open panels refresh after this save (setup/live-updates.php)
 AuditLog::captureRequest();
 header('Content-Type: application/json');
 

@@ -21,7 +21,7 @@ require_once '../../backend/shared/config/security/AuditLog.php';
 require_once '../../backend/shared/config/booking/HomeServiceRequest.php';
 
 sendCorsHeaders();
-LiveUpdates::afterThisRequest();
+LiveUpdates::afterThisRequest(); // Pusher: open panels refresh after this save (setup/live-updates.php)
 AuditLog::captureRequest();
 header('Content-Type: application/json');
 
@@ -140,6 +140,7 @@ try {
         )
         VALUES (?, ?, (SELECT email FROM users WHERE id = ?), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
     ');
+    // Recalculated here from the price list; the admin's quote starts from it.
     $estimate = HomeServiceRequest::estimate($pdo, $eventType, (string) $weddingPackage, $services, (int) $clients, (string) $structuredAddress['city']);
     $ins->execute([
         $customerId, $homeBranchId, $_SESSION['user_id'], $address, json_encode($structuredAddress), $eventType, $eventType === 'Wedding' ? $weddingPackage : null, $preferredDate, $preferredTime, $fullRequests, (int) $clients,

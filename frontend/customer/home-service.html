@@ -306,6 +306,7 @@
           </div>
         </div>
 
+        <!-- Live estimate (dashboard-home-service.js hsEstimate); the server recalculates it on submit. -->
         <div x-init="loadHomeServicePrices()" class="text-slate-300 bg-slate-900 border border-slate-700 rounded-lg p-3 space-y-1.5" aria-live="polite">
           <p class="font-semibold text-white uppercase tracking-wider">Estimated cost</p>
           <template x-if="!hsEstimate()">

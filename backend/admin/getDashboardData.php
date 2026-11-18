@@ -51,6 +51,7 @@ try {
     $offersSql = Schema::select($pdo, 'branches', 'offers_home_service', 'br.offers_home_service', 'offersHomeService', '1');
     $apFollowSql = Schema::select($pdo, 'appointments', 'needs_followup', 'a.needs_followup', 'needsFollowup');
     $hsFollowSql = Schema::select($pdo, 'home_service_requests', 'needs_followup', 'h.needs_followup', 'needsFollowup');
+    // Estimate saved at submit (migration 065): where the admin's quote starts.
     $hsEstimateSql = Schema::select($pdo, 'home_service_requests', 'estimated_total', 'h.estimated_total', 'estimatedTotal')
         . ', ' . Schema::select($pdo, 'home_service_requests', 'travel_fee', 'h.travel_fee', 'travelFee');
     $wpReturnSql = Schema::select($pdo, 'wedding_packages', 'return_travel_minutes', 'return_travel_minutes', 'return_travel_minutes');
@@ -441,6 +442,7 @@ try {
     ");
     $eventDurations = array_map(fn($row) => ['eventType' => $row['event_type']] + $durationFields($row), $stmt->fetchAll());
 
+    // Home service price list (migration 065) for Settings > Event durations.
     $homeServicePrices = ['rates' => [], 'travelFees' => []];
     if (Schema::hasColumn($pdo, 'home_service_requests', 'estimated_total')) {
         $rates = $pdo->query('SELECT service_name, price_per_client FROM home_service_rates')->fetchAll(PDO::FETCH_KEY_PAIR);

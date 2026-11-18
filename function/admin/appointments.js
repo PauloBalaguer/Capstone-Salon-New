@@ -10,7 +10,7 @@ function adminBookingsApp() {
     bookingError: '',
     bookingRequest: 0,
     detailsBooking: null,
-    bookingEmails: null,
+    bookingEmails: null, // email log for the open booking (backend/admin/emailLog.php); null = loading
     exporting: false,
     initialized: false,
     filterTimer: null,
@@ -28,6 +28,7 @@ function adminBookingsApp() {
     depositAmount: '',
     depositMethod: '',
 
+    // Salon cancellation: refund the deposit or reschedule (backend/admin/updateBookingStatus.php).
     salonCancelBooking: null,
     salonCancelAction: '',
     salonCancelReason: '',
@@ -156,6 +157,7 @@ function adminBookingsApp() {
       this.$nextTick(() => this.$refs.bookingDetails.showModal());
       this.loadBookingEmails(booking.id);
     },
+    // Every email attempt for this booking: sent, waiting, failed (with Brevo's reason) or not sent (no address).
     async loadBookingEmails(reference) {
       this.bookingEmails = null;
       const r = await Alpine.store('admin').get('emailLog.php', { reference });
@@ -340,6 +342,7 @@ function adminBookingsApp() {
 
     openHomeServiceQuote(booking) {
       this.quoteBooking = booking;
+      // A new quote starts from the estimate saved when the customer submitted (migration 065).
       this.quotePrice = booking.quotePrice || booking.estimatedTotal || '';
       this.reservationFee = booking.depositAmount || '';
       this.openHomeServiceQuoteModal = true;
@@ -411,6 +414,7 @@ function adminBookingsApp() {
       const store = Alpine.store('admin');
       const result = await store.post('homeServiceBalance.php', { id: booking.id, action: 'sendLink' });
       if (result.success && result.payUrl && !result.emailed) {
+        // Not emailed (no address / email off): show the link so it can be sent by text or chat.
         const link = await LMPrompt({ title: 'Share the payment link', message: result.message, value: result.payUrl, label: 'Payment link', confirmLabel: 'Copy link' });
         if (link !== null) { try { await navigator.clipboard.writeText(result.payUrl); LMToast.show('Link copied.', 'success'); } catch (e) { /* select it from the box instead */ } }
       } else {

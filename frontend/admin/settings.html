@@ -168,6 +168,7 @@
         <div class="lm-empty" x-show="!$store.admin.eventDurations.length"><h3>No event types found</h3><p>Run database/migrations/054_event_durations.sql.</p></div>
       </section>
 
+      <!-- Home service price list (migration 065): the request forms show an estimate from these. -->
       <section class="lm-card" x-show="settingsTab === 'durations' && !$store.admin.loading" aria-labelledby="hsPriceTitle">
         <div class="lm-card-head"><div><h2 id="hsPriceTitle">Home service prices &amp; travel fees</h2><p>Customers see an estimate while they fill in a request: each service's price × number of clients (weddings use the package price), plus the travel fee for the venue's city. Your quote is final. <b>The amounts in the database start as placeholders</b>; replace them with the salon's real prices.</p></div></div>
         <form class="lm-form" @submit.prevent="saveHomeServicePrices()" x-show="$store.admin.homeServicePrices.rates.length">

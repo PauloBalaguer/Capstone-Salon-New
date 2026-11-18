@@ -152,6 +152,7 @@ class HomeServiceRequest
     {
         $services = self::requestedServices($request);
         if (!$services || array_diff($services, self::SERVICES)) return ['available'=>false, 'message'=>'Please review the requested event services before checking availability.'];
+        // New requests only: existing ones (with an id) keep their own reschedule/confirm rules.
         if (empty($request['id']) && $fixedTeam === null && ($problem = self::noticeProblem((string) ($request['preferred_date'] ?? '')))) return ['available'=>false, 'message'=>$problem];
         // Responsible branch: its hours, holidays and home-service eligibility
         // (older requests without a branch skip this until Admin sets one).

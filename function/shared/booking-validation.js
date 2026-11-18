@@ -23,7 +23,7 @@ window.BookingFormValidation = (() => {
     else if (kind === 'date' && (!/^\d{4}-\d{2}-\d{2}$/.test(value) || !Number.isFinite(Date.parse(value + 'T00:00:00Z')) || new Date(value + 'T00:00:00Z').toISOString().slice(0, 10) !== value)) message = 'Please select a valid appointment date.';
     else if (kind === 'time' && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value)) message = 'Please select a valid appointment time.';
     if (!message && kind === 'mobile' && input.value !== mobile(value)) {
-      input.value = mobile(value);
+      input.value = mobile(value); // +63 917 123 4567 -> 09171234567 (what the server stores)
       input.dispatchEvent(new Event('input', { bubbles: true }));
     }
     if (!message && value && ['money', 'quantity'].includes(kind) && input.min !== '' && Number(value) < Number(input.min)) message = 'Please enter an amount of at least ' + input.min + '.';
@@ -77,6 +77,7 @@ window.BookingFormValidation = (() => {
   document.addEventListener('input', event => {
     const input = event.target;
     if (input instanceof HTMLInputElement && identify(input) === 'mobile') {
+      // +63 917 123 4567 (typed or pasted) becomes 09171234567 as you go.
       const typed = input.value.replace(/[^0-9+]/g, '');
       input.value = (/^\+?63/.test(typed) ? '0' + typed.replace(/^\+?63/, '') : typed).replace(/\D/g, '').slice(0, 11);
     }

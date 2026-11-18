@@ -16,7 +16,7 @@ require_once '../../backend/shared/config/security/RateLimiter.php';
 require_once __DIR__ . '/../shared/config/booking/GuestBookingLimit.php';
 
 sendCorsHeaders();
-LiveUpdates::afterThisRequest();
+LiveUpdates::afterThisRequest(); // Pusher: open panels refresh after this save (setup/live-updates.php)
 AuditLog::captureRequest();
 header('Content-Type: application/json');
 
@@ -26,6 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
+// Limit: 5 home service requests per IP address per 30 seconds (stops rapid repeat submits).
 $ip_address = RateLimiter::getIpAddress();
 $request_limiter = new RateLimiter($ip_address, 'submit_home_service', 5, 30);
 
@@ -182,6 +183,7 @@ try {
         )
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
     ');
+    // Recalculated here from the price list; the admin's quote starts from it.
     $estimate = HomeServiceRequest::estimate($pdo, $eventType, (string) $weddingPackage, $services, (int) $clients, (string) $structuredAddress['city']);
     $ins->execute([
         $referenceCode, $customerId, $homeBranchId, $email, $address, json_encode($structuredAddress), $eventType, $eventType === 'Wedding' ? $weddingPackage : null, $date, $time, $fullRequests, (int) $clients,

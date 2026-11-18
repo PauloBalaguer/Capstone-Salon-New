@@ -11,6 +11,7 @@ header('Content-Type: application/json');
 echo json_encode([
     'success' => true,
     'lateGraceMinutes' => Scheduling::arrivalGraceMinutes(),
+    // How long an unpaid online booking holds its slot (the booking Terms quote it).
     'holdMinutes' => PayMongo::HOLD_MINUTES,
     'lateArrivalRule' => Scheduling::lateArrivalRule(),
 ]);

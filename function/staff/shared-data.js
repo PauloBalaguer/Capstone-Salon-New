@@ -416,6 +416,7 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
+    /* ---------- Profile ---------- */
 
     async saveProfile(fields) {
       this.busy = true;

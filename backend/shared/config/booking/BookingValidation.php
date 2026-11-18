@@ -86,6 +86,7 @@ final class BookingValidation
             }
         }
         if (!$errors) {
+            // Every caller passes $_POST: store mobile numbers one way (09XXXXXXXXX), however they were typed.
             foreach ($rules as $field => $rule) {
                 if ($rule[0] === 'mobile' && isset($_POST[$field]) && is_string($_POST[$field]) && ($n = PhoneNumber::normalize($_POST[$field]))) $_POST[$field] = $n;
             }

@@ -116,6 +116,7 @@ final class CancellationPolicy
             AuditLog::record($pdo, 'booking/salon_cancel', 'Cancelled by the salon (deposit refunded)', $reference, $reason);
             return;
         }
+        // The customer asked at the counter: the non-refundable rule applies (apply() sends the deposit notice).
         CustomerNotifier::notify($pdo, $customerId, 'CANCELLED', "Your appointment {$reference} was cancelled as you requested. Note: {$reason}.", $reference);
         self::apply($pdo, $appointment, self::BY_CUSTOMER);
         AuditLog::record($pdo, 'booking/customer_cancel', 'Cancelled at the customer\'s request', $reference, $reason);
@@ -194,8 +195,10 @@ final class CancellationPolicy
         $reference = $appointment['reference_code'];
 
         if ($outcome === 'Refund Due') {
+            // Recorded against the payment: amount, reason, admin and (created_at) date.
             PaymentLog::record($pdo, 'refund_due', (int) $appointment['id'], $reference, null, $amount, $outcome,
                 ['trigger' => $trigger, 'reason' => $reason, 'by_user_id' => $_SESSION['user_id'] ?? null, 'method' => $appointment['deposit_method']]);
+            // The caller sends one cancellation notice that includes this sentence.
             return "Your {$peso} reservation deposit will be refunded in full"
                 . (PayMongo::isOnline($appointment['deposit_method']) ? ' to your original GCash, Maya or card payment.' : '. The branch will contact you to return it.');
         }

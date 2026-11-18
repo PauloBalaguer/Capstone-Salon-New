@@ -244,6 +244,7 @@ function adminSettingsApp() {
       this.loadBranchForm();
     },
 
+    // Home service price list (migration 065): per-client service prices and travel fees.
     async saveHomeServicePrices() {
       const store = Alpine.store('admin');
       const prices = {

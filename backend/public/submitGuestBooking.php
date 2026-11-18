@@ -28,7 +28,7 @@ require_once __DIR__ . '/../shared/config/booking/GuestBookingLimit.php';
 date_default_timezone_set('Asia/Manila');
 
 sendCorsHeaders();
-LiveUpdates::afterThisRequest();
+LiveUpdates::afterThisRequest(); // Pusher: open panels refresh after this save (setup/live-updates.php)
 AuditLog::captureRequest();
 header('Content-Type: application/json');
 

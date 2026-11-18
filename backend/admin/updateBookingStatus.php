@@ -13,7 +13,7 @@ require_once '../../backend/shared/config/booking/HomeServiceRequest.php';
 require_once '../../backend/shared/config/payments/ReservationPayment.php';
 
 sendCorsHeaders();
-LiveUpdates::afterThisRequest();
+LiveUpdates::afterThisRequest(); // Pusher: open panels refresh after this save (setup/live-updates.php)
 AuditLog::captureRequest();
 header('Content-Type: application/json');
 
@@ -165,6 +165,7 @@ try {
             echo json_encode(['success' => false, 'message' => $error]);
             exit();
         }
+        // Reschedule keeps the booking (and its deposit) open; the customer picks a new time.
         if ($salonAction === 'reschedule') $status = 'Reschedule Requested';
     }
 
@@ -297,6 +298,7 @@ try {
             CustomerNotifier::notify($pdo, $appointmentCustomerId, 'SERVICE_FINISHED', "Your service for {$referenceCode} is finished. Please proceed to the cashier to complete your visit.");
         } elseif (in_array($status, ['Reschedule Requested', 'Reschedule Required'], true)) {
             if ($salonAction === 'reschedule') {
+                // The salon can't keep this time: the booking and its deposit stay; the customer picks a new time.
                 CancellationPolicy::closeByStaff($pdo, $appointment, 'reschedule', $cancelReason);
             } else {
                 CustomerNotifier::notify($pdo, $appointmentCustomerId, 'RESCHEDULE', "Your appointment {$referenceCode} needs a schedule change. Please check the details.");

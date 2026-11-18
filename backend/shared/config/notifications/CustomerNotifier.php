@@ -97,6 +97,7 @@ final class CustomerNotifier
         // reschedule with it, and their shared customer record may have none.
         if (!empty($details['contactEmail'])) $customer['email'] = $details['contactEmail'];
 
+        // No address or email turned off: nothing to send, but the attempt is logged (Admin email log).
         if (isset(self::EMAIL_SUBJECTS[$type]) && (!$customer['email'] || (int) $customer['notify_email'] !== 1)) {
             self::$lastEmail = $customer['email'] ? 'opted_out' : 'no_email';
             EmailOutbox::logSkipped($pdo, $customer['email'], self::EMAIL_SUBJECTS[$type] . ($reference ? " ({$reference})" : ''), $emailMessage, $reference,

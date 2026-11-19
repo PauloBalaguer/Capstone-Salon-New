@@ -633,7 +633,8 @@ html body.cp-portal .cp-modal-actions { display: flex; justify-content: flex-end
 
   html body.cp-portal #customer-mobile-nav.cp-bottom-nav {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 45;
-    display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+    /* The 2nd item ("Book Appointment") gets a wider column so "Appointment" never breaks mid-word on small phones. */
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
     padding: 4px max(4px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(4px, env(safe-area-inset-left, 0px));
     background: rgba(255, 255, 255, .97) !important;
     border-top: 1px solid var(--cp-line) !important;
@@ -652,7 +653,8 @@ html body.cp-portal .cp-modal-actions { display: flex; justify-content: flex-end
     text-align: center; white-space: normal; overflow-wrap: anywhere;
   }
   html body.cp-portal #customer-mobile-nav .cp-bottom-link.is-active { color: var(--cp-green) !important; }
-  html body.cp-portal #customer-mobile-nav .cp-bottom-link.is-active span { font-weight: 800; }
+  /* Same weight as the other labels: bolder text made "Appointment" too wide and it broke mid-word. */
+  html body.cp-portal #customer-mobile-nav .cp-bottom-link.is-active span { font-weight: 700; }
   html body.cp-portal #customer-mobile-nav .cp-bottom-link:focus-visible { outline: 2px solid var(--cp-green); outline-offset: -2px; }
 
   /* Sidebar -> slide-in menu drawer (opened from the bottom bar's Menu button). */
